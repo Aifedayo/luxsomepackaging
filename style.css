@@ -1,0 +1,617 @@
+:root {
+    --white: #ffffff;
+    --off-white: #fafafa;
+    --light-grey: #f1f1f1;
+    --black: #050505;
+    --dark-grey: #2b2b2b;
+    --medium-grey: #666666;
+    --border-grey: #d4d4d4;
+    --shadow: 0 14px 30px rgba(0, 0, 0, 0.13);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    color: var(--black);
+    background: var(--white);
+    font-family: "Montserrat", sans-serif;
+}
+
+img {
+    display: block;
+    width: 100%;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+
+/* Header */
+
+.site-header {
+    width: 100%;
+    max-width: 1440px;
+
+    margin: 0 auto;
+    padding: 48px 48px 0;
+}
+
+.logo-image {
+    width: 185px;
+    height: auto;
+}
+
+
+/* Hero */
+
+.hero-section {
+    min-height: 720px;
+    background: var(--white);
+}
+
+.hero-container {
+    width: 100%;
+    max-width: 1440px;
+
+    display: grid;
+    grid-template-columns: 38% 62%;
+    align-items: center;
+
+    margin: 0 auto;
+    padding: 0 48px 70px;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
+}
+
+.hero-content h1 {
+    margin: 0 0 34px;
+
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(3.8rem, 5.5vw, 6rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 0.97;
+    letter-spacing: -0.045em;
+}
+
+.hero-content p {
+    margin: 0 0 38px;
+
+    color: var(--dark-grey);
+
+    font-size: 1.18rem;
+    line-height: 1.45;
+}
+
+.whatsapp-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 250px;
+    min-height: 55px;
+
+    padding: 0 28px;
+
+    color: var(--white);
+    background: var(--black);
+
+    border: 2px solid var(--black);
+    border-radius: 7px;
+
+    font-size: 0.73rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.whatsapp-button:hover {
+    color: var(--black);
+    background: var(--white);
+
+    transform: translateY(-2px);
+}
+
+
+/* Hero image puzzle layout */
+
+.hero-image-area {
+    position: relative;
+
+    width: 100%;
+    min-height: 590px;
+}
+
+.shape {
+    position: absolute;
+
+    overflow: hidden;
+
+    background: #850c23;
+}
+
+.shape img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.shape-top {
+    top: 8px;
+    left: 30%;
+
+    width: 44%;
+    height: 205px;
+
+    border-radius: 22px 22px 0 0;
+}
+
+.shape-left {
+    top: 120px;
+    left: 13%;
+
+    width: 28%;
+    height: 230px;
+
+    border-radius: 22px 0 0 22px;
+}
+
+.shape-right {
+    top: 122px;
+    right: 1%;
+
+    width: 34%;
+    height: 260px;
+
+    border-radius: 0 22px 22px 0;
+}
+
+.shape-bottom {
+    top: 315px;
+    left: 13%;
+
+    width: 67%;
+    height: 255px;
+
+    border-radius: 22px;
+}
+
+.shape-top img,
+.shape-left img,
+.shape-right img,
+.shape-bottom img {
+    position: absolute;
+
+    width: 880px;
+    max-width: none;
+    height: 580px;
+
+    object-fit: cover;
+}
+
+.shape-top img {
+    top: 0;
+    left: -260px;
+}
+
+.shape-left img {
+    top: -112px;
+    left: -85px;
+}
+
+.shape-right img {
+    top: -115px;
+    right: -10px;
+}
+
+.shape-bottom img {
+    bottom: 0;
+    left: 0;
+}
+
+
+/* Catalogue section */
+
+.catalogue-section {
+    padding: 28px 48px 72px;
+
+    background: var(--light-grey);
+}
+
+.catalogue-heading {
+    max-width: 1000px;
+
+    margin: 0 auto 70px;
+
+    text-align: center;
+}
+
+.section-label {
+    margin: 0 0 19px;
+
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.catalogue-heading h2 {
+    margin: 0;
+
+    color: #282828;
+
+    font-size: clamp(2.5rem, 4.5vw, 4rem);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.catalogue-grid {
+    width: 100%;
+    max-width: 1160px;
+
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 78px;
+
+    margin: 0 auto;
+}
+
+.catalogue-item {
+    text-align: center;
+}
+
+.catalogue-cover-link {
+    display: block;
+}
+
+.catalogue-cover {
+    aspect-ratio: 0.72;
+
+    object-fit: cover;
+
+    background: var(--white);
+
+    box-shadow: var(--shadow);
+
+    transition: transform 0.25s ease;
+}
+
+.catalogue-cover:hover {
+    transform: translateY(-6px);
+}
+
+.catalogue-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    margin: 22px 0 18px;
+
+    color: var(--dark-grey);
+
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.pdf-icon {
+    color: #d51327;
+
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+.meta-dot {
+    color: var(--black);
+}
+
+.catalogue-description {
+    max-width: 430px;
+
+    margin: 0 auto 30px;
+
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.93rem;
+    line-height: 1.45;
+}
+
+.catalogue-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.download-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    min-width: 235px;
+    min-height: 55px;
+
+    padding: 0 22px;
+
+    color: var(--black);
+    background: transparent;
+
+    border: 2px solid var(--black);
+    border-radius: 7px;
+
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.86rem;
+    text-transform: uppercase;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.download-button:hover {
+    color: var(--white);
+    background: var(--black);
+
+    transform: translateY(-2px);
+}
+
+.download-icon {
+    display: inline-grid;
+    place-items: center;
+
+    width: 19px;
+    height: 19px;
+
+    color: var(--white);
+    background: var(--black);
+
+    border-radius: 50%;
+
+    font-family: Arial, sans-serif;
+    font-size: 0.8rem;
+}
+
+
+/* Footer */
+
+.site-footer {
+    padding: 47px 30px 34px;
+
+    color: var(--white);
+    background: var(--black);
+
+    text-align: center;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+}
+
+.footer-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    color: var(--white);
+
+    font-size: 0.84rem;
+    letter-spacing: 0.12em;
+
+    transition: opacity 0.2s ease;
+}
+
+.footer-links a:hover {
+    opacity: 0.7;
+}
+
+.footer-icon {
+    font-size: 1rem;
+}
+
+.footer-divider {
+    width: 1px;
+    height: 20px;
+
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.copyright {
+    margin: 28px 0 0;
+
+    color: #aaa;
+
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+}
+
+
+/* Tablet */
+
+@media (max-width: 1024px) {
+
+    .hero-container {
+        grid-template-columns: 40% 60%;
+
+        padding-inline: 32px;
+    }
+
+    .site-header {
+        padding-inline: 32px;
+    }
+
+    .hero-image-area {
+        min-height: 520px;
+    }
+
+    .shape-bottom {
+        height: 220px;
+    }
+
+    .catalogue-grid {
+        gap: 40px;
+    }
+
+}
+
+
+/* Mobile */
+
+@media (max-width: 760px) {
+
+    .site-header {
+        padding: 28px 22px 0;
+    }
+
+    .logo-image {
+        width: 150px;
+    }
+
+    .hero-section {
+        min-height: auto;
+    }
+
+    .hero-container {
+        grid-template-columns: 1fr;
+        gap: 45px;
+
+        padding: 70px 22px 50px;
+    }
+
+    .hero-content {
+        text-align: center;
+    }
+
+    .hero-content h1 {
+        font-size: clamp(3.5rem, 16vw, 5.3rem);
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+    }
+
+    .hero-image-area {
+        min-height: 440px;
+    }
+
+    .shape-top {
+        left: 28%;
+
+        width: 55%;
+        height: 155px;
+    }
+
+    .shape-left {
+        top: 100px;
+        left: 3%;
+
+        width: 34%;
+        height: 190px;
+    }
+
+    .shape-right {
+        top: 103px;
+
+        width: 34%;
+        height: 205px;
+    }
+
+    .shape-bottom {
+        top: 255px;
+        left: 5%;
+
+        width: 78%;
+        height: 175px;
+    }
+
+    .catalogue-section {
+        padding: 52px 22px 60px;
+    }
+
+    .catalogue-heading {
+        margin-bottom: 45px;
+    }
+
+    .section-label {
+        font-size: 0.83rem;
+    }
+
+    .catalogue-heading h2 {
+        font-size: 2.3rem;
+    }
+
+    .catalogue-grid {
+        grid-template-columns: 1fr;
+        gap: 70px;
+
+        max-width: 500px;
+    }
+
+    .footer-links {
+        flex-direction: column;
+    }
+
+    .footer-divider {
+        display: none;
+    }
+
+}
+
+
+/* Smaller phones */
+
+@media (max-width: 420px) {
+
+    .whatsapp-button {
+        width: 100%;
+    }
+
+    .hero-image-area {
+        min-height: 360px;
+    }
+
+    .shape-top {
+        height: 125px;
+    }
+
+    .shape-left {
+        top: 80px;
+        height: 160px;
+    }
+
+    .shape-right {
+        top: 82px;
+        height: 168px;
+    }
+
+    .shape-bottom {
+        top: 210px;
+        height: 140px;
+    }
+
+    .download-button {
+        width: 100%;
+    }
+
+}
