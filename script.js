@@ -8,6 +8,13 @@ document.addEventListener("DOMContentLoaded", () => {
     initialisePricingFlipbook();
 });
 
+document.querySelectorAll("[data-open-flipbook]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+        event.preventDefault();
+        openFlipbook();
+    });
+});
+
 
 function initialisePricingFlipbook() {
     /*
@@ -17,21 +24,21 @@ function initialisePricingFlipbook() {
      * in which the pages appear in the flipbook.
      */
     const cataloguePages = [
-        "assets/images/flipbook/25.png",
-        "assets/images/flipbook/26.png",
-        "assets/images/flipbook/27.png",
-        "assets/images/flipbook/28.png",
-        "assets/images/flipbook/29.png",
-        "assets/images/flipbook/30.png",
-        "assets/images/flipbook/31.png",
-        "assets/images/flipbook/32.png",
-        "assets/images/flipbook/33.png",
-        "assets/images/flipbook/34.png",
-        "assets/images/flipbook/35.png",
-        "assets/images/flipbook/36.png",
-        "assets/images/flipbook/37.png",
-        "assets/images/flipbook/38.png",
-        "assets/images/flipbook/39.png"
+        "assets/images/flipbook/25.jpg",
+        "assets/images/flipbook/26.jpg",
+        "assets/images/flipbook/27.jpg",
+        "assets/images/flipbook/28.jpg",
+        "assets/images/flipbook/29.jpg",
+        "assets/images/flipbook/30.jpg",
+        "assets/images/flipbook/31.jpg",
+        "assets/images/flipbook/32.jpg",
+        "assets/images/flipbook/33.jpg",
+        "assets/images/flipbook/34.jpg",
+        "assets/images/flipbook/35.jpg",
+        "assets/images/flipbook/36.jpg",
+        "assets/images/flipbook/37.jpg",
+        "assets/images/flipbook/38.jpg",
+        "assets/images/flipbook/39.jpg"
     ];
 
     const modal = document.getElementById("flipbookModal");
@@ -112,57 +119,49 @@ function initialisePricingFlipbook() {
      * prevent layout changes during page-turn animations.
      */
     function getPageDimensions() {
+        const sourceWidth = 4419;
+        const sourceHeight = 6250;
+    
+        const pageRatio = sourceHeight / sourceWidth;
+    
+        const isMobile = window.innerWidth <= 950;
+    
         const availableWidth = Math.max(
-            window.innerWidth - 220,
+            window.innerWidth - (isMobile ? 30 : 220),
             280
         );
-
+    
         const availableHeight = Math.max(
-            window.innerHeight - 230,
-            360
+            window.innerHeight - (isMobile ? 170 : 230),
+            340
         );
-
-        const isMobile = window.innerWidth <= 950;
-
-        /*
-         * Change this ratio when your Canva page dimensions differ.
-         *
-         * 1.414 is suitable for an A-series portrait page.
-         * Height = width × 1.414
-         */
-        const pageRatio = 1.414;
-
+    
         if (isMobile) {
-            let pageWidth = Math.min(
+            const pageWidth = Math.min(
                 availableWidth,
                 availableHeight / pageRatio,
                 480
             );
-
+    
             return {
                 width: Math.floor(pageWidth),
                 height: Math.floor(pageWidth * pageRatio),
                 usePortrait: true
             };
         }
-
-        /*
-         * In landscape mode StPageFlip shows two portrait pages.
-         * The width below is the width of one individual page.
-         */
-        let pageWidth = Math.min(
+    
+        const pageWidth = Math.min(
             availableWidth / 2,
             availableHeight / pageRatio,
             520
         );
-
+    
         return {
             width: Math.floor(pageWidth),
             height: Math.floor(pageWidth * pageRatio),
             usePortrait: false
         };
     }
-
 
     function createFlipbook() {
         if (pageFlip || flipbookIsReady) {

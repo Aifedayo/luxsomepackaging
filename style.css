@@ -207,40 +207,6 @@ a {
     }
 
 
-.shape-top img,
-.shape-left img,
-.shape-right img,
-.shape-bottom img {
-    position: absolute;
-
-    width: 880px;
-    max-width: none;
-    height: 580px;
-
-    object-fit: cover;
-}
-
-.shape-top img {
-    top: 0;
-    left: -260px;
-}
-
-.shape-left img {
-    top: -112px;
-    left: -85px;
-}
-
-.shape-right img {
-    top: -115px;
-    right: -10px;
-}
-
-.shape-bottom img {
-    bottom: 0;
-    left: 0;
-}
-
-
 /* Catalogue section */
 
 .catalogue-section {
@@ -542,30 +508,33 @@ a {
    CATALOGUE BUTTON RESET
 ========================================================= */
 
-.catalogue-cover-button {
-    display: block;
-    width: 100%;
-    padding: 0;
+@media (max-width: 600px) {
+    .catalogue-actions {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
 
-    border: 0;
-    background: transparent;
+    .catalogue-actions .view-button,
+    .catalogue-actions .download-button {
+        width: auto;
+        min-height: 42px;
+        flex: 0 1 auto;
 
-    font: inherit;
-    text-align: inherit;
+        padding: 0 14px;
 
-    cursor: pointer;
+        font-size: 0.68rem;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+    }
 }
 
-.catalogue-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-}
-
-.catalogue-actions .view-button,
-.catalogue-actions .download-button {
-    flex: 1 1 175px;
+@media (max-width: 600px) {
+    .catalogue-actions .view-button,
+    .catalogue-actions .download-button {
+        min-width: 135px;
+    }
 }
 
 
