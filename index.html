@@ -35,7 +35,11 @@
 
             <header class="site-header">
 
-                <a href="#" class="logo-link" aria-label="Luxsome homepage">
+                <a
+                    href="#"
+                    class="logo-link"
+                    aria-label="Luxsome homepage"
+                >
                     <img
                         src="assets/images/luxsome-logo.png"
                         alt="Luxsome Packaging"
@@ -70,14 +74,14 @@
                         >
                             Chat on WhatsApp
                         </a>
-                    
+
                         <a
                             href="gallery.html"
                             class="gallery-button"
                         >
                             View Our Gallery
                         </a>
-                    
+
                     </div>
 
                 </div>
@@ -89,6 +93,7 @@
                         alt="Luxury packaging"
                         class="hero-image"
                     >
+
                 </div>
 
             </div>
@@ -117,7 +122,7 @@
                 <article class="catalogue-item">
 
                     <a
-                        href="catalogues/Luxsome-Product-Catalogue.pdf"
+                        href="assets/pdf/catalogues/Product-Catalogue.pdf"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="catalogue-cover-link"
@@ -142,11 +147,20 @@
                     </div>
 
                     <p class="catalogue-description">
-                        View online or download the catalogue to explore our
-                        collections, inclusions, add-ons, and more.
+                        Explore our packaging collections, box styles,
+                        customisation options and available finishing choices.
                     </p>
 
                     <div class="catalogue-actions">
+
+                        <a
+                            href="assets/pdf/catalogues/Product-Catalogue.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="view-button"
+                        >
+                            View Catalogue
+                        </a>
 
                         <a
                             href="assets/pdf/catalogues/Product-Catalogue.pdf"
@@ -154,8 +168,9 @@
                             download="Luxsome Product Catalogue.pdf"
                         >
                             <span class="download-icon">↓</span>
-                            Download Catalogue
+                            Download
                         </a>
+
                     </div>
 
                 </article>
@@ -164,24 +179,25 @@
                 <!-- Pricing catalogue -->
                 <article class="catalogue-item">
 
-                    <a
-                        href="assets/pdf/catalogues/PRICING-CATALOGUE.pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="catalogue-cover-link"
+                    <!-- Clicking the cover opens the flipbook -->
+                    <button
+                        type="button"
+                        class="catalogue-cover-link catalogue-cover-button"
+                        data-open-flipbook
+                        aria-label="Open Luxsome pricing catalogue"
                     >
                         <img
                             src="assets/images/pricing.png"
                             alt="Luxsome Pricing Catalogue 2026"
                             class="catalogue-cover"
                         >
-                    </a>
+                    </button>
 
                     <div class="catalogue-meta">
 
                         <span class="pdf-icon">PDF</span>
 
-                        <span>PDF Format</span>
+                        <span>Interactive Catalogue</span>
 
                         <span class="meta-dot">•</span>
 
@@ -190,11 +206,19 @@
                     </div>
 
                     <p class="catalogue-description">
-                        View online or download the pricing catalogue to explore
-                        our tiers, inclusions, add-ons, and more.
+                        Browse our packaging collections, prices, inclusions
+                        and ordering information in an interactive flipbook.
                     </p>
 
                     <div class="catalogue-actions">
+
+                        <button
+                            type="button"
+                            class="view-button"
+                            data-open-flipbook
+                        >
+                            View Catalogue
+                        </button>
 
                         <a
                             href="assets/pdf/catalogues/PRICING-CATALOGUE.pdf"
@@ -202,7 +226,7 @@
                             download="Luxsome Packaging Pricing Catalogue.pdf"
                         >
                             <span class="download-icon">↓</span>
-                            Download Pricing
+                            Download
                         </a>
 
                     </div>
@@ -212,7 +236,137 @@
             </div>
 
         </section>
+
     </main>
+
+
+    <!-- Full-screen flipbook modal -->
+    <div
+        class="flipbook-modal"
+        id="flipbookModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="flipbookTitle"
+        aria-hidden="true"
+    >
+
+        <div
+            class="flipbook-backdrop"
+            data-close-flipbook
+        ></div>
+
+        <div class="flipbook-dialog">
+
+            <header class="flipbook-modal-header">
+
+                <div class="flipbook-modal-heading">
+
+                    <p class="section-label">
+                        Luxsome Packaging
+                    </p>
+
+                    <h2 id="flipbookTitle">
+                        Pricing Catalogue
+                    </h2>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="flipbook-close"
+                    id="closeFlipbook"
+                    data-close-flipbook
+                    aria-label="Close pricing catalogue"
+                >
+                    ×
+                </button>
+
+            </header>
+
+
+            <div class="flipbook-viewer">
+
+                <button
+                    type="button"
+                    class="flipbook-control flipbook-previous"
+                    id="previousPage"
+                    aria-label="Previous catalogue page"
+                >
+                    ←
+                </button>
+
+
+                <div class="flipbook-shell">
+
+                    <div
+                        class="flipbook-loading"
+                        id="flipbookLoading"
+                        aria-live="polite"
+                    >
+                        <span class="flipbook-spinner"></span>
+                        <span>Loading catalogue…</span>
+                    </div>
+
+                    <div
+                        id="flipbook"
+                        class="flipbook"
+                        aria-label="Luxsome pricing catalogue pages"
+                    ></div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="flipbook-control flipbook-next"
+                    id="nextPage"
+                    aria-label="Next catalogue page"
+                >
+                    →
+                </button>
+
+            </div>
+
+
+            <footer class="flipbook-modal-footer">
+
+                <div class="page-information">
+
+                    <span>
+                        Page
+                        <strong id="currentPage">1</strong>
+                        of
+                        <strong id="totalPages">15</strong>
+                    </span>
+
+                </div>
+
+                <div class="flipbook-footer-actions">
+
+                    <button
+                        type="button"
+                        class="fullscreen-button"
+                        id="fullscreenButton"
+                    >
+                        Full Screen
+                    </button>
+
+                    <a
+                        href="assets/pdf/catalogues/PRICING-CATALOGUE.pdf"
+                        class="download-button"
+                        download="Luxsome Packaging Pricing Catalogue.pdf"
+                    >
+                        <span class="download-icon">↓</span>
+                        Download PDF
+                    </a>
+
+                </div>
+
+            </footer>
+
+        </div>
+
+    </div>
 
 
     <!-- Footer -->
@@ -255,6 +409,7 @@
         </p>
 
     </footer>
+
 
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
     <script src="script.js"></script>
