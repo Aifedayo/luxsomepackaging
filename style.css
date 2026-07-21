@@ -954,7 +954,6 @@ body.flipbook-open {
 @media (max-width: 600px) {
     .hero-buttons,
     .catalogue-actions {
-        flex-direction: column;
         align-items: stretch;
     }
 
