@@ -461,6 +461,21 @@ a {
     }
 }
 
+@media (max-width: 768px) {
+    .catalogue-actions {
+        display: flex;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .catalogue-actions .view-button,
+    .catalogue-actions .download-button {
+        flex: 1;
+        width: auto;
+        min-width: 0; /* Prevents overflow */
+    }
+}
+
 /* =========================================================
    HERO BUTTONS
 ========================================================= */
