@@ -659,6 +659,63 @@ body.flipbook-open {
     -webkit-backface-visibility: hidden;
 }
 
+.flipbook-page {
+    position: relative;
+}
+
+.flipbook-page img {
+    cursor: zoom-in;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.flipbook-page::after {
+    content: "\f00e";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+
+    display: grid;
+    place-items: center;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 50%;
+
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.65);
+
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(5px);
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.flipbook-page:hover::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .flipbook-page::after {
+        width: 34px;
+        height: 34px;
+        right: 8px;
+        bottom: 8px;
+
+        opacity: 0.85;
+        transform: none;
+    }
+}
+
 /* =========================================================
    MODAL HEADER
 ========================================================= */

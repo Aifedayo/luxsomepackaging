@@ -28,6 +28,10 @@
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     >
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.css"
+    >
 </head>
 
 <body>
@@ -418,6 +422,51 @@
 
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
     <script src="script.js"></script>
+    <script type="module">
+        import PhotoSwipeLightbox from
+            "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.js";
+    
+        const catalogueImages = Array.from(
+            { length: 15 },
+            (_, index) => ({
+                src: `assets/images/flipbook/${index + 25}.jpg`,
+                width: 1591,
+                height: 2250,
+                alt: `Luxsome pricing catalogue page ${index + 1}`
+            })
+        );
+    
+        const catalogueLightbox = new PhotoSwipeLightbox({
+            dataSource: catalogueImages,
+    
+            pswpModule: () =>
+                import(
+                    "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.js"
+                ),
+    
+            showHideAnimationType: "fade",
+            bgOpacity: 0.95,
+    
+            wheelToZoom: true,
+            pinchToClose: true,
+            closeOnVerticalDrag: true,
+    
+            initialZoomLevel: "fit",
+            secondaryZoomLevel: 2.5,
+            maxZoomLevel: 4,
+    
+            preload: [1, 2]
+        });
+    
+        catalogueLightbox.init();
+    
+        /*
+         * Make the lightbox available to your normal script.js file.
+         */
+        window.openCatalogueZoom = function (pageIndex) {
+            catalogueLightbox.loadAndOpen(pageIndex);
+        };
+    </script>
 
 </body>
 </html>
