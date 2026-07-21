@@ -633,6 +633,27 @@ body.flipbook-open {
     transform: translateY(0) scale(1);
 }
 
+.flipbook-page {
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.flipbook-page img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+
+    image-rendering: auto;
+
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
 
 /* =========================================================
    MODAL HEADER

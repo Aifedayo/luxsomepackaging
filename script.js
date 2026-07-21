@@ -119,8 +119,8 @@ function initialisePricingFlipbook() {
      * prevent layout changes during page-turn animations.
      */
     function getPageDimensions() {
-        const sourceWidth = 4419;
-        const sourceHeight = 6250;
+        const sourceWidth = 1591;
+        const sourceHeight = 2250;
     
         const pageRatio = sourceHeight / sourceWidth;
     
@@ -167,7 +167,7 @@ function initialisePricingFlipbook() {
         if (pageFlip || flipbookIsReady) {
             return;
         }
-
+    
         if (
             typeof St === "undefined" ||
             typeof St.PageFlip !== "function"
@@ -175,69 +175,98 @@ function initialisePricingFlipbook() {
             showLoadingError(
                 "The catalogue viewer could not be loaded."
             );
-
+    
             return;
         }
-
+    
         const dimensions = getPageDimensions();
-
+    
+        /*
+         * Generate real HTML image pages.
+         * This avoids StPageFlip's canvas-based image renderer
+         * and keeps catalogue text considerably sharper.
+         */
+        flipbookElement.innerHTML = "";
+    
+        cataloguePages.forEach((imagePath, index) => {
+            const page = document.createElement("div");
+            page.className = "flipbook-page";
+    
+            const image = document.createElement("img");
+            image.src = imagePath;
+            image.alt = `Luxsome pricing catalogue page ${index + 1}`;
+            image.width = 1591;
+            image.height = 2250;
+            image.draggable = false;
+    
+            if (index === 0) {
+                image.fetchPriority = "high";
+            } else {
+                image.loading = "eager";
+            }
+    
+            page.appendChild(image);
+            flipbookElement.appendChild(page);
+        });
+    
+        const pages = flipbookElement.querySelectorAll(".flipbook-page");
+    
         pageFlip = new St.PageFlip(flipbookElement, {
             width: dimensions.width,
             height: dimensions.height,
-
+    
             size: "fixed",
             autoSize: false,
-
+    
             usePortrait: dimensions.usePortrait,
             showCover: true,
-
+    
             drawShadow: true,
-            maxShadowOpacity: 0.2,
-
+            maxShadowOpacity: 0.15,
+    
             flippingTime: 700,
-
+    
             mobileScrollSupport: true,
             swipeDistance: 30,
-
+    
             showPageCorners: false,
             disableFlipByClick: false,
-
+    
             startPage: 0,
             startZIndex: 10
         });
-
+    
         /*
-         * The catalogue pages are loaded from the JavaScript
-         * array at the top of this file.
+         * Load the generated HTML elements instead of drawing
+         * the images onto a canvas.
          */
-        pageFlip.loadFromImages(cataloguePages);
-
+        pageFlip.loadFromHTML(pages);
+    
         pageFlip.on("flip", () => {
             flipbookIsAnimating = false;
             updatePageInformation();
         });
-
+    
         pageFlip.on("changeState", (event) => {
             flipbookIsAnimating = event.data === "flipping";
         });
-
+    
         pageFlip.on("changeOrientation", () => {
             updatePageInformation();
         });
-
-        totalPagesElement.textContent = pageFlip.getPageCount();
-
+    
+        totalPagesElement.textContent = pages.length;
+    
         flipbookElement.classList.add("is-ready");
-
+    
         if (loadingElement) {
             loadingElement.classList.add("is-hidden");
         }
-
+    
         flipbookIsReady = true;
-
+    
         updatePageInformation();
     }
-
 
     function updatePageInformation() {
         if (!pageFlip) {
