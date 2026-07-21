@@ -556,6 +556,10 @@ a {
     }
 }
 
+.pdf-icon {
+    color: #e53935; /* PDF red */
+}
+
 @media (max-width: 600px) {
     .catalogue-actions .view-button,
     .catalogue-actions .download-button {
