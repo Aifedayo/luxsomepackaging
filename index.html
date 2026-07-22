@@ -37,7 +37,7 @@
     <meta property="og:type"
         content="website">
     
-    <link rel="icon" href="/favicon.png">
+    <link rel="icon" href="favicon.png">
 
     <title>Luxsome Packaging Catalogue</title>
 
@@ -49,7 +49,8 @@
         rel="stylesheet"
     >
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/flipbook.css">
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
@@ -58,30 +59,96 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.css"
     >
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "Luxsome Packaging Gallery",
+            "description": "A gallery of rigid boxes, packaging systems, hang tags, cards, envelopes and finishing details created by Luxsome Packaging.",
+            "url": "https://www.luxsomepackaging.com/gallery.html",
+            "isPartOf": {
+                "@type": "WebSite",
+                "name": "Luxsome Packaging",
+                "url": "https://www.luxsomepackaging.com/"
+            },
+            "about": {
+                "@type": "Organization",
+                "name": "Luxsome Packaging",
+                "url": "https://www.luxsomepackaging.com/"
+            }
+        }
+        </script>
 </head>
 
 <body>
+    <header class="site-header">
+        <div class="container header-inner">
+
+            <a
+                href="#"
+                class="logo-link"
+                aria-label="Luxsome homepage"
+            >
+                <img
+                    src="assets/images/luxsome-logo.png"
+                    alt="Luxsome Packaging"
+                    class="logo-image"
+                >
+            </a>
+
+            <button
+                type="button"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                aria-label="Open navigation menu"
+                aria-controls="siteNavigation"
+                aria-expanded="false"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <nav
+                class="site-navigation"
+                id="siteNavigation"
+                aria-label="Main navigation"
+            >
+                <a href="index.html">
+                    Home
+                </a>
+
+                <a href="index.html#products">
+                    Products
+                </a>
+
+                <a href="index.html#catalogue">
+                    Catalogue
+                </a>
+
+                <a
+                    href="gallery.html"
+                    aria-current="page"
+                >
+                    Gallery
+                </a>
+
+                <a
+                    href="index.html#contact"
+                    class="header-contact-button"
+                >
+                    Start a Project
+                </a>
+            </nav>
+        </div>
+    </header>
 
     <main>
 
         <!-- Hero section -->
         <section class="hero-section">
-
-            <header class="site-header">
-
-                <a
-                    href="#"
-                    class="logo-link"
-                    aria-label="Luxsome homepage"
-                >
-                    <img
-                        src="assets/images/luxsome-logo.png"
-                        alt="Luxsome Packaging"
-                        class="logo-image"
-                    >
-                </a>
-
-            </header>
 
             <div class="hero-container">
 
@@ -161,7 +228,7 @@
                         aria-label="Open Luxsome product catalogue"
                     >
                         <img
-                            src="assets/images/product.jpg"
+                            src="assets/images/product.png"
                             alt="Luxsome Product Catalogue 2026"
                             class="catalogue-cover"
                         >
@@ -219,7 +286,7 @@
                         aria-label="Open Luxsome pricing catalogue"
                     >
                         <img
-                            src="assets/images/pricing.jpg"
+                            src="assets/images/pricing.png"
                             alt="Luxsome Pricing Catalogue 2026"
                             class="catalogue-cover"
                         >
@@ -269,8 +336,160 @@
             </div>
 
         </section>
+        <!-- Final CTA -->
+        <section
+            class="gallery-cta"
+            aria-labelledby="galleryCtaHeading"
+        >
+            <div class="container gallery-cta-content">
 
+                <p class="section-eyebrow">
+                    Your Brand, Beautifully Packaged
+                </p>
+
+                <h2 id="galleryCtaHeading">
+                    Ready to build your packaging system?
+                </h2>
+
+                <p>
+                    Let’s create packaging that reflects the quality of your
+                    products and gives your customers an unboxing experience
+                    worth remembering.
+                </p>
+
+                <!-- Replace the number with your Luxsome WhatsApp number -->
+                <a
+                    href="https://wa.me/2348061389594?text=Hello%20Luxsome%20Packaging,%20I%20would%20like%20to%20start%20a%20packaging%20project."
+                    class="gallery-cta-button"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <i
+                        class="fa-brands fa-whatsapp"
+                        aria-hidden="true"
+                    ></i>
+
+                    Start Your Project
+                </a>
+
+            </div>
+        </section>
     </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+
+            <div class="footer-grid">
+
+                <div class="footer-brand">
+                    <a
+                        href="index.html"
+                        class="footer-logo"
+                    >
+                        <img
+                            src="assets/images/logo-white.png"
+                            alt="Luxsome Packaging"
+                            class="logo-image"
+                        >
+                    </a>
+
+                    <p class="footer-description">
+                        Complete luxury packaging systems for fashion and
+                        lifestyle brands that want to look as premium as the
+                        products they create.
+                    </p>
+
+                    <div class="footer-socials">
+                        <a
+                            href="#"
+                            aria-label="Luxsome Packaging on Instagram"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-instagram"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                        <a
+                            href="https://wa.me/2348061389594"
+                            aria-label="Contact Luxsome Packaging on WhatsApp"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-whatsapp"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h2>
+                        Explore
+                    </h2>
+
+                    <div class="footer-links">
+                        <a href="index.html">
+                            Home
+                        </a>
+
+                        <a href="index.html#products">
+                            Products
+                        </a>
+
+                        <a href="index.html#catalogue">
+                            Catalogue
+                        </a>
+
+                        <a href="gallery.html">
+                            Gallery
+                        </a>
+                    </div>
+                </div>
+
+                <div class="footer-column">
+                    <h2>
+                        Contact
+                    </h2>
+
+                    <div class="footer-links">
+                        <a
+                            href="https://wa.me/2348061389594"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            WhatsApp
+                        </a>
+
+                        <a href="mailto:hello@luxsomepackaging.com">
+                            hello@luxsomepackaging.com
+                        </a>
+
+                        <a href="index.html#contact">
+                            Start a Project
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="footer-bottom">
+                <span>
+                    &copy; <span id="currentYear"></span>
+                    Luxsome Packaging. All rights reserved.
+                </span>
+
+                <span>
+                    Packaging created to be remembered.
+                </span>
+            </div>
+
+        </div>
+    </footer>
 
     <!-- Full-screen Product flipbook modal -->
     <div
@@ -434,7 +653,7 @@
                 <button
                     type="button"
                     class="flipbook-close"
-                    id="closeFlipbook"
+                    id="closePricingFlipbook"
                     data-close-flipbook
                     aria-label="Close pricing catalogue"
                 >
@@ -529,132 +748,13 @@
     </div>
 
 
-    <!-- Footer -->
-    <footer class="site-footer">
-
-        <div class="footer-links">
-
-            <a
-                href="https://instagram.com/luxsomepackaging"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                <i class="fa-brands fa-instagram"></i>
-                luxsomepackaging
-            </a>
-
-            <span class="footer-divider"></span>
-
-            <a href="mailto:info@luxsomepackaging.com">
-                <span class="footer-icon">✉</span>
-                info@luxsomepackaging.com
-            </a>
-
-            <span class="footer-divider"></span>
-
-            <a
-                href="https://wa.me/2348061389594"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                <i class="fa-brands fa-whatsapp"></i>
-                +2348061389594
-            </a>
-
-        </div>
-
-        <p class="copyright">
-            © <span id="currentYear"></span> Luxsome Packaging.
-            All rights reserved.
-        </p>
-
-    </footer>
-
-
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
-    <script src="js/script.js"></script>
-    <script type="module">
-        import PhotoSwipeLightbox from
-            "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.js";
+    <script src="js/main.js"></script>
+    <script src="js/flipbook.js"></script>
+    <script
+        type="module"
+        src="js/catalogue-lightbox.js"
+    ></script>
     
-        const catalogueImages = Array.from(
-            { length: 15 },
-            (_, index) => ({
-                src: `assets/images/flipbook/${index + 25}.jpg`,
-                width: 1591,
-                height: 2250,
-                alt: `Luxsome pricing catalogue page ${index + 1}`
-            })
-        );
-        const productImages = Array.from(
-            { length: 15 },
-            (_, index) => ({
-                src: `assets/images/flipbook/${index + 1}.png`,
-                width: 1591,
-                height: 2250,
-                alt: `Luxsome Product Catalogue Page ${index + 1}`
-            })
-        );
-    
-        const catalogueLightbox = new PhotoSwipeLightbox({
-            dataSource: catalogueImages,
-    
-            pswpModule: () =>
-                import(
-                    "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.js"
-                ),
-    
-            showHideAnimationType: "fade",
-            bgOpacity: 0.95,
-    
-            wheelToZoom: true,
-            pinchToClose: true,
-            closeOnVerticalDrag: true,
-    
-            initialZoomLevel: "fit",
-            secondaryZoomLevel: 2.5,
-            maxZoomLevel: 4,
-    
-            preload: [1, 2]
-        });
-    
-        catalogueLightbox.init();
-
-        const productLightbox = new PhotoSwipeLightbox({
-            dataSource: productImages,
-
-            pswpModule: () =>
-                import(
-                    "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.js"
-                ),
-
-            showHideAnimationType: "fade",
-            bgOpacity: 0.95,
-    
-            wheelToZoom: true,
-            pinchToClose: true,
-            closeOnVerticalDrag: true,
-    
-            initialZoomLevel: "fit",
-            secondaryZoomLevel: 2.5,
-            maxZoomLevel: 4,
-    
-            preload: [1, 2]
-        });
-
-        productLightbox.init();
-    
-        /*
-         * Make the lightbox available to your normal script.js file.
-         */
-        window.openCatalogueZoom = function (pageIndex) {
-            catalogueLightbox.loadAndOpen(pageIndex);
-        };
-
-        window.openProductCatalogueZoom = function(pageIndex) {
-            productLightbox.loadAndOpen(pageIndex);
-        };
-    </script>
-
 </body>
 </html>

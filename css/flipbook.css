@@ -1,0 +1,573 @@
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+body.flipbook-open {
+    overflow: hidden;
+}
+
+.flipbook-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: none;
+
+    padding: 18px;
+
+    opacity: 0;
+    visibility: hidden;
+
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s ease;
+}
+
+.flipbook-modal.is-open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    opacity: 1;
+    visibility: visible;
+}
+
+.flipbook-backdrop {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(18, 13, 11, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.flipbook-dialog {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    flex-direction: column;
+
+    width: min(1380px, 100%);
+    height: min(920px, calc(100vh - 36px));
+
+    overflow: hidden;
+
+    background: #f3efe9;
+    border-radius: 8px;
+
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.4);
+
+    transform: translateY(18px) scale(0.985);
+
+    transition: transform 0.25s ease;
+}
+
+.flipbook-modal.is-open .flipbook-dialog {
+    transform: translateY(0) scale(1);
+}
+
+.flipbook-page {
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.flipbook-page img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+
+    image-rendering: auto;
+
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.flipbook-page {
+    position: relative;
+}
+
+.flipbook-page img {
+    cursor: zoom-in;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.flipbook-page::after {
+    content: "\f00e";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+
+    display: grid;
+    place-items: center;
+
+    width: 38px;
+    height: 38px;
+
+    border-radius: 50%;
+
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.65);
+
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(5px);
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.flipbook-page:hover::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .flipbook-page::after {
+        width: 34px;
+        height: 34px;
+        right: 8px;
+        bottom: 8px;
+
+        opacity: 0.85;
+        transform: none;
+    }
+}
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.flipbook-modal-header {
+    position: relative;
+    z-index: 20;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+
+    min-height: 92px;
+    padding: 18px 28px;
+
+    background: #f3efe9;
+    border-bottom: 1px solid rgba(23, 23, 23, 0.12);
+}
+
+.flipbook-modal-heading {
+    text-align: left;
+}
+
+.flipbook-modal-heading .section-label {
+    margin: 0 0 4px;
+}
+
+.flipbook-modal-heading h2 {
+    margin: 0;
+
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(1.7rem, 3vw, 2.6rem);
+    font-weight: 400;
+    line-height: 1;
+}
+
+.flipbook-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+
+    padding: 0;
+
+    color: #171717;
+    background: transparent;
+
+    border: 1px solid rgba(23, 23, 23, 0.4);
+    border-radius: 50%;
+
+    font-family: Arial, sans-serif;
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.flipbook-close:hover {
+    color: #ffffff;
+    background-color: #171717;
+    transform: rotate(90deg);
+}
+
+
+/* =========================================================
+   FLIPBOOK VIEWER
+========================================================= */
+
+.flipbook-viewer {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+
+    min-height: 0;
+    flex: 1;
+
+    padding: 24px 28px;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(255, 255, 255, 0.72),
+            rgba(220, 211, 201, 0.4)
+        );
+}
+
+.flipbook-shell {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: min(1100px, calc(100vw - 220px));
+    height: 100%;
+    max-height: 720px;
+
+    overflow: visible;
+}
+
+.flipbook {
+    width: 100%;
+    height: 100%;
+
+    opacity: 0;
+    visibility: hidden;
+
+    backface-visibility: hidden;
+    transform: translateZ(0);
+
+    transition: opacity 0.2s ease;
+}
+
+.flipbook.is-ready {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* =========================================================
+   LOADING STATE
+========================================================= */
+
+.flipbook-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+
+    color: #655e58;
+
+    font-family: "Montserrat", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.flipbook-loading.is-hidden {
+    display: none;
+}
+
+.flipbook-spinner {
+    width: 36px;
+    height: 36px;
+
+    border: 2px solid rgba(23, 23, 23, 0.18);
+    border-top-color: #171717;
+    border-radius: 50%;
+
+    animation: flipbook-spin 0.8s linear infinite;
+}
+
+@keyframes flipbook-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* =========================================================
+   NAVIGATION CONTROLS
+========================================================= */
+
+.flipbook-control {
+    position: relative;
+    z-index: 40;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+
+    padding: 0;
+
+    color: #ffffff;
+    background: #171717;
+
+    border: 1px solid #171717;
+    border-radius: 50%;
+
+    font-size: 1.35rem;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.flipbook-control:hover:not(:disabled) {
+    color: #171717;
+    background: #ffffff;
+    transform: scale(1.06);
+}
+
+.flipbook-control:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+
+/* =========================================================
+   MODAL FOOTER
+========================================================= */
+
+.flipbook-modal-footer {
+    position: relative;
+    z-index: 20;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    min-height: 84px;
+    padding: 14px 28px;
+
+    background: #f3efe9;
+    border-top: 1px solid rgba(23, 23, 23, 0.12);
+}
+
+.page-information {
+    font-family: "Montserrat", sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+}
+
+.page-information strong {
+    font-weight: 700;
+}
+
+.flipbook-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fullscreen-button,
+.flipbook-modal-footer .download-button {
+    min-height: 46px;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 950px) {
+    .flipbook-modal {
+        padding: 10px;
+    }
+
+    .flipbook-dialog {
+        height: calc(100vh - 20px);
+    }
+
+    .flipbook-viewer {
+        padding: 18px 12px;
+    }
+
+    .flipbook-shell {
+        width: min(76vw, 560px);
+        max-height: 680px;
+    }
+
+    .flipbook-control {
+        position: absolute;
+        top: 50%;
+
+        transform: translateY(-50%);
+    }
+
+    .flipbook-control:hover:not(:disabled) {
+        transform: translateY(-50%) scale(1.06);
+    }
+
+    .flipbook-previous {
+        left: 14px;
+    }
+
+    .flipbook-next {
+        right: 14px;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+    .hero-buttons,
+    .catalogue-actions {
+        align-items: stretch;
+    }
+
+    .hero-buttons a,
+    .catalogue-actions a,
+    .catalogue-actions button {
+        width: 100%;
+    }
+
+    .flipbook-modal {
+        padding: 0;
+    }
+
+    .flipbook-dialog {
+        width: 100%;
+        height: 100%;
+        max-height: none;
+
+        border-radius: 0;
+    }
+
+    .flipbook-modal-header {
+        min-height: 72px;
+        padding: 12px 14px;
+    }
+
+    .flipbook-modal-heading .section-label {
+        display: none;
+    }
+
+    .flipbook-modal-heading h2 {
+        font-size: 1.55rem;
+    }
+
+    .flipbook-close {
+        width: 42px;
+        height: 42px;
+        flex-basis: 42px;
+    }
+
+    .flipbook-viewer {
+        padding: 10px 4px;
+    }
+
+    .flipbook-shell {
+        width: min(94vw, 480px);
+        max-height: none;
+    }
+
+    .flipbook-control {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+
+        background: rgba(23, 23, 23, 0.85);
+    }
+
+    .flipbook-previous {
+        left: 6px;
+    }
+
+    .flipbook-next {
+        right: 6px;
+    }
+
+    .flipbook-modal-footer {
+        min-height: 72px;
+        padding: 10px 14px;
+    }
+
+    .flipbook-footer-actions {
+        gap: 8px;
+    }
+
+    .fullscreen-button {
+        display: none;
+    }
+
+    .flipbook-modal-footer .download-button {
+        min-height: 42px;
+        padding: 0 14px;
+
+        font-size: 0.68rem;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .flipbook-modal,
+    .flipbook-dialog,
+    .flipbook,
+    .flipbook-close,
+    .flipbook-control {
+        transition: none;
+    }
+
+    .flipbook-spinner {
+        animation: none;
+    }
+}
