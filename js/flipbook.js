@@ -1169,7 +1169,7 @@ function initialiseProductFlipbook() {
             return;
         }
 
-        if (typeof window.openCatalogueZoom !== "function") {
+        if (typeof window.openProductCatalogueZoom !== "function") {
             console.error(
                 "PhotoSwipe has not finished loading or window.openCatalogueZoom is missing."
             );
