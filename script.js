@@ -480,6 +480,11 @@ function initialisePricingFlipbook() {
         ) {
             lastFocusedElement.focus();
         }
+
+        if (pageFlip) {
+            pageFlip.turnToPage(0);
+        }
+        updatePageInformation();
     }
 
 
@@ -1292,6 +1297,13 @@ function initialiseProductFlipbook() {
         ) {
             lastFocusedElement.focus();
         }
+
+        setTimeout(() => {
+            if (pageFlip) {
+                pageFlip.turnToPage(0);
+                updatePageInformation();
+            }
+        }, 300); // Match your modal's closing animation duration
     }
 
 

@@ -591,6 +591,8 @@
     
             preload: [1, 2]
         });
+    
+        catalogueLightbox.init();
 
         const productLightbox = new PhotoSwipeLightbox({
             dataSource: productImages,
@@ -598,10 +600,23 @@
             pswpModule: () =>
                 import(
                     "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.js"
-                )
-        });
+                ),
+
+            showHideAnimationType: "fade",
+            bgOpacity: 0.95,
     
-        catalogueLightbox.init();
+            wheelToZoom: true,
+            pinchToClose: true,
+            closeOnVerticalDrag: true,
+    
+            initialZoomLevel: "fit",
+            secondaryZoomLevel: 2.5,
+            maxZoomLevel: 4,
+    
+            preload: [1, 2]
+        });
+
+        productLightbox.init();
     
         /*
          * Make the lightbox available to your normal script.js file.
