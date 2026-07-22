@@ -482,13 +482,17 @@ a {
 
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 78px;
+    gap: 64px;
 
     margin: 0 auto;
+    justify-content: center;
 }
 
 .catalogue-item {
     text-align: center;
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
 }
 
 .catalogue-cover-link {
@@ -505,6 +509,8 @@ a {
     box-shadow: var(--shadow);
 
     transition: transform 0.25s ease;
+    width: 90%;
+    margin: 0 auto;
 }
 
 .catalogue-cover:hover {
@@ -911,7 +917,7 @@ a {
         width: 100%;
     }
 
-}
+    }
 
 /* CTA */
 
@@ -922,10 +928,7 @@ a {
     text-align: center;
 }
 
-.gallery-cta-content {
-    width: min(720px, 100%);
-    margin: 0 auto;
-}
+
 
 .gallery-cta .section-eyebrow {
     color: #d5a68f;
