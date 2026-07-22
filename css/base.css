@@ -341,7 +341,7 @@ a {
     margin: 0 0 34px;
 
     font-family: "DM Serif Display", serif;
-    font-size: clamp(3.8rem, 3vw, 3rem);
+    font-size: clamp(3rem, 3vw, 3rem);
     font-style: italic;
     font-weight: 400;
     line-height: 0.97;
@@ -822,7 +822,7 @@ a {
         grid-template-columns: 1fr;
         gap: 45px;
 
-        padding: 70px 22px 50px;
+        padding: 90px 22px 50px;
     }
 
     .hero-content {
@@ -830,7 +830,7 @@ a {
     }
 
     .hero-content h1 {
-        font-size: clamp(3.5rem, 16vw, 5.3rem);
+        font-size: clamp(3rem, 4vw, 5.3rem);
     }
 
     .hero-content p {

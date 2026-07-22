@@ -66,7 +66,6 @@ function initialisePricingFlipbook() {
     let pageFlip = null;
     let modalIsOpen = false;
     let flipbookIsReady = false;
-    let flipbookIsAnimating = false;
     let lastFocusedElement = null;
 
     let previousTapTime = 0;
@@ -273,17 +272,15 @@ function initialisePricingFlipbook() {
         pageFlip.loadFromHTML(pages);
 
         pageFlip.on("flip", () => {
-            flipbookIsAnimating = false;
             updatePageInformation();
         });
-
-        pageFlip.on("changeState", (event) => {
-            flipbookIsAnimating =
-                event.data === "flipping";
         
-            if (event.data === "read") {
-                flipbookIsAnimating = false;
-            }
+        pageFlip.on("changeOrientation", () => {
+            updatePageInformation();
+        });
+        
+        pageFlip.on("init", () => {
+            updatePageInformation();
         });
 
         pageFlip.on("changeOrientation", () => {
@@ -380,6 +377,33 @@ function initialisePricingFlipbook() {
 
         previousButton.disabled = currentIndex <= 0;
         nextButton.disabled = currentIndex >= totalPages - 1;
+    }
+
+    function goToPage(targetPage) {
+        if (!pageFlip) {
+            return;
+        }
+    
+        const finalPageIndex = pageFlip.getPageCount() - 1;
+    
+        const safePage = Math.max(
+            0,
+            Math.min(targetPage, finalPageIndex)
+        );
+    
+        pageFlip.turnToPage(safePage);
+    
+        /*
+         * Update the controls from the intended page rather than
+         * waiting for StPageFlip to update its internal index.
+         */
+        currentPageElement.textContent = String(safePage + 1);
+        totalPagesElement.textContent = String(
+            pageFlip.getPageCount()
+        );
+    
+        previousButton.disabled = safePage <= 0;
+        nextButton.disabled = safePage >= finalPageIndex;
     }
 
 
@@ -599,44 +623,33 @@ function initialisePricingFlipbook() {
     });
 
 
-    /*
-     * Previous page.
-     */
-    previousButton.addEventListener("click", () => {
-        if (
-            !pageFlip ||
-            flipbookIsAnimating ||
-            pageFlip.getCurrentPageIndex() <= 0
-        ) {
+    previousButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    
+        if (!pageFlip) {
             return;
         }
-
-        flipbookIsAnimating = true;
-        pageFlip.flipPrev();
+    
+        const currentPage =
+            pageFlip.getCurrentPageIndex();
+    
+        goToPage(currentPage - 1);
     });
-
-
-    /*
-     * Next page.
-     */
-    nextButton.addEventListener("click", () => {
-        if (!pageFlip || flipbookIsAnimating) {
+    
+    nextButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    
+        if (!pageFlip) {
             return;
         }
-
-        const finalPageIndex = pageFlip.getPageCount() - 1;
-
-        if (
-            pageFlip.getCurrentPageIndex() >= finalPageIndex
-        ) {
-            return;
-        }
-
-        flipbookIsAnimating = true;
-        pageFlip.flipNext();
+    
+        const currentPage =
+            pageFlip.getCurrentPageIndex();
+    
+        goToPage(currentPage + 1);
     });
-
-
     /*
      * Fullscreen button.
      */
@@ -755,13 +768,12 @@ function initialisePricingFlipbook() {
             case "ArrowLeft":
                 if (
                     pageFlip &&
-                    !flipbookIsAnimating &&
                     pageFlip.getCurrentPageIndex() > 0
                 ) {
                     event.preventDefault();
 
                     flipbookIsAnimating = true;
-                    pageFlip.flipPrev();
+                    pageFlip.turnToPrevPage();
                 }
 
                 break;
@@ -769,14 +781,13 @@ function initialisePricingFlipbook() {
             case "ArrowRight":
                 if (
                     pageFlip &&
-                    !flipbookIsAnimating &&
                     pageFlip.getCurrentPageIndex() <
                         pageFlip.getPageCount() - 1
                 ) {
                     event.preventDefault();
 
                     flipbookIsAnimating = true;
-                    pageFlip.flipNext();
+                    pageFlip.turnToNextPage();
                 }
 
                 break;
@@ -888,7 +899,6 @@ function initialiseProductFlipbook() {
     let pageFlip = null;
     let modalIsOpen = false;
     let flipbookIsReady = false;
-    let flipbookIsAnimating = false;
     let lastFocusedElement = null;
 
     let previousTapTime = 0;
@@ -1095,12 +1105,15 @@ function initialiseProductFlipbook() {
         pageFlip.loadFromHTML(pages);
 
         pageFlip.on("flip", () => {
-            flipbookIsAnimating = false;
             updatePageInformation();
         });
-
-        pageFlip.on("changeState", (event) => {
-            flipbookIsAnimating = event.data === "flipping";
+        
+        pageFlip.on("changeOrientation", () => {
+            updatePageInformation();
+        });
+        
+        pageFlip.on("init", () => {
+            updatePageInformation();
         });
 
         pageFlip.on("changeOrientation", () => {
@@ -1197,6 +1210,33 @@ function initialiseProductFlipbook() {
 
         previousButton.disabled = currentIndex <= 0;
         nextButton.disabled = currentIndex >= totalPages - 1;
+    }
+
+    function goToPage(targetPage) {
+        if (!pageFlip) {
+            return;
+        }
+    
+        const finalPageIndex = pageFlip.getPageCount() - 1;
+    
+        const safePage = Math.max(
+            0,
+            Math.min(targetPage, finalPageIndex)
+        );
+    
+        pageFlip.turnToPage(safePage);
+    
+        /*
+         * Update the controls from the intended page rather than
+         * waiting for StPageFlip to update its internal index.
+         */
+        currentPageElement.textContent = String(safePage + 1);
+        totalPagesElement.textContent = String(
+            pageFlip.getPageCount()
+        );
+    
+        previousButton.disabled = safePage <= 0;
+        nextButton.disabled = safePage >= finalPageIndex;
     }
 
 
@@ -1421,40 +1461,33 @@ function initialiseProductFlipbook() {
     /*
      * Previous page.
      */
-    previousButton.addEventListener("click", () => {
-        if (
-            !pageFlip ||
-            flipbookIsAnimating ||
-            pageFlip.getCurrentPageIndex() <= 0
-        ) {
+    previousButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    
+        if (!pageFlip) {
             return;
         }
-
-        flipbookIsAnimating = true;
-        pageFlip.flipPrev();
+    
+        const currentPage =
+            pageFlip.getCurrentPageIndex();
+    
+        goToPage(currentPage - 1);
     });
-
-
-    /*
-     * Next page.
-     */
-    nextButton.addEventListener("click", () => {
-        if (!pageFlip || flipbookIsAnimating) {
+    
+    nextButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    
+        if (!pageFlip) {
             return;
         }
-
-        const finalPageIndex = pageFlip.getPageCount() - 1;
-
-        if (
-            pageFlip.getCurrentPageIndex() >= finalPageIndex
-        ) {
-            return;
-        }
-
-        flipbookIsAnimating = true;
-        pageFlip.flipNext();
+    
+        const currentPage =
+            pageFlip.getCurrentPageIndex();
+    
+        goToPage(currentPage + 1);
     });
-
 
     /*
      * Fullscreen button.
@@ -1574,13 +1607,12 @@ function initialiseProductFlipbook() {
             case "ArrowLeft":
                 if (
                     pageFlip &&
-                    !flipbookIsAnimating &&
                     pageFlip.getCurrentPageIndex() > 0
                 ) {
                     event.preventDefault();
 
                     flipbookIsAnimating = true;
-                    pageFlip.flipPrev();
+                    pageFlip.turnToPrevPage();
                 }
 
                 break;
@@ -1588,14 +1620,13 @@ function initialiseProductFlipbook() {
             case "ArrowRight":
                 if (
                     pageFlip &&
-                    !flipbookIsAnimating &&
                     pageFlip.getCurrentPageIndex() <
                         pageFlip.getPageCount() - 1
                 ) {
                     event.preventDefault();
 
                     flipbookIsAnimating = true;
-                    pageFlip.flipNext();
+                    pageFlip.turnToNextPage();
                 }
 
                 break;
