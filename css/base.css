@@ -232,8 +232,20 @@ a {
         width: min(100% - 32px, var(--container-width));
     }
     .site-header {
-        z-index: 1100;
-        background: var(--background);
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+    
+        width: 100%;
+        height: var(--header-height);
+    
+        z-index: 1300;
+    
+        background: rgba(248, 244, 239, 0.98);
+    
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
 
     .mobile-menu-button {
@@ -260,7 +272,7 @@ a {
 
         padding: 34px 24px;
 
-        background: var(--background);
+        background: rgba(248, 244, 239, 0.99);
 
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
