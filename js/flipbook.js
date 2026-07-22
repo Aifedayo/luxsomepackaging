@@ -66,6 +66,8 @@ function initialisePricingFlipbook() {
     let pageFlip = null;
     let modalIsOpen = false;
     let flipbookIsReady = false;
+    let flipbookIsAnimating = false;
+    let animationSafetyTimer = null;
     let lastFocusedElement = null;
 
     let previousTapTime = 0;
@@ -272,21 +274,27 @@ function initialisePricingFlipbook() {
         pageFlip.loadFromHTML(pages);
 
         pageFlip.on("flip", () => {
+            flipbookIsAnimating = false;
+        
+            window.clearTimeout(animationSafetyTimer);
+        
             updatePageInformation();
+        });
+        
+        pageFlip.on("changeState", (event) => {
+            if (event.data === "read") {
+                flipbookIsAnimating = false;
+        
+                window.clearTimeout(animationSafetyTimer);
+        
+                updatePageInformation();
+            }
         });
         
         pageFlip.on("changeOrientation", () => {
             updatePageInformation();
         });
         
-        pageFlip.on("init", () => {
-            updatePageInformation();
-        });
-
-        pageFlip.on("changeOrientation", () => {
-            updatePageInformation();
-        });
-
         pageFlip.on("init", () => {
             updatePageInformation();
         });
@@ -379,31 +387,40 @@ function initialisePricingFlipbook() {
         nextButton.disabled = currentIndex >= totalPages - 1;
     }
 
-    function goToPage(targetPage) {
-        if (!pageFlip) {
+    function navigateFlipbook(direction) {
+        if (!pageFlip || flipbookIsAnimating) {
             return;
         }
     
-        const finalPageIndex = pageFlip.getPageCount() - 1;
+        const currentIndex = pageFlip.getCurrentPageIndex();
+        const finalIndex = pageFlip.getPageCount() - 1;
     
-        const safePage = Math.max(
-            0,
-            Math.min(targetPage, finalPageIndex)
-        );
+        if (direction === "previous" && currentIndex <= 0) {
+            return;
+        }
     
-        pageFlip.turnToPage(safePage);
+        if (direction === "next" && currentIndex >= finalIndex) {
+            return;
+        }
+    
+        previousButton.disabled = true;
+        nextButton.disabled = true;
+    
+        if (direction === "previous") {
+            pageFlip.turnToPrevPage();
+        } else {
+            pageFlip.flipNext();
+        }
     
         /*
-         * Update the controls from the intended page rather than
-         * waiting for StPageFlip to update its internal index.
+         * Safety reset in case the library fails to emit its final event.
          */
-        currentPageElement.textContent = String(safePage + 1);
-        totalPagesElement.textContent = String(
-            pageFlip.getPageCount()
-        );
+        window.clearTimeout(animationSafetyTimer);
     
-        previousButton.disabled = safePage <= 0;
-        nextButton.disabled = safePage >= finalPageIndex;
+        animationSafetyTimer = window.setTimeout(() => {
+            flipbookIsAnimating = false;
+            updatePageInformation();
+        }, 1000);
     }
 
 
@@ -627,29 +644,16 @@ function initialisePricingFlipbook() {
         event.preventDefault();
         event.stopPropagation();
     
-        if (!pageFlip) {
-            return;
-        }
-    
-        const currentPage =
-            pageFlip.getCurrentPageIndex();
-    
-        goToPage(currentPage - 1);
+        navigateFlipbook("previous");
     });
     
     nextButton.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
     
-        if (!pageFlip) {
-            return;
-        }
-    
-        const currentPage =
-            pageFlip.getCurrentPageIndex();
-    
-        goToPage(currentPage + 1);
+        navigateFlipbook("next");
     });
+
     /*
      * Fullscreen button.
      */
@@ -766,30 +770,13 @@ function initialisePricingFlipbook() {
                 break;
 
             case "ArrowLeft":
-                if (
-                    pageFlip &&
-                    pageFlip.getCurrentPageIndex() > 0
-                ) {
-                    event.preventDefault();
-
-                    flipbookIsAnimating = true;
-                    pageFlip.turnToPrevPage();
-                }
-
+                event.preventDefault();
+                navigateFlipbook("previous");
                 break;
-
+            
             case "ArrowRight":
-                if (
-                    pageFlip &&
-                    pageFlip.getCurrentPageIndex() <
-                        pageFlip.getPageCount() - 1
-                ) {
-                    event.preventDefault();
-
-                    flipbookIsAnimating = true;
-                    pageFlip.turnToNextPage();
-                }
-
+                event.preventDefault();
+                navigateFlipbook("next");
                 break;
 
             default:
@@ -899,6 +886,8 @@ function initialiseProductFlipbook() {
     let pageFlip = null;
     let modalIsOpen = false;
     let flipbookIsReady = false;
+    let flipbookIsAnimating = false;
+    let animationSafetyTimer = null;
     let lastFocusedElement = null;
 
     let previousTapTime = 0;
@@ -1105,21 +1094,27 @@ function initialiseProductFlipbook() {
         pageFlip.loadFromHTML(pages);
 
         pageFlip.on("flip", () => {
+            flipbookIsAnimating = false;
+        
+            window.clearTimeout(animationSafetyTimer);
+        
             updatePageInformation();
+        });
+        
+        pageFlip.on("changeState", (event) => {
+            if (event.data === "read") {
+                flipbookIsAnimating = false;
+        
+                window.clearTimeout(animationSafetyTimer);
+        
+                updatePageInformation();
+            }
         });
         
         pageFlip.on("changeOrientation", () => {
             updatePageInformation();
         });
         
-        pageFlip.on("init", () => {
-            updatePageInformation();
-        });
-
-        pageFlip.on("changeOrientation", () => {
-            updatePageInformation();
-        });
-
         pageFlip.on("init", () => {
             updatePageInformation();
         });
@@ -1212,33 +1207,42 @@ function initialiseProductFlipbook() {
         nextButton.disabled = currentIndex >= totalPages - 1;
     }
 
-    function goToPage(targetPage) {
-        if (!pageFlip) {
+    function navigateFlipbook(direction) {
+        if (!pageFlip || flipbookIsAnimating) {
             return;
         }
     
-        const finalPageIndex = pageFlip.getPageCount() - 1;
+        const currentIndex = pageFlip.getCurrentPageIndex();
+        const finalIndex = pageFlip.getPageCount() - 1;
     
-        const safePage = Math.max(
-            0,
-            Math.min(targetPage, finalPageIndex)
-        );
+        if (direction === "previous" && currentIndex <= 0) {
+            return;
+        }
     
-        pageFlip.turnToPage(safePage);
+        if (direction === "next" && currentIndex >= finalIndex) {
+            return;
+        }
+    
+        previousButton.disabled = true;
+        nextButton.disabled = true;
+        flipbookIsAnimating = true;
+    
+        if (direction === "previous") {
+            pageFlip.turnToPrevPage();
+        } else {
+            pageFlip.flipNext();
+        }
     
         /*
-         * Update the controls from the intended page rather than
-         * waiting for StPageFlip to update its internal index.
+         * Safety reset in case the library fails to emit its final event.
          */
-        currentPageElement.textContent = String(safePage + 1);
-        totalPagesElement.textContent = String(
-            pageFlip.getPageCount()
-        );
+        window.clearTimeout(animationSafetyTimer);
     
-        previousButton.disabled = safePage <= 0;
-        nextButton.disabled = safePage >= finalPageIndex;
+        animationSafetyTimer = window.setTimeout(() => {
+            flipbookIsAnimating = false;
+            updatePageInformation();
+        }, 1000);
     }
-
 
     /*
      * Open the flipbook modal.
@@ -1465,28 +1469,14 @@ function initialiseProductFlipbook() {
         event.preventDefault();
         event.stopPropagation();
     
-        if (!pageFlip) {
-            return;
-        }
-    
-        const currentPage =
-            pageFlip.getCurrentPageIndex();
-    
-        goToPage(currentPage - 1);
+        navigateFlipbook("previous");
     });
     
     nextButton.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
     
-        if (!pageFlip) {
-            return;
-        }
-    
-        const currentPage =
-            pageFlip.getCurrentPageIndex();
-    
-        goToPage(currentPage + 1);
+        navigateFlipbook("next");
     });
 
     /*
@@ -1605,30 +1595,13 @@ function initialiseProductFlipbook() {
                 break;
 
             case "ArrowLeft":
-                if (
-                    pageFlip &&
-                    pageFlip.getCurrentPageIndex() > 0
-                ) {
-                    event.preventDefault();
-
-                    flipbookIsAnimating = true;
-                    pageFlip.turnToPrevPage();
-                }
-
+                event.preventDefault();
+                navigateFlipbook("previous");
                 break;
-
+            
             case "ArrowRight":
-                if (
-                    pageFlip &&
-                    pageFlip.getCurrentPageIndex() <
-                        pageFlip.getPageCount() - 1
-                ) {
-                    event.preventDefault();
-
-                    flipbookIsAnimating = true;
-                    pageFlip.turnToNextPage();
-                }
-
+                event.preventDefault();
+                navigateFlipbook("next");
                 break;
 
             default:
