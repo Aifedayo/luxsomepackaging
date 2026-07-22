@@ -128,12 +128,11 @@
 
                 <!-- Product catalogue -->
                 <article class="catalogue-item">
-
-                    <a
-                        href="assets/pdf/catalogues/Product-Catalogue.pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="catalogue-cover-link"
+                     <a
+                        type="button"
+                        class="catalogue-cover-link catalogue-cover-button"
+                        data-open-product-flipbook
+                        aria-label="Open Luxsome product catalogue"
                     >
                         <img
                             src="assets/images/product.jpg"
@@ -150,7 +149,7 @@
 
                         <span class="meta-dot">•</span>
 
-                        <span>20 Pages</span>
+                        <span>15 Pages</span>
 
                     </div>
 
@@ -161,17 +160,16 @@
 
                     <div class="catalogue-actions">
 
-                        <a
-                            href="assets/pdf/catalogues/Product-Catalogue.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                        <button
+                            type="button"
                             class="view-button"
+                            data-open-product-flipbook
                         >
                             View Catalogue
-                        </a>
+                        </button>
 
                         <a
-                            href="assets/pdf/catalogues/Product-Catalogue.pdf"
+                            href="assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf"
                             class="download-button"
                             download="Luxsome Product Catalogue.pdf"
                         >
@@ -248,6 +246,133 @@
 
     </main>
 
+    <!-- Full-screen Product flipbook modal -->
+    <div
+        class="flipbook-modal"
+        id="productFlipbookModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="productFlipbookTitle"
+        aria-hidden="true"
+    >
+
+        <div
+            class="flipbook-backdrop"
+            data-close-product-flipbook
+        ></div>
+
+        <div class="flipbook-dialog">
+
+            <header class="flipbook-modal-header">
+
+                <div class="flipbook-modal-heading">
+
+                    <p class="section-label">
+                        Luxsome Packaging
+                    </p>
+
+                    <h2 id="productFlipbookTitle">
+                        Product Catalogue
+                    </h2>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="flipbook-close"
+                    id="closeFlipbook"
+                    data-close-product-flipbook
+                    aria-label="Close pricing catalogue"
+                >
+                    ×
+                </button>
+
+            </header>
+
+
+            <div class="flipbook-viewer">
+
+                <button
+                    type="button"
+                    class="flipbook-control flipbook-previous"
+                    id="productPreviousPage"
+                    aria-label="Previous catalogue page"
+                >
+                    ←
+                </button>
+
+
+                <div class="flipbook-shell">
+
+                    <div
+                        class="flipbook-loading"
+                        id="productFlipbookLoading"
+                        aria-live="polite"
+                    >
+                        <span class="flipbook-spinner"></span>
+                        <span>Loading catalogue…</span>
+                    </div>
+
+                    <div
+                        id="productFlipbook"
+                        class="flipbook"
+                        aria-label="Luxsome pricing catalogue pages"
+                    ></div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="flipbook-control flipbook-next"
+                    id="productNextPage"
+                    aria-label="Next catalogue page"
+                >
+                    →
+                </button>
+
+            </div>
+
+
+            <footer class="flipbook-modal-footer">
+
+                <div class="page-information">
+
+                    <span>
+                        Page
+                        <strong id="productCurrentPage">1</strong>
+                        of
+                        <strong id="productTotalPages">15</strong>
+                    </span>
+
+                </div>
+
+                <div class="flipbook-footer-actions">
+
+                    <button
+                        type="button"
+                        class="fullscreen-button"
+                        id="productFullscreenButton"
+                    >
+                        Full Screen
+                    </button>
+
+                    <a
+                        href="assets/pdf/catalogues/PRICING-CATALOGUE.pdf"
+                        class="download-button"
+                        download="Luxsome Packaging Pricing Catalogue.pdf"
+                    >
+                        <span class="download-icon">↓</span>
+                        Download PDF
+                    </a>
+
+                </div>
+
+            </footer>
+
+        </div>
+
+    </div>
 
     <!-- Full-screen flipbook modal -->
     <div
@@ -435,6 +560,15 @@
                 alt: `Luxsome pricing catalogue page ${index + 1}`
             })
         );
+        const productImages = Array.from(
+            { length: 15 },
+            (_, index) => ({
+                src: `assets/images/flipbook/${index + 1}.png`,
+                width: 1591,
+                height: 2250,
+                alt: `Luxsome Product Catalogue Page ${index + 1}`
+            })
+        );
     
         const catalogueLightbox = new PhotoSwipeLightbox({
             dataSource: catalogueImages,
@@ -457,6 +591,15 @@
     
             preload: [1, 2]
         });
+
+        const productLightbox = new PhotoSwipeLightbox({
+            dataSource: productImages,
+
+            pswpModule: () =>
+                import(
+                    "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.js"
+                )
+        });
     
         catalogueLightbox.init();
     
@@ -465,6 +608,10 @@
          */
         window.openCatalogueZoom = function (pageIndex) {
             catalogueLightbox.loadAndOpen(pageIndex);
+        };
+
+        window.openProductCatalogueZoom = function(pageIndex) {
+            productLightbox.loadAndOpen(pageIndex);
         };
     </script>
 
