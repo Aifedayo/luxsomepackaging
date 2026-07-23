@@ -152,57 +152,138 @@
     <main>
 
         <!-- Hero section -->
-        <section class="hero-section">
+        <section class="hero-carousel" aria-label="Luxsome Packaging highlights">
 
-            <div class="hero-container">
-
-                <div class="hero-content">
-
-                    <h1>
-                        Elevate every<br>
-                        unboxing
-                    </h1>
-
-                    <p>
-                        Packaging is not a product.<br>
-                        It’s a system and we build<br>
-                        it end to end.
-                    </p>
-
-                    <div class="hero-buttons">
-
-                        <a
-                            href="https://wa.me/2348061389594"
-                            class="whatsapp-button"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Chat on WhatsApp
-                        </a>
-
-                        <a
-                            href="/gallery/"
-                            class="gallery-button"
-                        >
-                            View Our Gallery
-                        </a>
-
-                    </div>
-
-                </div>
-
-                <div class="hero-image-wrapper">
-
+            <div class="hero-slides">
+        
+                <!-- Slide 1: Brand Statement -->
+                <article class="hero-slide">
                     <img
-                        src="assets/images/hero-image-2.png"
-                        alt="Luxury packaging"
-                        class="hero-image"
+                        src="assets/images/gallery/packaging-system-02.png"
+                        alt="Complete packaging system with box, tags, tissue, ribbon and cards"
+                        class="hero-slide-image"
                     >
+        
+                    <div class="hero-overlay"></div>
+        
+                    <div class="hero-content">
+                        <p class="hero-eyebrow">
+                            The Luxsome System
+                        </p>
+        
+                        <p class="hero-description">
+                            Everything your brand needs<br>
+                            to unbox beautifully.
+                        </p>
+        
+                        
+                        <div class="hero-actions">
+                            <a
+                                href="https://wa.me/2348061389594?text=Hello%20Luxsome,%20I%20would%20like%20to%20discuss%20a%20complete%20packaging%20system."
+                                class="hero-button hero-button-primary"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Make an Enquiry
+                            </a>
+                        </div>
+                    </div>
+                </article>
 
-                </div>
+                <!-- Slide 2: Envelopes and Stationery -->
+                <article class="hero-slide">
+                    <img
+                        src="assets/images/gallery/hang-tag-01.png"
+                        alt="Custom branded envelope and thank-you card"
+                        class="hero-slide-image"
+                    >
+        
+                    <div class="hero-overlay"></div>
+        
+                    <div class="hero-content">
+                        <p class="hero-eyebrow">
+                            Premium Brand Stationery
+                        </p>
+        
+                        <p class="hero-description">
+                            Small details.
+                            Lasting impressions.
+                        </p>
+        
+                        <div class="hero-actions">
+                            <a
+                                href="/contact/"
+                                class="hero-button hero-button-secondary"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Start Your Project
+                            </a>
+                        </div>
+                    </div>
+                </article>
+        
+                <!-- Slide 3: Complete Packaging System -->
+                <article class="hero-slide">
+                    <img
+                        src="assets/images/gallery/packaging-system-03.png"
+                        alt="Complete packaging system with box, tags, tissue, ribbon and cards"
+                        class="hero-slide-image"
+                    >
+        
+                    <div class="hero-overlay"></div>
+        
+                    <div class="hero-content">
+                        <p class="hero-eyebrow">
+                            Elevate Every Unboxing
+                        </p>
 
+                        <p class="hero-description">
+                            Packaging is not a product. It's a
+                            system and we build it end to end.
+                        </p>
+                    </div>
+                </article>
+        
             </div>
-
+        
+            <button
+                class="hero-arrow hero-arrow-left"
+                type="button"
+                aria-label="Previous slide"
+            >
+                &#10094;
+            </button>
+        
+            <button
+                class="hero-arrow hero-arrow-right"
+                type="button"
+                aria-label="Next slide"
+            >
+                &#10095;
+            </button>
+        
+            <div class="hero-dots" aria-label="Choose a slide">
+                <button
+                    class="hero-dot active"
+                    type="button"
+                    aria-label="Show brand statement slide"
+                    aria-current="true"
+                ></button>
+        
+                <button
+                    class="hero-dot"
+                    type="button"
+                    aria-label="Show stationery slide"
+                ></button>
+        
+                <button
+                    class="hero-dot"
+                    type="button"
+                    aria-label="Show complete packaging system slide"
+                ></button>
+            </div>
+        
         </section>
 
         <!-- Catalogue section -->
