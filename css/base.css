@@ -772,12 +772,646 @@ You can adjust individual image positions like this:
     }
 }
 
+/* =========================================================
+   APPLE-STYLE PACKAGING SYSTEM REVEAL
+========================================================= */
+
+.system-reveal {
+    --reveal-progress: 0;
+    --reveal-background: #f8f4ef;
+    --reveal-foreground: #2f211b;
+    --reveal-muted: rgba(47, 33, 27, 0.65);
+
+    position: relative;
+    height: 650vh;
+
+    background: var(--reveal-background);
+    color: var(--reveal-foreground);
+}
+
+.system-reveal__sticky {
+    position: sticky;
+    top: 0;
+
+    width: 100%;
+    height: 100dvh;
+    min-height: 650px;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   INTRO
+========================================================= */
+
+.system-reveal__intro {
+    position: absolute;
+    z-index: 20;
+    top: clamp(40px, 7vh, 80px);
+    left: 50%;
+
+    width: min(900px, calc(100% - 48px));
+
+    text-align: center;
+
+    opacity: calc(1 - (var(--reveal-progress) * 4));
+    transform:
+        translateX(-50%)
+        translateY(calc(var(--reveal-progress) * -40px));
+
+    transition: opacity 0.08s linear;
+}
+
+.system-reveal__eyebrow {
+    margin: 0 0 16px;
+
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.system-reveal__intro h2 {
+    margin: 0;
+
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(2.3rem, 5vw, 5rem);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+}
+
+
+/* =========================================================
+   VISUAL AREA
+========================================================= */
+
+.system-reveal__visual {
+    position: absolute;
+    z-index: 5;
+    inset: 0;
+
+    display: grid;
+    place-items: center;
+
+    padding:
+        clamp(140px, 19vh, 210px)
+        24px
+        clamp(120px, 16vh, 170px);
+}
+
+.system-reveal__stage {
+    position: relative;
+
+    width: min(720px, 70vw);
+    aspect-ratio: 1 / 1;
+
+    transform:
+        translateY(calc((0.5 - var(--reveal-progress)) * 18px))
+        scale(calc(0.88 + (var(--reveal-progress) * 0.12)));
+
+    transform-origin: center;
+}
+
+
+/* All image layers */
+
+.system-layer {
+    position: absolute;
+    inset: 0;
+
+    display: grid;
+    place-items: center;
+
+    pointer-events: none;
+    will-change: transform, opacity, filter;
+}
+
+.system-layer img {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+}
+
+
+/* =========================================================
+   INDIVIDUAL REVEAL LAYERS
+========================================================= */
+
+/* 1. Rigid box */
+
+.system-layer--box {
+    z-index: 1;
+
+    opacity: var(--box-opacity, 0);
+
+    transform:
+        translateY(var(--box-y, 70px))
+        scale(var(--box-scale, 0.88));
+
+    filter: blur(var(--box-blur, 8px));
+}
+
+
+/* 2. Tissue */
+
+.system-layer--tissue {
+    z-index: 2;
+
+    opacity: var(--tissue-opacity, 0);
+
+    transform:
+        translateY(var(--tissue-y, -45px))
+        scale(var(--tissue-scale, 0.9));
+
+    filter: blur(var(--tissue-blur, 5px));
+}
+
+
+/* 3. Thank-you card */
+
+.system-layer--card {
+    z-index: 4;
+
+    opacity: var(--card-opacity, 0);
+
+    transform:
+        translate(
+            var(--card-x, 90px),
+            var(--card-y, 35px)
+        )
+        rotate(var(--card-rotate, 7deg))
+        scale(var(--card-scale, 0.92));
+}
+
+
+/* 4. Tag */
+
+.system-layer--tag {
+    z-index: 5;
+
+    opacity: var(--tag-opacity, 0);
+
+    transform:
+        translate(
+            var(--tag-x, -90px),
+            var(--tag-y, 25px)
+        )
+        rotate(var(--tag-rotate, -8deg))
+        scale(var(--tag-scale, 0.92));
+}
+
+
+/* 5. Ribbon */
+
+.system-layer--ribbon {
+    z-index: 6;
+
+    opacity: var(--ribbon-opacity, 0);
+
+    transform:
+        scaleX(var(--ribbon-scale-x, 0.65))
+        scaleY(var(--ribbon-scale-y, 0.95));
+
+    transform-origin: center;
+}
+
+
+/* 6. Sticker */
+
+.system-layer--sticker {
+    z-index: 7;
+
+    opacity: var(--sticker-opacity, 0);
+
+    transform:
+        translateY(var(--sticker-y, -25px))
+        rotate(var(--sticker-rotate, -12deg))
+        scale(var(--sticker-scale, 0.4));
+}
+
+
+/* =========================================================
+   CAPTION
+========================================================= */
+
+.system-reveal__caption {
+    position: absolute;
+    z-index: 25;
+    bottom: clamp(42px, 7vh, 76px);
+    left: clamp(24px, 6vw, 90px);
+
+    display: flex;
+    align-items: flex-start;
+    gap: 22px;
+
+    width: min(440px, calc(100% - 48px));
+
+    opacity: var(--caption-opacity, 1);
+    transform: translateY(var(--caption-y, 0));
+}
+
+.system-reveal__number {
+    min-width: 35px;
+
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+}
+
+.system-reveal__caption-copy {
+    min-width: 0;
+}
+
+.system-reveal__step-title {
+    margin: 0 0 6px;
+
+    font-family: "Cormorant Garamond", serif;
+    font-size: clamp(1.45rem, 2.3vw, 2rem);
+    font-weight: 600;
+    line-height: 1;
+}
+
+.system-reveal__step-description {
+    max-width: 360px;
+    margin: 0;
+
+    color: var(--reveal-muted);
+    font-size: 0.86rem;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   PROGRESS
+========================================================= */
+
+.system-reveal__progress {
+    position: absolute;
+    z-index: 30;
+    right: clamp(24px, 5vw, 72px);
+    bottom: clamp(47px, 7vh, 80px);
+
+    width: 120px;
+    height: 1px;
+
+    overflow: hidden;
+    background: rgba(47, 33, 27, 0.2);
+}
+
+.system-reveal__progress span {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    background: var(--accent);
+
+    transform: scaleX(var(--reveal-progress));
+    transform-origin: left;
+}
+
+
+/* =========================================================
+   FINAL MESSAGE
+========================================================= */
+
+.system-reveal__final {
+    position: absolute;
+    z-index: 40;
+    top: 50%;
+    left: 50%;
+
+    width: min(760px, calc(100% - 48px));
+
+    text-align: center;
+
+    opacity: var(--final-opacity, 0);
+
+    pointer-events: none;
+
+    transform:
+        translate(-50%, calc(-50% + var(--final-y, 45px)));
+
+    visibility: var(--final-visibility, hidden);
+}
+
+.system-reveal__final-eyebrow {
+    margin: 0 0 17px;
+
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.system-reveal__final h3 {
+    margin: 0;
+
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(2.5rem, 5.5vw, 5.3rem);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 0.98;
+}
+
+.system-reveal__final > p:not(.system-reveal__final-eyebrow) {
+    max-width: 600px;
+    margin: 25px auto 0;
+
+    color: var(--reveal-muted);
+    font-size: 0.95rem;
+    line-height: 1.75;
+}
+
+.system-reveal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+
+    margin-top: 30px;
+}
+
+.system-reveal__primary-button,
+.system-reveal__secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 180px;
+    min-height: 52px;
+
+    padding: 12px 24px;
+
+    border: 1px solid var(--accent);
+    border-radius: 5px;
+
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    transition:
+        color 0.25s ease,
+        background-color 0.25s ease,
+        transform 0.25s ease;
+}
+
+.system-reveal__primary-button {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.system-reveal__secondary-button {
+    background: transparent;
+    color: var(--accent);
+}
+
+.system-reveal__primary-button:hover,
+.system-reveal__secondary-button:hover {
+    transform: translateY(-2px);
+}
+
+.system-reveal__primary-button:hover {
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+}
+
+.system-reveal__secondary-button:hover {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+
+/* =========================================================
+   SCROLL HINT
+========================================================= */
+
+.system-reveal__scroll-hint {
+    position: absolute;
+    z-index: 30;
+    top: 50%;
+    right: clamp(22px, 4vw, 55px);
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    color: var(--reveal-muted);
+
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+
+    opacity: var(--scroll-hint-opacity, 1);
+
+    transform: translateY(-50%) rotate(90deg);
+    transform-origin: center;
+}
+
+.system-reveal__scroll-line {
+    display: block;
+    width: 40px;
+    height: 1px;
+
+    background: currentColor;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1024px) {
+    .system-reveal {
+        height: 580vh;
+    }
+
+    .system-reveal__stage {
+        width: min(650px, 78vw);
+    }
+
+    .system-reveal__visual {
+        padding-top: 160px;
+        padding-bottom: 160px;
+    }
+
+    .system-reveal__scroll-hint {
+        display: none;
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 760px) {
+    .system-reveal {
+        height: 520vh;
+    }
+
+    .system-reveal__sticky {
+        min-height: 600px;
+    }
+
+    .system-reveal__intro {
+        top: 50px;
+        width: calc(100% - 36px);
+    }
+
+    .system-reveal__intro h2 {
+        font-size: clamp(2.25rem, 10vw, 3.6rem);
+    }
+
+    .system-reveal__visual {
+        padding: 150px 8px 170px;
+    }
+
+    .system-reveal__stage {
+        width: min(520px, 100vw);
+    }
+
+    .system-reveal__caption {
+        right: 20px;
+        bottom: 50px;
+        left: 20px;
+
+        width: auto;
+        gap: 15px;
+    }
+
+    .system-reveal__progress {
+        right: 20px;
+        bottom: 28px;
+        left: 20px;
+
+        width: auto;
+    }
+
+    .system-reveal__step-description {
+        font-size: 0.8rem;
+    }
+
+    .system-reveal__final {
+        width: calc(100% - 36px);
+    }
+
+    .system-reveal__final h3 {
+        font-size: clamp(2.45rem, 11vw, 4rem);
+    }
+
+    .system-reveal__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .system-reveal__primary-button,
+    .system-reveal__secondary-button {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+    .system-reveal__intro h2 br,
+    .system-reveal__final h3 br {
+        display: none;
+    }
+
+    .system-reveal__visual {
+        padding-inline: 0;
+    }
+
+    .system-reveal__stage {
+        width: 112vw;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION ACCESSIBILITY
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .system-reveal {
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .system-reveal__sticky {
+        position: relative;
+        height: auto;
+        min-height: 900px;
+        overflow: hidden;
+    }
+
+    .system-reveal__intro {
+        position: relative;
+        top: auto;
+        left: auto;
+
+        margin: 70px auto 0;
+
+        opacity: 1;
+        transform: none;
+    }
+
+    .system-reveal__visual {
+        position: relative;
+        height: 480px;
+        padding: 30px 20px;
+    }
+
+    .system-reveal__stage {
+        transform: none;
+    }
+
+    .system-layer {
+        opacity: 1 !important;
+        filter: none !important;
+        transform: none !important;
+    }
+
+    .system-reveal__caption,
+    .system-reveal__progress,
+    .system-reveal__scroll-hint {
+        display: none;
+    }
+
+    .system-reveal__final {
+        position: relative;
+        top: auto;
+        left: auto;
+
+        margin: 10px auto 80px;
+
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: none;
+    }
+}
+
 /* Catalogue section */
 
 .catalogue-section {
     padding: 28px 48px 72px;
 
-    background: #f7f3ed;
+    background: #fff4e2;
 }
 
 .catalogue-heading {
