@@ -571,3 +571,62 @@ body.flipbook-open {
         animation: none;
     }
 }
+
+/* =========================================================
+   FLIPBOOK MOBILE STABILITY PATCH
+   Add this at the very end of flipbook.css
+========================================================= */
+
+.flipbook,
+.flipbook-page,
+.flipbook-page img {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+.flipbook-page {
+    contain: layout paint;
+}
+
+.flipbook-page img {
+    pointer-events: auto;
+}
+
+@media (max-width: 950px) {
+    .flipbook-viewer {
+        min-height: 0;
+    }
+
+    .flipbook-shell {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .flipbook {
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .flipbook-dialog {
+        height: 100dvh;
+    }
+
+    .flipbook-modal-header,
+    .flipbook-modal-footer {
+        flex-shrink: 0;
+    }
+
+    .flipbook-viewer {
+        flex: 1 1 auto;
+        height: auto;
+        min-height: 0;
+    }
+
+    .flipbook-shell {
+        width: calc(100vw - 8px);
+        height: 100%;
+        min-height: 0;
+    }
+}

@@ -1,143 +1,342 @@
 document.addEventListener("DOMContentLoaded", () => {
-    initialisePricingFlipbook();
-    initialiseProductFlipbook();
-});
+    const viewers = [
+        new LuxsomeFlipbook({
+            name: "Pricing catalogue",
+            modalId: "flipbookModal",
+            flipbookId: "flipbook",
+            loadingId: "flipbookLoading",
+            previousButtonId: "previousPage",
+            nextButtonId: "nextPage",
+            fullscreenButtonId: "fullscreenButton",
+            currentPageId: "currentPage",
+            totalPagesId: "totalPages",
+            closeButtonId: "closePricingFlipbook",
+            openSelector: "[data-open-flipbook]",
+            closeSelector: "[data-close-flipbook]",
 
-function initialisePricingFlipbook() {
-    /*
-     * Add or remove catalogue images here.
-     * The order of this array determines the page order.
-     */
-    const cataloguePages = [
-        "assets/images/flipbook/25.jpg",
-        "assets/images/flipbook/26.jpg",
-        "assets/images/flipbook/27.jpg",
-        "assets/images/flipbook/28.jpg",
-        "assets/images/flipbook/29.jpg",
-        "assets/images/flipbook/30.jpg",
-        "assets/images/flipbook/31.jpg",
-        "assets/images/flipbook/32.jpg",
-        "assets/images/flipbook/33.jpg",
-        "assets/images/flipbook/34.jpg",
-        "assets/images/flipbook/35.jpg",
-        "assets/images/flipbook/36.jpg",
-        "assets/images/flipbook/37.jpg",
-        "assets/images/flipbook/38.jpg",
-        "assets/images/flipbook/39.jpg"
+            imagePaths: Array.from(
+                { length: 15 },
+                (_, index) =>
+                    `assets/images/flipbook/${index + 25}.jpg`
+            ),
+
+            imageAltPrefix:
+                "Luxsome pricing catalogue page",
+
+            zoomHandlerName: "openCatalogueZoom"
+        }),
+
+        new LuxsomeFlipbook({
+            name: "Product catalogue",
+            modalId: "productFlipbookModal",
+            flipbookId: "productFlipbook",
+            loadingId: "productFlipbookLoading",
+            previousButtonId: "productPreviousPage",
+            nextButtonId: "productNextPage",
+            fullscreenButtonId: "productFullscreenButton",
+            currentPageId: "productCurrentPage",
+            totalPagesId: "productTotalPages",
+            closeButtonId: "closeFlipbook",
+            openSelector: "[data-open-product-flipbook]",
+            closeSelector:
+                "[data-close-product-flipbook]",
+
+            imagePaths: Array.from(
+                { length: 15 },
+                (_, index) =>
+                    `assets/images/flipbook/${index + 1}.png`
+            ),
+
+            imageAltPrefix:
+                "Luxsome product catalogue page",
+
+            zoomHandlerName:
+                "openProductCatalogueZoom"
+        })
     ];
 
-    const modal = document.getElementById("flipbookModal");
-    const flipbookElement = document.getElementById("flipbook");
-    const loadingElement = document.getElementById("flipbookLoading");
+    viewers.forEach((viewer) => {
+        viewer.initialise();
+    });
+});
 
-    const previousButton = document.getElementById("previousPage");
-    const nextButton = document.getElementById("nextPage");
-    const fullscreenButton = document.getElementById("fullscreenButton");
 
-    const currentPageElement = document.getElementById("currentPage");
-    const totalPagesElement = document.getElementById("totalPages");
+class LuxsomeFlipbook {
+    constructor(options) {
+        this.options = {
+            sourceWidth: 1591,
+            sourceHeight: 2250,
+            mobileBreakpoint: 950,
+            flippingTime: 650,
+            ...options
+        };
 
-    const openButtons = document.querySelectorAll(
-        "[data-open-flipbook]"
-    );
-
-    const closeButtons = document.querySelectorAll(
-        "[data-close-flipbook]"
-    );
-
-    /*
-     * Stop if essential flipbook elements do not exist.
-     */
-    if (
-        !modal ||
-        !flipbookElement ||
-        !previousButton ||
-        !nextButton ||
-        !currentPageElement ||
-        !totalPagesElement
-    ) {
-        console.warn(
-            "The flipbook could not initialise because required HTML elements are missing."
+        this.modal = document.getElementById(
+            this.options.modalId
         );
 
-        return;
+        this.flipbookElement = document.getElementById(
+            this.options.flipbookId
+        );
+
+        this.loadingElement = document.getElementById(
+            this.options.loadingId
+        );
+
+        this.previousButton = document.getElementById(
+            this.options.previousButtonId
+        );
+
+        this.nextButton = document.getElementById(
+            this.options.nextButtonId
+        );
+
+        this.fullscreenButton = document.getElementById(
+            this.options.fullscreenButtonId
+        );
+
+        this.currentPageElement = document.getElementById(
+            this.options.currentPageId
+        );
+
+        this.totalPagesElement = document.getElementById(
+            this.options.totalPagesId
+        );
+
+        this.openButtons = document.querySelectorAll(
+            this.options.openSelector
+        );
+
+        this.closeButtons = document.querySelectorAll(
+            this.options.closeSelector
+        );
+
+        this.pageFlip = null;
+
+        this.modalIsOpen = false;
+        this.flipbookIsReady = false;
+        this.flipbookIsAnimating = false;
+
+        this.lastFocusedElement = null;
+
+        this.animationSafetyTimer = null;
+        this.resizeTimer = null;
+
+        this.previousTapTime = 0;
+        this.previousTapImage = null;
+
+        this.lastViewportWidth = window.innerWidth;
+        this.lastLayoutMode = this.getLayoutMode();
+
+        this.handleResize =
+            this.handleResize.bind(this);
+
+        this.handleKeydown =
+            this.handleKeydown.bind(this);
+
+        this.updateFullscreenButtonText =
+            this.updateFullscreenButtonText.bind(this);
     }
 
-    let pageFlip = null;
-    let modalIsOpen = false;
-    let flipbookIsReady = false;
-    let flipbookIsAnimating = false;
-    let animationSafetyTimer = null;
-    let lastFocusedElement = null;
 
-    let previousTapTime = 0;
-    let previousTapImage = null;
+    initialise() {
+        if (!this.hasRequiredElements()) {
+            console.warn(
+                `${this.options.name} could not initialise because required HTML elements are missing.`
+            );
 
-    let resizeTimer = null;
+            return;
+        }
+
+        this.totalPagesElement.textContent = String(
+            this.options.imagePaths.length
+        );
+
+        this.bindEvents();
+        this.updatePageInformation();
+    }
 
 
-    /*
-     * Preload catalogue pages before creating the flipbook.
-     */
-    function preloadImages(imagePaths) {
-        const promises = imagePaths.map((imagePath) => {
-            return new Promise((resolve) => {
-                const image = new Image();
+    hasRequiredElements() {
+        return Boolean(
+            this.modal &&
+            this.flipbookElement &&
+            this.previousButton &&
+            this.nextButton &&
+            this.currentPageElement &&
+            this.totalPagesElement
+        );
+    }
 
-                image.onload = () => {
-                    resolve({
-                        path: imagePath,
-                        loaded: true
-                    });
-                };
 
-                image.onerror = () => {
-                    console.error(
-                        `Catalogue image could not load: ${imagePath}`
-                    );
-
-                    resolve({
-                        path: imagePath,
-                        loaded: false
-                    });
-                };
-
-                image.src = imagePath;
-            });
+    bindEvents() {
+        this.openButtons.forEach((button) => {
+            button.addEventListener(
+                "click",
+                (event) => {
+                    this.open(event);
+                }
+            );
         });
 
-        return Promise.all(promises);
+        this.closeButtons.forEach((button) => {
+            button.addEventListener(
+                "click",
+                (event) => {
+                    this.close(event);
+                }
+            );
+        });
+
+        this.previousButton.addEventListener(
+            "click",
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                this.navigate("previous");
+            }
+        );
+
+        this.nextButton.addEventListener(
+            "click",
+            (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                this.navigate("next");
+            }
+        );
+
+        if (this.fullscreenButton) {
+            this.fullscreenButton.addEventListener(
+                "click",
+                (event) => {
+                    this.toggleFullscreen(event);
+                }
+            );
+        }
+
+        this.flipbookElement.addEventListener(
+            "dblclick",
+            (event) => {
+                this.handleDoubleClick(event);
+            }
+        );
+
+        this.flipbookElement.addEventListener(
+            "touchend",
+            (event) => {
+                this.handleDoubleTap(event);
+            },
+            {
+                passive: false
+            }
+        );
+
+        document.addEventListener(
+            "keydown",
+            this.handleKeydown
+        );
+
+        document.addEventListener(
+            "fullscreenchange",
+            this.updateFullscreenButtonText
+        );
+
+        document.addEventListener(
+            "webkitfullscreenchange",
+            this.updateFullscreenButtonText
+        );
+
+        window.addEventListener(
+            "resize",
+            this.handleResize,
+            {
+                passive: true
+            }
+        );
+
+        window.addEventListener(
+            "orientationchange",
+            () => {
+                window.clearTimeout(
+                    this.resizeTimer
+                );
+
+                this.resizeTimer =
+                    window.setTimeout(() => {
+                        this.lastViewportWidth =
+                            window.innerWidth;
+
+                        this.lastLayoutMode =
+                            this.getLayoutMode();
+
+                        this.rebuild({
+                            preservePage: true,
+                            reason:
+                                "orientation change"
+                        });
+                    }, 350);
+            },
+            {
+                passive: true
+            }
+        );
     }
 
 
-    /*
-     * Calculate the appropriate page dimensions.
-     *
-     * Original catalogue image dimensions:
-     * 1591 × 2250 pixels.
-     */
-    function getPageDimensions() {
-        const sourceWidth = 1591;
-        const sourceHeight = 2250;
+    getLayoutMode() {
+        return (
+            window.innerWidth <=
+            this.options.mobileBreakpoint
+        )
+            ? "portrait"
+            : "spread";
+    }
 
-        const pageRatio = sourceHeight / sourceWidth;
 
-        const isMobile = window.innerWidth <= 950;
+    getPageDimensions() {
+        const pageRatio =
+            this.options.sourceHeight /
+            this.options.sourceWidth;
+
+        const isPortrait =
+            this.getLayoutMode() === "portrait";
+
+        const viewer =
+            this.modal.querySelector(
+                ".flipbook-viewer"
+            );
+
+        const viewerRect =
+            viewer?.getBoundingClientRect();
+
+        const viewerWidth =
+            viewerRect?.width ||
+            window.innerWidth;
+
+        const viewerHeight =
+            viewerRect?.height ||
+            window.innerHeight;
+
+        const horizontalSpace =
+            isPortrait ? 16 : 150;
+
+        const verticalSpace =
+            isPortrait ? 20 : 30;
 
         const availableWidth = Math.max(
-            window.innerWidth - (isMobile ? 30 : 220),
-            280
+            viewerWidth - horizontalSpace,
+            260
         );
 
         const availableHeight = Math.max(
-            window.innerHeight - (isMobile ? 170 : 230),
-            340
+            viewerHeight - verticalSpace,
+            320
         );
 
-        /*
-         * Mobile displays one portrait page.
-         */
-        if (isMobile) {
+        if (isPortrait) {
             const pageWidth = Math.min(
                 availableWidth,
                 availableHeight / pageRatio,
@@ -145,15 +344,22 @@ function initialisePricingFlipbook() {
             );
 
             return {
-                width: Math.floor(pageWidth),
-                height: Math.floor(pageWidth * pageRatio),
+                width: Math.max(
+                    260,
+                    Math.floor(pageWidth)
+                ),
+
+                height: Math.max(
+                    360,
+                    Math.floor(
+                        pageWidth * pageRatio
+                    )
+                ),
+
                 usePortrait: true
             };
         }
 
-        /*
-         * Desktop displays a two-page spread.
-         */
         const pageWidth = Math.min(
             availableWidth / 2,
             availableHeight / pageRatio,
@@ -161,67 +367,120 @@ function initialisePricingFlipbook() {
         );
 
         return {
-            width: Math.floor(pageWidth),
-            height: Math.floor(pageWidth * pageRatio),
+            width: Math.max(
+                300,
+                Math.floor(pageWidth)
+            ),
+
+            height: Math.max(
+                420,
+                Math.floor(
+                    pageWidth * pageRatio
+                )
+            ),
+
             usePortrait: false
         };
     }
 
 
-    /*
-     * Generate the HTML pages used by StPageFlip.
-     */
-    function generateFlipbookPages() {
-        flipbookElement.innerHTML = "";
+    preloadImages() {
+        const promises =
+            this.options.imagePaths.map(
+                (imagePath) => {
+                    return new Promise(
+                        (resolve) => {
+                            const image =
+                                new Image();
 
-        cataloguePages.forEach((imagePath, index) => {
-            const page = document.createElement("div");
+                            image.onload = () => {
+                                resolve({
+                                    path: imagePath,
+                                    loaded: true
+                                });
+                            };
 
-            page.className = "flipbook-page";
-            page.dataset.pageIndex = String(index);
+                            image.onerror = () => {
+                                console.error(
+                                    `${this.options.name} image could not load: ${imagePath}`
+                                );
 
-            page.style.width = "100%";
-            page.style.height = "100%";
-            page.style.display = "flex";
-            page.style.alignItems = "center";
-            page.style.justifyContent = "center";
-            page.style.overflow = "hidden";
+                                resolve({
+                                    path: imagePath,
+                                    loaded: false
+                                });
+                            };
 
-            const image = document.createElement("img");
+                            image.src =
+                                imagePath;
+                        }
+                    );
+                }
+            );
 
-            image.src = imagePath;
-            image.alt = `Luxsome pricing catalogue page ${index + 1}`;
-
-            image.width = 1591;
-            image.height = 2250;
-
-            image.draggable = false;
-            image.dataset.pageIndex = String(index);
-
-            image.title = "Double-click to enlarge";
-
-            image.style.width = "100%";
-            image.style.height = "100%";
-            image.style.display = "block";
-            image.style.objectFit = "contain";
-
-            image.style.userSelect = "none";
-            image.style.webkitUserSelect = "none";
-            image.style.webkitUserDrag = "none";
-
-            page.appendChild(image);
-            flipbookElement.appendChild(page);
-        });
-
-        return flipbookElement.querySelectorAll(".flipbook-page");
+        return Promise.all(promises);
     }
 
 
-    /*
-     * Create the StPageFlip instance.
-     */
-    function createFlipbook() {
-        if (pageFlip || flipbookIsReady) {
+    generatePages() {
+        this.flipbookElement.innerHTML = "";
+
+        this.options.imagePaths.forEach(
+            (imagePath, index) => {
+                const page =
+                    document.createElement(
+                        "div"
+                    );
+
+                const image =
+                    document.createElement(
+                        "img"
+                    );
+
+                page.className =
+                    "flipbook-page";
+
+                page.dataset.pageIndex =
+                    String(index);
+
+                image.src = imagePath;
+
+                image.alt =
+                    `${this.options.imageAltPrefix} ${index + 1}`;
+
+                image.width =
+                    this.options.sourceWidth;
+
+                image.height =
+                    this.options.sourceHeight;
+
+                image.draggable = false;
+
+                image.dataset.pageIndex =
+                    String(index);
+
+                image.title =
+                    "Double-click to enlarge";
+
+                page.appendChild(image);
+
+                this.flipbookElement.appendChild(
+                    page
+                );
+            }
+        );
+
+        return this.flipbookElement.querySelectorAll(
+            ".flipbook-page"
+        );
+    }
+
+
+    create() {
+        if (
+            this.pageFlip ||
+            this.flipbookIsReady
+        ) {
             return;
         }
 
@@ -229,257 +488,199 @@ function initialisePricingFlipbook() {
             typeof St === "undefined" ||
             typeof St.PageFlip !== "function"
         ) {
-            showLoadingError(
+            this.showLoadingError(
                 "The catalogue viewer could not be loaded."
             );
 
             console.error(
-                "StPageFlip was not found. Confirm that page-flip.browser.js is loaded before this file."
+                "StPageFlip was not found. Load page-flip.browser.js before flipbook.js."
             );
 
             return;
         }
 
-        const dimensions = getPageDimensions();
-        const pages = generateFlipbookPages();
+        const dimensions =
+            this.getPageDimensions();
 
-        pageFlip = new St.PageFlip(flipbookElement, {
-            width: dimensions.width,
-            height: dimensions.height,
+        const pages =
+            this.generatePages();
 
-            size: "fixed",
-            autoSize: false,
+        this.pageFlip =
+            new St.PageFlip(
+                this.flipbookElement,
+                {
+                    width:
+                        dimensions.width,
 
-            usePortrait: dimensions.usePortrait,
-            showCover: true,
+                    height:
+                        dimensions.height,
 
-            drawShadow: true,
-            maxShadowOpacity: 0.15,
+                    size: "fixed",
 
-            flippingTime: 700,
+                    autoSize: false,
 
-            mobileScrollSupport: true,
-            swipeDistance: 30,
+                    usePortrait:
+                        dimensions.usePortrait,
 
-            showPageCorners: false,
-            disableFlipByClick: true,
+                    showCover: true,
 
-            startPage: 0,
-            startZIndex: 10
-        });
+                    drawShadow: true,
 
-        /*
-         * Load real HTML elements instead of canvas-rendered images.
-         */
-        pageFlip.loadFromHTML(pages);
+                    maxShadowOpacity: 0.12,
 
-        pageFlip.on("flip", () => {
-            flipbookIsAnimating = false;
-        
-            window.clearTimeout(animationSafetyTimer);
-        
-            updatePageInformation();
-        });
-        
-        pageFlip.on("changeState", (event) => {
-            if (event.data === "read") {
-                flipbookIsAnimating = false;
-        
-                window.clearTimeout(animationSafetyTimer);
-        
-                updatePageInformation();
+                    flippingTime:
+                        this.options
+                            .flippingTime,
+
+                    mobileScrollSupport: true,
+
+                    swipeDistance: 30,
+
+                    showPageCorners: false,
+
+                    disableFlipByClick: true,
+
+                    startPage: 0,
+
+                    startZIndex: 10
+                }
+            );
+
+        this.pageFlip.loadFromHTML(
+            pages
+        );
+
+        this.bindPageFlipEvents();
+
+        this.flipbookElement.classList.add(
+            "is-ready"
+        );
+
+        if (this.loadingElement) {
+            this.loadingElement.classList.add(
+                "is-hidden"
+            );
+        }
+
+        this.flipbookIsReady = true;
+        this.flipbookIsAnimating = false;
+
+        this.updatePageInformation();
+    }
+
+
+    bindPageFlipEvents() {
+        const finishAnimation = () => {
+            this.flipbookIsAnimating = false;
+
+            window.clearTimeout(
+                this.animationSafetyTimer
+            );
+
+            this.updatePageInformation();
+        };
+
+        this.pageFlip.on(
+            "flip",
+            finishAnimation
+        );
+
+        this.pageFlip.on(
+            "changeState",
+            (event) => {
+                if (event.data === "read") {
+                    finishAnimation();
+                }
             }
-        });
-        
-        pageFlip.on("changeOrientation", () => {
-            updatePageInformation();
-        });
-        
-        pageFlip.on("init", () => {
-            updatePageInformation();
-        });
+        );
 
-        totalPagesElement.textContent = String(pages.length);
+        this.pageFlip.on(
+            "changeOrientation",
+            () => {
+                this.updatePageInformation();
+            }
+        );
 
-        flipbookElement.classList.add("is-ready");
-
-        if (loadingElement) {
-            loadingElement.classList.add("is-hidden");
-        }
-
-        flipbookIsReady = true;
-
-        updatePageInformation();
+        this.pageFlip.on(
+            "init",
+            () => {
+                this.updatePageInformation();
+            }
+        );
     }
 
 
-    /*
-     * Destroy and rebuild the flipbook after a major screen resize.
-     */
-    function rebuildFlipbook() {
-        if (!flipbookIsReady || !pageFlip) {
-            return;
-        }
-
-        const currentIndex = pageFlip.getCurrentPageIndex();
-
-        try {
-            pageFlip.destroy();
-        } catch (error) {
-            console.warn(
-                "The existing flipbook instance could not be destroyed cleanly.",
-                error
-            );
-        }
-
-        pageFlip = null;
-        flipbookIsReady = false;
-        flipbookIsAnimating = false;
-
-        flipbookElement.classList.remove("is-ready");
-
-        createFlipbook();
-
-        if (pageFlip && currentIndex > 0) {
-            const finalIndex = pageFlip.getPageCount() - 1;
-            const safeIndex = Math.min(currentIndex, finalIndex);
-
-            pageFlip.turnToPage(safeIndex);
-        }
-    }
-
-
-    /*
-     * Open the selected catalogue page in PhotoSwipe.
-     */
-    function openPageZoom(pageIndex) {
-        if (!Number.isInteger(pageIndex)) {
-            return;
-        }
-
-        if (typeof window.openCatalogueZoom !== "function") {
-            console.error(
-                "PhotoSwipe has not finished loading or window.openCatalogueZoom is missing."
-            );
-
-            return;
-        }
-
-        window.openCatalogueZoom(pageIndex);
-    }
-
-
-    /*
-     * Update the page number and navigation button states.
-     */
-    function updatePageInformation() {
-        if (!pageFlip) {
-            return;
-        }
-
-        const currentIndex = pageFlip.getCurrentPageIndex();
-        const totalPages = pageFlip.getPageCount();
-
-        currentPageElement.textContent = String(currentIndex + 1);
-        totalPagesElement.textContent = String(totalPages);
-
-        previousButton.disabled = currentIndex <= 0;
-        nextButton.disabled = currentIndex >= totalPages - 1;
-    }
-
-    function navigateFlipbook(direction) {
-        if (!pageFlip || flipbookIsAnimating) {
-            return;
-        }
-    
-        const currentIndex = pageFlip.getCurrentPageIndex();
-        const finalIndex = pageFlip.getPageCount() - 1;
-    
-        if (direction === "previous" && currentIndex <= 0) {
-            return;
-        }
-    
-        if (direction === "next" && currentIndex >= finalIndex) {
-            return;
-        }
-    
-        previousButton.disabled = true;
-        nextButton.disabled = true;
-    
-        if (direction === "previous") {
-            pageFlip.turnToPrevPage();
-        } else {
-            pageFlip.flipNext();
-        }
-    
-        /*
-         * Safety reset in case the library fails to emit its final event.
-         */
-        window.clearTimeout(animationSafetyTimer);
-    
-        animationSafetyTimer = window.setTimeout(() => {
-            flipbookIsAnimating = false;
-            updatePageInformation();
-        }, 1000);
-    }
-
-
-    /*
-     * Open the flipbook modal.
-     */
-    async function openFlipbook(event) {
+    async open(event) {
         if (event) {
             event.preventDefault();
         }
 
-        if (modalIsOpen) {
+        if (this.modalIsOpen) {
             return;
         }
 
-        lastFocusedElement = document.activeElement;
-        modalIsOpen = true;
+        this.lastFocusedElement =
+            document.activeElement;
 
-        modal.classList.add("is-open");
-        modal.setAttribute("aria-hidden", "false");
+        this.modalIsOpen = true;
 
-        document.body.classList.add("flipbook-open");
+        this.modal.classList.add(
+            "is-open"
+        );
 
-        /*
-         * Wait for the modal to become visible before calculating dimensions.
-         */
-        await waitForNextPaint();
+        this.modal.setAttribute(
+            "aria-hidden",
+            "false"
+        );
 
-        if (!flipbookIsReady) {
-            if (loadingElement) {
-                loadingElement.classList.remove("is-hidden");
+        document.body.classList.add(
+            "flipbook-open"
+        );
+
+        await this.waitForVisibleLayout();
+
+        if (!this.flipbookIsReady) {
+            if (this.loadingElement) {
+                this.loadingElement.classList.remove(
+                    "is-hidden"
+                );
             }
 
-            const results = await preloadImages(cataloguePages);
+            const results =
+                await this.preloadImages();
 
-            const successfulImages = results.filter(
-                (result) => result.loaded
-            );
+            const loadedCount =
+                results.filter(
+                    (result) =>
+                        result.loaded
+                ).length;
 
-            if (successfulImages.length === 0) {
-                showLoadingError(
+            if (loadedCount === 0) {
+                this.showLoadingError(
                     "The catalogue pages could not be loaded."
                 );
 
                 return;
             }
 
-            if (successfulImages.length < cataloguePages.length) {
+            if (
+                loadedCount <
+                this.options.imagePaths.length
+            ) {
                 console.warn(
-                    `${cataloguePages.length - successfulImages.length} catalogue image(s) failed to load.`
+                    `${this.options.imagePaths.length - loadedCount} ${this.options.name} image(s) failed to preload.`
                 );
             }
 
-            createFlipbook();
+            this.create();
+        } else {
+            this.safeUpdate();
         }
 
-        const closeButton = document.getElementById(
-            "closePricingFlipbook"
-        );
+        const closeButton =
+            document.getElementById(
+                this.options.closeButtonId
+            );
 
         if (closeButton) {
             closeButton.focus();
@@ -487,111 +688,572 @@ function initialisePricingFlipbook() {
     }
 
 
-    /*
-     * Close the flipbook modal.
-     */
-    function closeFlipbook(event) {
+    close(event) {
         if (event) {
             event.preventDefault();
         }
 
-        if (!modalIsOpen) {
+        if (!this.modalIsOpen) {
             return;
         }
 
-        modalIsOpen = false;
+        this.modalIsOpen = false;
+        this.flipbookIsAnimating = false;
 
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
+        window.clearTimeout(
+            this.animationSafetyTimer
+        );
 
-        document.body.classList.remove("flipbook-open");
+        this.modal.classList.remove(
+            "is-open"
+        );
 
-        exitFullscreen();
+        this.modal.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        document.body.classList.remove(
+            "flipbook-open"
+        );
+
+        this.exitFullscreen();
 
         if (
-            lastFocusedElement &&
-            typeof lastFocusedElement.focus === "function"
+            this.lastFocusedElement &&
+            typeof this.lastFocusedElement.focus ===
+                "function"
         ) {
-            lastFocusedElement.focus();
+            this.lastFocusedElement.focus();
         }
 
-        if (pageFlip) {
-            pageFlip.turnToPage(0);
-        }
-        updatePageInformation();
+        /*
+         * Wait until the closing animation
+         * has finished before resetting.
+         *
+         * Calling pageFlip while the modal is
+         * hidden can cause blank pages on mobile.
+         */
+        window.setTimeout(() => {
+            if (!this.pageFlip) {
+                return;
+            }
+
+            try {
+                this.pageFlip.turnToPage(0);
+            } catch (error) {
+                console.warn(
+                    `${this.options.name} could not reset cleanly.`,
+                    error
+                );
+            }
+
+            this.updatePageInformation();
+        }, 300);
     }
 
 
-    /*
-     * Display an error inside the loading area.
-     */
-    function showLoadingError(message) {
-        if (!loadingElement) {
+    navigate(direction) {
+        if (
+            !this.pageFlip ||
+            this.flipbookIsAnimating
+        ) {
             return;
         }
 
-        loadingElement.classList.remove("is-hidden");
-        loadingElement.innerHTML = "";
+        const currentIndex =
+            this.pageFlip
+                .getCurrentPageIndex();
 
-        const messageElement = document.createElement("span");
-        messageElement.textContent = message;
+        const finalIndex =
+            this.pageFlip
+                .getPageCount() - 1;
 
-        loadingElement.appendChild(messageElement);
+        const targetIndex =
+            direction === "previous"
+                ? currentIndex - 1
+                : currentIndex + 1;
+
+        if (
+            targetIndex < 0 ||
+            targetIndex > finalIndex
+        ) {
+            return;
+        }
+
+        this.flipbookIsAnimating = true;
+
+        this.setNavigationDisabled(true);
+
+        try {
+            if (direction === "previous") {
+                this.pageFlip.flipPrev();
+            } else {
+                this.pageFlip.flipNext();
+            }
+        } catch (error) {
+            console.warn(
+                `${this.options.name} animated navigation failed. Falling back to direct navigation.`,
+                error
+            );
+
+            this.pageFlip.turnToPage(
+                targetIndex
+            );
+        }
+
+        window.clearTimeout(
+            this.animationSafetyTimer
+        );
+
+        /*
+         * Mobile Safari occasionally fails to
+         * finish a page-turn animation.
+         *
+         * This verifies that the expected page
+         * was reached and recovers if necessary.
+         */
+        this.animationSafetyTimer =
+            window.setTimeout(() => {
+                if (!this.pageFlip) {
+                    return;
+                }
+
+                const actualIndex =
+                    this.pageFlip
+                        .getCurrentPageIndex();
+
+                if (
+                    actualIndex !==
+                    targetIndex
+                ) {
+                    try {
+                        this.pageFlip.turnToPage(
+                            targetIndex
+                        );
+                    } catch (error) {
+                        console.error(
+                            `${this.options.name} recovery navigation failed.`,
+                            error
+                        );
+                    }
+                }
+
+                this.flipbookIsAnimating =
+                    false;
+
+                this.safeUpdate();
+
+                this.updatePageInformation();
+            },
+            this.options.flippingTime + 350
+        );
     }
 
 
-    /*
-     * Wait for two animation frames.
-     */
-    function waitForNextPaint() {
-        return new Promise((resolve) => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(resolve);
-            });
-        });
+    setNavigationDisabled(disabled) {
+        this.previousButton.disabled =
+            disabled;
+
+        this.nextButton.disabled =
+            disabled;
     }
 
 
-    /*
-     * Enter fullscreen mode.
-     */
-    function enterFullscreen() {
-        const dialog = modal.querySelector(".flipbook-dialog");
+    updatePageInformation() {
+        if (!this.pageFlip) {
+            this.currentPageElement.textContent =
+                "1";
+
+            this.totalPagesElement.textContent =
+                String(
+                    this.options
+                        .imagePaths.length
+                );
+
+            this.previousButton.disabled =
+                true;
+
+            this.nextButton.disabled =
+                this.options
+                    .imagePaths.length <= 1;
+
+            return;
+        }
+
+        const currentIndex =
+            this.pageFlip
+                .getCurrentPageIndex();
+
+        const pageCount =
+            this.pageFlip
+                .getPageCount();
+
+        this.currentPageElement.textContent =
+            String(currentIndex + 1);
+
+        this.totalPagesElement.textContent =
+            String(pageCount);
+
+        if (!this.flipbookIsAnimating) {
+            this.previousButton.disabled =
+                currentIndex <= 0;
+
+            this.nextButton.disabled =
+                currentIndex >=
+                pageCount - 1;
+        }
+    }
+
+
+    safeUpdate() {
+        if (!this.pageFlip) {
+            return;
+        }
+
+        try {
+            if (
+                typeof this.pageFlip.update ===
+                "function"
+            ) {
+                this.pageFlip.update();
+            }
+        } catch (error) {
+            console.warn(
+                `${this.options.name} update failed.`,
+                error
+            );
+        }
+    }
+
+
+    async rebuild({
+        preservePage = true,
+        reason = "layout change"
+    } = {}) {
+        if (
+            !this.modalIsOpen ||
+            !this.flipbookIsReady ||
+            !this.pageFlip
+        ) {
+            return;
+        }
+
+        const currentIndex =
+            preservePage
+                ? this.pageFlip
+                    .getCurrentPageIndex()
+                : 0;
+
+        this.flipbookIsAnimating =
+            false;
+
+        window.clearTimeout(
+            this.animationSafetyTimer
+        );
+
+        try {
+            this.pageFlip.destroy();
+        } catch (error) {
+            console.warn(
+                `${this.options.name} could not be destroyed cleanly during ${reason}.`,
+                error
+            );
+        }
+
+        this.pageFlip = null;
+        this.flipbookIsReady = false;
+
+        this.flipbookElement.classList.remove(
+            "is-ready"
+        );
+
+        this.flipbookElement.innerHTML = "";
+
+        await this.waitForVisibleLayout();
+
+        this.create();
+
+        if (!this.pageFlip) {
+            return;
+        }
+
+        const safeIndex = Math.min(
+            currentIndex,
+            this.pageFlip.getPageCount() - 1
+        );
+
+        if (safeIndex > 0) {
+            this.pageFlip.turnToPage(
+                safeIndex
+            );
+        }
+
+        this.safeUpdate();
+        this.updatePageInformation();
+    }
+
+
+    handleResize() {
+        if (
+            !this.modalIsOpen ||
+            !this.flipbookIsReady
+        ) {
+            return;
+        }
+
+        const currentWidth =
+            window.innerWidth;
+
+        const currentLayoutMode =
+            this.getLayoutMode();
+
+        const layoutModeChanged =
+            currentLayoutMode !==
+            this.lastLayoutMode;
+
+        const widthDifference =
+            Math.abs(
+                currentWidth -
+                this.lastViewportWidth
+            );
+
+        const meaningfulWidthChange =
+            widthDifference >= 80;
+
+        /*
+         * Ignore height-only changes caused by
+         * mobile browser address bars.
+         */
+        if (
+            !layoutModeChanged &&
+            !meaningfulWidthChange
+        ) {
+            return;
+        }
+
+        this.lastViewportWidth =
+            currentWidth;
+
+        this.lastLayoutMode =
+            currentLayoutMode;
+
+        window.clearTimeout(
+            this.resizeTimer
+        );
+
+        this.resizeTimer =
+            window.setTimeout(() => {
+                this.rebuild({
+                    preservePage: true,
+                    reason:
+                        "viewport width change"
+                });
+            }, 350);
+    }
+
+
+    handleKeydown(event) {
+        if (!this.modalIsOpen) {
+            return;
+        }
+
+        const photoSwipe =
+            document.querySelector(
+                ".pswp"
+            );
+
+        if (
+            photoSwipe &&
+            photoSwipe.classList.contains(
+                "pswp--open"
+            )
+        ) {
+            return;
+        }
+
+        switch (event.key) {
+            case "Escape":
+                this.close();
+                break;
+
+            case "ArrowLeft":
+                event.preventDefault();
+                this.navigate("previous");
+                break;
+
+            case "ArrowRight":
+                event.preventDefault();
+                this.navigate("next");
+                break;
+
+            default:
+                break;
+        }
+    }
+
+
+    handleDoubleClick(event) {
+        const image =
+            event.target.closest(
+                ".flipbook-page img"
+            );
+
+        if (!image) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const pageIndex =
+            Number(
+                image.dataset.pageIndex
+            );
+
+        this.openZoom(pageIndex);
+    }
+
+
+    handleDoubleTap(event) {
+        const image =
+            event.target.closest(
+                ".flipbook-page img"
+            );
+
+        if (!image) {
+            this.previousTapTime = 0;
+            this.previousTapImage = null;
+
+            return;
+        }
+
+        const currentTapTime =
+            Date.now();
+
+        const tapDelay =
+            currentTapTime -
+            this.previousTapTime;
+
+        const isDoubleTap =
+            this.previousTapImage === image &&
+            tapDelay > 0 &&
+            tapDelay < 350;
+
+        if (isDoubleTap) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const pageIndex =
+                Number(
+                    image.dataset.pageIndex
+                );
+
+            this.openZoom(pageIndex);
+
+            this.previousTapTime = 0;
+            this.previousTapImage = null;
+
+            return;
+        }
+
+        this.previousTapTime =
+            currentTapTime;
+
+        this.previousTapImage =
+            image;
+    }
+
+
+    openZoom(pageIndex) {
+        if (!Number.isInteger(pageIndex)) {
+            return;
+        }
+
+        const zoomHandler =
+            window[
+                this.options
+                    .zoomHandlerName
+            ];
+
+        if (
+            typeof zoomHandler !==
+            "function"
+        ) {
+            console.error(
+                `${this.options.zoomHandlerName} is not available.`
+            );
+
+            return;
+        }
+
+        zoomHandler(pageIndex);
+    }
+
+
+    toggleFullscreen(event) {
+        if (event) {
+            event.preventDefault();
+        }
+
+        const isFullscreen =
+            Boolean(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement
+            );
+
+        if (isFullscreen) {
+            this.exitFullscreen();
+        } else {
+            this.enterFullscreen();
+        }
+    }
+
+
+    enterFullscreen() {
+        const dialog =
+            this.modal.querySelector(
+                ".flipbook-dialog"
+            );
 
         if (!dialog) {
             return;
         }
 
         if (dialog.requestFullscreen) {
-            dialog.requestFullscreen().catch((error) => {
-                console.error(
-                    "Full-screen mode could not be started:",
-                    error
-                );
-            });
+            dialog
+                .requestFullscreen()
+                .catch((error) => {
+                    console.error(
+                        "Full-screen mode could not be started:",
+                        error
+                    );
+                });
 
             return;
         }
 
-        if (dialog.webkitRequestFullscreen) {
+        if (
+            dialog.webkitRequestFullscreen
+        ) {
             dialog.webkitRequestFullscreen();
         }
     }
 
 
-    /*
-     * Exit fullscreen mode.
-     */
-    function exitFullscreen() {
+    exitFullscreen() {
         if (
             document.fullscreenElement &&
             document.exitFullscreen
         ) {
-            document.exitFullscreen().catch(() => {
-                /*
-                 * The browser may already be leaving fullscreen mode.
-                 */
-            });
+            document
+                .exitFullscreen()
+                .catch(() => {
+                    /*
+                     * Browser may already be
+                     * leaving full screen.
+                     */
+                });
 
             return;
         }
@@ -605,1051 +1267,60 @@ function initialisePricingFlipbook() {
     }
 
 
-    /*
-     * Toggle fullscreen mode.
-     */
-    function toggleFullscreen(event) {
-        if (event) {
-            event.preventDefault();
-        }
-
-        if (
-            document.fullscreenElement ||
-            document.webkitFullscreenElement
-        ) {
-            exitFullscreen();
-        } else {
-            enterFullscreen();
-        }
-    }
-
-
-    /*
-     * Open-button listeners.
-     */
-    openButtons.forEach((button) => {
-        button.addEventListener("click", openFlipbook);
-    });
-
-
-    /*
-     * Close-button and backdrop listeners.
-     */
-    closeButtons.forEach((button) => {
-        button.addEventListener("click", closeFlipbook);
-    });
-
-
-    previousButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-    
-        navigateFlipbook("previous");
-    });
-    
-    nextButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-    
-        navigateFlipbook("next");
-    });
-
-    /*
-     * Fullscreen button.
-     */
-    if (fullscreenButton) {
-        fullscreenButton.addEventListener(
-            "click",
-            toggleFullscreen
-        );
-    }
-
-
-    /*
-     * Desktop: double-click a catalogue page to enlarge it.
-     */
-    flipbookElement.addEventListener("dblclick", (event) => {
-        const image = event.target.closest(
-            ".flipbook-page img"
-        );
-
-        if (!image) {
-            return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        const pageIndex = Number(
-            image.dataset.pageIndex
-        );
-
-        if (!Number.isInteger(pageIndex)) {
-            return;
-        }
-
-        openPageZoom(pageIndex);
-    });
-
-
-    /*
-     * Mobile: double-tap a catalogue page to enlarge it.
-     */
-    flipbookElement.addEventListener(
-        "touchend",
-        (event) => {
-            const image = event.target.closest(
-                ".flipbook-page img"
-            );
-
-            if (!image) {
-                previousTapTime = 0;
-                previousTapImage = null;
-                return;
-            }
-
-            const currentTapTime = Date.now();
-            const tapDelay =
-                currentTapTime - previousTapTime;
-
-            const isDoubleTap =
-                previousTapImage === image &&
-                tapDelay > 0 &&
-                tapDelay < 350;
-
-            if (isDoubleTap) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                const pageIndex = Number(
-                    image.dataset.pageIndex
-                );
-
-                if (Number.isInteger(pageIndex)) {
-                    openPageZoom(pageIndex);
-                }
-
-                previousTapTime = 0;
-                previousTapImage = null;
-
-                return;
-            }
-
-            previousTapTime = currentTapTime;
-            previousTapImage = image;
-        },
-        {
-            passive: false
-        }
-    );
-
-
-    /*
-     * Keyboard navigation.
-     */
-    document.addEventListener("keydown", (event) => {
-        if (!modalIsOpen) {
-            return;
-        }
-
-        /*
-         * Let PhotoSwipe handle keyboard input while it is open.
-         */
-        if (
-            document.querySelector(".pswp") &&
-            document.querySelector(".pswp").classList.contains(
-                "pswp--open"
-            )
-        ) {
-            return;
-        }
-
-        switch (event.key) {
-            case "Escape":
-                closeFlipbook();
-                break;
-
-            case "ArrowLeft":
-                event.preventDefault();
-                navigateFlipbook("previous");
-                break;
-            
-            case "ArrowRight":
-                event.preventDefault();
-                navigateFlipbook("next");
-                break;
-
-            default:
-                break;
-        }
-    });
-
-
-    /*
-     * Update fullscreen button text.
-     */
-    function updateFullscreenButtonText() {
-        if (!fullscreenButton) {
+    updateFullscreenButtonText() {
+        if (!this.fullscreenButton) {
             return;
         }
 
         const isFullscreen =
-            Boolean(document.fullscreenElement) ||
-            Boolean(document.webkitFullscreenElement);
+            Boolean(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement
+            );
 
-        fullscreenButton.textContent = isFullscreen
-            ? "Exit Full Screen"
-            : "Full Screen";
+        this.fullscreenButton.textContent =
+            isFullscreen
+                ? "Exit Full Screen"
+                : "Full Screen";
     }
 
-    document.addEventListener(
-        "fullscreenchange",
-        updateFullscreenButtonText
-    );
 
-    document.addEventListener(
-        "webkitfullscreenchange",
-        updateFullscreenButtonText
-    );
-
-
-    /*
-     * Rebuild the flipbook after the window size changes.
-     */
-    window.addEventListener("resize", () => {
-        if (!modalIsOpen || !flipbookIsReady) {
+    showLoadingError(message) {
+        if (!this.loadingElement) {
             return;
         }
 
-        window.clearTimeout(resizeTimer);
-
-        resizeTimer = window.setTimeout(() => {
-            rebuildFlipbook();
-        }, 300);
-    });
-}
-
-
-// Catalogue Flip Book Section
-function initialiseProductFlipbook() {
-    /*
-     * Add or remove catalogue images here.
-     * The order of this array determines the page order.
-     */
-    
-
-    const productCataloguePages = Array.from(
-        { length: 15 },
-        (_, index) =>
-            `assets/images/flipbook/${index + 1}.png`
-    );
-
-    const cataloguePages = productCataloguePages;
-
-    const modal = document.getElementById("productFlipbookModal");
-    const flipbookElement = document.getElementById("productFlipbook");
-    const loadingElement = document.getElementById("productFlipbookLoading");
-
-    const previousButton = document.getElementById("productPreviousPage");
-    const nextButton = document.getElementById("productNextPage");
-    const fullscreenButton = document.getElementById("productFullscreenButton");
-
-    const currentPageElement = document.getElementById("productCurrentPage");
-    const totalPagesElement = document.getElementById("productTotalPages");
-
-    const openButtons = document.querySelectorAll(
-        "[data-open-product-flipbook]"
-    );
-
-    const closeButtons = document.querySelectorAll(
-        "[data-close-product-flipbook]"
-    );
-
-    /*
-     * Stop if essential flipbook elements do not exist.
-     */
-    if (
-        !modal ||
-        !flipbookElement ||
-        !previousButton ||
-        !nextButton ||
-        !currentPageElement ||
-        !totalPagesElement
-    ) {
-        console.warn(
-            "The flipbook could not initialise because required HTML elements are missing."
+        this.loadingElement.classList.remove(
+            "is-hidden"
         );
 
-        return;
-    }
+        this.loadingElement.innerHTML = "";
 
-    let pageFlip = null;
-    let modalIsOpen = false;
-    let flipbookIsReady = false;
-    let flipbookIsAnimating = false;
-    let animationSafetyTimer = null;
-    let lastFocusedElement = null;
+        const messageElement =
+            document.createElement(
+                "span"
+            );
 
-    let previousTapTime = 0;
-    let previousTapImage = null;
+        messageElement.textContent =
+            message;
 
-    let resizeTimer = null;
-
-
-    /*
-     * Preload catalogue pages before creating the flipbook.
-     */
-    function preloadImages(imagePaths) {
-        const promises = imagePaths.map((imagePath) => {
-            return new Promise((resolve) => {
-                const image = new Image();
-
-                image.onload = () => {
-                    resolve({
-                        path: imagePath,
-                        loaded: true
-                    });
-                };
-
-                image.onerror = () => {
-                    console.error(
-                        `Catalogue image could not load: ${imagePath}`
-                    );
-
-                    resolve({
-                        path: imagePath,
-                        loaded: false
-                    });
-                };
-
-                image.src = imagePath;
-            });
-        });
-
-        return Promise.all(promises);
-    }
-
-
-    /*
-     * Calculate the appropriate page dimensions.
-     *
-     * Original catalogue image dimensions:
-     * 1591 × 2250 pixels.
-     */
-    function getPageDimensions() {
-        const sourceWidth = 1591;
-        const sourceHeight = 2250;
-
-        const pageRatio = sourceHeight / sourceWidth;
-
-        const isMobile = window.innerWidth <= 950;
-
-        const availableWidth = Math.max(
-            window.innerWidth - (isMobile ? 30 : 220),
-            280
+        this.loadingElement.appendChild(
+            messageElement
         );
-
-        const availableHeight = Math.max(
-            window.innerHeight - (isMobile ? 170 : 230),
-            340
-        );
-
-        /*
-         * Mobile displays one portrait page.
-         */
-        if (isMobile) {
-            const pageWidth = Math.min(
-                availableWidth,
-                availableHeight / pageRatio,
-                480
-            );
-
-            return {
-                width: Math.floor(pageWidth),
-                height: Math.floor(pageWidth * pageRatio),
-                usePortrait: true
-            };
-        }
-
-        /*
-         * Desktop displays a two-page spread.
-         */
-        const pageWidth = Math.min(
-            availableWidth / 2,
-            availableHeight / pageRatio,
-            520
-        );
-
-        return {
-            width: Math.floor(pageWidth),
-            height: Math.floor(pageWidth * pageRatio),
-            usePortrait: false
-        };
     }
 
 
-    /*
-     * Generate the HTML pages used by StPageFlip.
-     */
-    function generateFlipbookPages() {
-        flipbookElement.innerHTML = "";
-
-        cataloguePages.forEach((imagePath, index) => {
-            const page = document.createElement("div");
-
-            page.className = "flipbook-page";
-            page.dataset.pageIndex = String(index);
-
-            page.style.width = "100%";
-            page.style.height = "100%";
-            page.style.display = "flex";
-            page.style.alignItems = "center";
-            page.style.justifyContent = "center";
-            page.style.overflow = "hidden";
-
-            const image = document.createElement("img");
-
-            image.src = imagePath;
-            image.alt = `Luxsome pricing catalogue page ${index + 1}`;
-
-            image.width = 1591;
-            image.height = 2250;
-
-            image.draggable = false;
-            image.dataset.pageIndex = String(index);
-
-            image.title = "Double-click to enlarge";
-
-            image.style.width = "100%";
-            image.style.height = "100%";
-            image.style.display = "block";
-            image.style.objectFit = "contain";
-
-            image.style.userSelect = "none";
-            image.style.webkitUserSelect = "none";
-            image.style.webkitUserDrag = "none";
-
-            page.appendChild(image);
-            flipbookElement.appendChild(page);
-        });
-
-        return flipbookElement.querySelectorAll(".flipbook-page");
-    }
-
-
-    /*
-     * Create the StPageFlip instance.
-     */
-    function createFlipbook() {
-        if (pageFlip || flipbookIsReady) {
-            return;
-        }
-
-        if (
-            typeof St === "undefined" ||
-            typeof St.PageFlip !== "function"
-        ) {
-            showLoadingError(
-                "The catalogue viewer could not be loaded."
-            );
-
-            console.error(
-                "StPageFlip was not found. Confirm that page-flip.browser.js is loaded before this file."
-            );
-
-            return;
-        }
-
-        const dimensions = getPageDimensions();
-        const pages = generateFlipbookPages();
-
-        pageFlip = new St.PageFlip(flipbookElement, {
-            width: dimensions.width,
-            height: dimensions.height,
-
-            size: "fixed",
-            autoSize: false,
-
-            usePortrait: dimensions.usePortrait,
-            showCover: true,
-
-            drawShadow: true,
-            maxShadowOpacity: 0.15,
-
-            flippingTime: 700,
-
-            mobileScrollSupport: true,
-            swipeDistance: 30,
-
-            showPageCorners: false,
-            disableFlipByClick: true,
-
-            startPage: 0,
-            startZIndex: 10
-        });
-
-        /*
-         * Load real HTML elements instead of canvas-rendered images.
-         */
-        pageFlip.loadFromHTML(pages);
-
-        pageFlip.on("flip", () => {
-            flipbookIsAnimating = false;
-        
-            window.clearTimeout(animationSafetyTimer);
-        
-            updatePageInformation();
-        });
-        
-        pageFlip.on("changeState", (event) => {
-            if (event.data === "read") {
-                flipbookIsAnimating = false;
-        
-                window.clearTimeout(animationSafetyTimer);
-        
-                updatePageInformation();
-            }
-        });
-        
-        pageFlip.on("changeOrientation", () => {
-            updatePageInformation();
-        });
-        
-        pageFlip.on("init", () => {
-            updatePageInformation();
-        });
-
-        totalPagesElement.textContent = String(pages.length);
-
-        flipbookElement.classList.add("is-ready");
-
-        if (loadingElement) {
-            loadingElement.classList.add("is-hidden");
-        }
-
-        flipbookIsReady = true;
-
-        updatePageInformation();
-    }
-
-
-    /*
-     * Destroy and rebuild the flipbook after a major screen resize.
-     */
-    function rebuildFlipbook() {
-        if (!flipbookIsReady || !pageFlip) {
-            return;
-        }
-
-        const currentIndex = pageFlip.getCurrentPageIndex();
-
-        try {
-            pageFlip.destroy();
-        } catch (error) {
-            console.warn(
-                "The existing flipbook instance could not be destroyed cleanly.",
-                error
-            );
-        }
-
-        pageFlip = null;
-        flipbookIsReady = false;
-        flipbookIsAnimating = false;
-
-        flipbookElement.classList.remove("is-ready");
-
-        createFlipbook();
-
-        if (pageFlip && currentIndex > 0) {
-            const finalIndex = pageFlip.getPageCount() - 1;
-            const safeIndex = Math.min(currentIndex, finalIndex);
-
-            pageFlip.turnToPage(safeIndex);
-        }
-    }
-
-
-    /*
-     * Open the selected catalogue page in PhotoSwipe.
-     */
-    function openPageZoom(pageIndex) {
-        if (!Number.isInteger(pageIndex)) {
-            return;
-        }
-
-        if (typeof window.openProductCatalogueZoom !== "function") {
-            console.error(
-                "PhotoSwipe has not finished loading or window.openCatalogueZoom is missing."
-            );
-
-            return;
-        }
-
-        window.openProductCatalogueZoom(pageIndex);
-    }
-
-
-    /*
-     * Update the page number and navigation button states.
-     */
-    function updatePageInformation() {
-        if (!pageFlip) {
-            return;
-        }
-
-        const currentIndex = pageFlip.getCurrentPageIndex();
-        const totalPages = pageFlip.getPageCount();
-
-        currentPageElement.textContent = String(currentIndex + 1);
-        totalPagesElement.textContent = String(totalPages);
-
-        previousButton.disabled = currentIndex <= 0;
-        nextButton.disabled = currentIndex >= totalPages - 1;
-    }
-
-    function navigateFlipbook(direction) {
-        if (!pageFlip || flipbookIsAnimating) {
-            return;
-        }
-    
-        const currentIndex = pageFlip.getCurrentPageIndex();
-        const finalIndex = pageFlip.getPageCount() - 1;
-    
-        if (direction === "previous" && currentIndex <= 0) {
-            return;
-        }
-    
-        if (direction === "next" && currentIndex >= finalIndex) {
-            return;
-        }
-    
-        previousButton.disabled = true;
-        nextButton.disabled = true;
-        flipbookIsAnimating = true;
-    
-        if (direction === "previous") {
-            pageFlip.turnToPrevPage();
-        } else {
-            pageFlip.flipNext();
-        }
-    
-        /*
-         * Safety reset in case the library fails to emit its final event.
-         */
-        window.clearTimeout(animationSafetyTimer);
-    
-        animationSafetyTimer = window.setTimeout(() => {
-            flipbookIsAnimating = false;
-            updatePageInformation();
-        }, 1000);
-    }
-
-    /*
-     * Open the flipbook modal.
-     */
-    async function openFlipbook(event) {
-        if (event) {
-            event.preventDefault();
-        }
-
-        if (modalIsOpen) {
-            return;
-        }
-
-        lastFocusedElement = document.activeElement;
-        modalIsOpen = true;
-
-        modal.classList.add("is-open");
-        modal.setAttribute("aria-hidden", "false");
-
-        document.body.classList.add("flipbook-open");
-
-        /*
-         * Wait for the modal to become visible before calculating dimensions.
-         */
-        await waitForNextPaint();
-
-        if (!flipbookIsReady) {
-            if (loadingElement) {
-                loadingElement.classList.remove("is-hidden");
-            }
-
-            const results = await preloadImages(cataloguePages);
-
-            const successfulImages = results.filter(
-                (result) => result.loaded
-            );
-
-            if (successfulImages.length === 0) {
-                showLoadingError(
-                    "The catalogue pages could not be loaded."
-                );
-
-                return;
-            }
-
-            if (successfulImages.length < cataloguePages.length) {
-                console.warn(
-                    `${cataloguePages.length - successfulImages.length} catalogue image(s) failed to load.`
+    waitForVisibleLayout() {
+        return new Promise(
+            (resolve) => {
+                requestAnimationFrame(
+                    () => {
+                        requestAnimationFrame(
+                            resolve
+                        );
+                    }
                 );
             }
-
-            createFlipbook();
-        }
-
-        const closeButton = document.getElementById(
-            "closeFlipbook"
-        );
-
-        if (closeButton) {
-            closeButton.focus();
-        }
-    }
-
-
-    /*
-     * Close the flipbook modal.
-     */
-    function closeFlipbook(event) {
-        if (event) {
-            event.preventDefault();
-        }
-
-        if (!modalIsOpen) {
-            return;
-        }
-
-        modalIsOpen = false;
-
-        modal.classList.remove("is-open");
-        modal.setAttribute("aria-hidden", "true");
-
-        document.body.classList.remove("flipbook-open");
-
-        exitFullscreen();
-
-        if (
-            lastFocusedElement &&
-            typeof lastFocusedElement.focus === "function"
-        ) {
-            lastFocusedElement.focus();
-        }
-
-        setTimeout(() => {
-            if (pageFlip) {
-                pageFlip.turnToPage(0);
-                updatePageInformation();
-            }
-        }, 300); // Match your modal's closing animation duration
-    }
-
-
-    /*
-     * Display an error inside the loading area.
-     */
-    function showLoadingError(message) {
-        if (!loadingElement) {
-            return;
-        }
-
-        loadingElement.classList.remove("is-hidden");
-        loadingElement.innerHTML = "";
-
-        const messageElement = document.createElement("span");
-        messageElement.textContent = message;
-
-        loadingElement.appendChild(messageElement);
-    }
-
-
-    /*
-     * Wait for two animation frames.
-     */
-    function waitForNextPaint() {
-        return new Promise((resolve) => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(resolve);
-            });
-        });
-    }
-
-
-    /*
-     * Enter fullscreen mode.
-     */
-    function enterFullscreen() {
-        const dialog = modal.querySelector(".flipbook-dialog");
-
-        if (!dialog) {
-            return;
-        }
-
-        if (dialog.requestFullscreen) {
-            dialog.requestFullscreen().catch((error) => {
-                console.error(
-                    "Full-screen mode could not be started:",
-                    error
-                );
-            });
-
-            return;
-        }
-
-        if (dialog.webkitRequestFullscreen) {
-            dialog.webkitRequestFullscreen();
-        }
-    }
-
-
-    /*
-     * Exit fullscreen mode.
-     */
-    function exitFullscreen() {
-        if (
-            document.fullscreenElement &&
-            document.exitFullscreen
-        ) {
-            document.exitFullscreen().catch(() => {
-                /*
-                 * The browser may already be leaving fullscreen mode.
-                 */
-            });
-
-            return;
-        }
-
-        if (
-            document.webkitFullscreenElement &&
-            document.webkitExitFullscreen
-        ) {
-            document.webkitExitFullscreen();
-        }
-    }
-
-
-    /*
-     * Toggle fullscreen mode.
-     */
-    function toggleFullscreen(event) {
-        if (event) {
-            event.preventDefault();
-        }
-
-        if (
-            document.fullscreenElement ||
-            document.webkitFullscreenElement
-        ) {
-            exitFullscreen();
-        } else {
-            enterFullscreen();
-        }
-    }
-
-
-    /*
-     * Open-button listeners.
-     */
-    openButtons.forEach((button) => {
-        button.addEventListener("click", openFlipbook);
-    });
-
-
-    /*
-     * Close-button and backdrop listeners.
-     */
-    closeButtons.forEach((button) => {
-        button.addEventListener("click", closeFlipbook);
-    });
-
-
-    /*
-     * Previous page.
-     */
-    previousButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-    
-        navigateFlipbook("previous");
-    });
-    
-    nextButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-    
-        navigateFlipbook("next");
-    });
-
-    /*
-     * Fullscreen button.
-     */
-    if (fullscreenButton) {
-        fullscreenButton.addEventListener(
-            "click",
-            toggleFullscreen
         );
     }
-
-
-    /*
-     * Desktop: double-click a catalogue page to enlarge it.
-     */
-    flipbookElement.addEventListener("dblclick", (event) => {
-        const image = event.target.closest(
-            ".flipbook-page img"
-        );
-
-        if (!image) {
-            return;
-        }
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        const pageIndex = Number(
-            image.dataset.pageIndex
-        );
-
-        if (!Number.isInteger(pageIndex)) {
-            return;
-        }
-
-        openPageZoom(pageIndex);
-    });
-
-
-    /*
-     * Mobile: double-tap a catalogue page to enlarge it.
-     */
-    flipbookElement.addEventListener(
-        "touchend",
-        (event) => {
-            const image = event.target.closest(
-                ".flipbook-page img"
-            );
-
-            if (!image) {
-                previousTapTime = 0;
-                previousTapImage = null;
-                return;
-            }
-
-            const currentTapTime = Date.now();
-            const tapDelay =
-                currentTapTime - previousTapTime;
-
-            const isDoubleTap =
-                previousTapImage === image &&
-                tapDelay > 0 &&
-                tapDelay < 350;
-
-            if (isDoubleTap) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                const pageIndex = Number(
-                    image.dataset.pageIndex
-                );
-
-                if (Number.isInteger(pageIndex)) {
-                    openPageZoom(pageIndex);
-                }
-
-                previousTapTime = 0;
-                previousTapImage = null;
-
-                return;
-            }
-
-            previousTapTime = currentTapTime;
-            previousTapImage = image;
-        },
-        {
-            passive: false
-        }
-    );
-
-
-    /*
-     * Keyboard navigation.
-     */
-    document.addEventListener("keydown", (event) => {
-        if (!modalIsOpen) {
-            return;
-        }
-
-        /*
-         * Let PhotoSwipe handle keyboard input while it is open.
-         */
-        if (
-            document.querySelector(".pswp") &&
-            document.querySelector(".pswp").classList.contains(
-                "pswp--open"
-            )
-        ) {
-            return;
-        }
-
-        switch (event.key) {
-            case "Escape":
-                closeFlipbook();
-                break;
-
-            case "ArrowLeft":
-                event.preventDefault();
-                navigateFlipbook("previous");
-                break;
-            
-            case "ArrowRight":
-                event.preventDefault();
-                navigateFlipbook("next");
-                break;
-
-            default:
-                break;
-        }
-    });
-
-
-    /*
-     * Update fullscreen button text.
-     */
-    function updateFullscreenButtonText() {
-        if (!fullscreenButton) {
-            return;
-        }
-
-        const isFullscreen =
-            Boolean(document.fullscreenElement) ||
-            Boolean(document.webkitFullscreenElement);
-
-        fullscreenButton.textContent = isFullscreen
-            ? "Exit Full Screen"
-            : "Full Screen";
-    }
-
-    document.addEventListener(
-        "fullscreenchange",
-        updateFullscreenButtonText
-    );
-
-    document.addEventListener(
-        "webkitfullscreenchange",
-        updateFullscreenButtonText
-    );
-
-
-    /*
-     * Rebuild the flipbook after the window size changes.
-     */
-    window.addEventListener("resize", () => {
-        if (!modalIsOpen || !flipbookIsReady) {
-            return;
-        }
-
-        window.clearTimeout(resizeTimer);
-
-        resizeTimer = window.setTimeout(() => {
-            rebuildFlipbook();
-        }, 300);
-    });
 }
