@@ -50,6 +50,7 @@
 
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/flipbook.css">
+    <link rel="stylesheet" href="css/newsletter.css"
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
@@ -1007,10 +1008,135 @@
 
     </div>
 
+    <!-- Newsletter Popup -->
+    <div
+    class="newsletter-popup"
+    id="newsletterPopup"
+    aria-hidden="true"
+    >
+    <div
+        class="newsletter-popup__overlay"
+        data-newsletter-close
+    ></div>
+
+    <div
+        class="newsletter-popup__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="newsletterTitle"
+        aria-describedby="newsletterDescription"
+    >
+        <button
+            type="button"
+            class="newsletter-popup__close"
+            id="newsletterCloseButton"
+            aria-label="Close newsletter popup"
+        >
+            <span aria-hidden="true">&times;</span>
+        </button>
+
+        <div class="newsletter-popup__content">
+            <span class="newsletter-popup__label">
+                THE LUXSOME LIST
+            </span>
+
+            <h2 id="newsletterTitle">
+                Packaging ideas for brands that want to be remembered.
+            </h2>
+
+            <p id="newsletterDescription">
+                Receive thoughtful packaging inspiration, product updates,
+                production tips and occasional offers from Luxsome Packaging.
+            </p>
+
+            <form
+                class="newsletter-form"
+                id="newsletterForm"
+                action="https://formspree.io/f/mojgkogg"
+                method="POST"
+            >
+                <input
+                    type="hidden"
+                    name="_subject"
+                    value="New Luxsome Newsletter Subscriber"
+                >
+
+                <div class="newsletter-form__field">
+                    <label for="newsletterEmail">
+                        Email address
+                    </label>
+
+                    <input
+                        type="email"
+                        id="newsletterEmail"
+                        name="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
+
+                <!-- Formspree spam protection -->
+                <input
+                    type="text"
+                    name="_gotcha"
+                    class="newsletter-honeypot"
+                    tabindex="-1"
+                    autocomplete="off"
+                    aria-hidden="true"
+                >
+
+                <button
+                    type="submit"
+                    class="newsletter-form__submit"
+                >
+                    Join the Luxsome List
+                </button>
+
+                <p class="newsletter-form__note">
+                    No spam. Just thoughtful packaging inspiration.
+                </p>
+
+                <p
+                    class="newsletter-form__message"
+                    id="newsletterMessage"
+                    role="status"
+                    aria-live="polite"
+                ></p>
+            </form>
+
+            <div
+                class="newsletter-success"
+                id="newsletterSuccess"
+                aria-hidden="true"
+            >
+                <span class="newsletter-success__icon" aria-hidden="true">
+                    ✓
+                </span>
+
+                <h3>You’re on the list.</h3>
+
+                <p>
+                    Welcome to the Luxsome community. Look out for packaging
+                    inspiration and updates in your inbox.
+                </p>
+
+                <button
+                    type="button"
+                    class="newsletter-success__button"
+                    data-newsletter-close
+                >
+                    Continue Exploring
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
     <script src="js/main.js"></script>
     <script src="js/flipbook.js"></script>
+    <script src="js/newsletter.js"></script>
     <script
         type="module"
         src="js/catalogue-lightbox.js"
