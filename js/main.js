@@ -692,3 +692,97 @@ document.addEventListener("DOMContentLoaded", () => {
 
     calculateProgress();
 });
+
+/* =========================================================
+   SCROLL REVEAL ANIMATIONS
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+    const revealElements = document.querySelectorAll(".reveal");
+
+    /*
+     * Stop immediately if the page has no reveal elements.
+     */
+    if (revealElements.length === 0) {
+        return;
+    }
+
+    const reducedMotionQuery = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    /*
+     * Add the class only after JavaScript has loaded.
+     *
+     * This means the page content remains visible if
+     * JavaScript is unavailable or encounters an error.
+     */
+    document.documentElement.classList.add("reveal-ready");
+
+    /*
+     * Apply an index to elements inside reveal groups.
+     * CSS uses this value to create staggered delays.
+     */
+    document
+        .querySelectorAll(".reveal-group")
+        .forEach((group) => {
+            const groupItems = group.querySelectorAll(
+                ":scope > .reveal"
+            );
+
+            groupItems.forEach((item, index) => {
+                item.style.setProperty(
+                    "--reveal-index",
+                    index
+                );
+            });
+        });
+
+    /*
+     * Users who prefer reduced motion should see everything
+     * immediately without animation.
+     */
+    if (reducedMotionQuery.matches) {
+        revealElements.forEach((element) => {
+            element.classList.add("is-revealed");
+        });
+
+        return;
+    }
+
+    /*
+     * Reveal elements when approximately 15% of them are
+     * visible.
+     *
+     * rootMargin reveals them slightly before they reach
+     * the bottom of the screen.
+     */
+    const revealObserver = new IntersectionObserver(
+        (entries, observer) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                entry.target.classList.add("is-revealed");
+
+                /*
+                 * Stop watching after the first animation.
+                 *
+                 * This means the element does not disappear
+                 * again when the user scrolls upward.
+                 */
+                observer.unobserve(entry.target);
+            });
+        },
+        {
+            root: null,
+            threshold: 0.15,
+            rootMargin: "0px 0px -60px 0px"
+        }
+    );
+
+    revealElements.forEach((element) => {
+        revealObserver.observe(element);
+    });
+});

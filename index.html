@@ -464,7 +464,7 @@
         <!-- Catalogue section -->
         <section class="catalogue-section" id="catalogues">
 
-            <div class="catalogue-heading">
+            <div class="catalogue-heading reveal reveal--up">
 
                 <p class="section-label">
                     The Luxsome Packaging Catalogue
@@ -476,10 +476,10 @@
 
             </div>
 
-            <div class="catalogue-grid">
+            <div class="catalogue-grid reveal-group">
 
                 <!-- Product catalogue -->
-                <article class="catalogue-item">
+                <article class="catalogue-item reveal reveal--lift">
                      <button
                         type="button"
                         class="catalogue-cover-link catalogue-cover-button"
@@ -535,7 +535,7 @@
 
 
                 <!-- Pricing catalogue -->
-                <article class="catalogue-item">
+                <article class="catalogue-item reveal reveal--lift">
 
                     <!-- Clicking the cover opens the flipbook -->
                     <button
@@ -601,7 +601,7 @@
             id="start-project"
             aria-labelledby="galleryCtaHeading"
         >
-            <div class="container gallery-cta-content">
+            <div class="container gallery-cta-content reveal reveal--up">
 
                 <p class="section-eyebrow">
                     Your Brand, Beautifully Packaged
@@ -636,129 +636,162 @@
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="container">
+    <!-- ======================================================
+     FOOTER
+======================================================= -->
 
-            <div class="footer-grid">
+<footer class="site-footer">
 
-                <div class="footer-brand">
-                    <a
-                        href="/"
-                        class="footer-logo"
+    <div class="container">
+
+        <!-- Footer columns -->
+        <div class="footer-grid reveal-group">
+
+            <!-- Brand column -->
+            <div class="footer-brand reveal reveal--up">
+
+                <a
+                    href="/"
+                    class="footer-logo"
+                    aria-label="Luxsome Packaging homepage"
+                >
+                    <img
+                        src="/assets/images/logo-white.png"
+                        alt="Luxsome Packaging"
+                        class="logo-image"
+                        loading="lazy"
+                        decoding="async"
                     >
-                        <img
-                            src="assets/images/logo-white.png"
-                            alt="Luxsome Packaging"
-                            class="logo-image"
-                        >
+                </a>
+
+                <p class="footer-description">
+                    Complete luxury packaging systems for fashion and
+                    lifestyle brands that want to look as premium as the
+                    products they create.
+                </p>
+
+                <div class="footer-socials">
+
+                    <a
+                        href="https://www.instagram.com/luxsomepackaging"
+                        aria-label="Luxsome Packaging on Instagram"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <i
+                            class="fa-brands fa-instagram"
+                            aria-hidden="true"
+                        ></i>
                     </a>
 
-                    <p class="footer-description">
-                        Complete luxury packaging systems for fashion and
-                        lifestyle brands that want to look as premium as the
-                        products they create.
-                    </p>
+                    <a
+                        href="https://wa.me/2348061389594"
+                        aria-label="Contact Luxsome Packaging on WhatsApp"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <i
+                            class="fa-brands fa-whatsapp"
+                            aria-hidden="true"
+                        ></i>
+                    </a>
 
-                    <div class="footer-socials">
-                        <a
-                            href="https://www.instagram.com/luxsomepackaging"
-                            aria-label="Luxsome Packaging on Instagram"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <i
-                                class="fa-brands fa-instagram"
-                                aria-hidden="true"
-                            ></i>
-                        </a>
-
-                        <a
-                            href="https://wa.me/2348061389594"
-                            aria-label="Contact Luxsome Packaging on WhatsApp"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <i
-                                class="fa-brands fa-whatsapp"
-                                aria-hidden="true"
-                            ></i>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="footer-column">
-                    <h2>
-                        Explore
-                    </h2>
-
-                    <div class="footer-links">
-                        <a href="/">
-                            Home
-                        </a>
-
-                        <a href="/pricing/">
-                            Pricing
-                        </a>
-
-                        <a
-                            href="/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Product Guide
-                        </a>
-                        <a href="/contact/">
-                            Contact Us
-                        </a>
-                        <a href="/our-story/">
-                            Our Story
-                        </a>
-                        <a href="/gallery/">
-                            Gallery
-                        </a>
-                    </div>
-                </div>
-
-                <div class="footer-column">
-                    <h2>
-                        Contact
-                    </h2>
-
-                    <div class="footer-links">
-                        <a
-                            href="https://wa.me/2348061389594"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            WhatsApp
-                        </a>
-
-                        <a href="mailto:hello@luxsomepackaging.com">
-                            hello@luxsomepackaging.com
-                        </a>
-
-                        <a href="mailto:info@luxsomepackaging.com?subject=New%20Packaging%20Project%20Enquiry">
-                            Start a Project
-                        </a>
-                    </div>
                 </div>
 
             </div>
 
-            <div class="footer-bottom">
-                <span>
-                    &copy; <span id="currentYear"></span>
-                    Luxsome Packaging. All rights reserved.
-                </span>
+            <!-- Explore column -->
+            <div class="footer-column reveal reveal--up">
 
-                <span>
-                    Packaging created to be remembered.
-                </span>
+                <h2>
+                    Explore
+                </h2>
+
+                <div class="footer-links">
+
+                    <a href="/">
+                        Home
+                    </a>
+
+                    <a href="/pricing/">
+                        Pricing
+                    </a>
+
+                    <a href="/gallery/">
+                        Gallery
+                    </a>
+
+                    <a href="/our-story/">
+                        Our Story
+                    </a>
+
+                    <a href="/contact/">
+                        Contact Us
+                    </a>
+
+                    <a
+                        href="/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Product Guide
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- Contact column -->
+            <div class="footer-column reveal reveal--up">
+
+                <h2>
+                    Contact
+                </h2>
+
+                <div class="footer-links">
+
+                    <a
+                        href="https://wa.me/2348061389594"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        WhatsApp
+                    </a>
+
+                    <a href="mailto:hello@luxsomepackaging.com">
+                        hello@luxsomepackaging.com
+                    </a>
+
+                    <a
+                        href="mailto:sales@luxsomepackaging.com?subject=New%20Packaging%20Project%20Enquiry"
+                    >
+                        Start a Project
+                    </a>
+
+                </div>
+
             </div>
 
         </div>
-    </footer>
+
+        <!-- Footer bottom -->
+        <div class="footer-bottom">
+
+            <span>
+                &copy;
+                <span id="currentYear"></span>
+                Luxsome Packaging. All rights reserved.
+            </span>
+
+            <span>
+                Packaging created to be remembered.
+            </span>
+
+        </div>
+
+    </div>
+
+</footer>
 
     <!-- Full-screen Product flipbook modal -->
     <div

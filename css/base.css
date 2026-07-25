@@ -2035,6 +2035,211 @@ You can adjust individual image positions like this:
     font-size: 0.78rem;
 }
 
+/* =========================================================
+   SCROLL REVEAL ANIMATIONS
+========================================================= */
+
+/*
+ * Elements remain visible by default.
+ *
+ * JavaScript adds the "reveal-ready" class to <html>.
+ * Only then do reveal elements become hidden before entering
+ * the viewport.
+ *
+ * This prevents content from disappearing if JavaScript fails.
+ */
+
+ html.reveal-ready .reveal {
+    opacity: 0;
+    visibility: hidden;
+
+    transform: translateY(32px);
+
+    transition:
+        opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 700ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 700ms cubic-bezier(0.22, 1, 0.36, 1);
+
+    will-change: opacity, transform;
+}
+
+
+/*
+ * JavaScript adds this class when an element enters
+ * the viewport.
+ */
+
+html.reveal-ready .reveal.is-revealed {
+    opacity: 1;
+    visibility: visible;
+
+    transform: translateY(0);
+}
+
+
+/* =========================================================
+   REVEAL DIRECTIONS
+========================================================= */
+
+/* Fade upward */
+
+html.reveal-ready .reveal--up {
+    transform: translateY(32px);
+}
+
+html.reveal-ready .reveal--up.is-revealed {
+    transform: translateY(0);
+}
+
+
+/* Fade downward */
+
+html.reveal-ready .reveal--down {
+    transform: translateY(-32px);
+}
+
+html.reveal-ready .reveal--down.is-revealed {
+    transform: translateY(0);
+}
+
+
+/* Fade in from the left */
+
+html.reveal-ready .reveal--left {
+    transform: translateX(-40px);
+}
+
+html.reveal-ready .reveal--left.is-revealed {
+    transform: translateX(0);
+}
+
+
+/* Fade in from the right */
+
+html.reveal-ready .reveal--right {
+    transform: translateX(40px);
+}
+
+html.reveal-ready .reveal--right.is-revealed {
+    transform: translateX(0);
+}
+
+
+/* Simple fade without movement */
+
+html.reveal-ready .reveal--fade {
+    transform: none;
+}
+
+html.reveal-ready .reveal--fade.is-revealed {
+    transform: none;
+}
+
+
+/* Slight scale effect for images and catalogue covers */
+
+html.reveal-ready .reveal--scale {
+    transform: scale(0.96);
+}
+
+html.reveal-ready .reveal--scale.is-revealed {
+    transform: scale(1);
+}
+
+
+/* Fade upward with a very small scale change */
+
+html.reveal-ready .reveal--lift {
+    transform:
+        translateY(28px)
+        scale(0.985);
+}
+
+html.reveal-ready .reveal--lift.is-revealed {
+    transform:
+        translateY(0)
+        scale(1);
+}
+
+
+/* =========================================================
+   ANIMATION SPEEDS
+========================================================= */
+
+.reveal--fast {
+    transition-duration: 500ms !important;
+}
+
+.reveal--slow {
+    transition-duration: 900ms !important;
+}
+
+
+/* =========================================================
+   OPTIONAL DELAYS
+========================================================= */
+
+.reveal-delay-1 {
+    transition-delay: 80ms !important;
+}
+
+.reveal-delay-2 {
+    transition-delay: 160ms !important;
+}
+
+.reveal-delay-3 {
+    transition-delay: 240ms !important;
+}
+
+.reveal-delay-4 {
+    transition-delay: 320ms !important;
+}
+
+.reveal-delay-5 {
+    transition-delay: 400ms !important;
+}
+
+
+/* =========================================================
+   AUTOMATIC STAGGERED CHILDREN
+========================================================= */
+
+/*
+ * Add:
+ *
+ * class="reveal-group"
+ *
+ * to a grid or container.
+ *
+ * Its direct children will animate one after another.
+ */
+
+html.reveal-ready .reveal-group > .reveal {
+    transition-delay: calc(
+        var(--reveal-index, 0) * 100ms
+    );
+}
+
+
+/* =========================================================
+   ACCESSIBILITY: REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    html.reveal-ready .reveal,
+    html.reveal-ready .reveal.is-revealed {
+        opacity: 1;
+        visibility: visible;
+
+        transform: none;
+
+        transition: none;
+        animation: none;
+
+        will-change: auto;
+    }
+}
+
 @media (max-width: 760px) {
     .footer-grid {
         grid-template-columns: 1fr;
