@@ -42,9 +42,32 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     phoneNumber.addEventListener("input", function () {
-        if (phoneNumber.classList.contains("is-invalid")) {
-            clearFieldError(phoneNumber, "phoneNumberError");
+        let cleanedValue = phoneNumber.value.replace(
+            /[^0-9+\s()-]/g,
+            ""
+        );
+    
+        cleanedValue = cleanedValue.replace(
+            /(?!^)\+/g,
+            ""
+        );
+    
+        if (phoneNumber.value !== cleanedValue) {
+            phoneNumber.value = cleanedValue;
+    
+            showError(
+                phoneNumber,
+                "phoneNumberError",
+                "Only numbers and valid phone symbols are allowed."
+            );
+    
+            return;
         }
+    
+        clearFieldError(
+            phoneNumber,
+            "phoneNumberError"
+        );
     });
 
     emailAddress.addEventListener("input", function () {
@@ -158,14 +181,22 @@ document.addEventListener("DOMContentLoaded", function () {
             isValid = false;
         }
 
-        const phoneDigits =
-            values.phoneNumber.replace(/\D/g, "");
+        const phonePattern = /^\+?[0-9\s()-]+$/;
+        const phoneDigits = values.phoneNumber.replace(/\D/g, "");
 
-        if (phoneDigits.length < 10) {
+        if (!phonePattern.test(values.phoneNumber)) {
             showError(
                 phoneNumber,
                 "phoneNumberError",
-                "Please enter a valid phone number."
+                "Phone number must not contain letters."
+            );
+
+            isValid = false;
+        } else if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+            showError(
+                phoneNumber,
+                "phoneNumberError",
+                "Please enter a valid phone number with 10 to 15 digits."
             );
 
             isValid = false;

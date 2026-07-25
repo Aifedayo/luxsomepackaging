@@ -230,7 +230,10 @@
                         name="phoneNumber"
                         placeholder="e.g. 0801 234 5678"
                         autocomplete="tel"
-                        maxlength="25"
+                        inputmode="tel"
+                        maxlength="20"
+                        pattern="^\+?[0-9\s()-]{10,20}$"
+                        title="Enter a valid phone number using numbers, spaces, brackets, hyphens or a plus sign."
                         required
                     >
 
