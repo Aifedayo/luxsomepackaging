@@ -169,6 +169,16 @@ document.addEventListener("DOMContentLoaded", function () {
     carousel.addEventListener("mouseenter", stopAutoplay);
     carousel.addEventListener("mouseleave", startAutoplay);
 
+    if (
+        slides.length === 0 ||
+        dots.length === 0 ||
+        !previousButton ||
+        !nextButton ||
+        !carousel
+    ) {
+        return;
+    }
+
     document.addEventListener("visibilitychange", function () {
         if (document.hidden) {
             stopAutoplay();
@@ -180,6 +190,31 @@ document.addEventListener("DOMContentLoaded", function () {
     showSlide(0);
     startAutoplay();
 });
+
+const reducedMotionQuery = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+);
+
+function startAutoplay() {
+    stopAutoplay();
+
+    if (reducedMotionQuery.matches) {
+        return;
+    }
+
+    autoplayInterval = window.setInterval(() => {
+        nextSlide();
+    }, 6000);
+}
+
+reducedMotionQuery.addEventListener?.("change", () => {
+    if (reducedMotionQuery.matches) {
+        stopAutoplay();
+    } else {
+        startAutoplay();
+    }
+});
+
 
 
 /* =========================================================

@@ -8,7 +8,7 @@
     --border: rgba(47, 33, 27, 0.16);
     --header-height: 78px;
     --container-width: 1380px;
-    --shadow: 0 8px 24px rgba(17, 17, 17, 0.5)
+    --shadow: 0 8px 24px rgba(17, 17, 17, 0.5);
 
     --white: #ffffff;
     --cream: #f7f3ed;
@@ -127,7 +127,6 @@ a {
 }
 
 .site-logo-text {
-    font-family: "Cormorant Garamond", serif;
     font-size: 1.55rem;
     font-weight: 600;
     letter-spacing: 0.04em;
@@ -368,7 +367,6 @@ a {
         width: 100%;
         padding: 17px 0;
         border-bottom: 1px solid var(--border);
-        font-family: "Cormorant Garamond", serif;
         font-size: 1rem;
     }
 
@@ -1421,6 +1419,15 @@ You can adjust individual image positions like this:
     text-align: center;
 }
 
+.catalogue-cover-button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
 .section-label {
     margin: 0 0 19px;
 
@@ -1903,7 +1910,6 @@ You can adjust individual image positions like this:
 
 .gallery-cta h2 {
     margin: 0;
-    font-family: "Cormorant Garamond", serif;
     font-size: clamp(2.6rem, 6vw, 4.7rem);
     font-weight: 500;
     letter-spacing: -0.03em;
@@ -1960,7 +1966,6 @@ You can adjust individual image positions like this:
     display: inline-block;
     margin-bottom: 18px;
     color: #ffffff;
-    font-family: "Cormorant Garamond", serif;
     font-size: 2rem;
     font-weight: 600;
     text-decoration: none;
