@@ -1,142 +1,155 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("contactForm");
-    const notification = document.getElementById("notification");
 
-    if (!form) {
-        console.error('Contact form with id="contactForm" was not found.');
-        return;
-    }
+    const brandName = document.getElementById("brandName");
+    const phoneNumber = document.getElementById("phoneNumber");
+    const emailAddress = document.getElementById("emailAddress");
+    const message = document.getElementById("message");
 
-    const submitButton = form.querySelector(
-        'button[type="submit"]'
-    );
+    const characterCount = document.getElementById("characterCount");
+    const formStatus = document.getElementById("formStatus");
+    const currentYear = document.getElementById("currentYear");
 
-    if (!submitButton) {
-        console.error(
-            "The contact form submit button was not found."
-        );
-        return;
-    }
+    /*
+     * Replace this with the WhatsApp number that should
+     * receive Luxsome enquiries.
+     *
+     * Use the international format without:
+     * +, spaces, brackets or hyphens.
+     */
+    const luxsomeWhatsAppNumber = "2348061389594";
 
-    let notificationTimer;
+    currentYear.textContent = new Date().getFullYear();
 
-    form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        const selectedProducts = form.querySelectorAll(
-            'input[name="products[]"]:checked'
-        );
-
-        if (selectedProducts.length === 0) {
-            showNotification(
-                "Please select at least one product or packaging service.",
-                "error"
-            );
-
-            const firstProductCheckbox = form.querySelector(
-                'input[name="products[]"]'
-            );
-
-            firstProductCheckbox?.focus();
-            return;
-        }
-
-        const originalButtonContent =
-            submitButton.innerHTML;
-
-        submitButton.disabled = true;
-        submitButton.setAttribute("aria-busy", "true");
-
-        submitButton.innerHTML = `
-            <span class="spinner" aria-hidden="true"></span>
-            <span>Sending...</span>
-        `;
-
-        try {
-            const response = await fetch(form.action, {
-                method: "POST",
-                body: new FormData(form),
-                headers: {
-                    Accept: "application/json"
-                }
-            });
-
-            if (response.ok) {
-                form.reset();
-
-                showNotification(
-                    "Thank you! Your enquiry has been sent successfully. We will get back to you shortly.",
-                    "success"
-                );
-
-                return;
-            }
-
-            let message =
-                "Something went wrong. Please check your details and try again.";
-
-            try {
-                const responseData = await response.json();
-
-                if (
-                    Array.isArray(responseData.errors) &&
-                    responseData.errors.length > 0
-                ) {
-                    message = responseData.errors
-                        .map((error) => error.message)
-                        .filter(Boolean)
-                        .join(" ");
-                }
-            } catch (error) {
-                console.warn(
-                    "Formspree returned an unreadable error response.",
-                    error
-                );
-            }
-
-            showNotification(message, "error");
-        } catch (error) {
-            console.error(
-                "Contact form submission failed:",
-                error
-            );
-
-            showNotification(
-                "Unable to send your enquiry. Please check your internet connection and try again.",
-                "error"
-            );
-        } finally {
-            submitButton.disabled = false;
-            submitButton.removeAttribute("aria-busy");
-            submitButton.innerHTML =
-                originalButtonContent;
-        }
+    message.addEventListener("input", function () {
+        characterCount.textContent = `${message.value.length} / 1500`;
     });
 
-    function showNotification(message, type) {
-        if (!notification) {
-            alert(message);
+    form.addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        clearErrors();
+        formStatus.textContent = "";
+
+        const formData = {
+            brandName: brandName.value.trim(),
+            phoneNumber: phoneNumber.value.trim(),
+            emailAddress: emailAddress.value.trim(),
+            message: message.value.trim()
+        };
+
+        const isValid = validateForm(formData);
+
+        if (!isValid) {
+            formStatus.textContent =
+                "Please correct the highlighted fields before continuing.";
+
             return;
         }
 
-        window.clearTimeout(notificationTimer);
+        const whatsappMessage = [
+            "Hello Luxsome Packaging,",
+            "",
+            "I would like to make an enquiry.",
+            "",
+            `Brand name: ${formData.brandName}`,
+            `Phone number: ${formData.phoneNumber}`,
+            `Email address: ${formData.emailAddress}`,
+            "",
+            "Message:",
+            formData.message
+        ].join("\n");
 
-        notification.textContent = message;
-        notification.className =
-            `notification ${type} show`;
+        const whatsappUrl =
+            `https://wa.me/${luxsomeWhatsAppNumber}` +
+            `?text=${encodeURIComponent(whatsappMessage)}`;
 
-        notification.setAttribute(
-            "role",
-            type === "error" ? "alert" : "status"
+        formStatus.textContent = "Opening your message in WhatsApp…";
+
+        window.open(
+            whatsappUrl,
+            "_blank",
+            "noopener,noreferrer"
         );
+    });
 
-        notificationTimer = window.setTimeout(() => {
-            notification.classList.remove("show");
-        }, 5000);
+    function validateForm(formData) {
+        let isValid = true;
+
+        if (formData.brandName.length < 2) {
+            showError(
+                brandName,
+                "brandNameError",
+                "Please enter your brand name."
+            );
+
+            isValid = false;
+        }
+
+        const phoneDigits = formData.phoneNumber.replace(/\D/g, "");
+
+        if (phoneDigits.length < 10) {
+            showError(
+                phoneNumber,
+                "phoneNumberError",
+                "Please enter a valid phone number."
+            );
+
+            isValid = false;
+        }
+
+        if (!isValidEmail(formData.emailAddress)) {
+            showError(
+                emailAddress,
+                "emailAddressError",
+                "Please enter a valid email address."
+            );
+
+            isValid = false;
+        }
+
+        if (formData.message.length < 10) {
+            showError(
+                message,
+                "messageError",
+                "Please provide a little more information about your enquiry."
+            );
+
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function showError(field, errorElementId, errorMessage) {
+        field.classList.add("is-invalid");
+        field.setAttribute("aria-invalid", "true");
+
+        document.getElementById(errorElementId).textContent =
+            errorMessage;
+    }
+
+    function clearErrors() {
+        const fields = [
+            brandName,
+            phoneNumber,
+            emailAddress,
+            message
+        ];
+
+        fields.forEach(function (field) {
+            field.classList.remove("is-invalid");
+            field.removeAttribute("aria-invalid");
+        });
+
+        document
+            .querySelectorAll(".field-error")
+            .forEach(function (errorElement) {
+                errorElement.textContent = "";
+            });
     }
 });
