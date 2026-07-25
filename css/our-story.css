@@ -326,7 +326,6 @@
 
 .story-purpose__statement p {
     max-width: 760px;
-    margin: 0;
 
     color: #ead7c8;
 
@@ -999,7 +998,7 @@
     }
 
     .story-purpose__statement p {
-        font-size: clamp(2rem, 9vw, 3rem);
+        font-size: clamp(2rem, 2vw, 3rem);
     }
 
     .story-mission {
