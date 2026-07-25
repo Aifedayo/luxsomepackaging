@@ -25,8 +25,10 @@
         content="Premium luxury packaging for fashion brands.">
 
     <meta property="og:image"
-        content="https://www.luxsomepackaging.com/assets/images/social-preview.jpg">
+        content="https://www.luxsomepackaging.com/assets/images/social-preview.png">
 
+    <meta name="twitter:image"
+    content="https://www.luxsomepackaging.com/assets/images/social-preview.jpg">
     <meta property="og:url"
         content="https://www.luxsomepackaging.com">
 
@@ -79,20 +81,53 @@
     >
 
     <!-- Structured data -->
+    
     <script type="application/ld+json">
         {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            "name": "Luxsome Packaging",
-            "url": "https://www.luxsomepackaging.com/",
-            "logo": "https://www.luxsomepackaging.com/assets/images/luxsome-logo.png",
-            "description": "Luxsome Packaging creates complete luxury packaging systems for fashion and lifestyle brands.",
-            "email": "hello@luxsomepackaging.com",
-            "sameAs": [
-                "https://www.instagram.com/luxsomepackaging"
-            ]
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "@id": "https://www.luxsomepackaging.com/#organization",
+          "name": "Luxsome Packaging",
+          "url": "https://www.luxsomepackaging.com/",
+          "logo": "https://www.luxsomepackaging.com/assets/images/logo.png",
+          "image": "https://www.luxsomepackaging.com/assets/images/social-preview.png",
+          "description": "Luxsome Packaging creates complete luxury packaging systems for fashion and lifestyle brands.",
+          "email": "hello@luxsomepackaging.com",
+          "telephone": "+2348061389594",
+          "sameAs": [
+            "https://www.instagram.com/luxsomepackaging"
+          ]
         }
-    </script>
+        </script>
+        <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "@id": "https://www.luxsomepackaging.com/#website",
+              "url": "https://www.luxsomepackaging.com/",
+              "name": "Luxsome Packaging",
+              "publisher": {
+                "@id": "https://www.luxsomepackaging.com/#organization"
+              }
+            }
+            </script>
+            <script type="application/ld+json">
+                {
+                  "@context": "https://schema.org",
+                  "@type": "Store",
+                  "@id": "https://www.luxsomepackaging.com/#business",
+                  "name": "Luxsome Packaging",
+                  "url": "https://www.luxsomepackaging.com/",
+                  "image": "https://www.luxsomepackaging.com/assets/images/social-preview.png",
+                  "telephone": "+2348061389594",
+                  "email": "hello@luxsomepackaging.com",
+                  "address": {
+                    "@type": "PostalAddress",
+                    "addressCountry": "NG"
+                  },
+                  "areaServed": "Nigeria"
+                }
+                </script>
 </head>
 
 <body>
