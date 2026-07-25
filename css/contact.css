@@ -297,6 +297,61 @@ textarea {
     text-align: center;
 }
 
+.submit-button {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+.button-spinner {
+    display: none;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+
+    animation: button-spin 0.7s linear infinite;
+}
+
+.submit-button.loading {
+    cursor: wait;
+    opacity: 0.85;
+    transform: none;
+}
+
+.submit-button.loading:hover {
+    background: var(--brown);
+    border-color: var(--brown);
+    transform: none;
+}
+
+.submit-button.loading .button-spinner {
+    display: inline-block;
+}
+
+.submit-button:disabled {
+    pointer-events: none;
+}
+
+@keyframes button-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.form-status.is-error {
+    color: var(--error);
+}
+
+.form-status.is-success {
+    color: #41230f;
+}
+
 /* Start a project prompt */
 
 .project-prompt {

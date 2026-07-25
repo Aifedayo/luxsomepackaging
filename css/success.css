@@ -1,0 +1,182 @@
+:root{
+
+    --bg:#F8F5F1;
+    --text:#2E221D;
+    --secondary:#7A6E67;
+    --brown:#4A2D23;
+    --border:#DDD6D0;
+    
+    }
+    
+    *{
+    
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    
+    }
+    
+    body{
+    
+    background:var(--bg);
+    font-family:"DM Sans",sans-serif;
+    color:var(--text);
+    
+    }
+    
+    .success{
+    
+    min-height:100vh;
+    
+    display:flex;
+    
+    align-items:center;
+    
+    justify-content:center;
+    
+    padding:40px;
+    
+    }
+    
+    .success-card{
+    
+    max-width:700px;
+    
+    text-align:center;
+    
+    }
+    
+    .checkmark{
+    
+    width:90px;
+    height:90px;
+    
+    margin:auto;
+    
+    border-radius:50%;
+    
+    border:1px solid var(--border);
+    
+    display:flex;
+    
+    justify-content:center;
+    
+    align-items:center;
+    
+    font-size:40px;
+    
+    color:var(--brown);
+    
+    margin-bottom:35px;
+    
+    }
+    
+    .eyebrow{
+    
+    letter-spacing:.25em;
+    
+    font-size:.75rem;
+    
+    color:var(--brown);
+    
+    margin-bottom:20px;
+    
+    }
+    
+    h1{
+    
+    font-family:"Playfair Display",serif;
+    
+    font-size:4rem;
+    
+    font-weight:500;
+    
+    line-height:1.05;
+    
+    margin-bottom:30px;
+    
+    }
+    
+    .description{
+    
+    max-width:580px;
+    
+    margin:auto;
+    
+    font-size:1.05rem;
+    
+    line-height:1.9;
+    
+    color:var(--secondary);
+    
+    }
+    
+    .buttons{
+    
+    margin-top:55px;
+    
+    display:flex;
+    
+    justify-content:center;
+    
+    gap:18px;
+    
+    flex-wrap:wrap;
+    
+    }
+    
+    .primary-button{
+    
+    padding:16px 34px;
+    
+    background:var(--brown);
+    
+    color:#fff;
+    
+    text-decoration:none;
+    
+    transition:.3s;
+    
+    }
+    
+    .primary-button:hover{
+    
+    background:#2E221D;
+    
+    }
+    
+    .secondary-button{
+    
+    padding:16px 34px;
+    
+    border:1px solid var(--border);
+    
+    text-decoration:none;
+    
+    color:var(--text);
+    
+    transition:.3s;
+    
+    }
+    
+    .secondary-button:hover{
+    
+    border-color:var(--brown);
+    
+    }
+    
+    @media(max-width:768px){
+    
+    h1{
+    
+    font-size:2.8rem;
+    
+    }
+    
+    .description{
+    
+    font-size:1rem;
+    
+    }
+    
+    }

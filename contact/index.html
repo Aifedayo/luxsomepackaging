@@ -185,7 +185,17 @@
 
         <section class="contact-form-section">
 
-            <form id="contactForm" class="contact-form" novalidate>
+            <form
+                id="contactForm"
+                class="contact-form"
+                action="https://formspree.io/f/xjgnakbg" 
+                method="POST"
+            >
+                <input
+                    type="hidden"
+                    name="_subject"
+                    value="New Luxsome Contact Enquiry"
+                >
 
                 <div class="form-group">
                     <label for="brandName">
@@ -280,13 +290,14 @@
                     </div>
                 </div>
 
-                <button type="submit" class="submit-button">
-                    Send Message
+                <button type="submit" class="submit-button" id="submitButton">
+                    <span class="button-text">Send Message</span>
+                
+                    <span class="button-spinner" aria-hidden="true"></span>
                 </button>
 
                 <p class="form-note">
-                    Your message will open in WhatsApp for you to review
-                    before sending.
+                    Your details are securely submitted to Luxsome Packaging.
                 </p>
 
                 <p
@@ -303,7 +314,7 @@
                     Already have a packaging project in mind?
                 </p>
 
-                <a href="/start-a-project/">
+                <a href="/start-project/">
                     Complete our project form
                     <span aria-hidden="true">→</span>
                 </a>
@@ -469,6 +480,6 @@
         </div>
 
     </footer>
-    <script src="contact.js"></script>
+    <script src="/js/contact.js"></script>
 </body>
 </html>

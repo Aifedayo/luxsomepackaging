@@ -1,6 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("contactForm");
 
+    if (!form) {
+        console.error("Contact form was not found.");
+        return;
+    }
+
     const brandName = document.getElementById("brandName");
     const phoneNumber = document.getElementById("phoneNumber");
     const emailAddress = document.getElementById("emailAddress");
@@ -8,75 +13,142 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const characterCount = document.getElementById("characterCount");
     const formStatus = document.getElementById("formStatus");
+    const submitButton = document.getElementById("submitButton");
+    const buttonText = submitButton.querySelector(".button-text");
     const currentYear = document.getElementById("currentYear");
 
     /*
-     * Replace this with the WhatsApp number that should
-     * receive Luxsome enquiries.
-     *
-     * Use the international format without:
-     * +, spaces, brackets or hyphens.
+     * Use the Formspree endpoint already placed in the
+     * form's action attribute.
      */
-    const luxsomeWhatsAppNumber = "2348061389594";
+    const formspreeEndpoint = form.action;
 
-    currentYear.textContent = new Date().getFullYear();
+    if (currentYear) {
+        currentYear.textContent = new Date().getFullYear();
+    }
 
     message.addEventListener("input", function () {
         characterCount.textContent = `${message.value.length} / 1500`;
+
+        if (message.classList.contains("is-invalid")) {
+            clearFieldError(message, "messageError");
+        }
     });
 
-    form.addEventListener("submit", function (event) {
+    brandName.addEventListener("input", function () {
+        if (brandName.classList.contains("is-invalid")) {
+            clearFieldError(brandName, "brandNameError");
+        }
+    });
+
+    phoneNumber.addEventListener("input", function () {
+        if (phoneNumber.classList.contains("is-invalid")) {
+            clearFieldError(phoneNumber, "phoneNumberError");
+        }
+    });
+
+    emailAddress.addEventListener("input", function () {
+        if (emailAddress.classList.contains("is-invalid")) {
+            clearFieldError(emailAddress, "emailAddressError");
+        }
+    });
+
+    form.addEventListener("submit", async function (event) {
         event.preventDefault();
 
         clearErrors();
         formStatus.textContent = "";
+        formStatus.classList.remove("is-success", "is-error");
 
-        const formData = {
+        const values = {
             brandName: brandName.value.trim(),
             phoneNumber: phoneNumber.value.trim(),
             emailAddress: emailAddress.value.trim(),
             message: message.value.trim()
         };
 
-        const isValid = validateForm(formData);
-
-        if (!isValid) {
+        if (!validateForm(values)) {
             formStatus.textContent =
-                "Please correct the highlighted fields before continuing.";
-
+                "Please correct the highlighted fields.";
+            formStatus.classList.add("is-error");
             return;
         }
 
-        const whatsappMessage = [
-            "Hello Luxsome Packaging,",
-            "",
-            "I would like to make an enquiry.",
-            "",
-            `Brand name: ${formData.brandName}`,
-            `Phone number: ${formData.phoneNumber}`,
-            `Email address: ${formData.emailAddress}`,
-            "",
-            "Message:",
-            formData.message
-        ].join("\n");
+        setLoadingState(true);
 
-        const whatsappUrl =
-            `https://wa.me/${luxsomeWhatsAppNumber}` +
-            `?text=${encodeURIComponent(whatsappMessage)}`;
+        /*
+         * FormData automatically includes:
+         * - brandName
+         * - phoneNumber
+         * - emailAddress
+         * - message
+         * - _subject
+         */
+        const submissionData = new FormData(form);
 
-        formStatus.textContent = "Opening your message in WhatsApp…";
+        /*
+         * Add Formspree's preferred email field.
+         * This allows Reply-To to work correctly.
+         */
+        submissionData.set("email", values.emailAddress);
 
-        window.open(
-            whatsappUrl,
-            "_blank",
-            "noopener,noreferrer"
-        );
+        try {
+            const response = await fetch(formspreeEndpoint, {
+                method: "POST",
+                body: submissionData,
+                headers: {
+                    Accept: "application/json"
+                }
+            });
+
+            if (!response.ok) {
+                const responseData = await response.json().catch(function () {
+                    return {};
+                });
+
+                throw new Error(
+                    getFormspreeError(responseData)
+                );
+            }
+
+            form.reset();
+            characterCount.textContent = "0 / 1500";
+
+            /*
+             * Redirect to:
+             * contact/success/index.html
+             */
+            window.location.assign("/contact/success/");
+        } catch (error) {
+            console.error("Form submission failed:", error);
+
+            formStatus.textContent =
+                error.message ||
+                "Something went wrong. Please try again.";
+
+            formStatus.classList.add("is-error");
+
+            setLoadingState(false);
+        }
     });
 
-    function validateForm(formData) {
+    function setLoadingState(isLoading) {
+        submitButton.disabled = isLoading;
+        submitButton.classList.toggle("loading", isLoading);
+        submitButton.setAttribute(
+            "aria-busy",
+            isLoading ? "true" : "false"
+        );
+
+        buttonText.textContent = isLoading
+            ? "Sending..."
+            : "Send Message";
+    }
+
+    function validateForm(values) {
         let isValid = true;
 
-        if (formData.brandName.length < 2) {
+        if (values.brandName.length < 2) {
             showError(
                 brandName,
                 "brandNameError",
@@ -86,7 +158,8 @@ document.addEventListener("DOMContentLoaded", function () {
             isValid = false;
         }
 
-        const phoneDigits = formData.phoneNumber.replace(/\D/g, "");
+        const phoneDigits =
+            values.phoneNumber.replace(/\D/g, "");
 
         if (phoneDigits.length < 10) {
             showError(
@@ -98,7 +171,7 @@ document.addEventListener("DOMContentLoaded", function () {
             isValid = false;
         }
 
-        if (!isValidEmail(formData.emailAddress)) {
+        if (!isValidEmail(values.emailAddress)) {
             showError(
                 emailAddress,
                 "emailAddressError",
@@ -108,7 +181,7 @@ document.addEventListener("DOMContentLoaded", function () {
             isValid = false;
         }
 
-        if (formData.message.length < 10) {
+        if (values.message.length < 10) {
             showError(
                 message,
                 "messageError",
@@ -129,27 +202,46 @@ document.addEventListener("DOMContentLoaded", function () {
         field.classList.add("is-invalid");
         field.setAttribute("aria-invalid", "true");
 
-        document.getElementById(errorElementId).textContent =
-            errorMessage;
+        const errorElement =
+            document.getElementById(errorElementId);
+
+        if (errorElement) {
+            errorElement.textContent = errorMessage;
+        }
+    }
+
+    function clearFieldError(field, errorElementId) {
+        field.classList.remove("is-invalid");
+        field.removeAttribute("aria-invalid");
+
+        const errorElement =
+            document.getElementById(errorElementId);
+
+        if (errorElement) {
+            errorElement.textContent = "";
+        }
     }
 
     function clearErrors() {
-        const fields = [
-            brandName,
-            phoneNumber,
-            emailAddress,
-            message
-        ];
+        clearFieldError(brandName, "brandNameError");
+        clearFieldError(phoneNumber, "phoneNumberError");
+        clearFieldError(emailAddress, "emailAddressError");
+        clearFieldError(message, "messageError");
+    }
 
-        fields.forEach(function (field) {
-            field.classList.remove("is-invalid");
-            field.removeAttribute("aria-invalid");
-        });
+    function getFormspreeError(responseData) {
+        if (
+            responseData &&
+            Array.isArray(responseData.errors) &&
+            responseData.errors.length
+        ) {
+            return responseData.errors
+                .map(function (error) {
+                    return error.message;
+                })
+                .join(" ");
+        }
 
-        document
-            .querySelectorAll(".field-error")
-            .forEach(function (errorElement) {
-                errorElement.textContent = "";
-            });
+        return "Your message could not be sent. Please try again.";
     }
 });
