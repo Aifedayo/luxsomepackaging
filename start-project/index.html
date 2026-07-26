@@ -194,224 +194,317 @@
         </div>
     </header>
     <main>
-        <section class="contact-page">
-            <div class="contact-container">
-
-                <div class="contact-intro">
-                    <span class="section-label">CONTACT US</span>
-
-                    <h1>Let’s create something exceptional.</h1>
-
+        <section class="project-page">
+            <div class="project-container">
+    
+                <!-- Introduction -->
+                <aside class="project-intro">
+                    <span class="section-label">START A PROJECT</span>
+    
+                    <h1>Let’s build something exceptional.</h1>
+    
                     <p>
-                        Tell us about your brand, the packaging pieces you need and your
-                        desired quantity. Our team will review your request and get back
-                        to you with the next steps.
+                        Tell us about your brand and the packaging experience you
+                        would like to create. You can request one project or add
+                        multiple packaging projects under the same client details.
                     </p>
-
-                    <div class="contact-details">
-                        <div class="contact-detail">
+    
+                    <div class="project-process" aria-label="Project request process">
+                        <div class="process-item">
+                            <span class="process-number">01</span>
+    
+                            <div>
+                                <h2>Your details</h2>
+                                <p>Tell us who you are and how we can reach you.</p>
+                            </div>
+                        </div>
+    
+                        <div class="process-item">
+                            <span class="process-number">02</span>
+    
+                            <div>
+                                <h2>Your project</h2>
+                                <p>Select a tier or build a bespoke packaging system.</p>
+                            </div>
+                        </div>
+    
+                        <div class="process-item">
+                            <span class="process-number">03</span>
+    
+                            <div>
+                                <h2>Review and consultation</h2>
+                                <p>We will review your request and contact you with the next steps.</p>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="project-contact-details">
+                        <div class="project-contact-detail">
                             <span>Email</span>
+    
                             <a href="mailto:info@luxsomepackaging.com">
                                 info@luxsomepackaging.com
                             </a>
                         </div>
-
-                        <div class="contact-detail">
+    
+                        <div class="project-contact-detail">
                             <span>WhatsApp</span>
+    
                             <a
                                 href="https://wa.me/2348061389594"
                                 target="_blank"
-                                rel="noopener"
+                                rel="noopener noreferrer"
                             >
                                 +234 806 138 9594
                             </a>
                         </div>
-
-                        <div class="contact-detail">
+    
+                        <div class="project-contact-detail">
                             <span>Minimum order</span>
-                            <p>25 packaging sets</p>
+                            <p>25 packaging systems</p>
                         </div>
                     </div>
-                </div>
-
-                <div class="contact-form-wrapper">
-
+                </aside>
+    
+    
+                <!-- Form -->
+                <div class="project-form-wrapper">
                     <form
                         id="contactForm"
-                        class="contact-form"
-                        action="https://formspree.io/f/xjgnakbg" 
+                        class="project-form"
+                        action="https://formspree.io/f/xjgnakbg"
                         method="POST"
                     >
                         <input
                             type="hidden"
                             name="_subject"
-                            value="New Luxsome Website Enquiry"
+                            value="New Luxsome Project Request"
                         >
-
-                        <div class="form-row">
+    
+                        <input
+                            type="hidden"
+                            id="projectCount"
+                            name="number_of_projects"
+                            value="1"
+                        >
+    
+    
+                        <!-- Client Information -->
+                        <section
+                            class="form-section client-information"
+                            aria-labelledby="clientInformationHeading"
+                        >
+                            <div class="form-section-heading">
+                                <span class="form-section-number">01</span>
+    
+                                <div>
+                                    <p class="form-section-label">Client information</p>
+    
+                                    <h2 id="clientInformationHeading">
+                                        Tell us about yourself
+                                    </h2>
+                                </div>
+                            </div>
+    
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="name">Full name *</label>
+    
+                                    <input
+                                        type="text"
+                                        id="name"
+                                        name="name"
+                                        autocomplete="name"
+                                        required
+                                    >
+                                </div>
+    
+                                <div class="form-group">
+                                    <label for="brand">Brand or business name *</label>
+    
+                                    <input
+                                        type="text"
+                                        id="brand"
+                                        name="brand_name"
+                                        autocomplete="organization"
+                                        required
+                                    >
+                                </div>
+                            </div>
+    
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="email">Email address *</label>
+    
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        autocomplete="email"
+                                        required
+                                    >
+                                </div>
+    
+                                <div class="form-group">
+                                    <label for="phone">Phone or WhatsApp number *</label>
+    
+                                    <input
+                                        type="tel"
+                                        id="phone"
+                                        name="phone"
+                                        autocomplete="tel"
+                                        inputmode="tel"
+                                        placeholder="+234..."
+                                        required
+                                    >
+                                </div>
+                            </div>
+    
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="instagram">Instagram handle</label>
+    
+                                    <input
+                                        type="text"
+                                        id="instagram"
+                                        name="instagram_handle"
+                                        autocomplete="off"
+                                        placeholder="@yourbrand"
+                                    >
+                                </div>
+    
+                                <div class="form-group">
+                                    <label for="location">Business location *</label>
+    
+                                    <input
+                                        type="text"
+                                        id="location"
+                                        name="business_location"
+                                        autocomplete="address-level2"
+                                        placeholder="City, State"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                        </section>
+    
+    
+                        <!-- Projects -->
+                        <section
+                            class="form-section projects-section"
+                            aria-labelledby="projectDetailsHeading"
+                        >
+                            <div class="form-section-heading">
+                                <span class="form-section-number">02</span>
+    
+                                <div>
+                                    <p class="form-section-label">Project details</p>
+    
+                                    <h2 id="projectDetailsHeading">
+                                        What would you like us to create?
+                                    </h2>
+                                </div>
+                            </div>
+    
+                            <p class="form-section-description">
+                                Select one packaging option for each project. Choose
+                                bespoke packaging when you want to select individual
+                                packaging components.
+                            </p>
+    
+                            <div
+                                class="projects-container"
+                                id="projectsContainer"
+                                aria-live="polite"
+                            ></div>
+    
+                            <button
+                                type="button"
+                                class="add-project-button"
+                                id="addProjectButton"
+                            >
+                                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                                Add another packaging project
+                            </button>
+    
+                            <p class="add-project-note">
+                                Use this option when the same client wants packaging
+                                for another collection, product line or campaign.
+                            </p>
+                        </section>
+    
+    
+                        <!-- General Notes -->
+                        <section
+                            class="form-section general-notes-section"
+                            aria-labelledby="generalNotesHeading"
+                        >
+                            <div class="form-section-heading">
+                                <span class="form-section-number">03</span>
+    
+                                <div>
+                                    <p class="form-section-label">Final details</p>
+    
+                                    <h2 id="generalNotesHeading">
+                                        Anything else we should know?
+                                    </h2>
+                                </div>
+                            </div>
+    
                             <div class="form-group">
-                                <label for="name">Full Name *</label>
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    autocomplete="name"
-                                    required
+                                <label for="generalNotes">
+                                    General notes
+                                </label>
+    
+                                <textarea
+                                    id="generalNotes"
+                                    name="general_notes"
+                                    rows="5"
+                                    placeholder="Share any information that applies to all the projects in this request."
+                                ></textarea>
+                            </div>
+    
+                            <div class="form-group">
+                                <label for="referralSource">
+                                    How did you hear about Luxsome?
+                                </label>
+    
+                                <select
+                                    id="referralSource"
+                                    name="referral_source"
                                 >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="brand">Brand Name</label>
-                                <input
-                                    type="text"
-                                    id="brand"
-                                    name="brand_name"
-                                    autocomplete="organization"
-                                >
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="email">Email Address *</label>
-                                <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
-                                    autocomplete="email"
-                                    required
-                                >
-                            </div>
-
-                            <div class="form-group">
-                                <label for="phone">Phone / WhatsApp Number *</label>
-                                <input
-                                    type="tel"
-                                    id="phone"
-                                    name="phone"
-                                    autocomplete="tel"
-                                    required
-                                >
-                            </div>
-                        </div>
-
-                        <fieldset class="form-group">
-                            <legend>What do you need? *</legend>
-
-                            <div class="checkbox-grid">
-                                <label class="checkbox-option">
-                                    <input
-                                        type="checkbox"
-                                        name="products[]"
-                                        value="Complete Packaging System"
-                                    >
-                                    <span>Complete Packaging System</span>
-                                </label>
-
-                                <label class="checkbox-option">
-                                    <input
-                                        type="checkbox"
-                                        name="products[]"
-                                        value="Rigid Boxes"
-                                    >
-                                    <span>Rigid Boxes</span>
-                                </label>
-
-                                <label class="checkbox-option">
-                                    <input
-                                        type="checkbox"
-                                        name="products[]"
-                                        value="Hang Tags"
-                                    >
-                                    <span>Hang Tags</span>
-                                </label>
-
-                                <label class="checkbox-option">
-                                    <input
-                                        type="checkbox"
-                                        name="products[]"
-                                        value="Thank-You Cards and Envelopes"
-                                    >
-                                    <span>Thank-You Cards and Envelopes</span>
-                                </label>
-
-                                <label class="checkbox-option">
-                                    <input
-                                        type="checkbox"
-                                        name="products[]"
-                                        value="Tissue Paper"
-                                    >
-                                    <span>Tissue Paper</span>
-                                </label>
-
-                                <label class="checkbox-option">
-                                    <input
-                                        type="checkbox"
-                                        name="products[]"
-                                        value="Ribbon"
-                                    >
-                                    <span>Ribbon</span>
-                                </label>
-
-                                <label class="checkbox-option">
-                                    <input
-                                        type="checkbox"
-                                        name="products[]"
-                                        value="Stickers"
-                                    >
-                                    <span>Stickers</span>
-                                </label>
-
-                                <label class="checkbox-option">
-                                    <input
-                                        type="checkbox"
-                                        name="products[]"
-                                        value="Bespoke Packaging Project"
-                                    >
-                                    <span>Bespoke Packaging Project</span>
-                                </label>
-                            </div>
-                        </fieldset>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="quantity">Estimated Quantity *</label>
-
-                                <select id="quantity" name="estimated_quantity" required>
-                                    <option value="" selected disabled>
-                                        Select a quantity
+                                    <option value="">
+                                        Select an option
                                     </option>
-                                    <option value="25–49">25–49</option>
-                                    <option value="50–99">50–99</option>
-                                    <option value="100–249">100–249</option>
-                                    <option value="250+">250+</option>
-                                    <option value="Not sure yet">Not sure yet</option>
+    
+                                    <option value="Instagram">
+                                        Instagram
+                                    </option>
+    
+                                    <option value="Google">
+                                        Google
+                                    </option>
+    
+                                    <option value="Referral">
+                                        Referral
+                                    </option>
+    
+                                    <option value="WhatsApp">
+                                        WhatsApp
+                                    </option>
+    
+                                    <option value="Existing Client">
+                                        Existing client
+                                    </option>
+    
+                                    <option value="Other">
+                                        Other
+                                    </option>
                                 </select>
                             </div>
-
-                            <div class="form-group">
-                                <label for="required-date">Required Date</label>
-
-                                <input
-                                    type="date"
-                                    id="required-date"
-                                    name="required_date"
-                                >
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="message">Tell us about your project *</label>
-
-                            <textarea
-                                id="message"
-                                name="message"
-                                rows="7"
-                                placeholder="Tell us about your brand, preferred colours, packaging pieces, box style and any other important details."
-                                required
-                            ></textarea>
-                        </div>
-
+                        </section>
+    
+    
                         <!-- Spam protection -->
                         <input
                             type="text"
@@ -420,23 +513,529 @@
                             tabindex="-1"
                             autocomplete="off"
                         >
-
-                        <button type="submit" class="contact-submit">
-                            Submit Your Enquiry
-                        </button>
-
-                        <p class="form-note">
-                            By submitting this form, you agree that Luxsome Packaging
-                            may contact you regarding your enquiry.
-                        </p>
+    
+    
+                        <div class="form-submit-area">
+                            <button
+                                type="submit"
+                                class="project-submit"
+                            >
+                                Send My Project Request
+                            </button>
+    
+                            <p class="form-note">
+                                By submitting this form, you agree that Luxsome
+                                Packaging may contact you about your project request.
+                            </p>
+                        </div>
                     </form>
-
                 </div>
-
+    
             </div>
         </section>
-    </main>
+    
+    
+        <!-- Dynamic project template -->
+        <template id="projectTemplate">
+            <article class="project-card" data-project-card>
+                <div class="project-card-header">
+                    <div>
+                        <p class="project-card-label">
+                            Packaging request
+                        </p>
+    
+                        <h3 class="project-card-title">
+                            Project <span data-project-number>01</span>
+                        </h3>
+                    </div>
+    
+                    <button
+                        type="button"
+                        class="remove-project-button"
+                        data-remove-project
+                        aria-label="Remove this project"
+                    >
+                        <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                        Remove
+                    </button>
+                </div>
+    
+    
+                <!-- Packaging Tier -->
+                <fieldset class="form-group package-type-fieldset">
+                    <legend>
+                        What do you need for this project? *
+                    </legend>
+    
+                    <div class="radio-card-grid">
+    
+                        <label class="radio-card">
+                            <input
+                                type="radio"
+                                name="projects[__INDEX__][package_type]"
+                                value="Tier One - Essential"
+                                required
+                            >
+    
+                            <span class="radio-card-control" aria-hidden="true"></span>
+    
+                            <span class="radio-card-content">
+                                <span class="radio-card-topline">
+                                    <strong>Tier One</strong>
+                                    <span>Essential</span>
+                                </span>
+    
+                                <span class="radio-card-description">
+                                    Rigid box, hang tags and thank-you card.
+                                </span>
+                            </span>
+                        </label>
+    
+    
+                        <label class="radio-card">
+                            <input
+                                type="radio"
+                                name="projects[__INDEX__][package_type]"
+                                value="Tier Two - Signature"
+                                required
+                            >
+    
+                            <span class="radio-card-control" aria-hidden="true"></span>
+    
+                            <span class="radio-card-content">
+                                <span class="radio-card-topline">
+                                    <strong>Tier Two</strong>
+                                    <span>Signature</span>
+                                </span>
+    
+                                <span class="radio-card-description">
+                                    Rigid box, tags, thank-you note and envelope,
+                                    ribbon and sticker.
+                                </span>
+                            </span>
+                        </label>
+    
+    
+                        <label class="radio-card">
+                            <input
+                                type="radio"
+                                name="projects[__INDEX__][package_type]"
+                                value="Tier Three - Complete"
+                                required
+                            >
+    
+                            <span class="radio-card-control" aria-hidden="true"></span>
+    
+                            <span class="radio-card-content">
+                                <span class="radio-card-topline">
+                                    <strong>Tier Three</strong>
+                                    <span>Complete</span>
+                                </span>
+    
+                                <span class="radio-card-description">
+                                    A complete luxury packaging system with
+                                    coordinated premium components.
+                                </span>
+                            </span>
+                        </label>
+    
+    
+                        <label class="radio-card bespoke-radio-card">
+                            <input
+                                type="radio"
+                                name="projects[__INDEX__][package_type]"
+                                value="Bespoke Packaging Project"
+                                data-bespoke-trigger
+                                required
+                            >
+    
+                            <span class="radio-card-control" aria-hidden="true"></span>
+    
+                            <span class="radio-card-content">
+                                <span class="radio-card-topline">
+                                    <strong>Bespoke</strong>
+                                    <span>Build your own</span>
+                                </span>
+    
+                                <span class="radio-card-description">
+                                    Select individual packaging items for a custom
+                                    project.
+                                </span>
+                            </span>
+                        </label>
+    
+                    </div>
+                </fieldset>
+    
+    
+                <!-- Bespoke Items -->
+                <div
+                    class="bespoke-options"
+                    data-bespoke-options
+                    hidden
+                >
+                    <div class="bespoke-options-heading">
+                        <p class="bespoke-eyebrow">
+                            Bespoke packaging
+                        </p>
+    
+                        <h4>
+                            Choose the items required for this project
+                        </h4>
+    
+                        <p>
+                            Select every component you would like us to include.
+                        </p>
+                    </div>
+    
+    
+                    <!-- Boxes -->
+                    <fieldset class="bespoke-category">
+                        <legend>Choose a box style</legend>
 
+                        <div class="radio-option-grid">
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][box_style]"
+                                    value="Magnetic Flap Box"
+                                >
+                                <span>Magnetic flap box</span>
+                            </label>
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][box_style]"
+                                    value="Shoulder Box"
+                                >
+                                <span>Shoulder box</span>
+                            </label>
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][box_style]"
+                                    value="Tray-in-Bed Box"
+                                >
+                                <span>Tray-in-bed box</span>
+                            </label>
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][box_style]"
+                                    value="Door Style Box"
+                                >
+                                <span>Door-style box</span>
+                            </label>
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][box_style]"
+                                    value="Collapsible Magnetic Box"
+                                >
+                                <span>Collapsible magnetic box</span>
+                            </label>
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][box_style]"
+                                    value="Other"
+                                >
+                                <span>Other box style</span>
+                            </label>
+
+                        </div>
+                    </fieldset>
+    
+                    <!-- Hang Tags -->
+                    <fieldset class="bespoke-category">
+                        <legend>Choose a hang tag style</legend>
+
+                        <div class="radio-option-grid">
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][tag_style]"
+                                    value="Single Piece"
+                                >
+                                <span>Single-piece tag</span>
+                            </label>
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][tag_style]"
+                                    value="Two Piece"
+                                >
+                                <span>Two-piece tag</span>
+                            </label>
+
+                            <label class="radio-option">
+                                <input
+                                    type="radio"
+                                    name="projects[__INDEX__][tag_style]"
+                                    value="Three Piece"
+                                >
+                                <span>Three-piece tag</span>
+                            </label>
+
+                        </div>
+                    </fieldset>
+    
+    
+                    <!-- Stationery -->
+                    <fieldset class="bespoke-category">
+                        <legend>Cards and stationery</legend>
+    
+                        <div class="bespoke-checkbox-grid">
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Thank-You Card"
+                                >
+                                <span>Thank-you card</span>
+                            </label>
+    
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Thank-You Note"
+                                >
+                                <span>Thank-you note</span>
+                            </label>
+    
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Envelope"
+                                >
+                                <span>Envelope</span>
+                            </label>
+    
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Care Card"
+                                >
+                                <span>Care or product card</span>
+                            </label>
+                        </div>
+                    </fieldset>
+    
+    
+                    <!-- Wrapping and Finishing -->
+                    <fieldset class="bespoke-category">
+                        <legend>Wrapping and finishing</legend>
+    
+                        <div class="bespoke-checkbox-grid">
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Branded Tissue Wrapper"
+                                >
+                                <span>Branded tissue wrapper</span>
+                            </label>
+    
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Branded Ribbon"
+                                >
+                                <span>Branded ribbon</span>
+                            </label>
+    
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Sticker Seal"
+                                >
+                                <span>Sticker seal</span>
+                            </label>
+    
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Thank-You Sticker"
+                                >
+                                <span>Thank-you sticker</span>
+                            </label>
+    
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Belly Band"
+                                >
+                                <span>Belly band</span>
+                            </label>
+    
+                            <label class="checkbox-option">
+                                <input
+                                    type="checkbox"
+                                    name="projects[__INDEX__][bespoke_items][]"
+                                    value="Other Packaging Item"
+                                >
+                                <span>Other packaging item</span>
+                            </label>
+                        </div>
+                    </fieldset>
+    
+                    <div class="form-group">
+                        <label for="bespoke-other-__INDEX__">
+                            Other bespoke requirements
+                        </label>
+    
+                        <input
+                            type="text"
+                            id="bespoke-other-__INDEX__"
+                            name="projects[__INDEX__][other_bespoke_requirements]"
+                            placeholder="Describe any item or box style not listed above."
+                        >
+                    </div>
+                </div>
+    
+    
+                <!-- Project Information -->
+                <div class="project-information">
+                    <div class="project-information-heading">
+                        <h4>Tell us about this project</h4>
+    
+                        <p>
+                            The information below helps us understand the product,
+                            scope and expected timeline.
+                        </p>
+                    </div>
+    
+                    <div class="form-row">
+                        <div class="form-group quantity-group">
+                            <label for="quantity-__INDEX__">
+                                How many packaging systems do you need? *
+                            </label>
+                        
+                            <div class="number-input-wrapper">
+                                <input
+                                    type="number"
+                                    id="quantity-__INDEX__"
+                                    name="projects[__INDEX__][estimated_quantity]"
+                                    min="25"
+                                    step="1"
+                                    inputmode="numeric"
+                                    placeholder="Enter quantity"
+                                    required
+                                >
+                            </div>
+                        
+                            <p class="field-help">
+                                Minimum order quantity is 25 packaging systems.
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-type-__INDEX__">
+                                What product will the packaging contain? *
+                            </label>
+    
+                            <input
+                                type="text"
+                                id="product-type-__INDEX__"
+                                name="projects[__INDEX__][product_type]"
+                                placeholder="For example: clothing, scarves or jewellery"
+                                required
+                            >
+                        </div>
+                    </div>
+    
+                    <div class="form-row">
+    
+                        <div class="form-group">
+                            <label for="dimensions-__INDEX__">
+                                Product or packaging dimensions
+                            </label>
+    
+                            <input
+                                type="text"
+                                id="dimensions-__INDEX__"
+                                name="projects[__INDEX__][dimensions]"
+                                placeholder="For example: 30 × 20 × 8 cm"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="colours-__INDEX__">
+                                Preferred colours
+                            </label>
+    
+                            <input
+                                type="text"
+                                id="colours-__INDEX__"
+                                name="projects[__INDEX__][preferred_colours]"
+                                placeholder="List your brand or packaging colours"
+                            >
+                        </div>
+                    </div>
+    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="design-status-__INDEX__">
+                                Brand assets and design
+                            </label>
+    
+                            <select
+                                id="design-status-__INDEX__"
+                                name="projects[__INDEX__][design_status]"
+                            >
+                                <option value="">
+                                    Select an option
+                                </option>
+    
+                                <option value="I have completed artwork">
+                                    I have completed artwork
+                                </option>
+    
+                                <option value="I have a logo and brand colours">
+                                    I have a logo and brand colours
+                                </option>
+    
+                                <option value="I need design guidance">
+                                    I need design guidance
+                                </option>
+    
+                                <option value="I am not sure yet">
+                                    I am not sure yet
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+    
+                    <div class="form-group">
+                        <label for="project-description-__INDEX__">
+                            Project description *
+                        </label>
+    
+                        <textarea
+                            id="project-description-__INDEX__"
+                            name="projects[__INDEX__][project_description]"
+                            rows="6"
+                            placeholder="Tell us about your brand, the collection or product, your preferred packaging style and the unboxing experience you want to create."
+                            required
+                        ></textarea>
+                    </div>
+                </div>
+            </article>
+        </template>
+    </main>
     <!-- Footer -->
     <footer class="site-footer">
         <div class="container">
