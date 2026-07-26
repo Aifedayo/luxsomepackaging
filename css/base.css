@@ -1049,6 +1049,7 @@ You can adjust individual image positions like this:
     align-items: flex-start;
     padding: clamp(25px, 3vw, 34px);
     background-color: #eee7df;
+    z-index: 2;
 }
 
 .system-step-label {
