@@ -770,639 +770,417 @@ You can adjust individual image positions like this:
     }
 }
 
-/* =========================================================
-   APPLE-STYLE PACKAGING SYSTEM REVEAL
-========================================================= */
+
+/* =====================================================
+   PACKAGING SYSTEM CAROUSEL
+===================================================== */
 
 .system-reveal {
-    --reveal-progress: 0;
-    --reveal-background: #f8f4ef;
-    --reveal-foreground: #2f211b;
-    --reveal-muted: rgba(47, 33, 27, 0.65);
+    --active-system-background: #f8f4ef;
+    --system-ink: #2f211b;
+    --system-muted: #716660;
+    --system-accent: #4a2d23;
+    --system-line: rgba(74, 45, 35, 0.24);
 
     position: relative;
-    height: 650vh;
-
-    background: var(--reveal-background);
-    color: var(--reveal-foreground);
-}
-
-.system-reveal__sticky {
-    position: sticky;
-    top: 0;
-
-    width: 100%;
-    height: 100dvh;
-    min-height: 650px;
-
+    padding: clamp(80px, 10vw, 140px) 0;
     overflow: hidden;
+    background: var(--active-system-background);
+    color: var(--system-ink);
+    transition: background-color 650ms cubic-bezier(0.22, 1, 0.36, 1), color 350ms ease;
 }
 
-
-/* =========================================================
-   INTRO
-========================================================= */
-
-.system-reveal__intro {
-    position: absolute;
-    z-index: 20;
-    top: clamp(40px, 7vh, 80px);
-    left: 50%;
-
-    width: min(900px, calc(100% - 48px));
-
-    text-align: center;
-
-    opacity: calc(1 - (var(--reveal-progress) * 4));
-    transform:
-        translateX(-50%)
-        translateY(calc(var(--reveal-progress) * -40px));
-
-    transition: opacity 0.08s linear;
-}
-
-.system-reveal__eyebrow {
-    margin: 0 0 16px;
-
-    color: var(--accent);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-}
-
-.system-reveal__intro h2 {
-    margin: 0;
-
-    font-family: "DM Serif Display", serif;
-    font-size: clamp(2.3rem, 5vw, 5rem);
-    font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.045em;
-    line-height: 0.98;
-}
-
-
-/* =========================================================
-   VISUAL AREA
-========================================================= */
-
-.system-reveal__visual {
-    position: absolute;
-    z-index: 5;
-    inset: 0;
-
-    display: grid;
-    place-items: center;
-
-    padding:
-        clamp(140px, 19vh, 210px)
-        24px
-        clamp(120px, 16vh, 170px);
-}
-
-.system-reveal__stage {
-    position: relative;
-
-    width: min(720px, 70vw);
-    aspect-ratio: 1 / 1;
-
-    transform:
-        translateY(calc((0.5 - var(--reveal-progress)) * 18px))
-        scale(calc(0.88 + (var(--reveal-progress) * 0.12)));
-
-    transform-origin: center;
-}
-
-
-/* All image layers */
-
-.system-layer {
+.system-reveal::before {
     position: absolute;
     inset: 0;
-
-    display: grid;
-    place-items: center;
-
+    background: radial-gradient(circle at 88% 30%, rgba(255, 255, 255, 0.38), transparent 42%);
+    content: "";
     pointer-events: none;
-    will-change: transform, opacity, filter;
 }
 
-.system-layer img {
-    display: block;
-    width: 100%;
-    height: 100%;
-
-    object-fit: contain;
-}
-
-
-/* =========================================================
-   INDIVIDUAL REVEAL LAYERS
-========================================================= */
-
-/* 1. Rigid box */
-
-.system-layer--box {
+.system-reveal > .container {
+    position: relative;
     z-index: 1;
-
-    opacity: var(--box-opacity, 0);
-
-    transform:
-        translateY(var(--box-y, 70px))
-        scale(var(--box-scale, 0.88));
-
-    filter: blur(var(--box-blur, 8px));
 }
 
-
-/* 2. Tissue */
-
-.system-layer--tissue {
-    z-index: 2;
-
-    opacity: var(--tissue-opacity, 0);
-
-    transform:
-        translateY(var(--tissue-y, -45px))
-        scale(var(--tissue-scale, 0.9));
-
-    filter: blur(var(--tissue-blur, 5px));
+.system-reveal[data-theme="dark"] {
+    --system-ink: #fffaf6;
+    --system-muted: rgba(255, 250, 246, 0.76);
+    --system-accent: #fffaf6;
+    --system-line: rgba(255, 255, 255, 0.32);
 }
 
-
-/* 3. Thank-you card */
-
-.system-layer--card {
-    z-index: 4;
-
-    opacity: var(--card-opacity, 0);
-
-    transform:
-        translate(
-            var(--card-x, 90px),
-            var(--card-y, 35px)
-        )
-        rotate(var(--card-rotate, 7deg))
-        scale(var(--card-scale, 0.92));
+.system-reveal-heading {
+    max-width: 780px;
+    margin-bottom: clamp(46px, 7vw, 76px);
 }
 
-
-/* 4. Tag */
-
-.system-layer--tag {
-    z-index: 5;
-
-    opacity: var(--tag-opacity, 0);
-
-    transform:
-        translate(
-            var(--tag-x, -90px),
-            var(--tag-y, 25px)
-        )
-        rotate(var(--tag-rotate, -8deg))
-        scale(var(--tag-scale, 0.92));
-}
-
-
-/* 5. Ribbon */
-
-.system-layer--ribbon {
-    z-index: 6;
-
-    opacity: var(--ribbon-opacity, 0);
-
-    transform:
-        scaleX(var(--ribbon-scale-x, 0.65))
-        scaleY(var(--ribbon-scale-y, 0.95));
-
-    transform-origin: center;
-}
-
-
-/* 6. Sticker */
-
-.system-layer--sticker {
-    z-index: 7;
-
-    opacity: var(--sticker-opacity, 0);
-
-    transform:
-        translateY(var(--sticker-y, -25px))
-        rotate(var(--sticker-rotate, -12deg))
-        scale(var(--sticker-scale, 0.4));
-}
-
-
-/* =========================================================
-   CAPTION
-========================================================= */
-
-.system-reveal__caption {
-    position: absolute;
-    z-index: 25;
-    bottom: clamp(42px, 7vh, 76px);
-    left: clamp(24px, 6vw, 90px);
-
-    display: flex;
-    align-items: flex-start;
-    gap: 22px;
-
-    width: min(440px, calc(100% - 48px));
-
-    opacity: var(--caption-opacity, 1);
-    transform: translateY(var(--caption-y, 0));
-}
-
-.system-reveal__number {
-    min-width: 35px;
-
-    color: var(--accent);
-    font-size: 0.7rem;
+.system-eyebrow,
+.system-progress-text {
+    color: var(--system-accent);
+    font-size: 0.76rem;
     font-weight: 600;
-    letter-spacing: 0.15em;
-}
-
-.system-reveal__caption-copy {
-    min-width: 0;
-}
-
-.system-reveal__step-title {
-    margin: 0 0 6px;
-
-    font-family: "Cormorant Garamond", serif;
-    font-size: clamp(1.45rem, 2.3vw, 2rem);
-    font-weight: 600;
-    line-height: 1;
-}
-
-.system-reveal__step-description {
-    max-width: 360px;
-    margin: 0;
-
-    color: var(--reveal-muted);
-    font-size: 0.86rem;
-    line-height: 1.6;
-}
-
-
-/* =========================================================
-   PROGRESS
-========================================================= */
-
-.system-reveal__progress {
-    position: absolute;
-    z-index: 30;
-    right: clamp(24px, 5vw, 72px);
-    bottom: clamp(47px, 7vh, 80px);
-
-    width: 120px;
-    height: 1px;
-
-    overflow: hidden;
-    background: rgba(47, 33, 27, 0.2);
-}
-
-.system-reveal__progress span {
-    display: block;
-    width: 100%;
-    height: 100%;
-
-    background: var(--accent);
-
-    transform: scaleX(var(--reveal-progress));
-    transform-origin: left;
-}
-
-
-/* =========================================================
-   FINAL MESSAGE
-========================================================= */
-
-.system-reveal__final {
-    position: absolute;
-    z-index: 40;
-    top: 50%;
-    left: 50%;
-
-    width: min(760px, calc(100% - 48px));
-
-    text-align: center;
-
-    opacity: var(--final-opacity, 0);
-
-    pointer-events: none;
-
-    transform:
-        translate(-50%, calc(-50% + var(--final-y, 45px)));
-
-    visibility: var(--final-visibility, hidden);
-}
-
-.system-reveal__final-eyebrow {
-    margin: 0 0 17px;
-
-    color: var(--accent);
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
 }
 
-.system-reveal__final h3 {
-    margin: 0;
-
-    font-family: "DM Serif Display", serif;
-    font-size: clamp(2.5rem, 5.5vw, 5.3rem);
-    font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.045em;
-    line-height: 0.98;
+.system-eyebrow {
+    margin: 0 0 18px;
 }
 
-.system-reveal__final > p:not(.system-reveal__final-eyebrow) {
-    max-width: 600px;
-    margin: 25px auto 0;
+.system-reveal-heading h2 {
+    max-width: 760px;
+    margin: 0;
+    color: var(--system-ink);
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: clamp(2.7rem, 6vw, 5.3rem);
+    font-weight: 400;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+}
 
-    color: var(--reveal-muted);
-    font-size: 0.95rem;
+.system-intro {
+    max-width: 660px;
+    margin: 26px 0 0;
+    color: var(--system-muted);
+    font-size: clamp(1rem, 1.4vw, 1.08rem);
     line-height: 1.75;
 }
 
-.system-reveal__actions {
+.system-navigation {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-
-    margin-top: 30px;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 28px;
 }
 
-.system-reveal__primary-button,
-.system-reveal__secondary-button {
-    display: inline-flex;
+.system-progress {
+    width: min(580px, 100%);
+}
+
+.system-progress-text {
+    margin: 0 0 12px;
+}
+
+.system-progress-track {
+    position: relative;
+    display: flex;
     align-items: center;
-    justify-content: center;
-
-    min-width: 180px;
-    min-height: 52px;
-
-    padding: 12px 24px;
-
-    border: 1px solid var(--accent);
-    border-radius: 5px;
-
-    font-size: 0.74rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-
-    transition:
-        color 0.25s ease,
-        background-color 0.25s ease,
-        transform 0.25s ease;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 24px;
 }
 
-.system-reveal__primary-button {
-    background: var(--accent);
-    color: #ffffff;
+.system-progress-track::before,
+.system-progress-fill {
+    position: absolute;
+    top: 50%;
+    right: 7px;
+    left: 7px;
+    height: 1px;
+    transform: translateY(-50%);
+    content: "";
 }
 
-.system-reveal__secondary-button {
+.system-progress-track::before {
+    background: var(--system-line);
+}
+
+.system-progress-fill {
+    right: auto;
+    width: 0;
+    background: var(--system-accent);
+    transition: width 400ms ease;
+}
+
+.system-progress-step {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
     background: transparent;
-    color: var(--accent);
+    cursor: pointer;
 }
 
-.system-reveal__primary-button:hover,
-.system-reveal__secondary-button:hover {
+.system-progress-step span {
+    display: block;
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--system-accent);
+    border-radius: 50%;
+    background: var(--active-system-background);
+    transition: width 220ms ease, height 220ms ease, background-color 220ms ease, box-shadow 220ms ease;
+}
+
+.system-progress-step.is-complete span,
+.system-progress-step.is-active span {
+    background: var(--system-accent);
+}
+
+.system-progress-step.is-active span {
+    width: 14px;
+    height: 14px;
+    box-shadow: 0 0 0 4px var(--active-system-background), 0 0 0 5px var(--system-line);
+}
+
+.system-progress-step:focus-visible,
+.system-arrow:focus-visible,
+.system-slider:focus-visible {
+    outline: 2px solid var(--system-accent);
+    outline-offset: 3px;
+}
+
+.system-arrow-controls {
+    display: flex;
+    flex-shrink: 0;
+    gap: 12px;
+}
+
+.system-arrow {
+    display: grid;
+    place-items: center;
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border: 1px solid var(--system-accent);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--system-accent);
+    cursor: pointer;
+    transition: background-color 220ms ease, color 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.system-arrow:hover:not(:disabled) {
+    background: var(--system-accent);
+    color: var(--active-system-background);
     transform: translateY(-2px);
 }
 
-.system-reveal__primary-button:hover {
-    background: var(--accent-dark);
-    border-color: var(--accent-dark);
+.system-arrow:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
 
-.system-reveal__secondary-button:hover {
-    background: var(--accent);
-    color: #ffffff;
-}
-
-
-/* =========================================================
-   SCROLL HINT
-========================================================= */
-
-.system-reveal__scroll-hint {
-    position: absolute;
-    z-index: 30;
-    top: 50%;
-    right: clamp(22px, 4vw, 55px);
-
+.system-slider {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    gap: clamp(18px, 2.3vw, 30px);
+    padding: 12px 2px 34px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    cursor: grab;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
 
-    color: var(--reveal-muted);
+.system-slider::-webkit-scrollbar {
+    display: none;
+}
 
-    font-size: 0.62rem;
+.system-slider.is-dragging {
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+    cursor: grabbing;
+}
+
+.system-slider.is-dragging * {
+    user-select: none;
+}
+
+.system-card {
+    flex: 0 0 clamp(310px, 31vw, 410px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(74, 45, 35, 0.1);
+    border-radius: 18px;
+    background: #ffffff;
+    opacity: 0.7;
+    transform: scale(0.975);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    box-shadow: 0 18px 50px rgba(47, 33, 27, 0.06);
+    transition: opacity 420ms ease, transform 420ms ease, box-shadow 320ms ease, border-color 320ms ease;
+}
+
+.system-card.is-current {
+    opacity: 1;
+    transform: scale(1);
+    border-color: rgba(74, 45, 35, 0.24);
+    box-shadow: 0 26px 66px rgba(47, 33, 27, 0.11);
+}
+
+.system-card.is-current:hover {
+    transform: translateY(-7px);
+}
+
+.system-image {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: #eee8e3;
+}
+
+.system-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 600ms ease;
+}
+
+.system-card.is-current:hover .system-image img {
+    transform: scale(1.04);
+}
+
+.system-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: clamp(25px, 3vw, 34px);
+    background-color: #eee7df;
+}
+
+.system-step-label {
+    margin-bottom: 16px;
+    color: #4a2d23;
+    font-size: 0.69rem;
     font-weight: 600;
-    letter-spacing: 0.17em;
-    text-transform: uppercase;
-
-    opacity: var(--scroll-hint-opacity, 1);
-
-    transform: translateY(-50%) rotate(90deg);
-    transform-origin: center;
+    letter-spacing: 0.14em;
 }
 
-.system-reveal__scroll-line {
-    display: block;
-    width: 40px;
-    height: 1px;
-
-    background: currentColor;
+.system-content h3 {
+    margin: 0 0 14px;
+    color: #2f211b;
+    font-weight: 500;
+    line-height: 1.15;
 }
 
+.system-content p {
+    margin: 0;
+    color: #716660;
+    font-size: 0.95rem;
+    line-height: 1.72;
+}
 
-/* =========================================================
-   TABLET
-========================================================= */
+.system-card--final {
+    border-color: #673629;
+}
 
-@media (max-width: 1024px) {
+.system-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 28px;
+    color: #4a2d23;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.system-button span {
+    transition: transform 200ms ease;
+}
+
+.system-button:hover span {
+    transform: translateX(5px);
+}
+
+.system-swipe-hint {
+    display: none;
+    margin: 4px 0 0;
+    color: var(--system-muted);
+    font-size: 0.76rem;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .system-card {
+        flex-basis: clamp(310px, 58vw, 390px);
+    }
+}
+
+@media (max-width: 600px) {
     .system-reveal {
-        height: 580vh;
+        padding: 74px 0;
     }
 
-    .system-reveal__stage {
-        width: min(650px, 78vw);
+    .system-reveal-heading {
+        margin-bottom: 42px;
     }
 
-    .system-reveal__visual {
-        padding-top: 160px;
-        padding-bottom: 160px;
+    .system-reveal-heading h2 {
+        font-size: clamp(2.55rem, 12vw, 3.7rem);
     }
 
-    .system-reveal__scroll-hint {
-        display: none;
-    }
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 760px) {
-    .system-reveal {
-        height: 520vh;
+    .system-navigation {
+        display: block;
+        margin-bottom: 18px;
     }
 
-    .system-reveal__sticky {
-        min-height: 600px;
-    }
-
-    .system-reveal__intro {
-        top: 50px;
-        width: calc(100% - 36px);
-    }
-
-    .system-reveal__intro h2 {
-        font-size: clamp(2.25rem, 10vw, 3.6rem);
-    }
-
-    .system-reveal__visual {
-        padding: 150px 8px 170px;
-    }
-
-    .system-reveal__stage {
-        width: min(520px, 100vw);
-    }
-
-    .system-reveal__caption {
-        right: 20px;
-        bottom: 50px;
-        left: 20px;
-
-        width: auto;
-        gap: 15px;
-    }
-
-    .system-reveal__progress {
-        right: 20px;
-        bottom: 28px;
-        left: 20px;
-
-        width: auto;
-    }
-
-    .system-reveal__step-description {
-        font-size: 0.8rem;
-    }
-
-    .system-reveal__final {
-        width: calc(100% - 36px);
-    }
-
-    .system-reveal__final h3 {
-        font-size: clamp(2.45rem, 11vw, 4rem);
-    }
-
-    .system-reveal__actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .system-reveal__primary-button,
-    .system-reveal__secondary-button {
-        width: 100%;
-    }
-}
-
-
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
-
-@media (max-width: 420px) {
-    .system-reveal__intro h2 br,
-    .system-reveal__final h3 br {
+    .system-arrow-controls {
         display: none;
     }
 
-    .system-reveal__visual {
-        padding-inline: 0;
+    .system-slider {
+        gap: 16px;
+        padding-bottom: 24px;
     }
 
-    .system-reveal__stage {
-        width: 112vw;
+    .system-card {
+        flex-basis: 86%;
+        border-radius: 14px;
+        opacity: 0.64;
+    }
+
+    .system-card.is-current {
+        opacity: 1;
+    }
+
+    .system-card.is-current:hover {
+        transform: scale(1);
+    }
+
+    .system-content {
+        padding: 24px 21px 26px;
+    }
+
+    .system-content h3 {
+        font-size: 1.7rem;
+    }
+
+    .system-content p {
+        font-size: 0.92rem;
+        line-height: 1.65;
+    }
+
+    .system-swipe-hint {
+        display: block;
     }
 }
-
-
-/* =========================================================
-   REDUCED MOTION ACCESSIBILITY
-========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-    .system-reveal {
-        height: auto;
-        min-height: 100vh;
-    }
-
-    .system-reveal__sticky {
-        position: relative;
-        height: auto;
-        min-height: 900px;
-        overflow: hidden;
-    }
-
-    .system-reveal__intro {
-        position: relative;
-        top: auto;
-        left: auto;
-
-        margin: 70px auto 0;
-
-        opacity: 1;
-        transform: none;
-    }
-
-    .system-reveal__visual {
-        position: relative;
-        height: 480px;
-        padding: 30px 20px;
-    }
-
-    .system-reveal__stage {
-        transform: none;
-    }
-
-    .system-layer {
-        opacity: 1 !important;
-        filter: none !important;
-        transform: none !important;
-    }
-
-    .system-reveal__caption,
-    .system-reveal__progress,
-    .system-reveal__scroll-hint {
-        display: none;
-    }
-
-    .system-reveal__final {
-        position: relative;
-        top: auto;
-        left: auto;
-
-        margin: 10px auto 80px;
-
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        transform: none;
+    .system-reveal,
+    .system-slider,
+    .system-card,
+    .system-image img,
+    .system-progress-fill,
+    .system-progress-step span,
+    .system-arrow,
+    .system-button span {
+        scroll-behavior: auto;
+        transition: none;
     }
 }
+
 
 /* Catalogue section */
 
@@ -1546,7 +1324,6 @@ You can adjust individual image positions like this:
     border: 2px solid var(--black);
     border-radius: 7px;
 
-    font-family: Georgia, "Times New Roman", serif;
     font-size: 0.86rem;
     text-transform: uppercase;
 
@@ -2384,5 +2161,247 @@ html.reveal-ready .reveal-group > .reveal {
     .reveal-content p:not(.reveal-eyebrow) {
         font-size: 0.95rem;
         line-height: 1.7;
+    }
+}
+
+/* =========================================================
+   WHATSAPP CONTACT BUTTON
+========================================================= */
+
+.whatsapp-contact {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1000;
+
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(18px);
+
+    transition:
+        opacity 0.35s ease,
+        visibility 0.35s ease,
+        transform 0.35s ease;
+}
+
+.whatsapp-contact.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.whatsapp-contact__button {
+    width: 62px;
+    height: 62px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+    background: #673629;
+    color: #ffffff;
+
+    text-decoration: none;
+
+    box-shadow:
+        0 12px 30px rgba(46, 28, 21, 0.24),
+        0 4px 10px rgba(46, 28, 21, 0.14);
+
+    transition:
+        transform 0.25s ease,
+        background-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.whatsapp-contact__button:hover {
+    background: #2e1c15;
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 16px 34px rgba(46, 28, 21, 0.28),
+        0 6px 14px rgba(46, 28, 21, 0.16);
+}
+
+.whatsapp-contact__button:focus-visible {
+    outline: 3px solid rgba(103, 54, 41, 0.35);
+    outline-offset: 4px;
+}
+
+.whatsapp-contact__button svg {
+    width: 30px;
+    height: 30px;
+}
+
+.whatsapp-contact__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.whatsapp-contact__message {
+    position: relative;
+
+    width: min(290px, calc(100vw - 120px));
+    padding: 18px 42px 18px 18px;
+
+    border: 1px solid rgba(103, 54, 41, 0.12);
+    border-radius: 16px;
+
+    background: #f8f4ef;
+    color: #2e1c15;
+
+    box-shadow:
+        0 16px 40px rgba(46, 28, 21, 0.14);
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(12px);
+
+    transition:
+        opacity 0.3s ease,
+        visibility 0.3s ease,
+        transform 0.3s ease;
+}
+
+.whatsapp-contact__message.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.whatsapp-contact__message-title {
+    margin: 0 0 5px;
+
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.whatsapp-contact__message-text {
+    display: block;
+
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: rgba(46, 28, 21, 0.72);
+}
+
+.whatsapp-contact__close {
+    position: absolute;
+    top: 9px;
+    right: 10px;
+
+    width: 28px;
+    height: 28px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 50%;
+
+    background: transparent;
+    color: #673629;
+
+    font-size: 1.3rem;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.whatsapp-contact__close:hover {
+    background: rgba(103, 54, 41, 0.08);
+}
+
+.whatsapp-contact__close:focus-visible {
+    outline: 2px solid rgba(103, 54, 41, 0.35);
+    outline-offset: 2px;
+}
+
+/*
+ * Soft attention pulse.
+ * It only runs occasionally through JavaScript.
+ */
+.whatsapp-contact__button.is-pulsing {
+    animation: whatsapp-soft-pulse 1.5s ease;
+}
+
+@keyframes whatsapp-soft-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.07);
+    }
+
+    70% {
+        transform: scale(1.02);
+    }
+}
+
+
+/* =========================================================
+   WHATSAPP — MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+    .whatsapp-contact {
+        right: 16px;
+        bottom: 16px;
+        gap: 10px;
+    }
+
+    .whatsapp-contact__button {
+        width: 56px;
+        height: 56px;
+    }
+
+    .whatsapp-contact__button svg {
+        width: 27px;
+        height: 27px;
+    }
+
+    .whatsapp-contact__message {
+        width: min(250px, calc(100vw - 95px));
+        padding: 15px 38px 15px 15px;
+    }
+
+    .whatsapp-contact__message-title {
+        font-size: 0.87rem;
+    }
+
+    .whatsapp-contact__message-text {
+        font-size: 0.78rem;
+    }
+}
+
+
+/* =========================================================
+   WHATSAPP — REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .whatsapp-contact,
+    .whatsapp-contact__button,
+    .whatsapp-contact__message {
+        transition: none;
+    }
+
+    .whatsapp-contact__button.is-pulsing {
+        animation: none;
     }
 }

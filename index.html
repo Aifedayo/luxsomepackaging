@@ -177,20 +177,13 @@
                 <a href="/contact/">
                     Contact Us
                 </a>
-
-                <a href="/our-story/">
-                    Our Story
-                </a>
-
                 <a
                     href="/gallery/"
                 >
                     Gallery
                 </a>
                 <a
-                    href="mailto:info@luxsomepackaging.com
-                    ?subject=New%20Packaging%20Project%20Enquiry
-                    &body=Hello%20Luxsome%20Packaging%2C%0D%0A%0D%0AI%20would%20like%20to%20start%20a%20packaging%20project.%0D%0A%0D%0ABrand%20Name%3A%20%0D%0AProduct%20Type%3A%20%0D%0ARequired%20Quantity%3A%20%0D%0APackaging%20Required%3A%20%0D%0ADelivery%20Location%3A%20%0D%0ARequired%20Date%3A%20%0D%0A%0D%0AThank%20you."
+                    href="/start-project/"
                     class="header-contact-button"
                 >
                     Start a Project
@@ -334,166 +327,131 @@
         
         </section>
 
-        <!-- ======================================================
-            PACKAGING SYSTEM SCROLL REVEAL
-        ======================================================= -->
+        <!-- =====================================================
+             PACKAGING SYSTEM CAROUSEL
+        ====================================================== -->
         <section
-        class="system-reveal"
-        id="packagingSystem"
-        aria-labelledby="systemRevealTitle"
+            class="system-reveal"
+            id="luxsomeSystem"
+            aria-labelledby="systemRevealTitle"
+            data-theme="light"
         >
-        <div class="system-reveal__sticky">
+            <div class="container">
+                <header class="system-reveal-heading">
+                    <p class="system-eyebrow">THE LUXSOME SYSTEM</p>
+                    <h2 id="systemRevealTitle">
+                        From One Box to a Complete Unboxing Experience
+                    </h2>
+                    <p class="system-intro">
+                        Every memorable unboxing begins with a box. Move through
+                        each step to see how the details become one complete,
+                        branded packaging system.
+                    </p>
+                </header>
 
-            <!-- Introductory text -->
-            <div class="system-reveal__intro">
-                <p class="system-reveal__eyebrow">
-                    The Luxsome Experience
-                </p>
+                <div class="system-navigation">
+                    <div class="system-progress">
+                        <p
+                            class="system-progress-text"
+                            id="systemProgressText"
+                            aria-live="polite"
+                        >
+                            Step 1 of 6 · The Foundation
+                        </p>
 
-                <h2 id="systemRevealTitle">
-                    A complete packaging system,<br>
-                    revealed one detail at a time.
-                </h2>
-            </div>
+                        <div
+                            class="system-progress-track"
+                            aria-label="Packaging system progress"
+                        >
+                            <span
+                                class="system-progress-fill"
+                                id="systemProgressFill"
+                                aria-hidden="true"
+                            ></span>
 
-            <!-- Packaging visual -->
-            <div class="system-reveal__visual">
+                            <button class="system-progress-step is-active" type="button" data-slide="0" aria-label="Go to step 1: The Foundation" aria-current="step"><span></span></button>
+                            <button class="system-progress-step" type="button" data-slide="1" aria-label="Go to step 2: Brand Identity"><span></span></button>
+                            <button class="system-progress-step" type="button" data-slide="2" aria-label="Go to step 3: Personal Connection"><span></span></button>
+                            <button class="system-progress-step" type="button" data-slide="3" aria-label="Go to step 4: The Unwrapping Layer"><span></span></button>
+                            <button class="system-progress-step" type="button" data-slide="4" aria-label="Go to step 5: The Finishing Detail"><span></span></button>
+                            <button class="system-progress-step" type="button" data-slide="5" aria-label="Go to step 6: The Complete System"><span></span></button>
+                        </div>
+                    </div>
+
+                    <div class="system-arrow-controls" aria-label="Carousel controls">
+                        <button class="system-arrow" id="systemPreviousButton" type="button" aria-label="Previous step" disabled>←</button>
+                        <button class="system-arrow" id="systemNextButton" type="button" aria-label="Next step">→</button>
+                    </div>
+                </div>
 
                 <div
-                    class="system-reveal__stage"
-                    aria-label="A complete Luxsome packaging system assembling as you scroll"
+                    class="system-slider"
+                    id="systemSlider"
+                    role="region"
+                    aria-roledescription="carousel"
+                    aria-label="Building a complete packaging system"
+                    tabindex="0"
                 >
-                    <!-- Main rigid box -->
-                    <div
-                        class="system-layer system-layer--box"
-                        data-reveal-layer="box"
-                    >
-                        <img
-                            src="assets/images/reveal/rigid-box-011.webp"
-                            alt="Luxsome luxury rigid box"
-                        >
-                    </div>
+                    <article class="system-card is-current" data-step-title="The Foundation" data-background="#f8f4ef" data-theme="light" aria-label="Step 1 of 6: The Foundation">
+                        <div class="system-image"><img src="/assets/images/reveal/rigid-box.webp" alt="Luxury rigid packaging box" loading="lazy" decoding="async"></div>
+                        <div class="system-content">
+                            <span class="system-step-label">STEP 01 · THE FOUNDATION</span>
+                            <h3>Begin with the Box</h3>
+                            <p>A beautifully crafted rigid box protects your product and gives the unboxing experience a premium starting point.</p>
+                        </div>
+                    </article>
 
-                    <!-- Tissue paper -->
-                    <div
-                        class="system-layer system-layer--tissue"
-                        data-reveal-layer="tissue"
-                    >
-                        <img
-                            src="assets/images/reveal/tissue-paper.webp"
-                            alt="Branded tissue paper"
-                        >
-                    </div>
+                    <article class="system-card" data-step-title="Brand Identity" data-background="#eee4da" data-theme="light" aria-label="Step 2 of 6: Brand Identity">
+                        <div class="system-image"><img src="/assets/images/reveal/hang-tag.webp" alt="Rigid box with custom branded hang tags" loading="lazy" decoding="async"></div>
+                        <div class="system-content">
+                            <span class="system-step-label">STEP 02 · BRAND IDENTITY</span>
+                            <h3>Add Your Identity</h3>
+                            <p>Custom hang tags carry your visual identity beyond the box and make every detail feel intentionally designed.</p>
+                        </div>
+                    </article>
 
-                    <!-- Thank-you card -->
-                    <div
-                        class="system-layer system-layer--card"
-                        data-reveal-layer="card"
-                    >
-                        <img
-                            src="assets/images/reveal/thank-you-card.webp"
-                            alt="Branded thank-you card"
-                        >
-                    </div>
+                    <article class="system-card" data-step-title="Personal Connection" data-background="#eadbd5" data-theme="light" aria-label="Step 3 of 6: Personal Connection">
+                        <div class="system-image"><img src="/assets/images/reveal/thank-you-card.webp" alt="Packaging system with thank-you card and envelope" loading="lazy" decoding="async"></div>
+                        <div class="system-content">
+                            <span class="system-step-label">STEP 03 · PERSONAL CONNECTION</span>
+                            <h3>Make It Personal</h3>
+                            <p>A thoughtful thank-you card and matching envelope turn a delivery into a warmer, more memorable brand interaction.</p>
+                        </div>
+                    </article>
 
-                    <!-- Hang tag -->
-                    <div
-                        class="system-layer system-layer--tag"
-                        data-reveal-layer="tag"
-                    >
-                        <img
-                            src="assets/images/reveal/hang-tag.webp"
-                            alt="Premium branded hang tag"
-                        >
-                    </div>
+                    <article class="system-card" data-step-title="The Unwrapping Layer" data-background="#dfcbbd" data-theme="light" aria-label="Step 4 of 6: The Unwrapping Layer">
+                        <div class="system-image"><img src="/assets/images/reveal/tissue.webp" alt="Packaging system with branded tissue and sticker seal" loading="lazy" decoding="async"></div>
+                        <div class="system-content">
+                            <span class="system-step-label">STEP 04 · THE UNWRAPPING LAYER</span>
+                            <h3>Create Anticipation</h3>
+                            <p>Branded tissue and a sticker seal add another reveal before your customer reaches the product itself.</p>
+                        </div>
+                    </article>
 
-                    <!-- Ribbon -->
-                    <div
-                        class="system-layer system-layer--ribbon"
-                        data-reveal-layer="ribbon"
-                    >
-                        <img
-                            src="assets/images/reveal/ribbon-01.png"
-                            alt="Branded packaging ribbon"
-                        >
-                    </div>
+                    <article class="system-card" data-step-title="The Finishing Detail" data-background="#d1b9a8" data-theme="light" aria-label="Step 5 of 6: The Finishing Detail">
+                        <div class="system-image"><img src="/assets/images/reveal/ribbon-01.webp" alt="Luxury packaging system finished with custom ribbon" loading="lazy" decoding="async"></div>
+                        <div class="system-content">
+                            <span class="system-step-label">STEP 05 · THE FINISHING DETAIL</span>
+                            <h3>Finish Beautifully</h3>
+                            <p>Custom ribbon adds structure, ceremony and a polished final touch that makes the package feel gift-worthy.</p>
+                        </div>
+                    </article>
 
-                    <!-- Sticker seal -->
-                    <div
-                        class="system-layer system-layer--sticker"
-                        data-reveal-layer="sticker"
-                    >
-                        <img
-                            src="assets/images/reveal/sticker-seal.webp"
-                            alt="Branded sticker seal"
-                        >
-                    </div>
+                    <article class="system-card system-card--final" data-step-title="The Complete System" data-background="#673629" data-theme="dark" aria-label="Step 6 of 6: The Complete System">
+                        <div class="system-image"><img src="/assets/images/reveal/complete-set.webp" alt="Complete Luxsome luxury packaging system" loading="lazy" decoding="async"></div>
+                        <div class="system-content">
+                            <span class="system-step-label">STEP 06 · THE COMPLETE SYSTEM</span>
+                            <h3>Everything Working Together</h3>
+                            <p>The box, tags, stationery, tissue, sticker and ribbon become one complete packaging experience designed around your brand.</p>
+                            <a href="/contact/" class="system-button">Build Your Packaging System <span aria-hidden="true">→</span></a>
+                        </div>
+                    </article>
                 </div>
+
+                <p class="system-swipe-hint" aria-hidden="true">← Swipe to build the complete system →</p>
             </div>
-
-            <!-- Changing product label -->
-            <div
-                class="system-reveal__caption"
-                aria-live="polite"
-            >
-                <span class="system-reveal__number" id="systemStepNumber">
-                    01
-                </span>
-
-                <div class="system-reveal__caption-copy">
-                    <p class="system-reveal__step-title" id="systemStepTitle">
-                        The foundation
-                    </p>
-
-                    <p class="system-reveal__step-description" id="systemStepDescription">
-                        A premium rigid box made to give your product presence.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Progress indicator -->
-            <div
-                class="system-reveal__progress"
-                aria-hidden="true"
-            >
-                <span id="systemRevealProgress"></span>
-            </div>
-
-            <!-- Final message -->
-            <div class="system-reveal__final">
-                <p class="system-reveal__final-eyebrow">
-                    Designed to work together
-                </p>
-
-                <h3>
-                    Not just packaging.<br>
-                    A complete brand experience.
-                </h3>
-
-                <p>
-                    From the box to the final seal, every detail is created to make
-                    your brand feel considered, cohesive and unforgettable.
-                </p>
-
-                <div class="system-reveal__actions">
-                    <a href="gallery/" class="system-reveal__primary-button">
-                        Explore our work
-                    </a>
-
-                    <a href="pricing/" class="system-reveal__secondary-button">
-                        View pricing
-                    </a>
-                </div>
-            </div>
-
-            <!-- Scroll instruction -->
-            <div class="system-reveal__scroll-hint" aria-hidden="true">
-                <span>Scroll to reveal</span>
-                <span class="system-reveal__scroll-line"></span>
-            </div>
-
-        </div>
         </section>
+
 
         <!-- Catalogue section -->
         <section class="catalogue-section" id="catalogues">
@@ -797,7 +755,7 @@
                         </a>
 
                         <a
-                            href="mailto:sales@luxsomepackaging.com?subject=New%20Packaging%20Project%20Enquiry"
+                            href="/start-project/"
                         >
                             Start a Project
                         </a>
@@ -1207,6 +1165,60 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <!-- WhatsApp Contact Button -->
+    <div
+        class="whatsapp-contact"
+        id="whatsappContact"
+        data-phone="2348061389594"
+        >
+        <div
+            class="whatsapp-contact__message"
+            id="whatsappMessage"
+            aria-hidden="true"
+        >
+            <button
+                class="whatsapp-contact__close"
+                id="whatsappMessageClose"
+                type="button"
+                aria-label="Close WhatsApp message"
+            >
+                &times;
+            </button>
+
+            <p class="whatsapp-contact__message-title">
+                Need help choosing the right packaging system?
+            </p>
+
+            <span class="whatsapp-contact__message-text">
+                Chat with us on WhatsApp.
+            </span>
+        </div>
+
+        <a
+            class="whatsapp-contact__button"
+            id="whatsappButton"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Chat with Luxsome Packaging on WhatsApp"
+        >
+            <svg
+                aria-hidden="true"
+                viewBox="0 0 32 32"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <path
+                    fill="currentColor"
+                    d="M16.04 3C8.86 3 3.02 8.77 3.02 15.86c0 2.52.75 4.98 2.16 7.07L3 29l6.3-2.03a13.1 13.1 0 0 0 6.74 1.84h.01c7.18 0 13.02-5.77 13.02-12.86C29.07 8.77 23.23 3 16.04 3Zm0 23.63h-.01a10.9 10.9 0 0 1-5.56-1.5l-.4-.23-3.74 1.2 1.23-3.62-.26-.41a10.56 10.56 0 0 1-1.67-5.68c0-5.87 4.85-10.65 10.82-10.65 5.96 0 10.81 4.78 10.81 10.65 0 5.87-4.85 10.64-10.82 10.64Zm5.93-7.97c-.32-.16-1.92-.94-2.22-1.05-.3-.11-.52-.16-.74.16-.21.32-.84 1.05-1.03 1.26-.19.21-.38.24-.7.08-.33-.16-1.38-.5-2.62-1.59-.97-.85-1.62-1.9-1.81-2.22-.19-.32-.02-.5.14-.66.15-.14.33-.37.49-.55.16-.18.22-.32.33-.53.11-.21.05-.4-.03-.56-.08-.16-.73-1.74-1-2.38-.26-.63-.53-.54-.73-.55h-.62c-.22 0-.57.08-.87.4-.3.32-1.14 1.1-1.14 2.69 0 1.58 1.17 3.11 1.33 3.32.16.21 2.3 3.47 5.57 4.87.78.33 1.39.53 1.86.68.78.24 1.49.21 2.05.13.63-.09 1.92-.78 2.19-1.53.27-.75.27-1.4.19-1.53-.08-.14-.3-.21-.62-.37Z"
+                />
+            </svg>
+
+            <span class="whatsapp-contact__label">
+                Chat with us
+            </span>
+        </a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>

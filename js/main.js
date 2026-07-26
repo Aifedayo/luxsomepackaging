@@ -1,32 +1,65 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const mobileMenuButton =
-        document.getElementById("mobileMenuButton");
+/* =========================================================
+   LUXSOME WEBSITE — MAIN JAVASCRIPT
+========================================================= */
 
-    const siteNavigation =
-        document.getElementById("siteNavigation");
+"use strict";
 
-    const currentYear =
-        document.getElementById("currentYear");
+document.addEventListener("DOMContentLoaded", function () {
+    initCurrentYear();
+    initMobileMenu();
+    initHeroCarousel();
+    initPackagingSystemCarousel();
+    initScrollReveal();
+    initWhatsAppContact();
+});
 
-    if (currentYear) {
-        currentYear.textContent =
-            new Date().getFullYear();
-    }
 
-    if (!mobileMenuButton || !siteNavigation) {
+/* =========================================================
+   CURRENT YEAR
+========================================================= */
+
+function initCurrentYear() {
+    const currentYear = document.getElementById("currentYear");
+
+    if (!currentYear) {
         return;
     }
 
-    function closeMobileMenu() {
-        mobileMenuButton.classList.remove("is-active");
-        siteNavigation.classList.remove("is-open");
+    currentYear.textContent = new Date().getFullYear();
+}
 
-        mobileMenuButton.setAttribute(
-            "aria-expanded",
-            "false"
+
+/* =========================================================
+   MOBILE MENU
+========================================================= */
+
+function initMobileMenu() {
+    const menuButton = document.getElementById("mobileMenuButton");
+    const navigation = document.getElementById("siteNavigation");
+
+    if (!menuButton || !navigation) {
+        return;
+    }
+
+    function openMenu() {
+        menuButton.classList.add("is-active");
+        navigation.classList.add("is-open");
+
+        menuButton.setAttribute("aria-expanded", "true");
+        menuButton.setAttribute(
+            "aria-label",
+            "Close navigation menu"
         );
 
-        mobileMenuButton.setAttribute(
+        document.body.classList.add("menu-open");
+    }
+
+    function closeMenu() {
+        menuButton.classList.remove("is-active");
+        navigation.classList.remove("is-open");
+
+        menuButton.setAttribute("aria-expanded", "false");
+        menuButton.setAttribute(
             "aria-label",
             "Open navigation menu"
         );
@@ -34,83 +67,98 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.remove("menu-open");
     }
 
-    function toggleMobileMenu() {
+    function toggleMenu() {
         const menuIsOpen =
-            siteNavigation.classList.toggle("is-open");
+            navigation.classList.contains("is-open");
 
-        mobileMenuButton.classList.toggle(
-            "is-active",
-            menuIsOpen
-        );
-
-        mobileMenuButton.setAttribute(
-            "aria-expanded",
-            String(menuIsOpen)
-        );
-
-        mobileMenuButton.setAttribute(
-            "aria-label",
-            menuIsOpen
-                ? "Close navigation menu"
-                : "Open navigation menu"
-        );
-
-        document.body.classList.toggle(
-            "menu-open",
-            menuIsOpen
-        );
+        if (menuIsOpen) {
+            closeMenu();
+        } else {
+            openMenu();
+        }
     }
 
-    mobileMenuButton.addEventListener(
-        "click",
-        toggleMobileMenu
-    );
+    menuButton.addEventListener("click", toggleMenu);
 
-    siteNavigation
-        .querySelectorAll("a")
-        .forEach((link) => {
-            link.addEventListener(
-                "click",
-                closeMobileMenu
-            );
-        });
-
-    window.addEventListener("resize", () => {
-        if (window.innerWidth > 850) {
-            closeMobileMenu();
-        }
+    navigation.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", closeMenu);
     });
 
-    document.addEventListener("keydown", (event) => {
+    document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") {
-            closeMobileMenu();
+            closeMenu();
         }
     });
-});
 
-document.addEventListener("DOMContentLoaded", function () {
-    const slides = document.querySelectorAll(".hero-slide");
-    const dots = document.querySelectorAll(".hero-dot");
-    const previousButton = document.querySelector(".hero-arrow-left");
-    const nextButton = document.querySelector(".hero-arrow-right");
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > 850) {
+            closeMenu();
+        }
+    });
+}
+
+
+/* =========================================================
+   HERO CAROUSEL
+========================================================= */
+
+function initHeroCarousel() {
     const carousel = document.querySelector(".hero-carousel");
 
-    let currentSlide = 0;
-    let autoplayInterval;
+    if (!carousel) {
+        return;
+    }
 
-    function showSlide(index) {
-        if (index >= slides.length) {
-            currentSlide = 0;
-        } else if (index < 0) {
-            currentSlide = slides.length - 1;
-        } else {
-            currentSlide = index;
+    const slides = Array.from(
+        carousel.querySelectorAll(".hero-slide")
+    );
+
+    const dots = Array.from(
+        carousel.querySelectorAll(".hero-dot")
+    );
+
+    const previousButton = carousel.querySelector(
+        ".hero-arrow-left"
+    );
+
+    const nextButton = carousel.querySelector(
+        ".hero-arrow-right"
+    );
+
+    if (slides.length === 0) {
+        return;
+    }
+
+    const reducedMotionQuery = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    let currentSlide = 0;
+    let autoplayTimer = null;
+
+    function normaliseSlideIndex(index) {
+        if (index < 0) {
+            return slides.length - 1;
         }
 
+        if (index >= slides.length) {
+            return 0;
+        }
+
+        return index;
+    }
+
+    function showSlide(index) {
+        currentSlide = normaliseSlideIndex(index);
+
         slides.forEach(function (slide, slideIndex) {
-            slide.classList.toggle(
-                "active",
-                slideIndex === currentSlide
+            const isActive = slideIndex === currentSlide;
+
+            slide.classList.toggle("active", isActive);
+
+            slide.setAttribute(
+                "aria-hidden",
+                isActive ? "false" : "true"
             );
         });
 
@@ -127,582 +175,691 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function nextSlide() {
-        showSlide(currentSlide + 1);
-    }
+    function stopAutoplay() {
+        if (autoplayTimer === null) {
+            return;
+        }
 
-    function previousSlide() {
-        showSlide(currentSlide - 1);
+        window.clearInterval(autoplayTimer);
+        autoplayTimer = null;
     }
 
     function startAutoplay() {
         stopAutoplay();
 
-        autoplayInterval = window.setInterval(function () {
-            nextSlide();
+        if (
+            reducedMotionQuery.matches ||
+            slides.length < 2
+        ) {
+            return;
+        }
+
+        autoplayTimer = window.setInterval(function () {
+            showSlide(currentSlide + 1);
         }, 6000);
     }
 
-    function stopAutoplay() {
-        if (autoplayInterval) {
-            window.clearInterval(autoplayInterval);
-        }
+    if (previousButton) {
+        previousButton.addEventListener("click", function () {
+            showSlide(currentSlide - 1);
+            startAutoplay();
+        });
     }
 
-    nextButton.addEventListener("click", function () {
-        nextSlide();
-        startAutoplay();
-    });
+    if (nextButton) {
+        nextButton.addEventListener("click", function () {
+            showSlide(currentSlide + 1);
+            startAutoplay();
+        });
+    }
 
-    previousButton.addEventListener("click", function () {
-        previousSlide();
-        startAutoplay();
-    });
-
-    dots.forEach(function (dot, index) {
+    dots.forEach(function (dot, dotIndex) {
         dot.addEventListener("click", function () {
-            showSlide(index);
+            showSlide(dotIndex);
             startAutoplay();
         });
     });
 
     carousel.addEventListener("mouseenter", stopAutoplay);
     carousel.addEventListener("mouseleave", startAutoplay);
+    carousel.addEventListener("focusin", stopAutoplay);
 
-    if (
-        slides.length === 0 ||
-        dots.length === 0 ||
-        !previousButton ||
-        !nextButton ||
-        !carousel
-    ) {
-        return;
-    }
-
-    document.addEventListener("visibilitychange", function () {
-        if (document.hidden) {
-            stopAutoplay();
-        } else {
+    carousel.addEventListener("focusout", function (event) {
+        if (!carousel.contains(event.relatedTarget)) {
             startAutoplay();
         }
     });
 
+    document.addEventListener(
+        "visibilitychange",
+        function () {
+            if (document.hidden) {
+                stopAutoplay();
+            } else {
+                startAutoplay();
+            }
+        }
+    );
+
+    function handleReducedMotionChange() {
+        if (reducedMotionQuery.matches) {
+            stopAutoplay();
+        } else {
+            startAutoplay();
+        }
+    }
+
+    if (
+        typeof reducedMotionQuery.addEventListener ===
+        "function"
+    ) {
+        reducedMotionQuery.addEventListener(
+            "change",
+            handleReducedMotionChange
+        );
+    } else if (
+        typeof reducedMotionQuery.addListener ===
+        "function"
+    ) {
+        reducedMotionQuery.addListener(
+            handleReducedMotionChange
+        );
+    }
+
     showSlide(0);
     startAutoplay();
-});
-
-const reducedMotionQuery = window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-);
-
-function startAutoplay() {
-    stopAutoplay();
-
-    if (reducedMotionQuery.matches) {
-        return;
-    }
-
-    autoplayInterval = window.setInterval(() => {
-        nextSlide();
-    }, 6000);
 }
-
-reducedMotionQuery.addEventListener?.("change", () => {
-    if (reducedMotionQuery.matches) {
-        stopAutoplay();
-    } else {
-        startAutoplay();
-    }
-});
-
 
 
 /* =========================================================
-   PACKAGING SYSTEM SCROLL REVEAL
+   PACKAGING SYSTEM CAROUSEL
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-    const revealSection = document.querySelector("#packagingSystem");
+function initPackagingSystemCarousel() {
+    const section = document.getElementById(
+        "luxsomeSystem"
+    );
 
-    if (!revealSection) {
+    if (!section) {
         return;
     }
 
-    const stickyElement = revealSection.querySelector(
-        ".system-reveal__sticky"
+    const slider = section.querySelector(
+        "#systemSlider"
     );
 
-    const progressElement = revealSection.querySelector(
-        "#systemRevealProgress"
+    if (!slider) {
+        return;
+    }
+
+    const cards = Array.from(
+        slider.querySelectorAll(".system-card")
     );
 
-    const stepNumberElement = revealSection.querySelector(
-        "#systemStepNumber"
+    const progressSteps = Array.from(
+        section.querySelectorAll(
+            ".system-progress-step"
+        )
     );
 
-    const stepTitleElement = revealSection.querySelector(
-        "#systemStepTitle"
+    const progressText = section.querySelector(
+        "#systemProgressText"
     );
 
-    const stepDescriptionElement = revealSection.querySelector(
-        "#systemStepDescription"
+    const progressFill = section.querySelector(
+        "#systemProgressFill"
     );
+
+    const previousButton = section.querySelector(
+        "#systemPreviousButton"
+    );
+
+    const nextButton = section.querySelector(
+        "#systemNextButton"
+    );
+
+    if (cards.length === 0) {
+        return;
+    }
 
     const reducedMotionQuery = window.matchMedia(
         "(prefers-reduced-motion: reduce)"
     );
 
-    const steps = [
-        {
-            start: 0.02,
-            end: 0.17,
-            number: "01",
-            title: "The foundation",
-            description:
-                "A premium rigid box made to give your product presence."
-        },
-        {
-            start: 0.17,
-            end: 0.32,
-            number: "02",
-            title: "The first reveal",
-            description:
-                "Branded tissue adds anticipation before the product is seen."
-        },
-        {
-            start: 0.32,
-            end: 0.47,
-            number: "03",
-            title: "A thoughtful message",
-            description:
-                "A thank-you card turns every order into a personal interaction."
-        },
-        {
-            start: 0.47,
-            end: 0.61,
-            number: "04",
-            title: "Brand identity",
-            description:
-                "A refined hang tag carries your identity beyond the packaging."
-        },
-        {
-            start: 0.61,
-            end: 0.75,
-            number: "05",
-            title: "The finishing detail",
-            description:
-                "Branded ribbon brings structure, ceremony and elegance."
-        },
-        {
-            start: 0.75,
-            end: 0.88,
-            number: "06",
-            title: "The final seal",
-            description:
-                "A custom seal completes the system and makes it unmistakably yours."
-        }
-    ];
-
-    let animationFrameId = null;
-    let currentStepIndex = -1;
-
-    /**
-     * Keeps a number between 0 and 1.
-     */
-    const clamp = (value, minimum = 0, maximum = 1) => {
-        return Math.min(Math.max(value, minimum), maximum);
-    };
-
-    /**
-     * Returns the progress within a specific scroll interval.
-     */
-    const rangeProgress = (progress, start, end) => {
-        return clamp((progress - start) / (end - start));
-    };
-
-    /**
-     * Smoothstep produces a softer beginning and ending.
-     */
-    const smoothstep = (value) => {
-        const progress = clamp(value);
-        return progress * progress * (3 - 2 * progress);
-    };
-
-    /**
-     * Converts one number range to another.
-     */
-    const interpolate = (from, to, progress) => {
-        return from + (to - from) * progress;
-    };
-
-    const setProperty = (name, value) => {
-        stickyElement.style.setProperty(name, value);
-    };
-
-    const updateStepText = (progress) => {
-        let nextStepIndex = steps.findIndex((step) => {
-            return progress >= step.start && progress < step.end;
-        });
-
-        if (nextStepIndex === -1) {
-            nextStepIndex = progress >= steps[steps.length - 1].end
-                ? steps.length - 1
-                : 0;
-        }
-
-        if (nextStepIndex === currentStepIndex) {
-            return;
-        }
-
-        currentStepIndex = nextStepIndex;
-
-        const currentStep = steps[currentStepIndex];
-
-        stepNumberElement.textContent = currentStep.number;
-        stepTitleElement.textContent = currentStep.title;
-        stepDescriptionElement.textContent = currentStep.description;
-
-        const caption = revealSection.querySelector(
-            ".system-reveal__caption"
-        );
-
-        caption.animate(
-            [
-                {
-                    opacity: 0,
-                    transform: "translateY(8px)"
-                },
-                {
-                    opacity: 1,
-                    transform: "translateY(0)"
-                }
-            ],
-            {
-                duration: 350,
-                easing: "ease-out"
-            }
-        );
-    };
-
-    const renderReveal = (progress) => {
-        revealSection.style.setProperty(
-            "--reveal-progress",
-            progress.toFixed(4)
-        );
-
-        /*
-         * Box: 0.04 → 0.18
-         */
-        const boxProgress = smoothstep(
-            rangeProgress(progress, 0.04, 0.18)
-        );
-
-        setProperty(
-            "--box-opacity",
-            boxProgress.toFixed(3)
-        );
-
-        setProperty(
-            "--box-y",
-            `${interpolate(70, 0, boxProgress)}px`
-        );
-
-        setProperty(
-            "--box-scale",
-            interpolate(0.88, 1, boxProgress).toFixed(3)
-        );
-
-        setProperty(
-            "--box-blur",
-            `${interpolate(8, 0, boxProgress)}px`
-        );
-
-
-        /*
-         * Tissue: 0.18 → 0.34
-         */
-        const tissueProgress = smoothstep(
-            rangeProgress(progress, 0.18, 0.34)
-        );
-
-        setProperty(
-            "--tissue-opacity",
-            tissueProgress.toFixed(3)
-        );
-
-        setProperty(
-            "--tissue-y",
-            `${interpolate(-45, 0, tissueProgress)}px`
-        );
-
-        setProperty(
-            "--tissue-scale",
-            interpolate(0.9, 1, tissueProgress).toFixed(3)
-        );
-
-        setProperty(
-            "--tissue-blur",
-            `${interpolate(5, 0, tissueProgress)}px`
-        );
-
-
-        /*
-         * Thank-you card: 0.33 → 0.49
-         */
-        const cardProgress = smoothstep(
-            rangeProgress(progress, 0.33, 0.49)
-        );
-
-        setProperty(
-            "--card-opacity",
-            cardProgress.toFixed(3)
-        );
-
-        setProperty(
-            "--card-x",
-            `${interpolate(90, 0, cardProgress)}px`
-        );
-
-        setProperty(
-            "--card-y",
-            `${interpolate(35, 0, cardProgress)}px`
-        );
-
-        setProperty(
-            "--card-rotate",
-            `${interpolate(7, 0, cardProgress)}deg`
-        );
-
-        setProperty(
-            "--card-scale",
-            interpolate(0.92, 1, cardProgress).toFixed(3)
-        );
-
-
-        /*
-         * Hang tag: 0.47 → 0.63
-         */
-        const tagProgress = smoothstep(
-            rangeProgress(progress, 0.47, 0.63)
-        );
-
-        setProperty(
-            "--tag-opacity",
-            tagProgress.toFixed(3)
-        );
-
-        setProperty(
-            "--tag-x",
-            `${interpolate(-90, 0, tagProgress)}px`
-        );
-
-        setProperty(
-            "--tag-y",
-            `${interpolate(25, 0, tagProgress)}px`
-        );
-
-        setProperty(
-            "--tag-rotate",
-            `${interpolate(-8, 0, tagProgress)}deg`
-        );
-
-        setProperty(
-            "--tag-scale",
-            interpolate(0.92, 1, tagProgress).toFixed(3)
-        );
-
-
-        /*
-         * Ribbon: 0.61 → 0.77
-         */
-        const ribbonProgress = smoothstep(
-            rangeProgress(progress, 0.61, 0.77)
-        );
-
-        setProperty(
-            "--ribbon-opacity",
-            ribbonProgress.toFixed(3)
-        );
-
-        setProperty(
-            "--ribbon-scale-x",
-            interpolate(0.65, 1, ribbonProgress).toFixed(3)
-        );
-
-        setProperty(
-            "--ribbon-scale-y",
-            interpolate(0.95, 1, ribbonProgress).toFixed(3)
-        );
-
-
-        /*
-         * Sticker: 0.74 → 0.88
-         */
-        const stickerProgress = smoothstep(
-            rangeProgress(progress, 0.74, 0.88)
-        );
-
-        setProperty(
-            "--sticker-opacity",
-            stickerProgress.toFixed(3)
-        );
-
-        setProperty(
-            "--sticker-y",
-            `${interpolate(-25, 0, stickerProgress)}px`
-        );
-
-        setProperty(
-            "--sticker-rotate",
-            `${interpolate(-12, 0, stickerProgress)}deg`
-        );
-
-        setProperty(
-            "--sticker-scale",
-            interpolate(0.4, 1, stickerProgress).toFixed(3)
-        );
-
-
-        /*
-         * Caption fades before final message.
-         */
-        const captionExit = smoothstep(
-            rangeProgress(progress, 0.84, 0.92)
-        );
-
-        setProperty(
-            "--caption-opacity",
-            (1 - captionExit).toFixed(3)
-        );
-
-        setProperty(
-            "--caption-y",
-            `${interpolate(0, 18, captionExit)}px`
-        );
-
-
-        /*
-         * Final message: 0.88 → 1
-         */
-        const finalProgress = smoothstep(
-            rangeProgress(progress, 0.88, 0.98)
-        );
-
-        setProperty(
-            "--final-opacity",
-            finalProgress.toFixed(3)
-        );
-
-        setProperty(
-            "--final-y",
-            `${interpolate(45, 0, finalProgress)}px`
-        );
-
-        setProperty(
-            "--final-visibility",
-            finalProgress > 0.01 ? "visible" : "hidden"
-        );
-
-        const finalSection = revealSection.querySelector(
-            ".system-reveal__final"
-        );
-
-        finalSection.style.pointerEvents =
-            finalProgress > 0.8 ? "auto" : "none";
-
-
-        /*
-         * Fade the packaging visual when final copy enters.
-         */
-        const visualFade = smoothstep(
-            rangeProgress(progress, 0.87, 0.96)
-        );
-
-        const stage = revealSection.querySelector(
-            ".system-reveal__stage"
-        );
-
-        stage.style.opacity = String(1 - visualFade);
-        stage.style.transform = `
-            translateY(${interpolate(0, -25, visualFade)}px)
-            scale(${interpolate(1, 0.94, visualFade)})
-        `;
-
-
-        /*
-         * Scroll instruction disappears early.
-         */
-        const hintOpacity = 1 - smoothstep(
-            rangeProgress(progress, 0.02, 0.13)
-        );
-
-        setProperty(
-            "--scroll-hint-opacity",
-            hintOpacity.toFixed(3)
-        );
-
-        updateStepText(progress);
-    };
-
-    const calculateProgress = () => {
-        if (reducedMotionQuery.matches) {
-            return;
-        }
-
-        const sectionRectangle = revealSection.getBoundingClientRect();
-
-        const scrollableDistance =
-            revealSection.offsetHeight - window.innerHeight;
-
-        if (scrollableDistance <= 0) {
-            renderReveal(0);
-            return;
-        }
-
-        const distanceScrolled = -sectionRectangle.top;
-
-        const progress = clamp(
-            distanceScrolled / scrollableDistance
-        );
-
-        renderReveal(progress);
-    };
-
-    const requestRevealUpdate = () => {
-        if (animationFrameId !== null) {
-            return;
-        }
-
-        animationFrameId = window.requestAnimationFrame(() => {
-            calculateProgress();
-            animationFrameId = null;
-        });
-    };
-
-    window.addEventListener("scroll", requestRevealUpdate, {
-        passive: true
-    });
-
-    window.addEventListener("resize", requestRevealUpdate);
-
-    reducedMotionQuery.addEventListener?.(
-        "change",
-        requestRevealUpdate
-    );
-
-    calculateProgress();
-});
-
-/* =========================================================
-   SCROLL REVEAL ANIMATIONS
-========================================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-    const revealElements = document.querySelectorAll(".reveal");
+    let currentIndex = 0;
+    let scrollAnimationFrame = null;
+    let resizeTimer = null;
+    let scrollEndTimer = null;
+
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartScrollLeft = 0;
+    let hasDragged = false;
 
     /*
-     * Stop immediately if the page has no reveal elements.
+     * Returns the horizontal scroll position required
+     * to align a card with the left side of the carousel.
      */
+    function getCardScrollPosition(card) {
+        const sliderRectangle =
+            slider.getBoundingClientRect();
+
+        const cardRectangle =
+            card.getBoundingClientRect();
+
+        return (
+            slider.scrollLeft +
+            cardRectangle.left -
+            sliderRectangle.left
+        );
+    }
+
+    /*
+     * Keeps the requested index within the available cards.
+     */
+    function clampIndex(index) {
+        return Math.max(
+            0,
+            Math.min(index, cards.length - 1)
+        );
+    }
+
+    /*
+     * Finds the card currently closest to the left
+     * edge of the carousel.
+     */
+    function findClosestCardIndex() {
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+
+        cards.forEach(function (card, cardIndex) {
+            const cardPosition =
+                getCardScrollPosition(card);
+
+            const distance = Math.abs(
+                slider.scrollLeft - cardPosition
+            );
+
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = cardIndex;
+            }
+        });
+
+        return closestIndex;
+    }
+
+    /*
+     * Updates the section background and active card.
+     */
+    function updateSectionAppearance(index) {
+        const activeCard = cards[index];
+
+        if (!activeCard) {
+            return;
+        }
+
+        const background =
+            activeCard.dataset.background ||
+            "#f8f4ef";
+
+        const theme =
+            activeCard.dataset.theme ||
+            "light";
+
+        section.style.setProperty(
+            "--active-system-background",
+            background
+        );
+
+        section.setAttribute(
+            "data-theme",
+            theme
+        );
+
+        cards.forEach(function (card, cardIndex) {
+            const isCurrent =
+                cardIndex === index;
+
+            card.classList.toggle(
+                "is-current",
+                isCurrent
+            );
+
+            if (isCurrent) {
+                card.setAttribute(
+                    "aria-current",
+                    "true"
+                );
+            } else {
+                card.removeAttribute(
+                    "aria-current"
+                );
+            }
+        });
+    }
+
+    /*
+     * Updates the text, dots, progress line
+     * and previous/next buttons.
+     */
+    function updateProgress(index) {
+        currentIndex = clampIndex(index);
+
+        const activeCard = cards[currentIndex];
+
+        const title =
+            activeCard.dataset.stepTitle ||
+            `Step ${currentIndex + 1}`;
+
+        updateSectionAppearance(currentIndex);
+
+        if (progressText) {
+            progressText.textContent =
+                `Step ${currentIndex + 1} of ` +
+                `${cards.length} · ${title}`;
+        }
+
+        progressSteps.forEach(
+            function (step, stepIndex) {
+                const isActive =
+                    stepIndex === currentIndex;
+
+                const isComplete =
+                    stepIndex < currentIndex;
+
+                step.classList.toggle(
+                    "is-active",
+                    isActive
+                );
+
+                step.classList.toggle(
+                    "is-complete",
+                    isComplete
+                );
+
+                if (isActive) {
+                    step.setAttribute(
+                        "aria-current",
+                        "step"
+                    );
+                } else {
+                    step.removeAttribute(
+                        "aria-current"
+                    );
+                }
+            }
+        );
+
+        if (progressFill) {
+            const progressPercentage =
+                cards.length > 1
+                    ? (
+                        currentIndex /
+                        (cards.length - 1)
+                    ) * 100
+                    : 0;
+
+            progressFill.style.width =
+                `${progressPercentage}%`;
+        }
+
+        if (previousButton) {
+            previousButton.disabled =
+                currentIndex === 0;
+        }
+
+        if (nextButton) {
+            nextButton.disabled =
+                currentIndex ===
+                cards.length - 1;
+        }
+    }
+
+    /*
+     * Scrolls the carousel to a card.
+     */
+    function goToSlide(
+        index,
+        scrollBehaviour = "smooth"
+    ) {
+        const safeIndex =
+            clampIndex(index);
+
+        const selectedCard =
+            cards[safeIndex];
+
+        const behaviour =
+            reducedMotionQuery.matches
+                ? "auto"
+                : scrollBehaviour;
+
+        updateProgress(safeIndex);
+
+        slider.scrollTo({
+            left: getCardScrollPosition(
+                selectedCard
+            ),
+            behavior: behaviour
+        });
+    }
+
+    /*
+     * Keep the progress indicator synchronised
+     * while swiping or scrolling.
+     */
+    slider.addEventListener(
+        "scroll",
+        function () {
+            if (scrollAnimationFrame !== null) {
+                window.cancelAnimationFrame(
+                    scrollAnimationFrame
+                );
+            }
+
+            scrollAnimationFrame =
+                window.requestAnimationFrame(
+                    function () {
+                        const closestIndex =
+                            findClosestCardIndex();
+
+                        if (
+                            closestIndex !==
+                            currentIndex
+                        ) {
+                            updateProgress(
+                                closestIndex
+                            );
+                        }
+                    }
+                );
+
+            /*
+             * After scrolling stops, snap precisely
+             * to the nearest card.
+             */
+            window.clearTimeout(scrollEndTimer);
+
+            scrollEndTimer =
+                window.setTimeout(
+                    function () {
+                        if (!isDragging) {
+                            const closestIndex =
+                                findClosestCardIndex();
+
+                            updateProgress(
+                                closestIndex
+                            );
+                        }
+                    },
+                    120
+                );
+        },
+        {
+            passive: true
+        }
+    );
+
+    /*
+     * Previous button.
+     */
+    if (previousButton) {
+        previousButton.addEventListener(
+            "click",
+            function () {
+                goToSlide(
+                    currentIndex - 1
+                );
+            }
+        );
+    }
+
+    /*
+     * Next button.
+     */
+    if (nextButton) {
+        nextButton.addEventListener(
+            "click",
+            function () {
+                goToSlide(
+                    currentIndex + 1
+                );
+            }
+        );
+    }
+
+    /*
+     * Clickable progress dots.
+     */
+    progressSteps.forEach(
+        function (step, stepIndex) {
+            step.addEventListener(
+                "click",
+                function () {
+                    const requestedIndex =
+                        Number(
+                            step.dataset.slide
+                        );
+
+                    if (
+                        Number.isInteger(
+                            requestedIndex
+                        )
+                    ) {
+                        goToSlide(
+                            requestedIndex
+                        );
+                    } else {
+                        goToSlide(
+                            stepIndex
+                        );
+                    }
+                }
+            );
+        }
+    );
+
+    /*
+     * Keyboard navigation.
+     */
+    slider.addEventListener(
+        "keydown",
+        function (event) {
+            switch (event.key) {
+                case "ArrowLeft":
+                    event.preventDefault();
+                    goToSlide(
+                        currentIndex - 1
+                    );
+                    break;
+
+                case "ArrowRight":
+                    event.preventDefault();
+                    goToSlide(
+                        currentIndex + 1
+                    );
+                    break;
+
+                case "Home":
+                    event.preventDefault();
+                    goToSlide(0);
+                    break;
+
+                case "End":
+                    event.preventDefault();
+                    goToSlide(
+                        cards.length - 1
+                    );
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    );
+
+    /*
+     * Desktop mouse dragging.
+     * Touchscreen swiping uses native scrolling.
+     */
+    slider.addEventListener(
+        "pointerdown",
+        function (event) {
+            if (
+                event.pointerType !== "mouse"
+            ) {
+                return;
+            }
+
+            isDragging = true;
+            hasDragged = false;
+
+            dragStartX = event.clientX;
+            dragStartScrollLeft =
+                slider.scrollLeft;
+
+            slider.classList.add(
+                "is-dragging"
+            );
+
+            if (
+                typeof slider.setPointerCapture ===
+                "function"
+            ) {
+                slider.setPointerCapture(
+                    event.pointerId
+                );
+            }
+        }
+    );
+
+    slider.addEventListener(
+        "pointermove",
+        function (event) {
+            if (!isDragging) {
+                return;
+            }
+
+            const distanceMoved =
+                event.clientX -
+                dragStartX;
+
+            if (
+                Math.abs(distanceMoved) > 5
+            ) {
+                hasDragged = true;
+            }
+
+            slider.scrollLeft =
+                dragStartScrollLeft -
+                distanceMoved;
+        }
+    );
+
+    function finishDragging(event) {
+        if (!isDragging) {
+            return;
+        }
+
+        isDragging = false;
+
+        slider.classList.remove(
+            "is-dragging"
+        );
+
+        if (
+            typeof slider.hasPointerCapture ===
+                "function" &&
+            slider.hasPointerCapture(
+                event.pointerId
+            )
+        ) {
+            slider.releasePointerCapture(
+                event.pointerId
+            );
+        }
+
+        const closestIndex =
+            findClosestCardIndex();
+
+        goToSlide(closestIndex);
+    }
+
+    slider.addEventListener(
+        "pointerup",
+        finishDragging
+    );
+
+    slider.addEventListener(
+        "pointercancel",
+        finishDragging
+    );
+
+    /*
+     * Prevent links from opening when the visitor
+     * was dragging instead of clicking.
+     */
+    slider.addEventListener(
+        "click",
+        function (event) {
+            if (!hasDragged) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            hasDragged = false;
+        },
+        true
+    );
+
+    /*
+     * Recalculate the active card position
+     * after the window changes size.
+     */
+    window.addEventListener(
+        "resize",
+        function () {
+            window.clearTimeout(
+                resizeTimer
+            );
+
+            resizeTimer =
+                window.setTimeout(
+                    function () {
+                        goToSlide(
+                            currentIndex,
+                            "auto"
+                        );
+                    },
+                    150
+                );
+        }
+    );
+
+    /*
+     * Initial state.
+     */
+    updateProgress(0);
+
+    window.requestAnimationFrame(
+        function () {
+            slider.scrollLeft = 0;
+        }
+    );
+}
+
+
+/* =========================================================
+   GENERAL SCROLL REVEAL
+========================================================= */
+
+function initScrollReveal() {
+    const revealElements = Array.from(
+        document.querySelectorAll(".reveal")
+    );
+
     if (revealElements.length === 0) {
         return;
     }
@@ -711,78 +868,370 @@ document.addEventListener("DOMContentLoaded", () => {
         "(prefers-reduced-motion: reduce)"
     );
 
-    /*
-     * Add the class only after JavaScript has loaded.
-     *
-     * This means the page content remains visible if
-     * JavaScript is unavailable or encounters an error.
-     */
-    document.documentElement.classList.add("reveal-ready");
+    document.documentElement.classList.add(
+        "reveal-ready"
+    );
 
-    /*
-     * Apply an index to elements inside reveal groups.
-     * CSS uses this value to create staggered delays.
-     */
-    document
-        .querySelectorAll(".reveal-group")
-        .forEach((group) => {
-            const groupItems = group.querySelectorAll(
-                ":scope > .reveal"
-            );
+    const revealGroups = document.querySelectorAll(
+        ".reveal-group"
+    );
 
-            groupItems.forEach((item, index) => {
-                item.style.setProperty(
+    revealGroups.forEach(function (group) {
+        const groupedElements =
+            group.querySelectorAll(".reveal");
+
+        groupedElements.forEach(
+            function (element, index) {
+                element.style.setProperty(
                     "--reveal-index",
                     index
                 );
-            });
-        });
+            }
+        );
+    });
 
-    /*
-     * Users who prefer reduced motion should see everything
-     * immediately without animation.
-     */
-    if (reducedMotionQuery.matches) {
-        revealElements.forEach((element) => {
-            element.classList.add("is-revealed");
-        });
+    if (
+        reducedMotionQuery.matches ||
+        !("IntersectionObserver" in window)
+    ) {
+        revealElements.forEach(
+            function (element) {
+                element.classList.add(
+                    "is-revealed"
+                );
+            }
+        );
 
         return;
     }
 
-    /*
-     * Reveal elements when approximately 15% of them are
-     * visible.
-     *
-     * rootMargin reveals them slightly before they reach
-     * the bottom of the screen.
-     */
-    const revealObserver = new IntersectionObserver(
-        (entries, observer) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
+    const observer =
+        new IntersectionObserver(
+            function (
+                entries,
+                revealObserver
+            ) {
+                entries.forEach(
+                    function (entry) {
+                        if (
+                            !entry.isIntersecting
+                        ) {
+                            return;
+                        }
 
-                entry.target.classList.add("is-revealed");
+                        entry.target.classList.add(
+                            "is-revealed"
+                        );
 
-                /*
-                 * Stop watching after the first animation.
-                 *
-                 * This means the element does not disappear
-                 * again when the user scrolls upward.
-                 */
-                observer.unobserve(entry.target);
-            });
-        },
-        {
-            root: null,
-            threshold: 0.15,
-            rootMargin: "0px 0px -60px 0px"
+                        revealObserver.unobserve(
+                            entry.target
+                        );
+                    }
+                );
+            },
+            {
+                threshold: 0.15,
+                rootMargin:
+                    "0px 0px -60px 0px"
+            }
+        );
+
+    revealElements.forEach(
+        function (element) {
+            observer.observe(element);
         }
     );
+}
 
-    revealElements.forEach((element) => {
-        revealObserver.observe(element);
+/* =========================================================
+   WHATSAPP CONTACT BUTTON
+========================================================= */
+
+function initWhatsAppContact() {
+    const contact = document.getElementById(
+        "whatsappContact"
+    );
+
+    const button = document.getElementById(
+        "whatsappButton"
+    );
+
+    const messageBox = document.getElementById(
+        "whatsappMessage"
+    );
+
+    const closeButton = document.getElementById(
+        "whatsappMessageClose"
+    );
+
+    if (!contact || !button) {
+        return;
+    }
+
+    const phoneNumber = contact.dataset.phone;
+
+    if (!phoneNumber) {
+        console.warn(
+            "WhatsApp phone number has not been provided."
+        );
+
+        return;
+    }
+
+    const currentPath = window.location.pathname
+        .toLowerCase()
+        .replace(/\/+$/, "");
+
+    const pageName = getWhatsAppPageName(currentPath);
+
+    const message = getWhatsAppMessage(pageName);
+
+    const encodedMessage = encodeURIComponent(message);
+
+    button.href =
+        `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+    let promptHasBeenShown = false;
+    let promptHasBeenDismissed = false;
+    let pulseTimer = null;
+
+    function showContact() {
+        contact.classList.add("is-visible");
+
+        window.setTimeout(function () {
+            showPrompt();
+        }, 2500);
+    }
+
+    function showPrompt() {
+        if (
+            !messageBox ||
+            promptHasBeenShown ||
+            promptHasBeenDismissed
+        ) {
+            return;
+        }
+
+        promptHasBeenShown = true;
+
+        messageBox.classList.add("is-visible");
+        messageBox.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+        window.setTimeout(function () {
+            hidePrompt();
+        }, 8000);
+    }
+
+    function hidePrompt() {
+        if (!messageBox) {
+            return;
+        }
+
+        messageBox.classList.remove("is-visible");
+        messageBox.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+    }
+
+    function dismissPrompt() {
+        promptHasBeenDismissed = true;
+        hidePrompt();
+
+        try {
+            window.sessionStorage.setItem(
+                "luxsomeWhatsAppPromptDismissed",
+                "true"
+            );
+        } catch (error) {
+            /*
+             * The button will continue working if
+             * sessionStorage is unavailable.
+             */
+        }
+    }
+
+    function startSoftPulse() {
+        if (
+            window.matchMedia(
+                "(prefers-reduced-motion: reduce)"
+            ).matches
+        ) {
+            return;
+        }
+
+        pulseTimer = window.setInterval(function () {
+            button.classList.add("is-pulsing");
+
+            window.setTimeout(function () {
+                button.classList.remove(
+                    "is-pulsing"
+                );
+            }, 1600);
+        }, 18000);
+    }
+
+    function showAfterScroll() {
+        const documentHeight =
+            document.documentElement.scrollHeight -
+            window.innerHeight;
+
+        if (documentHeight <= 0) {
+            showContact();
+
+            window.removeEventListener(
+                "scroll",
+                showAfterScroll
+            );
+
+            return;
+        }
+
+        const scrollPercentage =
+            window.scrollY / documentHeight;
+
+        if (scrollPercentage >= 0.3) {
+            showContact();
+
+            window.removeEventListener(
+                "scroll",
+                showAfterScroll
+            );
+        }
+    }
+
+    try {
+        promptHasBeenDismissed =
+            window.sessionStorage.getItem(
+                "luxsomeWhatsAppPromptDismissed"
+            ) === "true";
+    } catch (error) {
+        promptHasBeenDismissed = false;
+    }
+
+    if (closeButton) {
+        closeButton.addEventListener(
+            "click",
+            dismissPrompt
+        );
+    }
+
+    button.addEventListener("click", function () {
+        hidePrompt();
     });
-});
+
+    /*
+     * Homepage:
+     * Show after the visitor scrolls 30%.
+     *
+     * Other selected pages:
+     * Show immediately.
+     */
+    if (pageName === "home") {
+        window.addEventListener(
+            "scroll",
+            showAfterScroll,
+            {
+                passive: true
+            }
+        );
+
+        showAfterScroll();
+    } else {
+        window.setTimeout(
+            showContact,
+            500
+        );
+    }
+
+    startSoftPulse();
+
+    window.addEventListener(
+        "beforeunload",
+        function () {
+            if (pulseTimer !== null) {
+                window.clearInterval(
+                    pulseTimer
+                );
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   WHATSAPP PAGE DETECTION
+========================================================= */
+
+function getWhatsAppPageName(path) {
+    if (
+        path === "" ||
+        path === "/" ||
+        path.endsWith("/index.html")
+    ) {
+        return "home";
+    }
+
+    if (path.includes("/pricing")) {
+        return "pricing";
+    }
+
+    if (path.includes("/gallery")) {
+        return "gallery";
+    }
+
+    if (
+        path.includes("/product") ||
+        path.includes("/packaging")
+    ) {
+        return "products";
+    }
+
+    if (
+        path.includes("/about") ||
+        path.includes("/our-story")
+    ) {
+        return "story";
+    }
+
+    if (path.includes("/contact")) {
+        return "contact";
+    }
+
+    return "general";
+}
+
+
+/* =========================================================
+   WHATSAPP PAGE MESSAGES
+========================================================= */
+
+function getWhatsAppMessage(pageName) {
+    const messages = {
+        home:
+            "Hi Luxsome, I would like to learn more about creating a complete packaging system for my brand.",
+
+        pricing:
+            "Hi Luxsome, I have reviewed your pricing and would like a quotation for a complete packaging system.",
+
+        gallery:
+            "Hi Luxsome, I saw a packaging style in your gallery that I like and would like to discuss a similar project.",
+
+        products:
+            "Hi Luxsome, I am interested in creating custom packaging for my brand and would like to discuss the available options.",
+
+        story:
+            "Hi Luxsome, I would like to learn more about working with you on my brand's packaging.",
+
+        contact:
+            "Hi Luxsome, I would like to make an enquiry about custom packaging for my brand.",
+
+        general:
+            "Hi Luxsome, I would like to discuss creating a complete packaging system for my brand."
+    };
+
+    return messages[pageName] || messages.general;
+}
