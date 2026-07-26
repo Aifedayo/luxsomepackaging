@@ -1082,11 +1082,12 @@ You can adjust individual image positions like this:
     align-items: center;
     gap: 10px;
     margin-top: auto;
-    padding-top: 28px;
+    padding-top: 8px;
     color: #4a2d23;
     font-size: 0.9rem;
     font-weight: 600;
 }
+
 
 .system-button span {
     transition: transform 200ms ease;
@@ -1703,32 +1704,89 @@ You can adjust individual image positions like this:
     color: rgba(255, 255, 255, 0.72);
 }
 
+.gallery-cta-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 30px;
+}
+
 .gallery-cta-button {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+
+    min-width: 210px;
     min-height: 52px;
-    margin-top: 32px;
-    padding: 13px 24px;
-    border: 1px solid #ffffff;
-    background: #ffffff;
-    color: var(--text);
-    font-size: 0.84rem;
-    font-weight: 600;
+    padding: 14px 28px;
+
+    border: 1px solid #673629;
+
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-align: center;
     text-decoration: none;
+    text-transform: uppercase;
+
     transition:
-        background-color 0.25s ease,
-        color 0.25s ease,
-        transform 0.25s ease;
+        color 0.35s ease,
+        border-color 0.35s ease,
+        background-color 0.35s ease,
+        transform 0.35s ease;
 }
 
 .gallery-cta-button:hover {
-    background: transparent;
-    color: #ffffff;
     transform: translateY(-2px);
 }
 
+/* Explore Gallery */
+.gallery-cta-button--secondary {
+    background: transparent;
+    color: #ffffff;
+    border-color: #efe3d8;
+}
+
+.gallery-cta-button--secondary:hover {
+    background: #efe3d8;
+    color: #673629;
+}
+
+/* Start Project */
+.gallery-cta-button--primary {
+    background: #673629;
+    color: #ffffff;
+}
+
+.gallery-cta-button--primary:hover {
+    background: #2e1c15;
+    border-color: #2e1c15;
+    color: #ffffff;
+}
+
+.gallery-cta-button:focus-visible {
+    outline: 3px solid rgba(103, 54, 41, 0.22);
+    outline-offset: 4px;
+}
+
+@media (max-width: 600px) {
+    .gallery-cta-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .gallery-cta-button {
+        width: 100%;
+        min-width: 0;
+    }
+}
 /* Footer */
 
 .site-footer {
