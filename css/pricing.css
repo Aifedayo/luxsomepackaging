@@ -783,3 +783,43 @@ header {
         transition: none;
     }
 }
+
+/* ==========================================
+   LAUNCH PRICING — SLOW BREATHING GLOW
+========================================== */
+
+@keyframes luxuryGlow {
+    0%,
+    100% {
+        box-shadow:
+            0 18px 48px rgba(47, 34, 28, 0.08),
+            0 0 0 0 rgba(198, 145, 94, 0);
+    }
+
+    50% {
+        box-shadow:
+            0 24px 60px rgba(47, 34, 28, 0.14),
+            0 0 34px 8px rgba(198, 145, 94, 0.22);
+    }
+}
+
+.launch-pricing-banner {
+    animation: luxuryGlow 5.5s ease-in-out infinite;
+    will-change: box-shadow;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .launch-pricing-banner {
+        animation: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .launch-pricing-banner {
+
+        animation: none;
+
+    }
+
+}
