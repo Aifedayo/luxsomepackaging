@@ -122,12 +122,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (response.ok) {
                 resetProjectForm();
 
-                showNotification(
-                    "Thank you! Your project request has been sent successfully. We will review it and contact you with the next steps.",
-                    "success"
-                );
-
-                return;
+                window.location.href = "/start-project/project-submitted/";
+                    return;
             }
 
             let message =

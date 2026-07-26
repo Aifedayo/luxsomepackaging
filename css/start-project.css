@@ -265,6 +265,7 @@
     background: #ffffff;
     color: #211f1d;
     font: inherit;
+    font-size: 12px;
     outline: none;
     transition:
         border-color 0.2s ease,
@@ -685,6 +686,9 @@
     line-height: 1.35;
 }
 
+.field-help {
+    font-size: 11px;
+}
 
 /* =========================================================
    PROJECT INFORMATION
@@ -701,7 +705,7 @@
 
 .project-information-heading h4 {
     margin: 0 0 5px;
-    font-family: "DM Serif Display", serif;
+    
     font-size: 1.45rem;
     font-weight: 400;
 }
