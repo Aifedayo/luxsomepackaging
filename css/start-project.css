@@ -147,6 +147,7 @@
     background: #ffffff;
     border: 1px solid #e5ded4;
     box-shadow: 0 24px 55px rgba(53, 40, 30, 0.06);
+    border-radius: 20px;
 }
 
 .project-form {
@@ -323,6 +324,7 @@
     transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease;
+    border-radius: 20px;
 }
 
 .project-card:focus-within {
