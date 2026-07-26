@@ -460,7 +460,6 @@ You can adjust individual image positions like this:
 .hero-content {
     position: relative;
     z-index: 2;
-    width: min(1200px, 88%);
     margin: 0 auto;
     padding-right: 40%;
     color: #fffaf4;
