@@ -1116,7 +1116,9 @@ You can adjust individual image positions like this:
     }
 
     .system-reveal-heading h2 {
-        font-size: clamp(2.55rem, 12vw, 3.7rem);
+        font-size: clamp(2rem, 12vw, 2rem);
+        font-weight: 400;
+        line-height: 1.2;
     }
 
     .system-navigation {
