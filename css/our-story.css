@@ -52,7 +52,6 @@
 .story-lead {
     color: var(--story-text);
 
-    font-family: "Cormorant Garamond", Georgia, serif;
     font-size: clamp(1.4rem, 2.4vw, 2rem);
     line-height: 1.35;
 }
@@ -249,7 +248,7 @@
     margin: 0 0 26px;
 
     color: var(--story-muted);
-    line-height: 1.85;
+    line-height: 1.55;
 }
 
 .story-introduction__copy .story-lead {

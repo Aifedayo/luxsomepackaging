@@ -379,6 +379,10 @@ a {
     }
 }
 
+.story-hero__content h1 {
+    color: white;
+}
+
 /* =========================
    HERO CAROUSEL
 ========================= */
