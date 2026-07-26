@@ -687,10 +687,6 @@ header {
         padding: 58px 0 42px;
     }
 
-    .hero h1 {
-        font-size: clamp(2.35rem, 13vw, 3.6rem);
-    }
-
     .launch-pricing-section {
         padding-bottom: 38px;
     }
