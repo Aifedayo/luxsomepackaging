@@ -48,15 +48,10 @@ body{
 }
 
 .legal-layout{
-
     display:grid;
-
     grid-template-columns:280px minmax(0,1fr);
-
     gap:70px;
-
     align-items:start;
-
 }
 
 /* =========================================================
@@ -64,27 +59,17 @@ body{
 ========================================================= */
 
 .legal-navigation{
-
     position:sticky;
-
     top:120px;
-
     padding:28px;
-
     border-radius:20px;
-
     background:#fffdf9;
-
     border:1px solid rgba(42,33,28,.08);
-
     box-shadow:0 16px 40px rgba(47,34,28,.05);
-
 }
 
 .legal-navigation-title{
-
     margin-bottom:18px;
-
     font-size:.8rem;
 
     font-weight:700;
@@ -172,31 +157,25 @@ body{
     line-height:1.2;
 
     color:#2f221c;
-
 }
 
 .legal-block h3{
-
     margin-bottom:12px;
-
     font-size:1.15rem;
-
 }
 
 .legal-block p{
-
     margin-bottom:18px;
-
     color:#5d4f46;
-
     line-height:1.95;
+    font-size: 14px;
 
 }
 
 .legal-block ul,
 
 .legal-block ol{
-
+    font-size: 14px;
     margin:18px 0 24px 22px;
 
 }
