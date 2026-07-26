@@ -832,9 +832,8 @@ You can adjust individual image positions like this:
     max-width: 760px;
     margin: 0;
     color: var(--system-ink);
-    font-family: "DM Serif Display", Georgia, serif;
-    font-size: clamp(2.7rem, 6vw, 5.3rem);
-    font-weight: 400;
+    font-size: clamp(2.7rem, 6vw, 3rem);
+    font-weight: 300;
     line-height: 1.02;
     letter-spacing: -0.035em;
 }
