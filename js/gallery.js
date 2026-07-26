@@ -1,185 +1,388 @@
-import PhotoSwipeLightbox from
-    "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe-lightbox.esm.js";
-
 document.addEventListener("DOMContentLoaded", () => {
-    const galleryGrid =
-        document.getElementById("galleryGrid");
+    const scene = document.getElementById("collectionScene");
+    const viewport = document.getElementById("collectionViewport");
+    const track = document.getElementById("collectionTrack");
 
-    const filterButtons =
-        document.querySelectorAll(".gallery-filter");
-
-    const galleryItems =
-        document.querySelectorAll(".gallery-item");
-
-    const galleryEmptyState =
-        document.getElementById("galleryEmptyState");
-
-    if (!galleryGrid) {
+    if (!scene || !viewport || !track) {
         return;
     }
 
-    function getVisibleGalleryItems() {
-        return Array.from(
-            galleryGrid.querySelectorAll(
-                ".gallery-item:not([hidden])"
-            )
-        );
+    const filters = Array.from(
+        document.querySelectorAll(".collection-filter")
+    );
+
+    const originalSlides = Array.from(
+        track.querySelectorAll(".collection-slide")
+    );
+
+    const currentLabel = document.getElementById(
+        "collectionCurrent"
+    );
+
+    const totalLabel = document.getElementById(
+        "collectionTotal"
+    );
+
+    const emptyState = document.getElementById(
+        "collectionEmpty"
+    );
+
+    const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    );
+
+    let visibleSlides = [];
+    let loopWidth = 0;
+    let animationFrame = null;
+
+    function formatNumber(number) {
+        return String(number).padStart(2, "0");
     }
 
-    function buildPhotoSwipeDataSource() {
-        return getVisibleGalleryItems().map((item) => {
-            const image = item.querySelector("img");
+    function removeClones() {
+        track
+            .querySelectorAll("[data-gallery-clone='true']")
+            .forEach((clone) => {
+                clone.remove();
+            });
+    }
 
-            return {
-                src: item.href,
-                width:
-                    Number(item.dataset.width) || 1600,
-                height:
-                    Number(item.dataset.height) || 1200,
-                alt: image?.alt || "",
-                title: item.dataset.title || ""
-            };
+    function getVisibleOriginalSlides() {
+        return originalSlides.filter((slide) => {
+            return !slide.hidden;
         });
     }
 
-    const lightbox = new PhotoSwipeLightbox({
-        dataSource: buildPhotoSwipeDataSource(),
+    function cloneVisibleSlides() {
+        removeClones();
 
-        pswpModule: () =>
-            import(
-                "https://cdn.jsdelivr.net/npm/photoswipe@5/dist/photoswipe.esm.js"
-            ),
+        visibleSlides.forEach((slide) => {
+            const clone = slide.cloneNode(true);
 
-        showHideAnimationType: "fade",
-        bgOpacity: 0.96,
-        wheelToZoom: true,
-        closeOnVerticalDrag: true,
-        clickToCloseNonZoomable: false,
+            clone.dataset.galleryClone = "true";
+            clone.setAttribute("aria-hidden", "true");
 
-        padding: {
-            top: 20,
-            right: 20,
-            bottom: 20,
-            left: 20
+            track.appendChild(clone);
+        });
+    }
+
+    function calculateLoopWidth() {
+        if (!visibleSlides.length) {
+            loopWidth = 0;
+            return;
         }
-    });
 
-    lightbox.on("uiRegister", () => {
-        lightbox.pswp.ui.registerElement({
-            name: "luxsome-caption",
-            order: 9,
-            isButton: false,
-            appendTo: "root",
-            html: "",
+        const firstOriginal = visibleSlides[0];
 
-            onInit: (element, pswp) => {
-                Object.assign(element.style, {
-                    position: "absolute",
-                    right: "20px",
-                    bottom: "18px",
-                    left: "20px",
-                    zIndex: "10",
-                    color: "#ffffff",
-                    fontFamily:
-                        "Montserrat, sans-serif",
-                    fontSize: "0.85rem",
-                    textAlign: "center",
-                    pointerEvents: "none"
-                });
-
-                function updateCaption() {
-                    element.textContent =
-                        pswp.currSlide?.data?.title || "";
-                }
-
-                pswp.on("change", updateCaption);
-
-                updateCaption();
-            }
-        });
-    });
-
-    lightbox.init();
-
-    function refreshLightbox() {
-        lightbox.options.dataSource =
-            buildPhotoSwipeDataSource();
-    }
-
-    function filterGallery(selectedCategory) {
-        let visibleItemCount = 0;
-
-        galleryItems.forEach((item) => {
-            const itemCategory =
-                item.dataset.category;
-
-            const shouldShow =
-                selectedCategory === "all" ||
-                itemCategory === selectedCategory;
-
-            item.hidden = !shouldShow;
-
-            if (shouldShow) {
-                visibleItemCount += 1;
-            }
-        });
-
-        galleryEmptyState?.classList.toggle(
-            "is-visible",
-            visibleItemCount === 0
+        const firstClone = track.querySelector(
+            "[data-gallery-clone='true']"
         );
 
-        refreshLightbox();
+        if (!firstClone) {
+            loopWidth = track.scrollWidth;
+            return;
+        }
+
+        loopWidth =
+            firstClone.offsetLeft -
+            firstOriginal.offsetLeft;
     }
 
-    filterButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-            const selectedCategory =
-                button.dataset.filter || "all";
+    function getSceneProgress() {
+        const sceneRect = scene.getBoundingClientRect();
 
-            filterButtons.forEach((filterButton) => {
-                const isSelected =
-                    filterButton === button;
+        const scrollableDistance =
+            scene.offsetHeight -
+            window.innerHeight;
 
-                filterButton.classList.toggle(
-                    "is-active",
-                    isSelected
+        if (scrollableDistance <= 0) {
+            return 0;
+        }
+
+        const progress =
+            -sceneRect.top /
+            scrollableDistance;
+
+        return Math.min(
+            1,
+            Math.max(0, progress)
+        );
+    }
+
+    function getNormalisedSlideCentre(
+        slide,
+        offset
+    ) {
+        let centre =
+            slide.offsetLeft +
+            slide.offsetWidth / 2 -
+            offset;
+
+        while (
+            centre <
+            -slide.offsetWidth
+        ) {
+            centre += loopWidth;
+        }
+
+        while (
+            centre >
+            viewport.clientWidth +
+                slide.offsetWidth
+        ) {
+            centre -= loopWidth;
+        }
+
+        return centre;
+    }
+
+    function updateCurrentSlide(offset) {
+        if (
+            !visibleSlides.length ||
+            !loopWidth
+        ) {
+            return;
+        }
+
+        const viewportCentre =
+            viewport.clientWidth / 2;
+
+        let nearestIndex = 0;
+        let nearestDistance = Infinity;
+
+        visibleSlides.forEach(
+            (slide, index) => {
+                const slideCentre =
+                    getNormalisedSlideCentre(
+                        slide,
+                        offset
+                    );
+
+                const distance = Math.abs(
+                    slideCentre -
+                    viewportCentre
                 );
 
-                filterButton.setAttribute(
-                    "aria-pressed",
-                    String(isSelected)
+                if (
+                    distance <
+                    nearestDistance
+                ) {
+                    nearestDistance = distance;
+                    nearestIndex = index;
+                }
+            }
+        );
+
+        track
+            .querySelectorAll(
+                ".collection-slide"
+            )
+            .forEach((slide) => {
+                slide.classList.remove(
+                    "is-current"
                 );
             });
 
-            filterGallery(selectedCategory);
+        const currentOriginal =
+            visibleSlides[nearestIndex];
+
+        const clonedSlides = Array.from(
+            track.querySelectorAll(
+                "[data-gallery-clone='true']"
+            )
+        );
+
+        const currentClone =
+            clonedSlides[nearestIndex];
+
+        currentOriginal?.classList.add(
+            "is-current"
+        );
+
+        currentClone?.classList.add(
+            "is-current"
+        );
+
+        if (currentLabel) {
+            currentLabel.textContent =
+                formatNumber(
+                    nearestIndex + 1
+                );
+        }
+    }
+
+    function renderGallery() {
+        animationFrame = null;
+
+        if (
+            !visibleSlides.length ||
+            !loopWidth
+        ) {
+            track.style.transform =
+                "translate3d(0, 0, 0)";
+
+            return;
+        }
+
+        const progress =
+            getSceneProgress();
+
+        const numberOfLoops =
+            reducedMotion.matches
+                ? 1
+                : 4;
+
+        const totalTravel =
+            loopWidth *
+            numberOfLoops;
+
+        const offset =
+            (progress *
+                totalTravel) %
+            loopWidth;
+
+        track.style.transform =
+            `translate3d(${-offset}px, 0, 0)`;
+
+        updateCurrentSlide(offset);
+    }
+
+    function requestRender() {
+        if (
+            animationFrame !== null
+        ) {
+            return;
+        }
+
+        animationFrame =
+            requestAnimationFrame(
+                renderGallery
+            );
+    }
+
+    function rebuildGallery() {
+        visibleSlides =
+            getVisibleOriginalSlides();
+
+        const hasSlides =
+            visibleSlides.length > 0;
+
+        if (emptyState) {
+            emptyState.hidden =
+                hasSlides;
+        }
+
+        track.hidden = !hasSlides;
+
+        if (!hasSlides) {
+            removeClones();
+
+            loopWidth = 0;
+
+            if (currentLabel) {
+                currentLabel.textContent =
+                    "00";
+            }
+
+            if (totalLabel) {
+                totalLabel.textContent =
+                    "00";
+            }
+
+            requestRender();
+
+            return;
+        }
+
+        cloneVisibleSlides();
+
+        requestAnimationFrame(() => {
+            calculateLoopWidth();
+
+            if (totalLabel) {
+                totalLabel.textContent =
+                    formatNumber(
+                        visibleSlides.length
+                    );
+            }
+
+            requestRender();
         });
+    }
+
+    function applyFilter(category) {
+        originalSlides.forEach(
+            (slide) => {
+                const matches =
+                    category === "all" ||
+                    slide.dataset.category ===
+                        category;
+
+                slide.hidden = !matches;
+            }
+        );
+
+        filters.forEach((button) => {
+            const selected =
+                (
+                    button.dataset.filter ||
+                    "all"
+                ) === category;
+
+            button.classList.toggle(
+                "is-active",
+                selected
+            );
+
+            button.setAttribute(
+                "aria-pressed",
+                String(selected)
+            );
+        });
+
+        rebuildGallery();
+    }
+
+    filters.forEach((button) => {
+        button.addEventListener(
+            "click",
+            () => {
+                applyFilter(
+                    button.dataset.filter ||
+                        "all"
+                );
+            }
+        );
     });
 
-    galleryGrid.addEventListener(
-        "click",
-        (event) => {
-            const clickedItem =
-                event.target.closest(".gallery-item");
-
-            if (!clickedItem || clickedItem.hidden) {
-                return;
-            }
-
-            event.preventDefault();
-
-            const visibleItems =
-                getVisibleGalleryItems();
-
-            const clickedIndex =
-                visibleItems.indexOf(clickedItem);
-
-            if (clickedIndex < 0) {
-                return;
-            }
-
-            refreshLightbox();
-            lightbox.loadAndOpen(clickedIndex);
+    window.addEventListener(
+        "scroll",
+        requestRender,
+        {
+            passive: true
         }
     );
+
+    window.addEventListener(
+        "resize",
+        () => {
+            calculateLoopWidth();
+            requestRender();
+        }
+    );
+
+    window.addEventListener(
+        "load",
+        () => {
+            calculateLoopWidth();
+            requestRender();
+        }
+    );
+
+    reducedMotion.addEventListener(
+        "change",
+        requestRender
+    );
+
+    applyFilter("all");
 });
