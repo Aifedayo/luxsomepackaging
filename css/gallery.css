@@ -1,5 +1,5 @@
 /* =========================================================
-   LUXSOME SCROLL-DRIVEN COLLECTION
+   LUXSOME GALLERY
 ========================================================= */
 
 :root {
@@ -27,18 +27,34 @@ body {
     text-transform: uppercase;
 }
 
-/* HERO */
+/* =========================================================
+   HERO
+========================================================= */
 
 .collection-hero {
     position: relative;
     display: grid;
     align-items: end;
-    min-height: min(760px, calc(100svh - var(--header-height, 80px)));
-    padding: clamp(120px, 15vw, 220px) max(24px, 6vw) clamp(65px, 8vw, 110px);
+    min-height: min(
+        760px,
+        calc(100svh - var(--header-height, 80px))
+    );
+    padding:
+        clamp(120px, 15vw, 220px)
+        max(24px, 6vw)
+        clamp(65px, 8vw, 110px);
     overflow: hidden;
     background:
-        radial-gradient(circle at 82% 28%, rgba(103, 54, 41, 0.12), transparent 31%),
-        linear-gradient(145deg, #f8f4ef 0%, #eee7df 100%);
+        radial-gradient(
+            circle at 82% 28%,
+            rgba(103, 54, 41, 0.12),
+            transparent 31%
+        ),
+        linear-gradient(
+            145deg,
+            #f8f4ef 0%,
+            #eee7df 100%
+        );
 }
 
 .collection-hero__copy {
@@ -51,8 +67,15 @@ body {
     max-width: 1100px;
     margin: 0;
     color: var(--gallery-ink);
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: clamp(4rem, 9.2vw, 9.4rem);
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+    font-size: clamp(
+        4rem,
+        9.2vw,
+        9.4rem
+    );
     font-weight: 400;
     letter-spacing: -0.055em;
     line-height: 0.82;
@@ -60,9 +83,17 @@ body {
 
 .collection-hero__description {
     max-width: 590px;
-    margin: clamp(35px, 5vw, 65px) 0 0 auto;
+    margin:
+        clamp(35px, 5vw, 65px)
+        0
+        0
+        auto;
     color: var(--gallery-muted);
-    font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+    font-size: clamp(
+        0.92rem,
+        1.2vw,
+        1.05rem
+    );
     line-height: 1.85;
 }
 
@@ -86,28 +117,46 @@ body {
     background: var(--gallery-brown);
 }
 
-/* INTRODUCTION */
+/* =========================================================
+   GALLERY INTRODUCTION
+========================================================= */
 
 .collection-showcase {
-    padding-top: clamp(90px, 11vw, 165px);
+    padding-top:
+        clamp(90px, 11vw, 165px);
     background: var(--gallery-cream);
 }
 
 .collection-showcase__top {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 410px);
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(260px, 410px);
     gap: clamp(40px, 8vw, 130px);
     align-items: end;
-    width: min(100% - 48px, 1420px);
-    margin: 0 auto clamp(48px, 7vw, 90px);
+    width: min(
+        calc(100% - 48px),
+        1420px
+    );
+    margin:
+        0
+        auto
+        clamp(48px, 7vw, 90px);
 }
 
 .collection-showcase__top h2 {
     max-width: 860px;
     margin: 0;
     color: var(--gallery-ink);
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: clamp(3rem, 6vw, 6.3rem);
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+    font-size: clamp(
+        3rem,
+        6vw,
+        6.3rem
+    );
     font-weight: 400;
     letter-spacing: -0.045em;
     line-height: 0.95;
@@ -120,17 +169,26 @@ body {
     line-height: 1.8;
 }
 
-/* FILTERS */
+/* =========================================================
+   FILTERS
+========================================================= */
 
 .collection-filters {
     display: flex;
     gap: clamp(20px, 3vw, 46px);
-    width: min(100% - 48px, 1420px);
+    width: min(
+        calc(100% - 48px),
+        1420px
+    );
     margin: 0 auto 24px;
     padding-bottom: 17px;
     overflow-x: auto;
-    border-bottom: 1px solid var(--gallery-line);
+    overflow-y: hidden;
+    border-bottom:
+        1px solid
+        var(--gallery-line);
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
 }
 
 .collection-filters::-webkit-scrollbar {
@@ -143,7 +201,8 @@ body {
     padding: 0 0 10px;
     border: 0;
     background: transparent;
-    color: rgba(46, 28, 21, 0.53);
+    color:
+        rgba(46, 28, 21, 0.53);
     font: inherit;
     font-size: 0.67rem;
     font-weight: 600;
@@ -158,10 +217,13 @@ body {
     bottom: -18px;
     left: 0;
     height: 2px;
-    background: var(--gallery-brown);
+    background:
+        var(--gallery-brown);
     content: "";
     transform: scaleX(0);
-    transition: transform 300ms ease;
+    transform-origin: left center;
+    transition:
+        transform 300ms ease;
 }
 
 .collection-filter:hover,
@@ -173,42 +235,114 @@ body {
     transform: scaleX(1);
 }
 
-/* SCROLL SCENE
-   The page itself scrolls vertically.
-   The gallery remains sticky only while this section is active. */
+/* =========================================================
+   GALLERY SCENE
+========================================================= */
 
 .collection-scroll-scene {
     position: relative;
-    height: 420vh;
+    height: auto;
+    padding:
+        clamp(30px, 5vw, 70px)
+        0;
+    overflow: hidden;
 }
 
 .collection-sticky {
-    position: sticky;
-    top: 0;
-    display: grid;
-    align-content: center;
-    min-height: 100svh;
-    overflow: hidden;
-    background: var(--gallery-cream);
+    position: relative;
+    top: auto;
+    display: block;
+    min-height: 0;
+    overflow: visible;
+    background:
+        var(--gallery-cream);
 }
 
+/* =========================================================
+   SCROLLABLE VIEWPORT
+========================================================= */
+
 .collection-viewport {
+    position: relative;
     width: 100%;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    cursor: grab;
+
+    /*
+     * No snapping, because snapping prevents smooth autoplay.
+     */
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+
+    scrollbar-width: none;
+
+    /*
+     * Users can swipe horizontally while the page
+     * remains vertically scrollable.
+     */
+    touch-action: pan-x pan-y;
+
+    /*
+     * Keep horizontal overscroll within the gallery,
+     * without trapping vertical page scrolling.
+     */
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+
+    -webkit-overflow-scrolling: touch;
 }
+
+.collection-viewport::-webkit-scrollbar {
+    display: none;
+}
+
+.collection-viewport.is-dragging {
+    cursor: grabbing;
+    user-select: none;
+}
+
+/* =========================================================
+   TRACK
+========================================================= */
 
 .collection-track {
     display: flex;
     align-items: flex-start;
-    gap: clamp(18px, 2vw, 32px);
+    gap: clamp(16px, 2vw, 32px);
+
     width: max-content;
-    padding: 0 max(24px, 6vw);
-    will-change: transform;
-    transform: translate3d(0, 0, 0);
+
+    padding:
+        0
+        max(20px, 6vw);
+
+    /*
+     * The track itself is not translated.
+     * JavaScript moves the viewport using scrollLeft.
+     */
+    transform: none !important;
+    will-change: auto;
 }
 
+.collection-track[hidden] {
+    display: none;
+}
+
+/* =========================================================
+   SLIDES
+========================================================= */
+
 .collection-slide {
-    flex: 0 0 clamp(270px, 31vw, 470px);
+    flex:
+        0 0
+        clamp(
+            270px,
+            31vw,
+            470px
+        );
+    min-width: 0;
 }
 
 .collection-slide[hidden] {
@@ -224,13 +358,16 @@ body {
     width: 100%;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    background: var(--gallery-warm);
+    background:
+        var(--gallery-warm);
 }
 
 .collection-slide__image::after {
     position: absolute;
     inset: 0;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.15);
     content: "";
     pointer-events: none;
 }
@@ -239,23 +376,36 @@ body {
     display: block;
     width: 100%;
     height: 100%;
+
     object-fit: cover;
     object-position: center;
-    user-select: none;
+
     pointer-events: none;
+    user-select: none;
+
     -webkit-user-drag: none;
-    transform: scale(1.015);
-    transition: transform 650ms ease, filter 450ms ease;
+
+    transform: scale(1);
+    transition:
+        transform 500ms ease,
+        filter 500ms ease,
+        opacity 500ms ease;
 }
 
 .collection-slide:not(.is-current) img {
-    filter: saturate(0.82) brightness(0.91);
+    filter:
+        saturate(0.86)
+        brightness(0.92);
 }
 
 .collection-slide.is-current img {
     filter: none;
-    transform: scale(1);
+    transform: scale(1.015);
 }
+
+/* =========================================================
+   CAPTIONS
+========================================================= */
 
 .collection-slide figcaption {
     display: grid;
@@ -274,19 +424,31 @@ body {
 .collection-slide h3 {
     margin: 0;
     color: var(--gallery-ink);
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: clamp(1.75rem, 2.4vw, 2.65rem);
-    font-weight: 500;
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+    font-weight: 600;
     letter-spacing: -0.025em;
     line-height: 1;
 }
+
+/* =========================================================
+   GALLERY STATUS
+========================================================= */
 
 .collection-status {
     display: flex;
     align-items: center;
     gap: 10px;
-    width: min(100% - 48px, 1420px);
-    margin: clamp(28px, 4vw, 50px) auto 0;
+    width: min(
+        calc(100% - 48px),
+        1420px
+    );
+    margin:
+        clamp(28px, 4vw, 50px)
+        auto
+        0;
     color: var(--gallery-muted);
     font-size: 0.64rem;
     font-weight: 600;
@@ -298,37 +460,60 @@ body {
     flex: 1;
     height: 1px;
     margin: 0 8px;
-    background: var(--gallery-line);
+    background:
+        var(--gallery-line);
 }
 
 .collection-empty {
+    width: min(
+        calc(100% - 48px),
+        1420px
+    );
     margin: 40px auto;
     color: var(--gallery-muted);
     text-align: center;
 }
 
-/* STATEMENT */
+/* =========================================================
+   STATEMENT
+========================================================= */
 
 .collection-statement {
-    background: var(--gallery-ink);
-    color: var(--gallery-white);
+    background:
+        var(--gallery-ink);
+    color:
+        var(--gallery-white);
 }
 
 .collection-statement__inner {
-    width: min(100% - 48px, 1420px);
+    width: min(
+        calc(100% - 48px),
+        1420px
+    );
     margin: 0 auto;
-    padding: clamp(95px, 13vw, 190px) 0 clamp(85px, 11vw, 155px);
+    padding:
+        clamp(95px, 13vw, 190px)
+        0
+        clamp(85px, 11vw, 155px);
 }
 
-.collection-statement .collection-eyebrow {
+.collection-statement
+.collection-eyebrow {
     color: #c7a886;
 }
 
 .collection-statement h2 {
     max-width: 1080px;
     margin: 0;
-    font-family: "Cormorant Garamond", Georgia, serif;
-    font-size: clamp(3.8rem, 8vw, 8.7rem);
+    font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+    font-size: clamp(
+        3.8rem,
+        8vw,
+        8.7rem
+    );
     font-weight: 400;
     letter-spacing: -0.055em;
     line-height: 0.85;
@@ -336,18 +521,24 @@ body {
 
 .collection-statement__bottom {
     display: grid;
-    grid-template-columns: minmax(0, 520px) auto;
+    grid-template-columns:
+        minmax(0, 520px)
+        auto;
     gap: 50px;
     justify-content: space-between;
     align-items: end;
-    margin-top: clamp(55px, 8vw, 105px);
+    margin-top:
+        clamp(55px, 8vw, 105px);
     padding-top: 36px;
-    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    border-top:
+        1px solid
+        rgba(255, 255, 255, 0.16);
 }
 
 .collection-statement__bottom p {
     margin: 0;
-    color: rgba(255, 255, 255, 0.66);
+    color:
+        rgba(255, 255, 255, 0.66);
     font-size: 0.94rem;
     line-height: 1.9;
 }
@@ -359,8 +550,11 @@ body {
     gap: 42px;
     min-width: 300px;
     padding: 18px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.55);
-    color: var(--gallery-white);
+    border-bottom:
+        1px solid
+        rgba(255, 255, 255, 0.55);
+    color:
+        var(--gallery-white);
     font-size: 0.69rem;
     font-weight: 600;
     letter-spacing: 0.14em;
@@ -368,7 +562,9 @@ body {
     text-transform: uppercase;
 }
 
-/* RESPONSIVE */
+/* =========================================================
+   TABLET
+========================================================= */
 
 @media (max-width: 900px) {
     .collection-showcase__top,
@@ -376,14 +572,15 @@ body {
         grid-template-columns: 1fr;
     }
 
-    .collection-scroll-scene {
-        height: 360vh;
-    }
-
     .collection-slide {
-        flex-basis: min(54vw, 410px);
+        flex-basis:
+            min(54vw, 410px);
     }
 }
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 620px) {
     .collection-hero {
@@ -392,7 +589,12 @@ body {
     }
 
     .collection-hero h1 {
-        font-size: clamp(3.2rem, 16vw, 5.3rem);
+        font-size:
+            clamp(
+                3.2rem,
+                16vw,
+                5.3rem
+            );
         line-height: 0.88;
     }
 
@@ -407,16 +609,10 @@ body {
     .collection-showcase__top,
     .collection-filters,
     .collection-status,
-    .collection-statement__inner {
-        width: calc(100% - 32px);
-    }
-
-    .collection-scroll-scene {
-        height: 320vh;
-    }
-
-    .collection-sticky {
-        min-height: 100svh;
+    .collection-statement__inner,
+    .collection-empty {
+        width:
+            calc(100% - 32px);
     }
 
     .collection-track {
@@ -427,13 +623,27 @@ body {
     .collection-slide {
         flex-basis: 76vw;
     }
-}
 
-@media (prefers-reduced-motion: reduce) {
-    .collection-track {
-        will-change: auto;
+    .collection-status {
+        margin-top: 28px;
     }
 
+    .collection-statement__link {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    /*
+     * Transitions are removed, but autoplay is not disabled.
+     * This prevents the user's browser preference from
+     * unexpectedly stopping the gallery completely.
+     */
     .collection-slide img {
         transition: none;
     }
