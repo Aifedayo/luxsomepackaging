@@ -35,10 +35,6 @@ body {
     position: relative;
     display: grid;
     align-items: end;
-    min-height: min(
-        760px,
-        calc(100svh - var(--header-height, 80px))
-    );
     padding:
         clamp(120px, 15vw, 220px)
         max(24px, 6vw)
@@ -584,7 +580,6 @@ body {
 
 @media (max-width: 620px) {
     .collection-hero {
-        min-height: 78svh;
         padding-inline: 20px;
     }
 
