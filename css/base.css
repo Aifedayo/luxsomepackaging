@@ -269,6 +269,13 @@ a {
         margin-bottom: 24px;
         font-size: 1rem;
     }
+    .site-navigation a::after {
+        right: 0;
+        bottom: 14px;
+        left: 0;
+        height: 1px;
+        width: 44px;
+    }
 }
 
 @media (min-width: 851px) and (max-width: 1180px) {
@@ -288,6 +295,7 @@ a {
         max-width: 620px;
         transform: none;
     }
+
 }
 
 @media (max-width: 850px) {
@@ -376,6 +384,13 @@ a {
         border: 0 !important;
         font-family: "Montserrat", sans-serif !important;
         font-size: 0.85rem !important;
+    }
+    .site-navigation a::after {
+        right: 0;
+        bottom: 14px;
+        left: 0;
+        height: 1px;
+        width: 44px;
     }
 }
 
@@ -743,6 +758,13 @@ You can adjust individual image positions like this:
 
     .hero-dots {
         bottom: 26px;
+    }
+    .site-navigation a::after {
+        right: 0;
+        bottom: 14px;
+        left: 0;
+        height: 1px;
+        width: 44px;
     }
 }
 
