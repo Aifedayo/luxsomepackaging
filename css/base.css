@@ -1209,15 +1209,7 @@ You can adjust individual image positions like this:
     content: "";
 }
 
-.system-value-section::after {
-    position: absolute;
-    top: 35%;
-    right: 0;
-    left: 0;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.06);
-    content: "";
-}
+
 
 .system-value-section > .container {
     position: relative;
@@ -1295,7 +1287,7 @@ You can adjust individual image positions like this:
 }
 
 .system-value-item p {
-    max-width: 360px;
+    max-width: 300px;
     margin: 0;
     color: rgba(255, 250, 246, 0.68);
     font-size: 0.95rem;
@@ -1380,6 +1372,7 @@ You can adjust individual image positions like this:
         margin-top: 24px;
         font-size: 0.96rem;
         line-height: 1.75;
+        max-width: 330px;
     }
 
     .system-value-grid {
