@@ -383,6 +383,7 @@ a {
     color: white;
 }
 
+
 /* =========================
    HERO CAROUSEL
 ========================= */
@@ -1233,7 +1234,6 @@ You can adjust individual image positions like this:
 .system-value-intro h2 {
     max-width: 980px;
     margin: 0;
-    font-family: Georgia, "Times New Roman", serif;
     font-size: clamp(2.5rem, 5.4vw, 5.2rem);
     font-weight: 400;
     line-height: 1.04;
@@ -1279,7 +1279,6 @@ You can adjust individual image positions like this:
 .system-value-item h3 {
     max-width: 290px;
     margin: 0 0 20px;
-    font-family: Georgia, "Times New Roman", serif;
     font-size: clamp(1.55rem, 2.3vw, 2.25rem);
     font-weight: 400;
     line-height: 1.15;
@@ -1836,6 +1835,9 @@ You can adjust individual image positions like this:
 
     .footer-divider {
         display: none;
+    }
+    .story-hero h1{
+        font-size: 1em;
     }
 
 }
@@ -2407,7 +2409,6 @@ html.reveal-ready .reveal-group > .reveal {
 
 .reveal-content h2 {
     margin: 0 0 20px;
-    font-family: Georgia, "Times New Roman", serif;
     font-size: clamp(2.3rem, 4vw, 4.5rem);
     font-weight: 400;
     line-height: 1.05;
