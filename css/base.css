@@ -1010,7 +1010,6 @@ You can adjust individual image positions like this:
     transform: scale(0.975);
     scroll-snap-align: start;
     scroll-snap-stop: always;
-    box-shadow: 0 18px 50px rgba(47, 33, 27, 0.06);
     transition: opacity 420ms ease, transform 420ms ease, box-shadow 320ms ease, border-color 320ms ease;
 }
 
@@ -1018,7 +1017,6 @@ You can adjust individual image positions like this:
     opacity: 1;
     transform: scale(1);
     border-color: rgba(74, 45, 35, 0.24);
-    box-shadow: 0 26px 66px rgba(47, 33, 27, 0.11);
 }
 
 .system-card.is-current:hover {
@@ -1187,6 +1185,60 @@ You can adjust individual image positions like this:
         transition: none;
     }
 }
+
+/* ==========================================
+   INACTIVE CARDS
+========================================== */
+
+.system-card{
+    transition:
+        transform .7s cubic-bezier(.22,1,.36,1),
+        filter .7s cubic-bezier(.22,1,.36,1),
+        opacity .7s cubic-bezier(.22,1,.36,1);
+
+}
+
+/* Cards before and after the active one */
+
+.system-card:not(.is-current){
+    opacity:.18;
+    transform:scale(.92);
+    filter:
+        blur(5px)
+        brightness(.42)
+        saturate(.7);
+}
+
+.system-card.is-current{
+    opacity:1;
+    transform:scale(1);
+    filter:
+        blur(0)
+        brightness(1)
+        saturate(1);
+    z-index:10;
+}
+
+.system-slider{
+    position:relative;
+    overflow:hidden;
+}
+
+.system-slider::before,
+.system-slider::after{
+    content:"";
+    position:absolute;
+    top:0;
+    width:180px;
+    height:100%;
+    z-index:20;
+    pointer-events:none;
+}
+
+.system-slider::before{
+    left:0;
+}
+
 
 /* =====================================================
    WHY THE SYSTEM MATTERS
