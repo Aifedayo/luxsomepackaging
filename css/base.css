@@ -1239,6 +1239,59 @@ You can adjust individual image positions like this:
     left:0;
 }
 
+.system-image {
+    position: relative;
+    overflow: hidden;
+    background: #eee7e1;
+}
+
+.system-image::before {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(
+            100deg,
+            rgba(255, 255, 255, 0) 20%,
+            rgba(255, 255, 255, 0.42) 50%,
+            rgba(255, 255, 255, 0) 80%
+        ),
+        #eee7e1;
+    transform: translateX(-100%);
+    content: "";
+    opacity: 0;
+    pointer-events: none;
+}
+
+.system-image.is-loading::before {
+    opacity: 1;
+    animation: systemSkeleton 1.4s ease-in-out infinite;
+}
+
+.system-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 1;
+    transition: opacity 400ms ease;
+}
+
+.system-image.is-loading img {
+    opacity: 0;
+}
+
+@keyframes systemSkeleton {
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .system-image.is-loading::before {
+        animation: none;
+    }
+}
 
 /* =====================================================
    WHY THE SYSTEM MATTERS

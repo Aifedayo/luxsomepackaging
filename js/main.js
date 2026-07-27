@@ -1235,3 +1235,31 @@ function getWhatsAppMessage(pageName) {
 
     return messages[pageName] || messages.general;
 }
+
+document.querySelectorAll('.system-image img').forEach((image) => {
+    const wrapper = image.closest('.system-image');
+
+    if (!wrapper) {
+        return;
+    }
+
+    const revealImage = () => {
+        wrapper.classList.remove('is-loading');
+    };
+
+    if (image.complete && image.naturalWidth > 0) {
+        revealImage();
+        return;
+    }
+
+    image.addEventListener('load', revealImage, { once: true });
+
+    image.addEventListener(
+        'error',
+        () => {
+            wrapper.classList.remove('is-loading');
+            wrapper.classList.add('has-error');
+        },
+        { once: true }
+    );
+});
