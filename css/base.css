@@ -1795,7 +1795,7 @@ You can adjust individual image positions like this:
     }
 
     .hero-content h1 {
-        font-size: clamp(3rem, 4vw, 5.3rem);
+        font-size: clamp(2.8rem, 15vw, 2rem);
     }
 
     .hero-content p {
@@ -1986,7 +1986,6 @@ You can adjust individual image positions like this:
     }
 
     .gallery-cta-button {
-        width: 100%;
         min-width: 0;
     }
 }
