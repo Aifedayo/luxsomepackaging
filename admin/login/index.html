@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Luxsome CRM Login</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#2e1c15">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/admin-v2.css">
+</head>
+<body class="crm-login-page">
+    <main class="crm-login-shell">
+        <section class="crm-login-panel" aria-labelledby="loginTitle">
+            <a href="/" class="crm-brand">
+                <span class="crm-brand__name">LUXSOME</span>
+                <span class="crm-brand__sub">PACKAGING CRM</span>
+            </a>
+
+            <div class="crm-login-copy">
+                <p class="crm-eyebrow">PRIVATE OPERATIONS</p>
+                <h1 id="loginTitle">Welcome back.</h1>
+                <p>
+                    Enter your administrator token to access enquiries,
+                    customer details and project briefs.
+                </p>
+            </div>
+
+            <form id="adminLoginForm" class="crm-login-form" novalidate>
+                <label for="adminToken">Administrator token</label>
+
+                <div class="crm-password-field">
+                    <input
+                        type="password"
+                        id="adminToken"
+                        name="adminToken"
+                        autocomplete="current-password"
+                        required
+                        autofocus
+                    >
+
+                    <button
+                        type="button"
+                        id="toggleTokenVisibility"
+                        aria-label="Show administrator token"
+                    >
+                        Show
+                    </button>
+                </div>
+
+                <button type="submit" id="loginButton" class="crm-button crm-button--primary">
+                    <span class="crm-button__text">Open Dashboard</span>
+                    <span class="crm-button__spinner" aria-hidden="true"></span>
+                </button>
+
+                <p id="loginStatus" class="crm-form-status" role="alert"></p>
+            </form>
+
+            <p class="crm-login-footnote">
+                Your token is stored only for the current browser session.
+            </p>
+        </section>
+
+        <section class="crm-login-visual" aria-hidden="true">
+            <div class="crm-login-visual__content">
+                <p class="crm-eyebrow">LUXSOME CRM</p>
+                <h2>Every enquiry, beautifully organised.</h2>
+                <p>
+                    Review projects, manage leads and prepare quotations from one place.
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/admin-login-v2.js"></script>
+</body>
+</html>

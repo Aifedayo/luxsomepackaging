@@ -12,139 +12,138 @@ document.addEventListener("DOMContentLoaded", function () {
         selectedReference: ""
     };
 
-    const loginOverlay = document.getElementById("loginOverlay");
-    const loginForm = document.getElementById("loginForm");
-    const tokenInput = document.getElementById("tokenInput");
-    const loginError = document.getElementById("loginError");
-    const logoutButton = document.getElementById("logoutButton");
-    const refreshButton = document.getElementById("refreshButton");
-    const searchInput = document.getElementById("searchInput");
-    const statusFilter = document.getElementById("statusFilter");
-    const tableBody = document.getElementById("submissionsTableBody");
-    const dashboardStatus = document.getElementById("dashboardStatus");
-    const emptyState = document.getElementById("emptyState");
-    const previousButton = document.getElementById("previousButton");
-    const nextButton = document.getElementById("nextButton");
-    const paginationText = document.getElementById("paginationText");
-    const detailOverlay = document.getElementById("detailOverlay");
-    const closeDetailButton = document.getElementById("closeDetailButton");
-    const detailStatus = document.getElementById("detailStatus");
-    const payloadList = document.getElementById("payloadList");
+    if (!state.token) {
+        window.location.replace("/admin/login/");
+        return;
+    }
+
+    const elements = {
+        sidebar: document.getElementById("crmSidebar"),
+        mobileMenuButton: document.getElementById("mobileMenuButton"),
+        mobileBackdrop: document.getElementById("mobileBackdrop"),
+        logoutButton: document.getElementById("logoutButton"),
+        refreshButton: document.getElementById("refreshButton"),
+        searchInput: document.getElementById("searchInput"),
+        statusFilter: document.getElementById("statusFilter"),
+        tableBody: document.getElementById("submissionsTableBody"),
+        dashboardStatus: document.getElementById("dashboardStatus"),
+        emptyState: document.getElementById("emptyState"),
+        previousButton: document.getElementById("previousButton"),
+        nextButton: document.getElementById("nextButton"),
+        paginationText: document.getElementById("paginationText"),
+        viewTitle: document.getElementById("viewTitle"),
+        detailBackdrop: document.getElementById("detailBackdrop"),
+        detailPanel: document.getElementById("detailPanel"),
+        closeDetailButton: document.getElementById("closeDetailButton"),
+        detailStatus: document.getElementById("detailStatus"),
+        payloadList: document.getElementById("payloadList")
+    };
 
     let searchTimer = null;
 
-    loginForm.addEventListener("submit", async function (event) {
-        event.preventDefault();
-        loginError.textContent = "";
+    elements.logoutButton.addEventListener("click", logout);
 
-        state.token = tokenInput.value.trim();
-
-        if (!state.token) {
-            loginError.textContent = "Enter the administrator token.";
-            return;
-        }
-
-        try {
-            await loadDashboard();
-            sessionStorage.setItem("luxsomeAdminToken", state.token);
-            loginOverlay.classList.add("is-hidden");
-        } catch (error) {
-            state.token = "";
-            loginError.textContent =
-                error.message || "The administrator token was not accepted.";
-        }
+    elements.refreshButton.addEventListener("click", function () {
+        loadDashboard();
     });
 
-    logoutButton.addEventListener("click", function () {
-        sessionStorage.removeItem("luxsomeAdminToken");
-        state.token = "";
-        loginOverlay.classList.remove("is-hidden");
-        tokenInput.value = "";
-        tokenInput.focus();
-    });
+    elements.mobileMenuButton.addEventListener("click", openMobileMenu);
+    elements.mobileBackdrop.addEventListener("click", closeMobileMenu);
 
-    refreshButton.addEventListener("click", loadDashboard);
-
-    document.querySelectorAll(".nav-item").forEach(function (button) {
+    document.querySelectorAll(".crm-nav__item").forEach(function (button) {
         button.addEventListener("click", function () {
-            document.querySelectorAll(".nav-item").forEach(function (item) {
+            document.querySelectorAll(".crm-nav__item").forEach(function (item) {
                 item.classList.remove("is-active");
             });
 
             button.classList.add("is-active");
-            state.type = button.dataset.view === "all"
-                ? ""
-                : button.dataset.view;
+
+            const requestedView = button.dataset.view;
+            state.type = requestedView === "all" ? "" : requestedView;
             state.offset = 0;
+
+            elements.viewTitle.textContent =
+                requestedView === "project"
+                    ? "Project briefs"
+                    : requestedView === "contact"
+                        ? "Contact messages"
+                        : "All enquiries";
+
+            closeMobileMenu();
             loadSubmissions();
         });
     });
 
-    statusFilter.addEventListener("change", function () {
-        state.status = statusFilter.value;
+    elements.statusFilter.addEventListener("change", function () {
+        state.status = elements.statusFilter.value;
         state.offset = 0;
         loadSubmissions();
     });
 
-    searchInput.addEventListener("input", function () {
+    elements.searchInput.addEventListener("input", function () {
         clearTimeout(searchTimer);
 
         searchTimer = setTimeout(function () {
-            state.search = searchInput.value.trim();
+            state.search = elements.searchInput.value.trim();
             state.offset = 0;
             loadSubmissions();
         }, 350);
     });
 
-    previousButton.addEventListener("click", function () {
+    elements.previousButton.addEventListener("click", function () {
         state.offset = Math.max(0, state.offset - PAGE_SIZE);
         loadSubmissions();
     });
 
-    nextButton.addEventListener("click", function () {
+    elements.nextButton.addEventListener("click", function () {
         if (state.offset + PAGE_SIZE < state.total) {
             state.offset += PAGE_SIZE;
             loadSubmissions();
         }
     });
 
-    tableBody.addEventListener("click", function (event) {
-        const button = event.target.closest("[data-reference]");
+    elements.tableBody.addEventListener("click", function (event) {
+        const trigger = event.target.closest("[data-reference]");
 
-        if (button) {
-            openSubmission(button.dataset.reference);
+        if (trigger) {
+            openSubmission(trigger.dataset.reference);
         }
     });
 
-    closeDetailButton.addEventListener("click", closeDetail);
+    elements.closeDetailButton.addEventListener("click", closeDetail);
+    elements.detailBackdrop.addEventListener("click", closeDetail);
 
-    detailOverlay.addEventListener("click", function (event) {
-        if (event.target === detailOverlay) {
-            closeDetail();
-        }
-    });
-
-    detailStatus.addEventListener("change", async function () {
+    elements.detailStatus.addEventListener("change", async function () {
         if (!state.selectedReference) return;
 
         try {
-            detailStatus.disabled = true;
+            elements.detailStatus.disabled = true;
 
             await apiRequest(
                 `/admin/submissions/${encodeURIComponent(state.selectedReference)}`,
                 {
                     method: "PATCH",
                     body: JSON.stringify({
-                        status: detailStatus.value
+                        status: elements.detailStatus.value
                     })
                 }
             );
 
             await Promise.all([loadStats(), loadSubmissions()]);
         } catch (error) {
-            alert(error.message || "The status could not be updated.");
+            window.alert(error.message || "The status could not be updated.");
         } finally {
-            detailStatus.disabled = false;
+            elements.detailStatus.disabled = false;
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            if (elements.detailPanel.classList.contains("is-open")) {
+                closeDetail();
+            } else {
+                closeMobileMenu();
+            }
         }
     });
 
@@ -155,16 +154,15 @@ document.addEventListener("DOMContentLoaded", function () {
     async function loadStats() {
         const data = await apiRequest("/admin/stats");
 
-        document.getElementById("totalStat").textContent =
-            data.stats.total;
-        document.getElementById("newStat").textContent =
-            data.stats.new;
-        document.getElementById("reviewingStat").textContent =
-            data.stats.reviewing;
-        document.getElementById("quotedStat").textContent =
-            data.stats.quoted;
-        document.getElementById("wonStat").textContent =
-            data.stats.won;
+        document.getElementById("totalStat").textContent = data.stats.total;
+        document.getElementById("newStat").textContent = data.stats.new;
+        document.getElementById("reviewingStat").textContent = data.stats.reviewing;
+        document.getElementById("quotedStat").textContent = data.stats.quoted;
+        document.getElementById("wonStat").textContent = data.stats.won;
+
+        document.getElementById("navAllCount").textContent = data.stats.total;
+        document.getElementById("navProjectCount").textContent = data.stats.projects;
+        document.getElementById("navContactCount").textContent = data.stats.contacts;
     }
 
     async function loadSubmissions() {
@@ -189,14 +187,16 @@ document.addEventListener("DOMContentLoaded", function () {
             updatePagination();
             setStatus("");
         } catch (error) {
-            setStatus(error.message || "Enquiries could not be loaded.", true);
-            throw error;
+            setStatus(
+                error.message || "Enquiries could not be loaded.",
+                true
+            );
         }
     }
 
     function renderRows(submissions) {
-        tableBody.replaceChildren();
-        emptyState.hidden = submissions.length > 0;
+        elements.tableBody.replaceChildren();
+        elements.emptyState.hidden = submissions.length > 0;
 
         submissions.forEach(function (submission) {
             const row = document.createElement("tr");
@@ -208,7 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
             row.innerHTML = `
                 <td>
                     <button
-                        class="reference-button"
+                        class="crm-reference-button"
                         type="button"
                         data-reference="${escapeHtml(submission.reference)}"
                     >
@@ -220,21 +220,21 @@ document.addEventListener("DOMContentLoaded", function () {
                     <small>${escapeHtml(submission.email || "")}</small>
                 </td>
                 <td>
-                    <span class="type-badge">
+                    <span class="crm-type-badge">
                         ${submission.submission_type === "project"
                             ? "Project"
                             : "Contact"}
                     </span>
                 </td>
                 <td>
-                    <span class="status-badge status-${escapeHtml(submission.status)}">
+                    <span class="crm-status-badge crm-status-${escapeHtml(submission.status)}">
                         ${escapeHtml(formatStatus(submission.status))}
                     </span>
                 </td>
                 <td>${escapeHtml(formatDate(submission.created_at))}</td>
                 <td>
                     <button
-                        class="view-button"
+                        class="crm-view-button"
                         type="button"
                         data-reference="${escapeHtml(submission.reference)}"
                     >
@@ -243,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 </td>
             `;
 
-            tableBody.appendChild(row);
+            elements.tableBody.appendChild(row);
         });
     }
 
@@ -254,8 +254,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const data = await apiRequest(
                 `/admin/submissions/${encodeURIComponent(reference)}`
             );
-            const submission = data.submission;
 
+            const submission = data.submission;
             state.selectedReference = submission.reference;
 
             document.getElementById("detailType").textContent =
@@ -265,8 +265,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("detailReference").textContent =
                 submission.reference;
+
             document.getElementById("detailBrand").textContent =
                 submission.brand_name || "Not supplied";
+
             document.getElementById("detailCustomer").textContent =
                 submission.customer_name || "Not supplied";
 
@@ -276,25 +278,42 @@ document.addEventListener("DOMContentLoaded", function () {
                 ? `mailto:${submission.email}`
                 : "#";
 
+            const phoneDigits = String(submission.phone || "").replace(/\D/g, "");
             const phoneLink = document.getElementById("detailPhone");
             phoneLink.textContent = submission.phone || "Not supplied";
-            phoneLink.href = submission.phone
-                ? `https://wa.me/${submission.phone.replace(/\D/g, "")}`
+            phoneLink.href = phoneDigits
+                ? `https://wa.me/${phoneDigits}`
                 : "#";
 
-            detailStatus.value = submission.status;
+            document.getElementById("emailAction").href = submission.email
+                ? `mailto:${submission.email}?subject=${encodeURIComponent(
+                    `Re: Luxsome enquiry ${submission.reference}`
+                )}`
+                : "#";
+
+            document.getElementById("whatsappAction").href = phoneDigits
+                ? `https://wa.me/${phoneDigits}`
+                : "#";
+
+            elements.detailStatus.value = submission.status;
             renderPayload(submission.payload || {});
 
-            detailOverlay.hidden = false;
-            document.body.classList.add("detail-open");
+            elements.detailBackdrop.hidden = false;
+            elements.detailPanel.classList.add("is-open");
+            elements.detailPanel.setAttribute("aria-hidden", "false");
+            document.body.classList.add("crm-lock-scroll");
+
             setStatus("");
         } catch (error) {
-            setStatus(error.message || "The enquiry could not be opened.", true);
+            setStatus(
+                error.message || "The enquiry could not be opened.",
+                true
+            );
         }
     }
 
     function renderPayload(payload) {
-        payloadList.replaceChildren();
+        elements.payloadList.replaceChildren();
 
         Object.entries(payload)
             .filter(function ([key, value]) {
@@ -314,14 +333,38 @@ document.addEventListener("DOMContentLoaded", function () {
                     ? value.join(", ")
                     : String(value);
 
-                payloadList.append(term, description);
+                elements.payloadList.append(term, description);
             });
     }
 
     function closeDetail() {
-        detailOverlay.hidden = true;
-        document.body.classList.remove("detail-open");
+        elements.detailBackdrop.hidden = true;
+        elements.detailPanel.classList.remove("is-open");
+        elements.detailPanel.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("crm-lock-scroll");
         state.selectedReference = "";
+    }
+
+    function openMobileMenu() {
+        elements.sidebar.classList.add("is-open");
+        elements.mobileBackdrop.hidden = false;
+        elements.mobileMenuButton.setAttribute("aria-expanded", "true");
+        document.body.classList.add("crm-lock-scroll");
+    }
+
+    function closeMobileMenu() {
+        elements.sidebar.classList.remove("is-open");
+        elements.mobileBackdrop.hidden = true;
+        elements.mobileMenuButton.setAttribute("aria-expanded", "false");
+
+        if (!elements.detailPanel.classList.contains("is-open")) {
+            document.body.classList.remove("crm-lock-scroll");
+        }
+    }
+
+    function logout() {
+        sessionStorage.removeItem("luxsomeAdminToken");
+        window.location.replace("/admin/login/");
     }
 
     async function apiRequest(path, options = {}) {
@@ -342,7 +385,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!response.ok) {
             if (response.status === 401) {
                 sessionStorage.removeItem("luxsomeAdminToken");
-                loginOverlay.classList.remove("is-hidden");
+                window.location.replace("/admin/login/");
+                return;
             }
 
             throw new Error(
@@ -355,22 +399,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updatePagination() {
         const currentPage = Math.floor(state.offset / PAGE_SIZE) + 1;
-        const totalPages = Math.max(
-            1,
-            Math.ceil(state.total / PAGE_SIZE)
-        );
+        const totalPages = Math.max(1, Math.ceil(state.total / PAGE_SIZE));
 
-        paginationText.textContent =
+        elements.paginationText.textContent =
             `Page ${currentPage} of ${totalPages}`;
 
-        previousButton.disabled = state.offset === 0;
-        nextButton.disabled =
+        elements.previousButton.disabled = state.offset === 0;
+        elements.nextButton.disabled =
             state.offset + PAGE_SIZE >= state.total;
     }
 
     function setStatus(message, isError = false) {
-        dashboardStatus.textContent = message;
-        dashboardStatus.classList.toggle("is-error", isError);
+        elements.dashboardStatus.textContent = message;
+        elements.dashboardStatus.classList.toggle("is-error", isError);
     }
 
     function formatStatus(status) {
@@ -411,15 +452,5 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/'/g, "&#039;");
     }
 
-    if (state.token) {
-        loadDashboard()
-            .then(function () {
-                loginOverlay.classList.add("is-hidden");
-            })
-            .catch(function () {
-                state.token = "";
-            });
-    } else {
-        tokenInput.focus();
-    }
+    loadDashboard();
 });

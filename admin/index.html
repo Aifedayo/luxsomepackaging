@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Luxsome CRM</title>
+    <title>Luxsome CRM Dashboard</title>
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#2e1c15">
 
@@ -12,179 +12,207 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="/css/admin-v2.css">
 </head>
-<body>
-    <div class="admin-shell">
-        <aside class="sidebar">
-            <a href="/" class="sidebar-brand">
-                <span>LUXSOME</span>
-                <small>CRM</small>
-            </a>
+<body class="crm-app-page">
+    <div class="crm-app">
+        <aside class="crm-sidebar" id="crmSidebar">
+            <div>
+                <a href="/" class="crm-brand crm-brand--light">
+                    <span class="crm-brand__name">LUXSOME</span>
+                    <span class="crm-brand__sub">PACKAGING CRM</span>
+                </a>
 
-            <nav class="sidebar-nav" aria-label="CRM navigation">
-                <button class="nav-item is-active" type="button" data-view="all">
-                    All Enquiries
-                </button>
-                <button class="nav-item" type="button" data-view="project">
-                    Project Briefs
-                </button>
-                <button class="nav-item" type="button" data-view="contact">
-                    Contact Messages
-                </button>
-            </nav>
+                <nav class="crm-nav" aria-label="CRM navigation">
+                    <button class="crm-nav__item is-active" type="button" data-view="all">
+                        <span>All enquiries</span>
+                        <small id="navAllCount">0</small>
+                    </button>
 
-            <button id="logoutButton" class="logout-button" type="button">
-                Lock Dashboard
-            </button>
+                    <button class="crm-nav__item" type="button" data-view="project">
+                        <span>Project briefs</span>
+                        <small id="navProjectCount">0</small>
+                    </button>
+
+                    <button class="crm-nav__item" type="button" data-view="contact">
+                        <span>Contact messages</span>
+                        <small id="navContactCount">0</small>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="crm-sidebar__footer">
+                <button id="logoutButton" class="crm-sidebar__logout" type="button">
+                    Lock dashboard
+                </button>
+            </div>
         </aside>
 
-        <main class="dashboard">
-            <header class="dashboard-header">
+        <div class="crm-main">
+            <header class="crm-topbar">
+                <button
+                    id="mobileMenuButton"
+                    class="crm-mobile-menu"
+                    type="button"
+                    aria-controls="crmSidebar"
+                    aria-expanded="false"
+                >
+                    Menu
+                </button>
+
                 <div>
-                    <p class="eyebrow">LUXSOME OPERATIONS</p>
-                    <h1>Enquiry Dashboard</h1>
+                    <p class="crm-eyebrow">LUXSOME OPERATIONS</p>
+                    <h1>Enquiry dashboard</h1>
                 </div>
 
-                <button id="refreshButton" class="refresh-button" type="button">
+                <button id="refreshButton" class="crm-button crm-button--secondary" type="button">
                     Refresh
                 </button>
             </header>
 
-            <section class="stats-grid" aria-label="CRM overview">
-                <article class="stat-card">
+            <section class="crm-stat-grid" aria-label="Business overview">
+                <article class="crm-stat-card crm-stat-card--feature">
                     <span>Total enquiries</span>
                     <strong id="totalStat">0</strong>
+                    <small>All submissions</small>
                 </article>
-                <article class="stat-card">
+
+                <article class="crm-stat-card">
                     <span>New</span>
                     <strong id="newStat">0</strong>
+                    <small>Needs attention</small>
                 </article>
-                <article class="stat-card">
+
+                <article class="crm-stat-card">
                     <span>Reviewing</span>
                     <strong id="reviewingStat">0</strong>
+                    <small>In progress</small>
                 </article>
-                <article class="stat-card">
+
+                <article class="crm-stat-card">
                     <span>Quoted</span>
                     <strong id="quotedStat">0</strong>
+                    <small>Quote prepared</small>
                 </article>
-                <article class="stat-card">
+
+                <article class="crm-stat-card">
                     <span>Won</span>
                     <strong id="wonStat">0</strong>
+                    <small>Converted leads</small>
                 </article>
             </section>
 
-            <section class="toolbar">
-                <label class="search-field">
-                    <span class="sr-only">Search enquiries</span>
-                    <input
-                        type="search"
-                        id="searchInput"
-                        placeholder="Search brand, email, phone or reference"
-                    >
-                </label>
+            <section class="crm-content-card">
+                <div class="crm-content-card__header">
+                    <div>
+                        <p class="crm-eyebrow">LEADS</p>
+                        <h2 id="viewTitle">All enquiries</h2>
+                    </div>
 
-                <label>
-                    <span class="sr-only">Filter by status</span>
-                    <select id="statusFilter">
-                        <option value="">All statuses</option>
-                        <option value="new">New</option>
-                        <option value="reviewing">Reviewing</option>
-                        <option value="quoted">Quoted</option>
-                        <option value="follow_up">Follow up</option>
-                        <option value="won">Won</option>
-                        <option value="lost">Lost</option>
-                        <option value="archived">Archived</option>
-                    </select>
-                </label>
-            </section>
+                    <div class="crm-toolbar">
+                        <label class="crm-search">
+                            <span class="crm-sr-only">Search enquiries</span>
+                            <input
+                                id="searchInput"
+                                type="search"
+                                placeholder="Search brand, reference, email or phone"
+                            >
+                        </label>
 
-            <p id="dashboardStatus" class="dashboard-status" role="status"></p>
+                        <label>
+                            <span class="crm-sr-only">Filter by status</span>
+                            <select id="statusFilter">
+                                <option value="">All statuses</option>
+                                <option value="new">New</option>
+                                <option value="reviewing">Reviewing</option>
+                                <option value="quoted">Quoted</option>
+                                <option value="follow_up">Follow up</option>
+                                <option value="won">Won</option>
+                                <option value="lost">Lost</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
 
-            <section class="table-card">
-                <div class="table-wrapper">
-                    <table>
+                <p id="dashboardStatus" class="crm-status-message" role="status"></p>
+
+                <div class="crm-table-wrap">
+                    <table class="crm-table">
                         <thead>
                             <tr>
                                 <th>Reference</th>
-                                <th>Brand / Customer</th>
+                                <th>Brand / customer</th>
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th>Submitted</th>
-                                <th></th>
+                                <th aria-label="Actions"></th>
                             </tr>
                         </thead>
                         <tbody id="submissionsTableBody"></tbody>
                     </table>
                 </div>
 
-                <div id="emptyState" class="empty-state" hidden>
-                    No enquiries match this view.
+                <div id="emptyState" class="crm-empty-state" hidden>
+                    <div class="crm-empty-state__icon">L</div>
+                    <h3>No enquiries found</h3>
+                    <p>Try changing your search or filter.</p>
                 </div>
 
-                <div class="pagination">
+                <div class="crm-pagination">
                     <button id="previousButton" type="button">Previous</button>
-                    <span id="paginationText">Page 1</span>
+                    <span id="paginationText">Page 1 of 1</span>
                     <button id="nextButton" type="button">Next</button>
                 </div>
             </section>
-        </main>
+        </div>
     </div>
 
-    <div id="loginOverlay" class="login-overlay">
-        <form id="loginForm" class="login-card">
-            <p class="eyebrow">PRIVATE CRM</p>
-            <h2>Open the Luxsome dashboard</h2>
-            <p>Enter the administrator token configured in Cloudflare.</p>
+    <div id="mobileBackdrop" class="crm-mobile-backdrop" hidden></div>
 
-            <label>
-                Administrator token
-                <input
-                    type="password"
-                    id="tokenInput"
-                    autocomplete="current-password"
-                    required
-                >
-            </label>
+    <div id="detailBackdrop" class="crm-detail-backdrop" hidden></div>
 
-            <button type="submit">Open Dashboard</button>
-            <p id="loginError" class="login-error" role="alert"></p>
-        </form>
-    </div>
-
-    <div id="detailOverlay" class="detail-overlay" hidden>
-        <article class="detail-panel">
-            <button
-                id="closeDetailButton"
-                class="detail-close"
-                type="button"
-                aria-label="Close enquiry"
-            >×</button>
-
-            <p class="eyebrow" id="detailType">ENQUIRY</p>
-            <h2 id="detailReference"></h2>
-
-            <div class="detail-summary">
-                <div>
-                    <span>Brand</span>
-                    <strong id="detailBrand"></strong>
-                </div>
-                <div>
-                    <span>Customer</span>
-                    <strong id="detailCustomer"></strong>
-                </div>
-                <div>
-                    <span>Email</span>
-                    <a id="detailEmail"></a>
-                </div>
-                <div>
-                    <span>Phone</span>
-                    <a id="detailPhone"></a>
-                </div>
+    <aside id="detailPanel" class="crm-detail-panel" aria-hidden="true">
+        <div class="crm-detail-panel__header">
+            <div>
+                <p class="crm-eyebrow" id="detailType">ENQUIRY</p>
+                <h2 id="detailReference">—</h2>
             </div>
 
-            <label class="status-editor">
-                Lead status
+            <button id="closeDetailButton" class="crm-detail-close" type="button" aria-label="Close enquiry">
+                ×
+            </button>
+        </div>
+
+        <div class="crm-detail-panel__body">
+            <section class="crm-detail-grid">
+                <div>
+                    <span>Brand</span>
+                    <strong id="detailBrand">—</strong>
+                </div>
+
+                <div>
+                    <span>Customer</span>
+                    <strong id="detailCustomer">—</strong>
+                </div>
+
+                <div>
+                    <span>Email</span>
+                    <a id="detailEmail">—</a>
+                </div>
+
+                <div>
+                    <span>Phone</span>
+                    <a id="detailPhone">—</a>
+                </div>
+            </section>
+
+            <section class="crm-status-section">
+                <div>
+                    <p class="crm-eyebrow">LEAD STATUS</p>
+                    <p>Move this enquiry through your sales process.</p>
+                </div>
+
                 <select id="detailStatus">
                     <option value="new">New</option>
                     <option value="reviewing">Reviewing</option>
@@ -194,15 +222,29 @@
                     <option value="lost">Lost</option>
                     <option value="archived">Archived</option>
                 </select>
-            </label>
-
-            <section class="payload-section">
-                <h3>Submitted details</h3>
-                <dl id="payloadList"></dl>
             </section>
-        </article>
-    </div>
 
-    <script src="/js/admin.js"></script>
+            <section class="crm-detail-actions">
+                <a id="emailAction" class="crm-button crm-button--primary" href="#">
+                    Reply by email
+                </a>
+
+                <a id="whatsappAction" class="crm-button crm-button--secondary" href="#" target="_blank" rel="noopener noreferrer">
+                    Open WhatsApp
+                </a>
+            </section>
+
+            <section class="crm-submitted-section">
+                <div class="crm-section-heading">
+                    <p class="crm-eyebrow">SUBMITTED DETAILS</p>
+                    <h3>Enquiry information</h3>
+                </div>
+
+                <dl id="payloadList" class="crm-payload-list"></dl>
+            </section>
+        </div>
+    </aside>
+
+    <script src="/js/admin-dashboard-v2.js"></script>
 </body>
 </html>
