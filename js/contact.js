@@ -10,18 +10,27 @@ document.addEventListener("DOMContentLoaded", function () {
     const phoneNumber = document.getElementById("phoneNumber");
     const emailAddress = document.getElementById("emailAddress");
     const message = document.getElementById("message");
+    const enquiryReference = document.getElementById("enquiryReference");
 
     const characterCount = document.getElementById("characterCount");
     const formStatus = document.getElementById("formStatus");
     const submitButton = document.getElementById("submitButton");
-    const buttonText = submitButton.querySelector(".button-text");
+    const buttonText = submitButton?.querySelector(".button-text");
     const currentYear = document.getElementById("currentYear");
 
-    /*
-     * Use the Formspree endpoint already placed in the
-     * form's action attribute.
-     */
-    const formspreeEndpoint = form.action;
+    if (
+        !brandName ||
+        !phoneNumber ||
+        !emailAddress ||
+        !message ||
+        !characterCount ||
+        !formStatus ||
+        !submitButton ||
+        !buttonText
+    ) {
+        console.error("One or more contact form elements are missing.");
+        return;
+    }
 
     if (currentYear) {
         currentYear.textContent = new Date().getFullYear();
@@ -42,32 +51,22 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     phoneNumber.addEventListener("input", function () {
-        let cleanedValue = phoneNumber.value.replace(
-            /[^0-9+\s()-]/g,
-            ""
-        );
-    
-        cleanedValue = cleanedValue.replace(
-            /(?!^)\+/g,
-            ""
-        );
-    
+        let cleanedValue = phoneNumber.value.replace(/[^0-9+\s()-]/g, "");
+        cleanedValue = cleanedValue.replace(/(?!^)\+/g, "");
+
         if (phoneNumber.value !== cleanedValue) {
             phoneNumber.value = cleanedValue;
-    
+
             showError(
                 phoneNumber,
                 "phoneNumberError",
                 "Only numbers and valid phone symbols are allowed."
             );
-    
+
             return;
         }
-    
-        clearFieldError(
-            phoneNumber,
-            "phoneNumberError"
-        );
+
+        clearFieldError(phoneNumber, "phoneNumberError");
     });
 
     emailAddress.addEventListener("input", function () {
@@ -91,93 +90,113 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         if (!validateForm(values)) {
-            formStatus.textContent =
-                "Please correct the highlighted fields.";
+            formStatus.textContent = "Please correct the highlighted fields.";
             formStatus.classList.add("is-error");
+            focusFirstInvalidField();
             return;
         }
 
+        const reference = getOrCreateEnquiryReference();
         setLoadingState(true);
 
-        /*
-         * FormData automatically includes:
-         * - brandName
-         * - phoneNumber
-         * - emailAddress
-         * - message
-         * - _subject
-         */
-        const submissionData = new FormData(form);
-
-        /*
-         * Add Formspree's preferred email field.
-         * This allows Reply-To to work correctly.
-         */
-        submissionData.set("email", values.emailAddress);
-
         try {
-            const response = await fetch(formspreeEndpoint, {
+            const response = await fetch(form.action, {
                 method: "POST",
-                body: submissionData,
+                body: new FormData(form),
                 headers: {
                     Accept: "application/json"
                 }
             });
 
-            if (!response.ok) {
-                const responseData = await response.json().catch(function () {
-                    return {};
-                });
+            const responseData = await response.json().catch(function () {
+                return {};
+            });
 
+            if (!response.ok) {
                 throw new Error(
-                    getFormspreeError(responseData)
+                    responseData.message ||
+                    getApiError(responseData) ||
+                    "Your message could not be sent. Please try again."
+                );
+            }
+
+            const confirmedReference = responseData.reference || reference;
+
+            try {
+                sessionStorage.setItem(
+                    "luxsomeContactConfirmation",
+                    JSON.stringify({
+                        reference: confirmedReference,
+                        brandName: values.brandName,
+                        emailAddress: values.emailAddress,
+                        submittedAt: new Date().toISOString()
+                    })
+                );
+            } catch (storageError) {
+                console.warn(
+                    "The message was sent, but confirmation details could not be stored.",
+                    storageError
                 );
             }
 
             form.reset();
             characterCount.textContent = "0 / 1500";
 
-            /*
-             * Redirect to:
-             * contact/success/index.html
-             */
-            window.location.assign("/contact/success/");
+            window.location.assign(
+                `/contact/success/?reference=${encodeURIComponent(confirmedReference)}`
+            );
         } catch (error) {
-            console.error("Form submission failed:", error);
+            console.error("Contact form submission failed:", error);
 
             formStatus.textContent =
                 error.message ||
-                "Something went wrong. Please try again.";
+                "Something went wrong. Please check your connection and try again.";
 
             formStatus.classList.add("is-error");
-
             setLoadingState(false);
         }
     });
 
+    function getOrCreateEnquiryReference() {
+        const existing = enquiryReference?.value.trim();
+
+        if (/^LC-\d{8}-\d{4}$/.test(existing || "")) {
+            return existing;
+        }
+
+        const now = new Date();
+        const date = [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, "0"),
+            String(now.getDate()).padStart(2, "0")
+        ].join("");
+
+        const random = Math.floor(1000 + Math.random() * 9000);
+        const reference = `LC-${date}-${random}`;
+
+        if (enquiryReference) {
+            enquiryReference.value = reference;
+        }
+
+        return reference;
+    }
+
     function setLoadingState(isLoading) {
         submitButton.disabled = isLoading;
         submitButton.classList.toggle("loading", isLoading);
-        submitButton.setAttribute(
-            "aria-busy",
-            isLoading ? "true" : "false"
-        );
-
-        buttonText.textContent = isLoading
-            ? "Sending..."
-            : "Send Message";
+        submitButton.setAttribute("aria-busy", String(isLoading));
+        buttonText.textContent = isLoading ? "Sending..." : "Send Message";
     }
 
     function validateForm(values) {
         let isValid = true;
 
-        if (values.brandName.length < 2) {
+        if (values.brandName.length < 2 || values.brandName.length > 100) {
             showError(
                 brandName,
                 "brandNameError",
-                "Please enter your brand name."
+                "Please enter a valid brand name."
             );
-
             isValid = false;
         }
 
@@ -190,7 +209,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 "phoneNumberError",
                 "Phone number must not contain letters."
             );
-
             isValid = false;
         } else if (phoneDigits.length < 10 || phoneDigits.length > 15) {
             showError(
@@ -198,7 +216,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 "phoneNumberError",
                 "Please enter a valid phone number with 10 to 15 digits."
             );
-
             isValid = false;
         }
 
@@ -208,7 +225,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 "emailAddressError",
                 "Please enter a valid email address."
             );
-
             isValid = false;
         }
 
@@ -218,7 +234,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 "messageError",
                 "Please provide a little more information about your enquiry."
             );
-
+            isValid = false;
+        } else if (values.message.length > 1500) {
+            showError(
+                message,
+                "messageError",
+                "Your message must not exceed 1,500 characters."
+            );
             isValid = false;
         }
 
@@ -233,8 +255,7 @@ document.addEventListener("DOMContentLoaded", function () {
         field.classList.add("is-invalid");
         field.setAttribute("aria-invalid", "true");
 
-        const errorElement =
-            document.getElementById(errorElementId);
+        const errorElement = document.getElementById(errorElementId);
 
         if (errorElement) {
             errorElement.textContent = errorMessage;
@@ -245,8 +266,7 @@ document.addEventListener("DOMContentLoaded", function () {
         field.classList.remove("is-invalid");
         field.removeAttribute("aria-invalid");
 
-        const errorElement =
-            document.getElementById(errorElementId);
+        const errorElement = document.getElementById(errorElementId);
 
         if (errorElement) {
             errorElement.textContent = "";
@@ -260,7 +280,11 @@ document.addEventListener("DOMContentLoaded", function () {
         clearFieldError(message, "messageError");
     }
 
-    function getFormspreeError(responseData) {
+    function focusFirstInvalidField() {
+        form.querySelector(".is-invalid")?.focus();
+    }
+
+    function getApiError(responseData) {
         if (
             responseData &&
             Array.isArray(responseData.errors) &&
@@ -270,9 +294,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 .map(function (error) {
                     return error.message;
                 })
+                .filter(Boolean)
                 .join(" ");
         }
 
-        return "Your message could not be sent. Please try again.";
+        return "";
     }
 });

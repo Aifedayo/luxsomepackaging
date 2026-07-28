@@ -1,84 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Received | Luxsome Packaging</title>
+    <meta name="description" content="Your message has been received by Luxsome Packaging.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://www.luxsomepackaging.com/contact/success/">
 
-<title>Thank You | Luxsome Packaging</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <meta name="theme-color" content="#f8f4ef">
 
-<meta
-    name="description"
-    content="Thank you for contacting Luxsome Packaging."
->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<link rel="canonical"
-href="https://www.luxsomepackaging.com/contact/success/">
-
-<link rel="stylesheet" href="/css/success.css">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
-
+    <link rel="stylesheet" href="/css/contact-success.css">
 </head>
-
 <body>
-
-<main class="success">
-
-    <div class="success-card">
-
-        <div class="checkmark">
-
-            ✓
-
-        </div>
-
-        <p class="eyebrow">
-            MESSAGE RECEIVED
-        </p>
-
-        <h1>
-
-            Thank you for reaching out.
-
-        </h1>
-
-        <p class="description">
-
-            We've received your enquiry and appreciate your interest in
-            Luxsome Packaging.
-
-            <br><br>
-
-            A member of our team will review your message and get back to
-            you within one business day.
-
-        </p>
-
-        <div class="buttons">
-
-            <a href="/" class="primary-button">
-
-                Return Home
-
+    <main class="success-page">
+        <section class="success-card" aria-labelledby="successTitle">
+            <a href="/" class="brand-mark" aria-label="Luxsome Packaging home">
+                <span class="brand-mark__name">LUXSOME</span>
+                <span class="brand-mark__descriptor">PACKAGING</span>
             </a>
 
-            <a href="/gallery/" class="secondary-button">
+            <div class="success-icon" aria-hidden="true">
+                <span>✓</span>
+            </div>
 
-                View Gallery
+            <p class="success-eyebrow">MESSAGE RECEIVED</p>
 
-            </a>
+            <h1 id="successTitle">Thank you for reaching out.</h1>
 
-        </div>
+            <p class="success-description">
+                Your enquiry is now with the Luxsome team. We will review your message and respond within one business day.
+            </p>
 
-    </div>
+            <div class="reference-panel" id="referencePanel" hidden>
+                <span>Your enquiry reference</span>
+                <strong id="referenceValue"></strong>
+                <small>Keep this reference for any follow-up.</small>
+            </div>
 
-</main>
+            <div class="next-steps">
+                <p class="next-steps__label">WHAT HAPPENS NEXT</p>
 
+                <div class="next-step">
+                    <span>01</span>
+                    <p>We review your question and identify the most helpful response.</p>
+                </div>
+
+                <div class="next-step">
+                    <span>02</span>
+                    <p>A member of our team replies through your submitted email or phone number.</p>
+                </div>
+            </div>
+
+            <div class="success-actions">
+                <a href="/" class="button button--primary">Return Home</a>
+                <a href="/gallery/" class="button button--secondary">View Our Gallery</a>
+            </div>
+
+            <p class="project-link">
+                Ready to share a complete packaging brief?
+                <a href="/start-project/">Start a Project <span aria-hidden="true">→</span></a>
+            </p>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            let reference = params.get("reference") || "";
+
+            try {
+                const saved = JSON.parse(
+                    sessionStorage.getItem("luxsomeContactConfirmation") || "null"
+                );
+
+                if (!reference && saved && saved.reference) {
+                    reference = saved.reference;
+                }
+            } catch (_) {
+                // The success page can still render without session storage.
+            }
+
+            if (/^LC-\d{8}-\d{4}$/.test(reference)) {
+                document.getElementById("referenceValue").textContent = reference;
+                document.getElementById("referencePanel").hidden = false;
+            }
+        })();
+    </script>
 </body>
-
 </html>
