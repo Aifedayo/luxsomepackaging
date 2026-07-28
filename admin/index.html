@@ -13,7 +13,6 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="/css/admin-v2.css">
-    <link rel="stylesheet" href="/css/base.css">
 </head>
 <body class="crm-app-page">
     <div class="crm-app">
@@ -509,6 +508,7 @@
                     <option value="draft">Draft</option>
                     <option value="sent">Sent</option>
                     <option value="accepted">Accepted</option>
+<option value="needs_revision">Needs revision</option>
                     <option value="declined">Declined</option>
                     <option value="expired">Expired</option>
                     <option value="cancelled">Cancelled</option>
@@ -551,6 +551,11 @@
                 </div>
 
                 <dl id="quoteDetailTerms" class="crm-payload-list"></dl>
+                <section class="crm-quote-timeline-section">
+                    <p class="crm-eyebrow">ACTIVITY</p>
+                    <h3>Quotation timeline</h3>
+                    <div id="quoteActivityTimeline" class="crm-quote-timeline"></div>
+                </section>
             </section>
         </div>
     </aside>
@@ -583,11 +588,8 @@
                         <div class="lux-quote-brand__mark">L</div>
 
                         <div>
-                            <img
-                                src="../assets/images/luxsome-logo.png"
-                                alt="Luxsome Packaging"
-                                class="logo-image"
-                            >
+                            <strong>LUXSOME</strong>
+                            <span>PACKAGING</span>
                         </div>
                     </div>
 

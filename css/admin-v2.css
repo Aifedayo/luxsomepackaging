@@ -1709,3 +1709,5 @@ a {
         grid-template-columns: 1fr;
     }
 }
+
+.crm-quote-timeline-section{margin-top:30px;padding-top:25px;border-top:1px solid var(--crm-line)}.crm-quote-timeline-section h3{margin:5px 0 20px;font-family:"DM Serif Display",Georgia,serif;font-weight:400}.crm-quote-timeline{display:grid}.crm-quote-timeline__item{position:relative;display:grid;grid-template-columns:18px 1fr;gap:11px;padding-bottom:22px}.crm-quote-timeline__item:before{content:"";position:absolute;top:15px;bottom:0;left:5px;width:1px;background:var(--crm-line)}.crm-quote-timeline__item:last-child:before{display:none}.crm-quote-timeline__dot{position:relative;z-index:1;width:11px;height:11px;margin-top:3px;border-radius:50%;background:var(--crm-brown)}.crm-quote-timeline__item strong,.crm-quote-timeline__item time{display:block}.crm-quote-timeline__item time{margin-top:4px;color:var(--crm-muted);font-size:10px}.crm-quote-timeline__item p{margin:7px 0 0;color:var(--crm-muted);font-size:12px;line-height:1.55}.crm-quote-timeline__empty{color:var(--crm-muted)}

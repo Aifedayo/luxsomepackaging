@@ -1002,6 +1002,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             renderQuotationDetailItems(quotation);
             renderQuotationDetailTerms(quotation);
+            renderQuotationActivity(quotation.activity || []);
 
             elements.quotationBackdrop.hidden = false;
             elements.quotationDetailPanel.classList.add("is-open");
@@ -1069,7 +1070,14 @@ document.addEventListener("DOMContentLoaded", function () {
             ["Notes", quotation.notes || "Not supplied"],
             ["Linked enquiry", quotation.submission_reference || "Not linked"],
             ["Last sent", quotation.sent_at ? formatDate(quotation.sent_at) : "Not sent"],
-            ["Times sent", String(quotation.send_count || 0)]
+            ["Times sent", String(quotation.send_count || 0)],
+            ["First viewed", quotation.viewed_at ? formatDate(quotation.viewed_at) : "Not viewed"],
+            ["Last viewed", quotation.last_viewed_at ? formatDate(quotation.last_viewed_at) : "Not viewed"],
+            ["View count", String(quotation.view_count || 0)],
+            ["Responded", quotation.responded_at ? formatDate(quotation.responded_at) : "No response"],
+            ["Response", quotation.response_type ? formatStatus(quotation.response_type) : "No response"],
+            ["Customer comment", quotation.response_comment || "No comment"],
+            ["Decline reason", quotation.response_reason || "Not applicable"]
         ];
 
         fields.forEach(function ([label, value]) {
@@ -1080,6 +1088,36 @@ document.addEventListener("DOMContentLoaded", function () {
             detail.textContent = value;
 
             list.append(term, detail);
+        });
+    }
+
+
+    function renderQuotationActivity(activity) {
+        const container = document.getElementById("quoteActivityTimeline");
+        container.replaceChildren();
+
+        if (!activity.length) {
+            const empty = document.createElement("p");
+            empty.className = "crm-quote-timeline__empty";
+            empty.textContent = "No activity has been recorded yet.";
+            container.appendChild(empty);
+            return;
+        }
+
+        activity.forEach(function (entry) {
+            const item = document.createElement("article");
+            item.className = "crm-quote-timeline__item";
+
+            item.innerHTML = `
+                <span class="crm-quote-timeline__dot"></span>
+                <div>
+                    <strong>${escapeHtml(entry.title || "Quotation activity")}</strong>
+                    <time>${escapeHtml(formatDate(entry.created_at))}</time>
+                    ${entry.details ? `<p>${escapeHtml(entry.details)}</p>` : ""}
+                </div>
+            `;
+
+            container.appendChild(item);
         });
     }
 

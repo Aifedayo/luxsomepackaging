@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quotation | Luxsome Packaging</title>
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="theme-color" content="#2e1c15">
+    <link rel="stylesheet" href="/css/quotation-portal.css">
+</head>
+<body>
+    <header class="portal-header">
+        <a href="/" class="portal-brand" aria-label="Luxsome Packaging home">
+            <span class="portal-brand__mark">L</span>
+            <span><strong>LUXSOME</strong><small>PACKAGING</small></span>
+        </a>
+        <span class="portal-secure">SECURE QUOTATION</span>
+    </header>
+
+    <main class="portal-shell">
+        <section id="portalLoading" class="portal-state">
+            <div class="portal-spinner"></div>
+            <h1>Opening your quotation</h1>
+            <p>Please wait a moment.</p>
+        </section>
+
+        <section id="portalError" class="portal-state" hidden>
+            <span class="portal-state__icon">!</span>
+            <h1>We could not open this quotation</h1>
+            <p id="portalErrorMessage">The link may be invalid or unavailable.</p>
+            <a href="/contact/" class="portal-button portal-button--primary">Contact Luxsome</a>
+        </section>
+
+        <article id="portalQuotation" class="quotation-card" hidden>
+            <header class="quotation-hero">
+                <div>
+                    <p class="portal-eyebrow">QUOTATION</p>
+                    <h1 id="quoteReference">—</h1>
+                    <p>Prepared especially for <strong id="quoteBrand">—</strong></p>
+                </div>
+                <span id="quoteStatus" class="status-pill">Sent</span>
+            </header>
+
+            <section class="quotation-meta">
+                <div><span>Issue date</span><strong id="issueDate">—</strong></div>
+                <div><span>Valid until</span><strong id="expiryDate">—</strong></div>
+                <div><span>Grand total</span><strong id="heroTotal">—</strong></div>
+            </section>
+
+            <section class="quotation-welcome">
+                <h2>Thank you for considering Luxsome Packaging.</h2>
+                <p>Review your customised packaging quotation below, then accept it, request changes, or let us know that you will not be proceeding.</p>
+            </section>
+
+            <section class="quotation-items">
+                <div class="section-heading"><p class="portal-eyebrow">YOUR PACKAGING SYSTEM</p><h2>Quotation details</h2></div>
+                <div id="quoteItems"></div>
+            </section>
+
+            <section class="quotation-lower">
+                <div class="quotation-terms">
+                    <div><p class="portal-eyebrow">PRODUCTION TIMELINE</p><p id="productionTimeline">—</p></div>
+                    <div><p class="portal-eyebrow">PAYMENT TERMS</p><p id="paymentTerms">—</p></div>
+                    <div><p class="portal-eyebrow">NOTES</p><p id="quoteNotes">—</p></div>
+                </div>
+                <div id="quoteTotals" class="quotation-totals"></div>
+            </section>
+
+            <section id="responseSection" class="response-section">
+                <div class="section-heading">
+                    <p class="portal-eyebrow">YOUR RESPONSE</p>
+                    <h2>How would you like to proceed?</h2>
+                </div>
+                <div class="response-actions">
+                    <button data-response="accepted" class="portal-button portal-button--primary">Accept quotation</button>
+                    <button data-response="needs_revision" class="portal-button portal-button--secondary">Request changes</button>
+                    <button data-response="declined" class="portal-button portal-button--text">Decline</button>
+                </div>
+            </section>
+
+            <section id="completedResponse" class="completed-response" hidden>
+                <span id="completedIcon">✓</span>
+                <h2 id="completedTitle">Response received</h2>
+                <p id="completedMessage"></p>
+            </section>
+        </article>
+    </main>
+
+    <div id="responseBackdrop" class="response-backdrop" hidden></div>
+    <section id="responseModal" class="response-modal" aria-hidden="true">
+        <button id="closeResponseModal" class="response-close" type="button">×</button>
+        <p class="portal-eyebrow" id="responseEyebrow">CONFIRM RESPONSE</p>
+        <h2 id="responseTitle">Accept quotation</h2>
+        <p id="responseDescription"></p>
+
+        <label id="reasonField" hidden>
+            Reason
+            <select id="responseReason">
+                <option value="">Select a reason</option>
+                <option value="Budget">Budget</option>
+                <option value="No longer required">No longer required</option>
+                <option value="Chose another supplier">Chose another supplier</option>
+                <option value="Timing">Timing</option>
+                <option value="Other">Other</option>
+            </select>
+        </label>
+
+        <label>
+            <span id="commentLabel">Optional comment</span>
+            <textarea id="responseComment" rows="5" maxlength="3000"></textarea>
+        </label>
+
+        <p id="responseStatus" class="response-status" role="status"></p>
+        <button id="submitResponse" class="portal-button portal-button--primary portal-button--full">Confirm</button>
+    </section>
+
+    <footer class="portal-footer">
+        <strong>Packaging is not a product.</strong>
+        <span>It is a system, and we build it end to end.</span>
+    </footer>
+
+    <script src="/js/quotation-portal.js"></script>
+</body>
+</html>
