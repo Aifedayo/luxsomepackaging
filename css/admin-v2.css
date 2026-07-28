@@ -1176,3 +1176,414 @@ a {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Branded quotation preview */
+.crm-preview-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    background: rgba(23, 14, 10, .72);
+    backdrop-filter: blur(4px);
+}
+
+.crm-preview-modal {
+    position: fixed;
+    inset: 22px;
+    z-index: 140;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.15);
+    background: #e9e4de;
+    box-shadow: 0 28px 80px rgba(0,0,0,.28);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.crm-preview-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.crm-preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(46, 28, 21, .12);
+    background: #fffdf9;
+}
+
+.crm-preview-toolbar h2 {
+    margin: 3px 0 0;
+}
+
+.crm-preview-toolbar__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.crm-preview-stage {
+    flex: 1;
+    overflow: auto;
+    padding: 36px;
+}
+
+.lux-quote-document {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 18mm 17mm 14mm;
+    color: #2e1c15;
+    background: #fffdf9;
+    box-shadow: 0 20px 55px rgba(46, 28, 21, .18);
+    font-family: "Montserrat", Arial, sans-serif;
+}
+
+.lux-quote-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 30px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid #2e1c15;
+}
+
+.lux-quote-brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.lux-quote-brand__mark {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: #fffdf9;
+    background: #2e1c15;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 28px;
+}
+
+.lux-quote-brand strong,
+.lux-quote-brand span {
+    display: block;
+}
+
+.lux-quote-brand strong {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 25px;
+    letter-spacing: .08em;
+}
+
+.lux-quote-brand span {
+    margin-top: 1px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .36em;
+}
+
+.lux-quote-title {
+    text-align: right;
+}
+
+.lux-quote-title p {
+    margin: 0 0 5px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .24em;
+}
+
+.lux-quote-title h1 {
+    margin: 0;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 29px;
+    font-weight: 400;
+}
+
+.lux-quote-intro {
+    display: grid;
+    grid-template-columns: 1.4fr .8fr;
+    gap: 45px;
+    padding: 27px 0;
+}
+
+.lux-quote-label {
+    margin: 0 0 8px;
+    color: #795c4d;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .18em;
+}
+
+.lux-quote-intro h2 {
+    margin: 0 0 8px;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 25px;
+    font-weight: 400;
+}
+
+.lux-quote-intro p:not(.lux-quote-label) {
+    margin: 4px 0;
+    color: #6b5549;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.lux-quote-meta {
+    margin: 0;
+    padding: 16px;
+    border: 1px solid #d8cec7;
+    background: #f8f4ef;
+}
+
+.lux-quote-meta div {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 8px 0;
+    border-bottom: 1px solid #ded5ce;
+}
+
+.lux-quote-meta div:last-child {
+    border-bottom: 0;
+}
+
+.lux-quote-meta dt,
+.lux-quote-meta dd {
+    margin: 0;
+    font-size: 9px;
+}
+
+.lux-quote-meta dt {
+    color: #795c4d;
+}
+
+.lux-quote-meta dd {
+    font-weight: 700;
+    text-align: right;
+}
+
+.lux-quote-message {
+    margin-bottom: 22px;
+    padding: 14px 16px;
+    border-left: 3px solid #2e1c15;
+    background: #f8f4ef;
+}
+
+.lux-quote-message p {
+    margin: 0;
+    font-size: 9.5px;
+    line-height: 1.65;
+}
+
+.lux-quote-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.lux-quote-table th {
+    padding: 10px 9px;
+    color: #fffdf9;
+    background: #2e1c15;
+    font-size: 8px;
+    letter-spacing: .08em;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.lux-quote-table th:nth-child(2),
+.lux-quote-table td:nth-child(2) {
+    width: 11%;
+    text-align: center;
+}
+
+.lux-quote-table th:nth-child(3),
+.lux-quote-table td:nth-child(3),
+.lux-quote-table th:nth-child(4),
+.lux-quote-table td:nth-child(4) {
+    width: 18%;
+    text-align: right;
+}
+
+.lux-quote-table td {
+    padding: 13px 9px;
+    border-bottom: 1px solid #ded5ce;
+    vertical-align: top;
+    font-size: 9px;
+}
+
+.lux-quote-table td strong,
+.lux-quote-table td small {
+    display: block;
+}
+
+.lux-quote-table td small {
+    margin-top: 5px;
+    color: #795c4d;
+    font-size: 8px;
+    line-height: 1.55;
+}
+
+.lux-quote-bottom {
+    display: grid;
+    grid-template-columns: 1.25fr .85fr;
+    gap: 32px;
+    margin-top: 28px;
+}
+
+.lux-quote-terms {
+    display: grid;
+    gap: 16px;
+}
+
+.lux-quote-terms p:not(.lux-quote-label) {
+    margin: 0;
+    color: #5f4b40;
+    font-size: 8.8px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+}
+
+.lux-quote-summary {
+    align-self: start;
+    border: 1px solid #d8cec7;
+}
+
+.lux-quote-summary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 10px 13px;
+    border-bottom: 1px solid #ded5ce;
+    font-size: 9px;
+}
+
+.lux-quote-summary > div:last-child {
+    border-bottom: 0;
+}
+
+.lux-quote-summary span {
+    color: #795c4d;
+}
+
+.lux-quote-summary__grand {
+    color: #fffdf9;
+    background: #2e1c15;
+}
+
+.lux-quote-summary__grand span {
+    color: rgba(255,253,249,.72);
+}
+
+.lux-quote-summary__grand strong {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.lux-quote-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 25px;
+    margin-top: 44px;
+    padding-top: 15px;
+    border-top: 1px solid #2e1c15;
+}
+
+.lux-quote-footer strong,
+.lux-quote-footer span {
+    display: block;
+}
+
+.lux-quote-footer strong {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.lux-quote-footer span {
+    margin-top: 4px;
+    color: #795c4d;
+    font-size: 7.5px;
+}
+
+.lux-quote-footer__contact {
+    text-align: right;
+}
+
+@media (max-width: 850px) {
+    .crm-preview-modal {
+        inset: 0;
+    }
+
+    .crm-preview-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .crm-preview-toolbar__actions,
+    .crm-preview-toolbar__actions .crm-button {
+        width: 100%;
+    }
+
+    .crm-preview-stage {
+        padding: 16px;
+    }
+
+    .lux-quote-document {
+        width: 210mm;
+        transform-origin: top left;
+    }
+}
+
+@media print {
+    body > * {
+        display: none !important;
+    }
+
+    body > .crm-preview-modal {
+        position: static !important;
+        display: block !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transform: none !important;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .crm-preview-toolbar,
+    .crm-preview-backdrop {
+        display: none !important;
+    }
+
+    .crm-preview-stage {
+        overflow: visible !important;
+        padding: 0 !important;
+    }
+
+    .lux-quote-document {
+        width: auto !important;
+        min-height: auto !important;
+        margin: 0 !important;
+        padding: 12mm 13mm 10mm !important;
+        box-shadow: none !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    @page {
+        size: A4;
+        margin: 0;
+    }
+}

@@ -55,7 +55,13 @@ document.addEventListener("DOMContentLoaded", function () {
         quotationDetailPanel: document.getElementById("quotationDetailPanel"),
         closeQuotationDetailButton: document.getElementById("closeQuotationDetailButton"),
         quoteDetailStatus: document.getElementById("quoteDetailStatus"),
-        editQuotationButton: document.getElementById("editQuotationButton")
+        editQuotationButton: document.getElementById("editQuotationButton"),
+        previewQuotationButton: document.getElementById("previewQuotationButton"),
+        downloadQuotationPdfButton: document.getElementById("downloadQuotationPdfButton"),
+        quotationPreviewBackdrop: document.getElementById("quotationPreviewBackdrop"),
+        quotationPreviewModal: document.getElementById("quotationPreviewModal"),
+        closeQuotationPreviewButton: document.getElementById("closeQuotationPreviewButton"),
+        previewPrintButton: document.getElementById("previewPrintButton")
     };
 
     let searchTimer = null;
@@ -212,10 +218,35 @@ document.addEventListener("DOMContentLoaded", function () {
         openQuotationBuilder(null, quotation);
     });
 
+    elements.previewQuotationButton.addEventListener("click", function () {
+        if (!state.selectedQuotation) return;
+        openQuotationPreview(state.selectedQuotation);
+    });
+
+    elements.downloadQuotationPdfButton.addEventListener("click", function () {
+        if (!state.selectedQuotation) return;
+        openQuotationPreview(state.selectedQuotation, true);
+    });
+
+    elements.closeQuotationPreviewButton.addEventListener(
+        "click",
+        closeQuotationPreview
+    );
+
+    elements.quotationPreviewBackdrop.addEventListener(
+        "click",
+        closeQuotationPreview
+    );
+
+    elements.previewPrintButton.addEventListener("click", printQuotation);
+
+
     document.addEventListener("keydown", function (event) {
         if (event.key !== "Escape") return;
 
-        if (elements.quotationBuilder.classList.contains("is-open")) {
+        if (elements.quotationPreviewModal.classList.contains("is-open")) {
+            closeQuotationPreview();
+        } else if (elements.quotationBuilder.classList.contains("is-open")) {
             closeQuotationBuilder();
         } else if (elements.quotationDetailPanel.classList.contains("is-open")) {
             closeQuotationDetail();
@@ -1069,6 +1100,144 @@ document.addEventListener("DOMContentLoaded", function () {
         } finally {
             elements.quoteDetailStatus.disabled = false;
         }
+    }
+
+
+    function openQuotationPreview(quotation, printImmediately = false) {
+        populateQuotationDocument(quotation);
+
+        document.getElementById("quotationPreviewHeading").textContent =
+            quotation.quote_reference || "Quotation";
+
+        elements.quotationPreviewBackdrop.hidden = false;
+        elements.quotationPreviewModal.classList.add("is-open");
+        elements.quotationPreviewModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("crm-lock-scroll");
+
+        if (printImmediately) {
+            window.setTimeout(printQuotation, 250);
+        }
+    }
+
+    function populateQuotationDocument(quotation) {
+        document.getElementById("printQuoteReference").textContent =
+            quotation.quote_reference || "—";
+
+        document.getElementById("printQuoteBrand").textContent =
+            quotation.brand_name ||
+            quotation.customer_name ||
+            "Valued customer";
+
+        document.getElementById("printQuoteCustomer").textContent =
+            quotation.customer_name || "";
+
+        document.getElementById("printQuoteEmail").textContent =
+            quotation.customer_email || "";
+
+        document.getElementById("printQuotePhone").textContent =
+            quotation.customer_phone || "";
+
+        document.getElementById("printQuoteIssueDate").textContent =
+            formatDateOnly(quotation.issue_date) || "—";
+
+        document.getElementById("printQuoteExpiryDate").textContent =
+            formatDateOnly(quotation.expiry_date) || "—";
+
+        document.getElementById("printQuoteStatus").textContent =
+            formatStatus(quotation.status || "draft");
+
+        document.getElementById("printQuoteTimeline").textContent =
+            quotation.production_timeline || "To be confirmed.";
+
+        document.getElementById("printQuotePaymentTerms").textContent =
+            quotation.payment_terms || "To be confirmed.";
+
+        document.getElementById("printQuoteNotes").textContent =
+            quotation.notes || "No additional notes.";
+
+        const items = document.getElementById("printQuoteItems");
+        items.replaceChildren();
+
+        (quotation.items || []).forEach(function (item) {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>
+                    <strong>${escapeHtml(item.description || "Packaging item")}</strong>
+                    <small>${escapeHtml(item.details || "")}</small>
+                </td>
+                <td>${escapeHtml(formatQuantity(item.quantity))}</td>
+                <td>${escapeHtml(formatMoney(item.unit_price))}</td>
+                <td><strong>${escapeHtml(formatMoney(item.line_total))}</strong></td>
+            `;
+
+            items.appendChild(row);
+        });
+
+        const summary = document.getElementById("printQuoteSummary");
+        summary.innerHTML = `
+            <div>
+                <span>Subtotal</span>
+                <strong>${escapeHtml(formatMoney(quotation.subtotal))}</strong>
+            </div>
+            <div>
+                <span>Discount</span>
+                <strong>- ${escapeHtml(formatMoney(quotation.discount))}</strong>
+            </div>
+            <div>
+                <span>Delivery</span>
+                <strong>${escapeHtml(formatMoney(quotation.delivery_fee))}</strong>
+            </div>
+            <div>
+                <span>Tax</span>
+                <strong>${escapeHtml(formatMoney(quotation.tax))}</strong>
+            </div>
+            <div class="lux-quote-summary__grand">
+                <span>Grand total</span>
+                <strong>${escapeHtml(formatMoney(quotation.grand_total))}</strong>
+            </div>
+        `;
+    }
+
+    function printQuotation() {
+        const quotation = state.selectedQuotation;
+
+        if (!quotation) return;
+
+        const previousTitle = document.title;
+        document.title = `${quotation.quote_reference || "Luxsome-quotation"}`;
+
+        window.print();
+
+        window.setTimeout(function () {
+            document.title = previousTitle;
+        }, 500);
+    }
+
+    function closeQuotationPreview() {
+        elements.quotationPreviewModal.classList.remove("is-open");
+        elements.quotationPreviewModal.setAttribute("aria-hidden", "true");
+        elements.quotationPreviewBackdrop.hidden = true;
+
+        if (
+            !elements.detailPanel.classList.contains("is-open") &&
+            !elements.quotationBuilder.classList.contains("is-open") &&
+            !elements.quotationDetailPanel.classList.contains("is-open")
+        ) {
+            document.body.classList.remove("crm-lock-scroll");
+        }
+    }
+
+    function formatQuantity(value) {
+        const number = Number(value);
+
+        if (!Number.isFinite(number)) return "0";
+
+        return Number.isInteger(number)
+            ? String(number)
+            : number.toLocaleString("en-NG", {
+                maximumFractionDigits: 2
+            });
     }
 
     function closeQuotationDetail() {

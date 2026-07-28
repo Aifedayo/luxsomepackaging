@@ -515,7 +515,15 @@
             </section>
 
             <section class="crm-detail-actions">
-                <button id="editQuotationButton" class="crm-button crm-button--primary" type="button">
+                <button id="previewQuotationButton" class="crm-button crm-button--primary" type="button">
+                    Preview quotation
+                </button>
+
+                <button id="downloadQuotationPdfButton" class="crm-button crm-button--secondary" type="button">
+                    Download PDF
+                </button>
+
+                <button id="editQuotationButton" class="crm-button crm-button--secondary" type="button">
                     Edit quotation
                 </button>
 
@@ -545,6 +553,130 @@
             </section>
         </div>
     </aside>
+
+
+    <div id="quotationPreviewBackdrop" class="crm-preview-backdrop" hidden></div>
+
+    <section id="quotationPreviewModal" class="crm-preview-modal" aria-hidden="true">
+        <header class="crm-preview-toolbar">
+            <div>
+                <p class="crm-eyebrow">DOCUMENT PREVIEW</p>
+                <h2 id="quotationPreviewHeading">Quotation</h2>
+            </div>
+
+            <div class="crm-preview-toolbar__actions">
+                <button id="previewPrintButton" class="crm-button crm-button--primary" type="button">
+                    Print / Save PDF
+                </button>
+
+                <button id="closeQuotationPreviewButton" class="crm-button crm-button--secondary" type="button">
+                    Close
+                </button>
+            </div>
+        </header>
+
+        <div class="crm-preview-stage">
+            <article id="quotationDocument" class="lux-quote-document">
+                <header class="lux-quote-header">
+                    <div class="lux-quote-brand">
+                        <div class="lux-quote-brand__mark">L</div>
+
+                        <div>
+                            <strong>LUXSOME</strong>
+                            <span>PACKAGING</span>
+                        </div>
+                    </div>
+
+                    <div class="lux-quote-title">
+                        <p>QUOTATION</p>
+                        <h1 id="printQuoteReference">—</h1>
+                    </div>
+                </header>
+
+                <section class="lux-quote-intro">
+                    <div>
+                        <p class="lux-quote-label">PREPARED FOR</p>
+                        <h2 id="printQuoteBrand">—</h2>
+                        <p id="printQuoteCustomer">—</p>
+                        <p id="printQuoteEmail">—</p>
+                        <p id="printQuotePhone">—</p>
+                    </div>
+
+                    <dl class="lux-quote-meta">
+                        <div>
+                            <dt>Issue date</dt>
+                            <dd id="printQuoteIssueDate">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>Valid until</dt>
+                            <dd id="printQuoteExpiryDate">—</dd>
+                        </div>
+
+                        <div>
+                            <dt>Status</dt>
+                            <dd id="printQuoteStatus">—</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section class="lux-quote-message">
+                    <p>
+                        Thank you for considering Luxsome Packaging. Below is our
+                        quotation for your customised packaging requirements.
+                    </p>
+                </section>
+
+                <section class="lux-quote-table-section">
+                    <table class="lux-quote-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Qty</th>
+                                <th>Unit price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="printQuoteItems"></tbody>
+                    </table>
+                </section>
+
+                <section class="lux-quote-bottom">
+                    <div class="lux-quote-terms">
+                        <div>
+                            <p class="lux-quote-label">PRODUCTION TIMELINE</p>
+                            <p id="printQuoteTimeline">—</p>
+                        </div>
+
+                        <div>
+                            <p class="lux-quote-label">PAYMENT TERMS</p>
+                            <p id="printQuotePaymentTerms">—</p>
+                        </div>
+
+                        <div>
+                            <p class="lux-quote-label">NOTES</p>
+                            <p id="printQuoteNotes">—</p>
+                        </div>
+                    </div>
+
+                    <div id="printQuoteSummary" class="lux-quote-summary"></div>
+                </section>
+
+                <footer class="lux-quote-footer">
+                    <div>
+                        <strong>Packaging is not a product.</strong>
+                        <span>It is a system, and we build it end to end.</span>
+                    </div>
+
+                    <div class="lux-quote-footer__contact">
+                        <span>luxsomepackaging.com</span>
+                        <span>hello@luxsomepackaging.com</span>
+                    </div>
+                </footer>
+            </article>
+        </div>
+    </section>
 
     <script src="/js/admin-dashboard-v2.js"></script>
 </body>
