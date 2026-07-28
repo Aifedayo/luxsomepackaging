@@ -1212,16 +1212,16 @@ You can adjust individual image positions like this:
    INACTIVE CARDS
 ========================================== */
 
-.system-card{
+/* .system-card{
     transition:
         transform .7s cubic-bezier(.22,1,.36,1),
         filter .7s cubic-bezier(.22,1,.36,1),
         opacity .7s cubic-bezier(.22,1,.36,1);
 
-}
+} */
 
 /* Cards before and after the active one */
-
+/* 
 .system-card:not(.is-current){
     opacity:.18;
     transform:scale(.92);
@@ -1254,7 +1254,6 @@ You can adjust individual image positions like this:
     width:180px;
     height:100%;
     z-index:20;
-    pointer-events:none;
 }
 
 .system-slider::before{
@@ -1282,12 +1281,10 @@ You can adjust individual image positions like this:
     transform: translateX(-100%);
     content: "";
     opacity: 0;
-    pointer-events: none;
 }
 
 .system-image.is-loading::before {
     opacity: 1;
-    animation: systemSkeleton 1.4s ease-in-out infinite;
 }
 
 .system-image img {
@@ -1313,7 +1310,7 @@ You can adjust individual image positions like this:
     .system-image.is-loading::before {
         animation: none;
     }
-}
+} */
 
 /* =====================================================
    WHY THE SYSTEM MATTERS
