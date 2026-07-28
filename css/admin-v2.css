@@ -884,3 +884,295 @@ a {
         width: 100%;
     }
 }
+
+
+/* Quotations */
+.crm-topbar__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.crm-button--small {
+    width: auto;
+    min-height: 38px;
+    padding: 9px 13px;
+}
+
+.crm-quotation-panel {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 110;
+    width: min(900px, 100%);
+    height: 100vh;
+    overflow-y: auto;
+    transform: translateX(105%);
+    background: var(--crm-paper);
+    box-shadow: var(--crm-shadow);
+    transition: transform 220ms ease;
+}
+
+.crm-quotation-panel.is-open {
+    transform: translateX(0);
+}
+
+.crm-quotation-form {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.crm-quotation-panel__body {
+    flex: 1;
+    padding: 30px 34px 110px;
+}
+
+.crm-quotation-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 18px 34px;
+    border-top: 1px solid var(--crm-line);
+    background: rgba(255, 253, 249, .97);
+    backdrop-filter: blur(10px);
+}
+
+.crm-form-section + .crm-form-section {
+    margin-top: 38px;
+    padding-top: 32px;
+    border-top: 1px solid var(--crm-line);
+}
+
+.crm-section-heading--row {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.crm-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.crm-form-grid label,
+.crm-form-field--full,
+.crm-totals-editor label {
+    display: grid;
+    gap: 8px;
+    color: var(--crm-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.crm-form-field--full {
+    margin-top: 16px;
+}
+
+.crm-form-grid input,
+.crm-form-grid select,
+.crm-form-grid textarea,
+.crm-form-field--full textarea,
+.crm-totals-editor input,
+.crm-quote-item input,
+.crm-quote-item textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 13px;
+    border: 1px solid var(--crm-line);
+    color: var(--crm-brown);
+    background: #fff;
+    text-transform: none;
+}
+
+.crm-form-field--full textarea,
+.crm-quote-item textarea {
+    resize: vertical;
+}
+
+.crm-quote-items {
+    display: grid;
+    gap: 12px;
+}
+
+.crm-quote-item {
+    display: grid;
+    grid-template-columns: minmax(180px, 1.5fr) minmax(170px, 1.2fr) 100px 130px 130px 42px;
+    gap: 10px;
+    align-items: end;
+    padding: 16px;
+    border: 1px solid var(--crm-line);
+    background: #fff;
+}
+
+.crm-quote-item label {
+    display: grid;
+    gap: 7px;
+    color: var(--crm-muted);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.crm-quote-item__total {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 4px;
+    font-weight: 700;
+}
+
+.crm-quote-item__remove {
+    width: 42px;
+    height: 44px;
+    border: 1px solid var(--crm-line);
+    color: var(--crm-danger);
+    background: transparent;
+    font-size: 20px;
+}
+
+.crm-totals-editor {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.crm-quote-summary {
+    max-width: 520px;
+    margin-left: auto;
+    border: 1px solid var(--crm-line);
+}
+
+.crm-quote-summary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--crm-line);
+}
+
+.crm-quote-summary > div:last-child {
+    border-bottom: 0;
+}
+
+.crm-quote-summary span {
+    color: var(--crm-muted);
+    font-size: 11px;
+}
+
+.crm-quote-summary__total {
+    color: #fff;
+    background: var(--crm-brown);
+}
+
+.crm-quote-summary__total span {
+    color: rgba(255,255,255,.7);
+}
+
+.crm-quote-summary__total strong {
+    font-family: "DM Serif Display", serif;
+    font-size: 23px;
+    font-weight: 400;
+}
+
+.crm-quotation-detail {
+    z-index: 110;
+}
+
+.crm-quote-detail-items {
+    display: grid;
+    gap: 10px;
+}
+
+.crm-quote-detail-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--crm-line);
+}
+
+.crm-quote-detail-item h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+}
+
+.crm-quote-detail-item p {
+    margin: 0;
+    color: var(--crm-muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.crm-quote-detail-item__amount {
+    text-align: right;
+}
+
+.crm-quote-detail-item__amount strong,
+.crm-quote-detail-item__amount small {
+    display: block;
+}
+
+.crm-quote-detail-item__amount small {
+    margin-top: 5px;
+    color: var(--crm-muted);
+}
+
+.crm-quote-summary--detail {
+    margin-top: 18px;
+}
+
+.crm-quotation-status-draft {
+    color: var(--crm-warning);
+}
+
+.crm-quotation-status-accepted {
+    color: var(--crm-success);
+}
+
+.crm-quotation-status-declined,
+.crm-quotation-status-cancelled {
+    color: var(--crm-danger);
+}
+
+@media (max-width: 1050px) {
+    .crm-quote-item {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .crm-quote-item__remove {
+        width: 100%;
+    }
+}
+
+@media (max-width: 680px) {
+    .crm-topbar__actions {
+        width: 100%;
+    }
+
+    .crm-form-grid,
+    .crm-totals-editor,
+    .crm-quote-item {
+        grid-template-columns: 1fr;
+    }
+
+    .crm-quotation-panel__body,
+    .crm-quotation-footer {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .crm-quotation-footer {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}

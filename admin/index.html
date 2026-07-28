@@ -38,6 +38,11 @@
                         <span>Contact messages</span>
                         <small id="navContactCount">0</small>
                     </button>
+
+                    <button class="crm-nav__item" type="button" data-view="quotations">
+                        <span>Quotations</span>
+                        <small id="navQuotationCount">0</small>
+                    </button>
                 </nav>
             </div>
 
@@ -65,9 +70,15 @@
                     <h1>Enquiry dashboard</h1>
                 </div>
 
-                <button id="refreshButton" class="crm-button crm-button--secondary" type="button">
-                    Refresh
-                </button>
+                <div class="crm-topbar__actions">
+                    <button id="createQuotationButton" class="crm-button crm-button--primary" type="button">
+                        Create quotation
+                    </button>
+
+                    <button id="refreshButton" class="crm-button crm-button--secondary" type="button">
+                        Refresh
+                    </button>
+                </div>
             </header>
 
             <section class="crm-stat-grid" aria-label="Business overview">
@@ -140,12 +151,22 @@
                 <div class="crm-table-wrap">
                     <table class="crm-table">
                         <thead>
-                            <tr>
+                            <tr id="enquiryTableHead">
                                 <th>Reference</th>
                                 <th>Brand / customer</th>
                                 <th>Type</th>
                                 <th>Status</th>
                                 <th>Submitted</th>
+                                <th aria-label="Actions"></th>
+                            </tr>
+
+                            <tr id="quotationTableHead" hidden>
+                                <th>Quote</th>
+                                <th>Brand / customer</th>
+                                <th>Status</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Issued</th>
                                 <th aria-label="Actions"></th>
                             </tr>
                         </thead>
@@ -232,6 +253,10 @@
                 <a id="whatsappAction" class="crm-button crm-button--secondary" href="#" target="_blank" rel="noopener noreferrer">
                     Open WhatsApp
                 </a>
+
+                <button id="detailCreateQuoteButton" class="crm-button crm-button--secondary" type="button">
+                    Create quotation
+                </button>
             </section>
 
             <section class="crm-submitted-section">
@@ -241,6 +266,282 @@
                 </div>
 
                 <dl id="payloadList" class="crm-payload-list"></dl>
+            </section>
+        </div>
+    </aside>
+
+
+    <div id="quotationBackdrop" class="crm-detail-backdrop" hidden></div>
+
+    <aside id="quotationBuilder" class="crm-quotation-panel" aria-hidden="true">
+        <form id="quotationForm" class="crm-quotation-form" novalidate>
+            <header class="crm-detail-panel__header">
+                <div>
+                    <p class="crm-eyebrow">QUOTATION BUILDER</p>
+                    <h2 id="quotationBuilderTitle">Create quotation</h2>
+                </div>
+
+                <button id="closeQuotationButton" class="crm-detail-close" type="button" aria-label="Close quotation builder">
+                    ×
+                </button>
+            </header>
+
+            <div class="crm-quotation-panel__body">
+                <input type="hidden" id="quotationReference">
+                <input type="hidden" id="quotationSubmissionReference">
+
+                <section class="crm-form-section">
+                    <div class="crm-section-heading">
+                        <p class="crm-eyebrow">CUSTOMER</p>
+                        <h3>Customer details</h3>
+                    </div>
+
+                    <div class="crm-form-grid">
+                        <label>
+                            Customer name
+                            <input id="quoteCustomerName" type="text" maxlength="160">
+                        </label>
+
+                        <label>
+                            Brand name
+                            <input id="quoteBrandName" type="text" maxlength="160">
+                        </label>
+
+                        <label>
+                            Email address
+                            <input id="quoteCustomerEmail" type="email" maxlength="160">
+                        </label>
+
+                        <label>
+                            Phone number
+                            <input id="quoteCustomerPhone" type="tel" maxlength="60">
+                        </label>
+                    </div>
+                </section>
+
+                <section class="crm-form-section">
+                    <div class="crm-section-heading">
+                        <p class="crm-eyebrow">QUOTE DETAILS</p>
+                        <h3>Dates and terms</h3>
+                    </div>
+
+                    <div class="crm-form-grid">
+                        <label>
+                            Issue date
+                            <input id="quoteIssueDate" type="date" required>
+                        </label>
+
+                        <label>
+                            Expiry date
+                            <input id="quoteExpiryDate" type="date" required>
+                        </label>
+
+                        <label>
+                            Currency
+                            <select id="quoteCurrency">
+                                <option value="NGN">NGN — Nigerian naira</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Production timeline
+                            <input
+                                id="quoteProductionTimeline"
+                                type="text"
+                                placeholder="15–20 business days"
+                                maxlength="500"
+                            >
+                        </label>
+                    </div>
+
+                    <label class="crm-form-field--full">
+                        Payment terms
+                        <textarea
+                            id="quotePaymentTerms"
+                            rows="3"
+                            maxlength="2000"
+                            placeholder="70% deposit to begin production. 30% before dispatch."
+                        ></textarea>
+                    </label>
+                </section>
+
+                <section class="crm-form-section">
+                    <div class="crm-section-heading crm-section-heading--row">
+                        <div>
+                            <p class="crm-eyebrow">ITEMS</p>
+                            <h3>Quotation items</h3>
+                        </div>
+
+                        <button id="addQuotationItemButton" class="crm-button crm-button--secondary crm-button--small" type="button">
+                            Add item
+                        </button>
+                    </div>
+
+                    <div id="quotationItems" class="crm-quote-items"></div>
+                </section>
+
+                <section class="crm-form-section">
+                    <div class="crm-section-heading">
+                        <p class="crm-eyebrow">TOTALS</p>
+                        <h3>Pricing summary</h3>
+                    </div>
+
+                    <div class="crm-totals-editor">
+                        <label>
+                            Discount
+                            <input id="quoteDiscount" type="number" min="0" step="1" value="0">
+                        </label>
+
+                        <label>
+                            Delivery fee
+                            <input id="quoteDeliveryFee" type="number" min="0" step="1" value="0">
+                        </label>
+
+                        <label>
+                            Tax
+                            <input id="quoteTax" type="number" min="0" step="1" value="0">
+                        </label>
+                    </div>
+
+                    <div class="crm-quote-summary">
+                        <div>
+                            <span>Subtotal</span>
+                            <strong id="quoteSubtotal">₦0</strong>
+                        </div>
+
+                        <div>
+                            <span>Discount</span>
+                            <strong id="quoteDiscountDisplay">− ₦0</strong>
+                        </div>
+
+                        <div>
+                            <span>Delivery</span>
+                            <strong id="quoteDeliveryDisplay">₦0</strong>
+                        </div>
+
+                        <div>
+                            <span>Tax</span>
+                            <strong id="quoteTaxDisplay">₦0</strong>
+                        </div>
+
+                        <div class="crm-quote-summary__total">
+                            <span>Grand total</span>
+                            <strong id="quoteGrandTotal">₦0</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="crm-form-section">
+                    <div class="crm-section-heading">
+                        <p class="crm-eyebrow">NOTES</p>
+                        <h3>Additional information</h3>
+                    </div>
+
+                    <label class="crm-form-field--full">
+                        Notes
+                        <textarea
+                            id="quoteNotes"
+                            rows="4"
+                            maxlength="3000"
+                            placeholder="Quotation is subject to final artwork approval."
+                        ></textarea>
+                    </label>
+                </section>
+
+                <p id="quotationFormStatus" class="crm-form-status" role="status"></p>
+            </div>
+
+            <footer class="crm-quotation-footer">
+                <button id="cancelQuotationButton" class="crm-button crm-button--secondary" type="button">
+                    Cancel
+                </button>
+
+                <button id="saveQuotationButton" class="crm-button crm-button--primary" type="submit">
+                    Save quotation
+                </button>
+            </footer>
+        </form>
+    </aside>
+
+    <aside id="quotationDetailPanel" class="crm-detail-panel crm-quotation-detail" aria-hidden="true">
+        <div class="crm-detail-panel__header">
+            <div>
+                <p class="crm-eyebrow">QUOTATION</p>
+                <h2 id="quoteDetailReference">—</h2>
+            </div>
+
+            <button id="closeQuotationDetailButton" class="crm-detail-close" type="button" aria-label="Close quotation">
+                ×
+            </button>
+        </div>
+
+        <div class="crm-detail-panel__body">
+            <section class="crm-detail-grid">
+                <div>
+                    <span>Brand</span>
+                    <strong id="quoteDetailBrand">—</strong>
+                </div>
+
+                <div>
+                    <span>Customer</span>
+                    <strong id="quoteDetailCustomer">—</strong>
+                </div>
+
+                <div>
+                    <span>Email</span>
+                    <a id="quoteDetailEmail">—</a>
+                </div>
+
+                <div>
+                    <span>Grand total</span>
+                    <strong id="quoteDetailTotal">₦0</strong>
+                </div>
+            </section>
+
+            <section class="crm-status-section">
+                <div>
+                    <p class="crm-eyebrow">QUOTATION STATUS</p>
+                    <p>Update the commercial status of this quotation.</p>
+                </div>
+
+                <select id="quoteDetailStatus">
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="declined">Declined</option>
+                    <option value="expired">Expired</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </section>
+
+            <section class="crm-detail-actions">
+                <button id="editQuotationButton" class="crm-button crm-button--primary" type="button">
+                    Edit quotation
+                </button>
+
+                <a id="quoteDetailEmailAction" class="crm-button crm-button--secondary" href="#">
+                    Email customer
+                </a>
+            </section>
+
+            <section class="crm-submitted-section">
+                <div class="crm-section-heading">
+                    <p class="crm-eyebrow">ITEMS</p>
+                    <h3>Quotation breakdown</h3>
+                </div>
+
+                <div id="quoteDetailItems" class="crm-quote-detail-items"></div>
+
+                <div id="quoteDetailSummary" class="crm-quote-summary crm-quote-summary--detail"></div>
+            </section>
+
+            <section class="crm-submitted-section">
+                <div class="crm-section-heading">
+                    <p class="crm-eyebrow">TERMS</p>
+                    <h3>Commercial information</h3>
+                </div>
+
+                <dl id="quoteDetailTerms" class="crm-payload-list"></dl>
             </section>
         </div>
     </aside>

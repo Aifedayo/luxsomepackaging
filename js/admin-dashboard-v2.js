@@ -4,12 +4,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const state = {
         token: sessionStorage.getItem("luxsomeAdminToken") || "",
+        view: "all",
         type: "",
         status: "",
         search: "",
         offset: 0,
         total: 0,
-        selectedReference: ""
+        selectedReference: "",
+        selectedSubmission: null,
+        selectedQuotation: null
     };
 
     if (!state.token) {
@@ -23,6 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
         mobileBackdrop: document.getElementById("mobileBackdrop"),
         logoutButton: document.getElementById("logoutButton"),
         refreshButton: document.getElementById("refreshButton"),
+        createQuotationButton: document.getElementById("createQuotationButton"),
         searchInput: document.getElementById("searchInput"),
         statusFilter: document.getElementById("statusFilter"),
         tableBody: document.getElementById("submissionsTableBody"),
@@ -32,19 +36,34 @@ document.addEventListener("DOMContentLoaded", function () {
         nextButton: document.getElementById("nextButton"),
         paginationText: document.getElementById("paginationText"),
         viewTitle: document.getElementById("viewTitle"),
+        enquiryTableHead: document.getElementById("enquiryTableHead"),
+        quotationTableHead: document.getElementById("quotationTableHead"),
         detailBackdrop: document.getElementById("detailBackdrop"),
         detailPanel: document.getElementById("detailPanel"),
         closeDetailButton: document.getElementById("closeDetailButton"),
         detailStatus: document.getElementById("detailStatus"),
-        payloadList: document.getElementById("payloadList")
+        detailCreateQuoteButton: document.getElementById("detailCreateQuoteButton"),
+        payloadList: document.getElementById("payloadList"),
+        quotationBackdrop: document.getElementById("quotationBackdrop"),
+        quotationBuilder: document.getElementById("quotationBuilder"),
+        quotationForm: document.getElementById("quotationForm"),
+        closeQuotationButton: document.getElementById("closeQuotationButton"),
+        cancelQuotationButton: document.getElementById("cancelQuotationButton"),
+        addQuotationItemButton: document.getElementById("addQuotationItemButton"),
+        quotationItems: document.getElementById("quotationItems"),
+        quotationFormStatus: document.getElementById("quotationFormStatus"),
+        quotationDetailPanel: document.getElementById("quotationDetailPanel"),
+        closeQuotationDetailButton: document.getElementById("closeQuotationDetailButton"),
+        quoteDetailStatus: document.getElementById("quoteDetailStatus"),
+        editQuotationButton: document.getElementById("editQuotationButton")
     };
 
     let searchTimer = null;
 
     elements.logoutButton.addEventListener("click", logout);
-
-    elements.refreshButton.addEventListener("click", function () {
-        loadDashboard();
+    elements.refreshButton.addEventListener("click", loadCurrentView);
+    elements.createQuotationButton.addEventListener("click", function () {
+        openQuotationBuilder();
     });
 
     elements.mobileMenuButton.addEventListener("click", openMobileMenu);
@@ -57,27 +76,26 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             button.classList.add("is-active");
-
-            const requestedView = button.dataset.view;
-            state.type = requestedView === "all" ? "" : requestedView;
+            state.view = button.dataset.view;
+            state.type = ["project", "contact"].includes(state.view)
+                ? state.view
+                : "";
+            state.status = "";
             state.offset = 0;
+            elements.statusFilter.value = "";
+            elements.searchInput.value = "";
+            state.search = "";
 
-            elements.viewTitle.textContent =
-                requestedView === "project"
-                    ? "Project briefs"
-                    : requestedView === "contact"
-                        ? "Contact messages"
-                        : "All enquiries";
-
+            updateViewConfiguration();
             closeMobileMenu();
-            loadSubmissions();
+            loadCurrentView();
         });
     });
 
     elements.statusFilter.addEventListener("change", function () {
         state.status = elements.statusFilter.value;
         state.offset = 0;
-        loadSubmissions();
+        loadCurrentView();
     });
 
     elements.searchInput.addEventListener("input", function () {
@@ -86,27 +104,33 @@ document.addEventListener("DOMContentLoaded", function () {
         searchTimer = setTimeout(function () {
             state.search = elements.searchInput.value.trim();
             state.offset = 0;
-            loadSubmissions();
+            loadCurrentView();
         }, 350);
     });
 
     elements.previousButton.addEventListener("click", function () {
         state.offset = Math.max(0, state.offset - PAGE_SIZE);
-        loadSubmissions();
+        loadCurrentView();
     });
 
     elements.nextButton.addEventListener("click", function () {
         if (state.offset + PAGE_SIZE < state.total) {
             state.offset += PAGE_SIZE;
-            loadSubmissions();
+            loadCurrentView();
         }
     });
 
     elements.tableBody.addEventListener("click", function (event) {
-        const trigger = event.target.closest("[data-reference]");
+        const submissionTrigger = event.target.closest("[data-reference]");
+        const quotationTrigger = event.target.closest("[data-quote-reference]");
 
-        if (trigger) {
-            openSubmission(trigger.dataset.reference);
+        if (quotationTrigger) {
+            openQuotationDetail(quotationTrigger.dataset.quoteReference);
+            return;
+        }
+
+        if (submissionTrigger) {
+            openSubmission(submissionTrigger.dataset.reference);
         }
     });
 
@@ -137,18 +161,81 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    elements.detailCreateQuoteButton.addEventListener("click", function () {
+        const submission = state.selectedSubmission;
+        closeDetail();
+        openQuotationBuilder(submission);
+    });
+
+    elements.closeQuotationButton.addEventListener("click", closeQuotationBuilder);
+    elements.cancelQuotationButton.addEventListener("click", closeQuotationBuilder);
+    elements.quotationBackdrop.addEventListener("click", closeAllQuotationPanels);
+
+    elements.addQuotationItemButton.addEventListener("click", function () {
+        addQuotationItem();
+    });
+
+    elements.quotationItems.addEventListener("input", updateQuotationTotals);
+    elements.quotationItems.addEventListener("click", function (event) {
+        const removeButton = event.target.closest("[data-remove-item]");
+
+        if (!removeButton) return;
+
+        const item = removeButton.closest(".crm-quote-item");
+        item?.remove();
+
+        if (!elements.quotationItems.children.length) {
+            addQuotationItem();
+        }
+
+        updateQuotationTotals();
+    });
+
+    ["quoteDiscount", "quoteDeliveryFee", "quoteTax"].forEach(function (id) {
+        document.getElementById(id).addEventListener("input", updateQuotationTotals);
+    });
+
+    elements.quotationForm.addEventListener("submit", saveQuotation);
+
+    elements.closeQuotationDetailButton.addEventListener(
+        "click",
+        closeQuotationDetail
+    );
+
+    elements.quoteDetailStatus.addEventListener("change", updateQuotationStatus);
+
+    elements.editQuotationButton.addEventListener("click", function () {
+        if (!state.selectedQuotation) return;
+
+        const quotation = state.selectedQuotation;
+        closeQuotationDetail();
+        openQuotationBuilder(null, quotation);
+    });
+
     document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            if (elements.detailPanel.classList.contains("is-open")) {
-                closeDetail();
-            } else {
-                closeMobileMenu();
-            }
+        if (event.key !== "Escape") return;
+
+        if (elements.quotationBuilder.classList.contains("is-open")) {
+            closeQuotationBuilder();
+        } else if (elements.quotationDetailPanel.classList.contains("is-open")) {
+            closeQuotationDetail();
+        } else if (elements.detailPanel.classList.contains("is-open")) {
+            closeDetail();
+        } else {
+            closeMobileMenu();
         }
     });
 
     async function loadDashboard() {
-        await Promise.all([loadStats(), loadSubmissions()]);
+        await Promise.all([loadStats(), loadCurrentView()]);
+    }
+
+    async function loadCurrentView() {
+        if (state.view === "quotations") {
+            await loadQuotations();
+        } else {
+            await loadSubmissions();
+        }
     }
 
     async function loadStats() {
@@ -163,6 +250,17 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("navAllCount").textContent = data.stats.total;
         document.getElementById("navProjectCount").textContent = data.stats.projects;
         document.getElementById("navContactCount").textContent = data.stats.contacts;
+
+        try {
+            const quotationData = await apiRequest(
+                "/admin/quotations?limit=1&offset=0"
+            );
+
+            document.getElementById("navQuotationCount").textContent =
+                quotationData.pagination.total;
+        } catch (_) {
+            document.getElementById("navQuotationCount").textContent = "0";
+        }
     }
 
     async function loadSubmissions() {
@@ -183,7 +281,7 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
             state.total = data.pagination.total;
-            renderRows(data.submissions);
+            renderSubmissionRows(data.submissions);
             updatePagination();
             setStatus("");
         } catch (error) {
@@ -194,7 +292,87 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function renderRows(submissions) {
+    async function loadQuotations() {
+        setStatus("Loading quotations...");
+
+        const params = new URLSearchParams({
+            limit: String(PAGE_SIZE),
+            offset: String(state.offset)
+        });
+
+        if (state.status) params.set("status", state.status);
+        if (state.search) params.set("search", state.search);
+
+        try {
+            const data = await apiRequest(
+                `/admin/quotations?${params.toString()}`
+            );
+
+            state.total = data.pagination.total;
+            renderQuotationRows(data.quotations);
+            updatePagination();
+            setStatus("");
+        } catch (error) {
+            setStatus(
+                error.message || "Quotations could not be loaded.",
+                true
+            );
+        }
+    }
+
+    function updateViewConfiguration() {
+        const isQuotationView = state.view === "quotations";
+
+        elements.enquiryTableHead.hidden = isQuotationView;
+        elements.quotationTableHead.hidden = !isQuotationView;
+
+        elements.viewTitle.textContent =
+            state.view === "project"
+                ? "Project briefs"
+                : state.view === "contact"
+                    ? "Contact messages"
+                    : isQuotationView
+                        ? "Quotations"
+                        : "All enquiries";
+
+        elements.createQuotationButton.hidden = false;
+
+        const quotationStatuses = [
+            ["", "All statuses"],
+            ["draft", "Draft"],
+            ["sent", "Sent"],
+            ["accepted", "Accepted"],
+            ["declined", "Declined"],
+            ["expired", "Expired"],
+            ["cancelled", "Cancelled"]
+        ];
+
+        const enquiryStatuses = [
+            ["", "All statuses"],
+            ["new", "New"],
+            ["reviewing", "Reviewing"],
+            ["quoted", "Quoted"],
+            ["follow_up", "Follow up"],
+            ["won", "Won"],
+            ["lost", "Lost"],
+            ["archived", "Archived"]
+        ];
+
+        const options = isQuotationView
+            ? quotationStatuses
+            : enquiryStatuses;
+
+        elements.statusFilter.replaceChildren();
+
+        options.forEach(function ([value, label]) {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = label;
+            elements.statusFilter.appendChild(option);
+        });
+    }
+
+    function renderSubmissionRows(submissions) {
         elements.tableBody.replaceChildren();
         elements.emptyState.hidden = submissions.length > 0;
 
@@ -247,6 +425,54 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function renderQuotationRows(quotations) {
+        elements.tableBody.replaceChildren();
+        elements.emptyState.hidden = quotations.length > 0;
+
+        quotations.forEach(function (quotation) {
+            const row = document.createElement("tr");
+            const displayName =
+                quotation.brand_name ||
+                quotation.customer_name ||
+                "Unnamed customer";
+
+            row.innerHTML = `
+                <td>
+                    <button
+                        class="crm-reference-button"
+                        type="button"
+                        data-quote-reference="${escapeHtml(quotation.quote_reference)}"
+                    >
+                        ${escapeHtml(quotation.quote_reference)}
+                    </button>
+                </td>
+                <td>
+                    <strong>${escapeHtml(displayName)}</strong>
+                    <small>${escapeHtml(quotation.customer_email || "")}</small>
+                </td>
+                <td>
+                    <span class="crm-status-badge crm-quotation-status-${escapeHtml(quotation.status)}">
+                        ${escapeHtml(formatStatus(quotation.status))}
+                    </span>
+                </td>
+                <td>${escapeHtml(String(quotation.item_count || 0))}</td>
+                <td><strong>${escapeHtml(formatMoney(quotation.grand_total))}</strong></td>
+                <td>${escapeHtml(formatDateOnly(quotation.issue_date))}</td>
+                <td>
+                    <button
+                        class="crm-view-button"
+                        type="button"
+                        data-quote-reference="${escapeHtml(quotation.quote_reference)}"
+                    >
+                        View
+                    </button>
+                </td>
+            `;
+
+            elements.tableBody.appendChild(row);
+        });
+    }
+
     async function openSubmission(reference) {
         setStatus("Opening enquiry...");
 
@@ -257,6 +483,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const submission = data.submission;
             state.selectedReference = submission.reference;
+            state.selectedSubmission = submission;
 
             document.getElementById("detailType").textContent =
                 submission.submission_type === "project"
@@ -343,6 +570,523 @@ document.addEventListener("DOMContentLoaded", function () {
         elements.detailPanel.setAttribute("aria-hidden", "true");
         document.body.classList.remove("crm-lock-scroll");
         state.selectedReference = "";
+        state.selectedSubmission = null;
+    }
+
+    function openQuotationBuilder(submission = null, quotation = null) {
+        resetQuotationForm();
+
+        if (submission) {
+            document.getElementById("quotationSubmissionReference").value =
+                submission.reference || "";
+
+            document.getElementById("quoteCustomerName").value =
+                submission.customer_name || "";
+
+            document.getElementById("quoteBrandName").value =
+                submission.brand_name || "";
+
+            document.getElementById("quoteCustomerEmail").value =
+                submission.email || "";
+
+            document.getElementById("quoteCustomerPhone").value =
+                submission.phone || "";
+        }
+
+        if (quotation) {
+            populateQuotationForm(quotation);
+        }
+
+        elements.quotationBackdrop.hidden = false;
+        elements.quotationBuilder.classList.add("is-open");
+        elements.quotationBuilder.setAttribute("aria-hidden", "false");
+        document.body.classList.add("crm-lock-scroll");
+    }
+
+    function resetQuotationForm() {
+        elements.quotationForm.reset();
+        elements.quotationItems.replaceChildren();
+        elements.quotationFormStatus.textContent = "";
+
+        document.getElementById("quotationReference").value = "";
+        document.getElementById("quotationSubmissionReference").value = "";
+        document.getElementById("quotationBuilderTitle").textContent =
+            "Create quotation";
+
+        const issue = new Date();
+        const expiry = new Date();
+        expiry.setDate(issue.getDate() + 7);
+
+        document.getElementById("quoteIssueDate").value = toDateInput(issue);
+        document.getElementById("quoteExpiryDate").value = toDateInput(expiry);
+        document.getElementById("quoteProductionTimeline").value =
+            "15–20 business days after payment and artwork approval.";
+        document.getElementById("quotePaymentTerms").value =
+            "70% deposit to begin production. 30% before dispatch.";
+        document.getElementById("quoteNotes").value =
+            "Quotation is subject to final artwork approval.";
+
+        addQuotationItem();
+        updateQuotationTotals();
+    }
+
+    function populateQuotationForm(quotation) {
+        document.getElementById("quotationBuilderTitle").textContent =
+            `Edit ${quotation.quote_reference}`;
+
+        document.getElementById("quotationReference").value =
+            quotation.quote_reference || "";
+
+        document.getElementById("quotationSubmissionReference").value =
+            quotation.submission_reference || "";
+
+        document.getElementById("quoteCustomerName").value =
+            quotation.customer_name || "";
+
+        document.getElementById("quoteBrandName").value =
+            quotation.brand_name || "";
+
+        document.getElementById("quoteCustomerEmail").value =
+            quotation.customer_email || "";
+
+        document.getElementById("quoteCustomerPhone").value =
+            quotation.customer_phone || "";
+
+        document.getElementById("quoteIssueDate").value =
+            quotation.issue_date || "";
+
+        document.getElementById("quoteExpiryDate").value =
+            quotation.expiry_date || "";
+
+        document.getElementById("quoteCurrency").value =
+            quotation.currency || "NGN";
+
+        document.getElementById("quoteProductionTimeline").value =
+            quotation.production_timeline || "";
+
+        document.getElementById("quotePaymentTerms").value =
+            quotation.payment_terms || "";
+
+        document.getElementById("quoteDiscount").value =
+            quotation.discount || 0;
+
+        document.getElementById("quoteDeliveryFee").value =
+            quotation.delivery_fee || 0;
+
+        document.getElementById("quoteTax").value =
+            quotation.tax || 0;
+
+        document.getElementById("quoteNotes").value =
+            quotation.notes || "";
+
+        elements.quotationItems.replaceChildren();
+
+        (quotation.items || []).forEach(function (item) {
+            addQuotationItem({
+                description: item.description,
+                details: item.details,
+                quantity: item.quantity,
+                unitPrice: item.unit_price
+            });
+        });
+
+        if (!quotation.items?.length) {
+            addQuotationItem();
+        }
+
+        updateQuotationTotals();
+    }
+
+    function addQuotationItem(item = {}) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "crm-quote-item";
+
+        wrapper.innerHTML = `
+            <label>
+                Item description
+                <input
+                    type="text"
+                    data-item-description
+                    maxlength="240"
+                    value="${escapeHtml(item.description || "")}"
+                    placeholder="Magnetic flap rigid box"
+                    required
+                >
+            </label>
+
+            <label>
+                Details
+                <input
+                    type="text"
+                    data-item-details
+                    maxlength="1000"
+                    value="${escapeHtml(item.details || "")}"
+                    placeholder="Matte laminated, custom printed"
+                >
+            </label>
+
+            <label>
+                Quantity
+                <input
+                    type="number"
+                    data-item-quantity
+                    min="0.01"
+                    step="0.01"
+                    value="${escapeHtml(item.quantity || 1)}"
+                    required
+                >
+            </label>
+
+            <label>
+                Unit price
+                <input
+                    type="number"
+                    data-item-price
+                    min="0"
+                    step="1"
+                    value="${escapeHtml(item.unitPrice || 0)}"
+                    required
+                >
+            </label>
+
+            <div class="crm-quote-item__total" data-item-total>₦0</div>
+
+            <button
+                class="crm-quote-item__remove"
+                type="button"
+                data-remove-item
+                aria-label="Remove quotation item"
+            >×</button>
+        `;
+
+        elements.quotationItems.appendChild(wrapper);
+        updateQuotationTotals();
+    }
+
+    function collectQuotationItems() {
+        return Array.from(
+            elements.quotationItems.querySelectorAll(".crm-quote-item")
+        ).map(function (item) {
+            return {
+                description:
+                    item.querySelector("[data-item-description]").value.trim(),
+                details:
+                    item.querySelector("[data-item-details]").value.trim(),
+                quantity:
+                    Number(item.querySelector("[data-item-quantity]").value),
+                unitPrice:
+                    Number(item.querySelector("[data-item-price]").value)
+            };
+        });
+    }
+
+    function updateQuotationTotals() {
+        let subtotal = 0;
+
+        elements.quotationItems
+            .querySelectorAll(".crm-quote-item")
+            .forEach(function (item) {
+                const quantity = Number(
+                    item.querySelector("[data-item-quantity]").value
+                ) || 0;
+
+                const price = Number(
+                    item.querySelector("[data-item-price]").value
+                ) || 0;
+
+                const total = Math.round(quantity * price);
+                subtotal += total;
+
+                item.querySelector("[data-item-total]").textContent =
+                    formatMoney(total);
+            });
+
+        const discount = Math.max(
+            0,
+            Number(document.getElementById("quoteDiscount").value) || 0
+        );
+
+        const delivery = Math.max(
+            0,
+            Number(document.getElementById("quoteDeliveryFee").value) || 0
+        );
+
+        const tax = Math.max(
+            0,
+            Number(document.getElementById("quoteTax").value) || 0
+        );
+
+        const grandTotal = Math.max(
+            0,
+            subtotal - Math.min(discount, subtotal) + delivery + tax
+        );
+
+        document.getElementById("quoteSubtotal").textContent =
+            formatMoney(subtotal);
+
+        document.getElementById("quoteDiscountDisplay").textContent =
+            `− ${formatMoney(discount)}`;
+
+        document.getElementById("quoteDeliveryDisplay").textContent =
+            formatMoney(delivery);
+
+        document.getElementById("quoteTaxDisplay").textContent =
+            formatMoney(tax);
+
+        document.getElementById("quoteGrandTotal").textContent =
+            formatMoney(grandTotal);
+    }
+
+    async function saveQuotation(event) {
+        event.preventDefault();
+
+        const quoteReference =
+            document.getElementById("quotationReference").value.trim();
+
+        const payload = {
+            submissionReference:
+                document.getElementById("quotationSubmissionReference").value.trim(),
+            customerName:
+                document.getElementById("quoteCustomerName").value.trim(),
+            brandName:
+                document.getElementById("quoteBrandName").value.trim(),
+            customerEmail:
+                document.getElementById("quoteCustomerEmail").value.trim(),
+            customerPhone:
+                document.getElementById("quoteCustomerPhone").value.trim(),
+            currency:
+                document.getElementById("quoteCurrency").value,
+            issueDate:
+                document.getElementById("quoteIssueDate").value,
+            expiryDate:
+                document.getElementById("quoteExpiryDate").value,
+            productionTimeline:
+                document.getElementById("quoteProductionTimeline").value.trim(),
+            paymentTerms:
+                document.getElementById("quotePaymentTerms").value.trim(),
+            discount:
+                Number(document.getElementById("quoteDiscount").value) || 0,
+            deliveryFee:
+                Number(document.getElementById("quoteDeliveryFee").value) || 0,
+            tax:
+                Number(document.getElementById("quoteTax").value) || 0,
+            notes:
+                document.getElementById("quoteNotes").value.trim(),
+            items: collectQuotationItems()
+        };
+
+        const saveButton = document.getElementById("saveQuotationButton");
+        saveButton.disabled = true;
+        elements.quotationFormStatus.textContent = "Saving quotation...";
+
+        try {
+            const endpoint = quoteReference
+                ? `/admin/quotations/${encodeURIComponent(quoteReference)}`
+                : "/admin/quotations";
+
+            const method = quoteReference ? "PATCH" : "POST";
+
+            const data = await apiRequest(endpoint, {
+                method,
+                body: JSON.stringify(payload)
+            });
+
+            elements.quotationFormStatus.textContent =
+                data.message || "Quotation saved.";
+
+            closeQuotationBuilder();
+            state.view = "quotations";
+            state.status = "";
+            state.offset = 0;
+
+            document.querySelectorAll(".crm-nav__item").forEach(function (item) {
+                item.classList.toggle(
+                    "is-active",
+                    item.dataset.view === "quotations"
+                );
+            });
+
+            updateViewConfiguration();
+            await Promise.all([loadStats(), loadQuotations()]);
+        } catch (error) {
+            elements.quotationFormStatus.textContent =
+                error.message || "The quotation could not be saved.";
+        } finally {
+            saveButton.disabled = false;
+        }
+    }
+
+    function closeQuotationBuilder() {
+        elements.quotationBuilder.classList.remove("is-open");
+        elements.quotationBuilder.setAttribute("aria-hidden", "true");
+        elements.quotationBackdrop.hidden = true;
+        document.body.classList.remove("crm-lock-scroll");
+    }
+
+    async function openQuotationDetail(reference) {
+        setStatus("Opening quotation...");
+
+        try {
+            const data = await apiRequest(
+                `/admin/quotations/${encodeURIComponent(reference)}`
+            );
+
+            const quotation = data.quotation;
+            state.selectedQuotation = quotation;
+
+            document.getElementById("quoteDetailReference").textContent =
+                quotation.quote_reference;
+
+            document.getElementById("quoteDetailBrand").textContent =
+                quotation.brand_name || "Not supplied";
+
+            document.getElementById("quoteDetailCustomer").textContent =
+                quotation.customer_name || "Not supplied";
+
+            const email = document.getElementById("quoteDetailEmail");
+            email.textContent = quotation.customer_email || "Not supplied";
+            email.href = quotation.customer_email
+                ? `mailto:${quotation.customer_email}`
+                : "#";
+
+            document.getElementById("quoteDetailTotal").textContent =
+                formatMoney(quotation.grand_total);
+
+            elements.quoteDetailStatus.value = quotation.status;
+
+            document.getElementById("quoteDetailEmailAction").href =
+                quotation.customer_email
+                    ? `mailto:${quotation.customer_email}?subject=${encodeURIComponent(
+                        `Luxsome quotation ${quotation.quote_reference}`
+                    )}`
+                    : "#";
+
+            renderQuotationDetailItems(quotation);
+            renderQuotationDetailTerms(quotation);
+
+            elements.quotationBackdrop.hidden = false;
+            elements.quotationDetailPanel.classList.add("is-open");
+            elements.quotationDetailPanel.setAttribute("aria-hidden", "false");
+            document.body.classList.add("crm-lock-scroll");
+            setStatus("");
+        } catch (error) {
+            setStatus(
+                error.message || "The quotation could not be opened.",
+                true
+            );
+        }
+    }
+
+    function renderQuotationDetailItems(quotation) {
+        const container = document.getElementById("quoteDetailItems");
+        container.replaceChildren();
+
+        (quotation.items || []).forEach(function (item) {
+            const row = document.createElement("div");
+            row.className = "crm-quote-detail-item";
+
+            row.innerHTML = `
+                <div>
+                    <h4>${escapeHtml(item.description)}</h4>
+                    <p>${escapeHtml(item.details || "No additional details")}</p>
+                </div>
+
+                <div class="crm-quote-detail-item__amount">
+                    <strong>${escapeHtml(formatMoney(item.line_total))}</strong>
+                    <small>
+                        ${escapeHtml(String(item.quantity))}
+                        ×
+                        ${escapeHtml(formatMoney(item.unit_price))}
+                    </small>
+                </div>
+            `;
+
+            container.appendChild(row);
+        });
+
+        const summary = document.getElementById("quoteDetailSummary");
+
+        summary.innerHTML = `
+            <div><span>Subtotal</span><strong>${escapeHtml(formatMoney(quotation.subtotal))}</strong></div>
+            <div><span>Discount</span><strong>− ${escapeHtml(formatMoney(quotation.discount))}</strong></div>
+            <div><span>Delivery</span><strong>${escapeHtml(formatMoney(quotation.delivery_fee))}</strong></div>
+            <div><span>Tax</span><strong>${escapeHtml(formatMoney(quotation.tax))}</strong></div>
+            <div class="crm-quote-summary__total">
+                <span>Grand total</span>
+                <strong>${escapeHtml(formatMoney(quotation.grand_total))}</strong>
+            </div>
+        `;
+    }
+
+    function renderQuotationDetailTerms(quotation) {
+        const list = document.getElementById("quoteDetailTerms");
+        list.replaceChildren();
+
+        const fields = [
+            ["Issue date", formatDateOnly(quotation.issue_date)],
+            ["Expiry date", formatDateOnly(quotation.expiry_date)],
+            ["Production timeline", quotation.production_timeline || "Not supplied"],
+            ["Payment terms", quotation.payment_terms || "Not supplied"],
+            ["Notes", quotation.notes || "Not supplied"],
+            ["Linked enquiry", quotation.submission_reference || "Not linked"]
+        ];
+
+        fields.forEach(function ([label, value]) {
+            const term = document.createElement("dt");
+            const detail = document.createElement("dd");
+
+            term.textContent = label;
+            detail.textContent = value;
+
+            list.append(term, detail);
+        });
+    }
+
+    async function updateQuotationStatus() {
+        const quotation = state.selectedQuotation;
+
+        if (!quotation) return;
+
+        try {
+            elements.quoteDetailStatus.disabled = true;
+
+            await apiRequest(
+                `/admin/quotations/${encodeURIComponent(quotation.quote_reference)}`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        status: elements.quoteDetailStatus.value
+                    })
+                }
+            );
+
+            quotation.status = elements.quoteDetailStatus.value;
+            await Promise.all([loadStats(), loadQuotations()]);
+        } catch (error) {
+            window.alert(
+                error.message || "The quotation status could not be updated."
+            );
+        } finally {
+            elements.quoteDetailStatus.disabled = false;
+        }
+    }
+
+    function closeQuotationDetail() {
+        elements.quotationDetailPanel.classList.remove("is-open");
+        elements.quotationDetailPanel.setAttribute("aria-hidden", "true");
+        elements.quotationBackdrop.hidden = true;
+        document.body.classList.remove("crm-lock-scroll");
+        state.selectedQuotation = null;
+    }
+
+    function closeAllQuotationPanels() {
+        if (elements.quotationBuilder.classList.contains("is-open")) {
+            closeQuotationBuilder();
+        }
+
+        if (elements.quotationDetailPanel.classList.contains("is-open")) {
+            closeQuotationDetail();
+        }
     }
 
     function openMobileMenu() {
@@ -357,7 +1101,11 @@ document.addEventListener("DOMContentLoaded", function () {
         elements.mobileBackdrop.hidden = true;
         elements.mobileMenuButton.setAttribute("aria-expanded", "false");
 
-        if (!elements.detailPanel.classList.contains("is-open")) {
+        if (
+            !elements.detailPanel.classList.contains("is-open") &&
+            !elements.quotationBuilder.classList.contains("is-open") &&
+            !elements.quotationDetailPanel.classList.contains("is-open")
+        ) {
             document.body.classList.remove("crm-lock-scroll");
         }
     }
@@ -431,16 +1179,46 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function formatDate(value) {
-        const date = new Date(value);
+        const parsed = new Date(value);
 
-        if (Number.isNaN(date.getTime())) {
+        if (Number.isNaN(parsed.getTime())) {
             return value || "";
         }
 
         return new Intl.DateTimeFormat("en-NG", {
             dateStyle: "medium",
             timeStyle: "short"
-        }).format(date);
+        }).format(parsed);
+    }
+
+    function formatDateOnly(value) {
+        if (!value) return "";
+
+        const parsed = new Date(`${value}T00:00:00`);
+
+        if (Number.isNaN(parsed.getTime())) {
+            return value;
+        }
+
+        return new Intl.DateTimeFormat("en-NG", {
+            dateStyle: "medium"
+        }).format(parsed);
+    }
+
+    function formatMoney(value) {
+        return new Intl.NumberFormat("en-NG", {
+            style: "currency",
+            currency: "NGN",
+            maximumFractionDigits: 0
+        }).format(Number(value) || 0);
+    }
+
+    function toDateInput(value) {
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, "0");
+        const day = String(value.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
     }
 
     function escapeHtml(value) {
@@ -452,5 +1230,6 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/'/g, "&#039;");
     }
 
+    updateViewConfiguration();
     loadDashboard();
 });
