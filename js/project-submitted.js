@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const STORAGE_KEY =
         "luxsomeProjectConfirmation";
 
-    const whatsappNumber = "2348061389594";
+    const whatsappNumber = "2349068804133";
 
     const projectReference =
         document.getElementById("projectReference");

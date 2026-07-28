@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * Nigeria example:
      * 2348012345678
      */
-    const whatsappNumber = "2348061389594";
+    const whatsappNumber = "2349068804133";
 
     const errorIds = {
         1: "product-error",
