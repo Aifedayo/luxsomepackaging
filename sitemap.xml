@@ -91,4 +91,11 @@
         <priority>0.7</priority>
     </url>
 
+    <url>
+        <loc>https://www.luxsomepackaging.com/packaging-builder/</loc>
+        <lastmod>2026-07-28</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
 </urlset>

@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Build Your Packaging System | Luxsome Packaging</title>
+
+    <meta
+        name="description"
+        content="Build a packaging system tailored to your brand, product, quantity and desired customer experience."
+    >
+
+    <meta name="robots" content="index, follow">
+
+    <link
+        rel="canonical"
+        href="https://www.luxsomepackaging.com/packaging-builder/"
+    >
+
+    <meta property="og:type" content="website">
+
+    <meta
+        property="og:title"
+        content="Build Your Packaging System | Luxsome Packaging"
+    >
+
+    <meta
+        property="og:description"
+        content="Tell us about your brand and receive a tailored packaging system recommendation."
+    >
+
+    <meta
+        property="og:url"
+        content="https://www.luxsomepackaging.com/packaging-builder/"
+    >
+
+    <meta property="og:site_name" content="Luxsome Packaging">
+
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/builder.css">
+    
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+    >
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Build Your Packaging System",
+        "description": "An interactive packaging system builder by Luxsome Packaging.",
+        "url": "https://www.luxsomepackaging.com/packaging-builder/",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "Luxsome Packaging",
+            "url": "https://www.luxsomepackaging.com/"
+        }
+    }
+    </script>
+
+    <script src="/js/builder.js" defer></script>
+</head>
+
+<body>
+    <a class="skip-link" href="#builder">
+        Skip to packaging builder
+    </a>
+
+    <header class="site-header">
+        <div class="container header-inner">
+
+            <a
+                href="/"
+                class="logo-link"
+                aria-label="Luxsome homepage"
+            >
+                <img
+                    src="../assets/images/luxsome-logo.png"
+                    alt="Luxsome Packaging"
+                    class="logo-image"
+                >
+            </a>
+
+            <button
+                type="button"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                aria-label="Open navigation menu"
+                aria-controls="siteNavigation"
+                aria-expanded="false"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <nav
+                class="site-navigation"
+                id="siteNavigation"
+                aria-label="Main navigation"
+            >
+                <a href="/"
+                >
+                    Home
+                </a>
+                <a
+                    href="/gallery/"
+                >
+                    Gallery
+                </a>
+                <a
+                    href="/our-story/"
+                >
+                    Our Story
+                </a>
+
+                <a href="/pricing/">
+                    Pricing
+                </a>
+
+                <a href="/contact/">
+                    Contact Us
+                </a>
+                
+                <a
+                    href="/start-project/"
+                    class="header-contact-button"
+                >
+                    Start a Project
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="builder-shell" id="builder">
+        <section
+            class="builder"
+            aria-labelledby="builder-title"
+        >
+            <div class="builder__intro">
+                <p class="eyebrow">
+                    The Luxsome Experience
+                </p>
+
+                <h1 id="builder-title">
+                    Build your packaging system.
+                </h1>
+
+                <p class="builder__description">
+                    Tell us about your brand and the experience you want to
+                    create. We will recommend a thoughtful starting point for
+                    your complete packaging system.
+                </p>
+            </div>
+
+            <div class="builder__panel">
+                <div
+                    class="builder-progress"
+                    id="builder-progress"
+                    hidden
+                >
+                    <div class="builder-progress__top">
+                        <span id="progress-label">
+                            Step 1 of 7
+                        </span>
+
+                        <span id="progress-percentage">
+                            14%
+                        </span>
+                    </div>
+
+                    <div
+                        class="builder-progress__track"
+                        role="progressbar"
+                        aria-valuemin="1"
+                        aria-valuemax="7"
+                        aria-valuenow="1"
+                        aria-labelledby="progress-label"
+                    >
+                        <span
+                            class="builder-progress__value"
+                            id="progress-value"
+                        ></span>
+                    </div>
+                </div>
+
+                <form id="packaging-form" novalidate>
+                    <!-- Welcome -->
+                    <section
+                        class="builder-step builder-step--welcome is-active"
+                        data-step="0"
+                        aria-labelledby="welcome-heading"
+                    >
+                        <div class="welcome-number" aria-hidden="true">
+                            01
+                        </div>
+
+                        <p class="step-kicker">
+                            A guided recommendation
+                        </p>
+
+                        <h2 id="welcome-heading">
+                            Let us design the right starting point for your
+                            brand.
+                        </h2>
+
+                        <p>
+                            This should take less than two minutes. Your answers
+                            will be used to recommend a packaging tier and the
+                            pieces that may suit your brand.
+                        </p>
+
+                        <button
+                            type="button"
+                            class="button button--primary"
+                            data-action="start"
+                        >
+                            Start building
+                            <span aria-hidden="true">→</span>
+                        </button>
+                    </section>
+
+                    <!-- Step 1 -->
+                    <fieldset
+                        class="builder-step"
+                        data-step="1"
+                        aria-describedby="product-help product-error"
+                    >
+                        <legend>
+                            What do you sell?
+                        </legend>
+
+                        <p class="step-description" id="product-help">
+                            Choose the category closest to your main product.
+                        </p>
+
+                        <div class="option-grid option-grid--three">
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Womenswear"
+                                >
+                                <span class="option-card__number">01</span>
+                                <span class="option-card__title">
+                                    Womenswear
+                                </span>
+                            </label>
+
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Menswear"
+                                >
+                                <span class="option-card__number">02</span>
+                                <span class="option-card__title">
+                                    Menswear
+                                </span>
+                            </label>
+
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Modest fashion and hijabs"
+                                >
+                                <span class="option-card__number">03</span>
+                                <span class="option-card__title">
+                                    Modest fashion
+                                </span>
+                            </label>
+
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Shoes"
+                                >
+                                <span class="option-card__number">04</span>
+                                <span class="option-card__title">
+                                    Shoes
+                                </span>
+                            </label>
+
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Bags"
+                                >
+                                <span class="option-card__number">05</span>
+                                <span class="option-card__title">
+                                    Bags
+                                </span>
+                            </label>
+
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Jewellery and accessories"
+                                >
+                                <span class="option-card__number">06</span>
+                                <span class="option-card__title">
+                                    Jewellery
+                                </span>
+                            </label>
+
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Beauty and cosmetics"
+                                >
+                                <span class="option-card__number">07</span>
+                                <span class="option-card__title">
+                                    Beauty
+                                </span>
+                            </label>
+
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Gift items"
+                                >
+                                <span class="option-card__number">08</span>
+                                <span class="option-card__title">
+                                    Gift items
+                                </span>
+                            </label>
+
+                            <label class="option-card">
+                                <input
+                                    type="radio"
+                                    name="product"
+                                    value="Other"
+                                >
+                                <span class="option-card__number">09</span>
+                                <span class="option-card__title">
+                                    Other
+                                </span>
+                            </label>
+                        </div>
+
+                        <p
+                            class="field-error"
+                            id="product-error"
+                            aria-live="polite"
+                        ></p>
+                    </fieldset>
+
+                    <!-- Step 2 -->
+                    <fieldset
+                        class="builder-step"
+                        data-step="2"
+                        aria-describedby="stage-help stage-error"
+                    >
+                        <legend>
+                            Where is your brand today?
+                        </legend>
+
+                        <p class="step-description" id="stage-help">
+                            This helps us recommend an appropriate starting
+                            point.
+                        </p>
+
+                        <div class="option-grid option-grid--two">
+                            <label class="option-card option-card--text">
+                                <input
+                                    type="radio"
+                                    name="stage"
+                                    value="Just starting"
+                                >
+
+                                <span class="option-card__title">
+                                    Just starting
+                                </span>
+
+                                <span class="option-card__description">
+                                    I am preparing to launch or refining my
+                                    first branded packaging.
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--text">
+                                <input
+                                    type="radio"
+                                    name="stage"
+                                    value="Growing"
+                                >
+
+                                <span class="option-card__title">
+                                    Growing
+                                </span>
+
+                                <span class="option-card__description">
+                                    I have regular customers and want a more
+                                    consistent presentation.
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--text">
+                                <input
+                                    type="radio"
+                                    name="stage"
+                                    value="Established"
+                                >
+
+                                <span class="option-card__title">
+                                    Established
+                                </span>
+
+                                <span class="option-card__description">
+                                    My brand is established and ready for a
+                                    stronger packaging system.
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--text">
+                                <input
+                                    type="radio"
+                                    name="stage"
+                                    value="Luxury"
+                                >
+
+                                <span class="option-card__title">
+                                    Luxury-led
+                                </span>
+
+                                <span class="option-card__description">
+                                    Premium presentation is central to my
+                                    customer experience.
+                                </span>
+                            </label>
+                        </div>
+
+                        <p
+                            class="field-error"
+                            id="stage-error"
+                            aria-live="polite"
+                        ></p>
+                    </fieldset>
+
+                    <!-- Step 3 -->
+                    <fieldset
+                        class="builder-step"
+                        data-step="3"
+                        aria-describedby="quantity-help quantity-error"
+                    >
+                        <legend>
+                            How many units are you considering?
+                        </legend>
+
+                        <p class="step-description" id="quantity-help">
+                            An estimate is enough for this recommendation.
+                        </p>
+
+                        <div class="option-grid option-grid--two">
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="radio"
+                                    name="quantity"
+                                    value="25–50 units"
+                                >
+                                <span class="option-card__title">
+                                    25–50
+                                </span>
+                                <span class="option-card__description">
+                                    Small collection or launch
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="radio"
+                                    name="quantity"
+                                    value="51–100 units"
+                                >
+                                <span class="option-card__title">
+                                    51–100
+                                </span>
+                                <span class="option-card__description">
+                                    Growing order volume
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="radio"
+                                    name="quantity"
+                                    value="101–250 units"
+                                >
+                                <span class="option-card__title">
+                                    101–250
+                                </span>
+                                <span class="option-card__description">
+                                    Established order volume
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="radio"
+                                    name="quantity"
+                                    value="More than 250 units"
+                                >
+                                <span class="option-card__title">
+                                    250+
+                                </span>
+                                <span class="option-card__description">
+                                    Larger production requirement
+                                </span>
+                            </label>
+                        </div>
+
+                        <p
+                            class="field-error"
+                            id="quantity-error"
+                            aria-live="polite"
+                        ></p>
+                    </fieldset>
+
+                    <!-- Step 4 -->
+                    <fieldset
+                        class="builder-step"
+                        data-step="4"
+                        aria-describedby="experience-help experience-error"
+                    >
+                        <legend>
+                            How should the experience feel?
+                        </legend>
+
+                        <p class="step-description" id="experience-help">
+                            Select up to three qualities.
+                        </p>
+
+                        <div class="option-grid option-grid--three">
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="checkbox"
+                                    name="experience"
+                                    value="Premium"
+                                >
+                                <span class="option-card__title">
+                                    Premium
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="checkbox"
+                                    name="experience"
+                                    value="Elegant"
+                                >
+                                <span class="option-card__title">
+                                    Elegant
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="checkbox"
+                                    name="experience"
+                                    value="Memorable"
+                                >
+                                <span class="option-card__title">
+                                    Memorable
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="checkbox"
+                                    name="experience"
+                                    value="Gift-worthy"
+                                >
+                                <span class="option-card__title">
+                                    Gift-worthy
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="checkbox"
+                                    name="experience"
+                                    value="Luxurious"
+                                >
+                                <span class="option-card__title">
+                                    Luxurious
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="checkbox"
+                                    name="experience"
+                                    value="Minimal"
+                                >
+                                <span class="option-card__title">
+                                    Minimal
+                                </span>
+                            </label>
+                        </div>
+
+                        <p class="selection-count">
+                            <span id="experience-count">0</span> of 3 selected
+                        </p>
+
+                        <p
+                            class="field-error"
+                            id="experience-error"
+                            aria-live="polite"
+                        ></p>
+                    </fieldset>
+
+                    <!-- Step 5 -->
+                    <fieldset
+                        class="builder-step"
+                        data-step="5"
+                        aria-describedby="approach-help approach-error"
+                    >
+                        <legend>
+                            How would you like to build?
+                        </legend>
+
+                        <p class="step-description" id="approach-help">
+                            Luxsome can recommend the pieces or you can select
+                            them yourself.
+                        </p>
+
+                        <div class="option-grid option-grid--two">
+                            <label class="option-card option-card--text">
+                                <input
+                                    type="radio"
+                                    name="approach"
+                                    value="recommend"
+                                >
+
+                                <span class="option-card__badge">
+                                    Recommended
+                                </span>
+
+                                <span class="option-card__title">
+                                    Recommend my system
+                                </span>
+
+                                <span class="option-card__description">
+                                    Choose a cohesive starting system based on
+                                    my answers.
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--text">
+                                <input
+                                    type="radio"
+                                    name="approach"
+                                    value="choose"
+                                >
+
+                                <span class="option-card__title">
+                                    I would like to choose
+                                </span>
+
+                                <span class="option-card__description">
+                                    Let me select the individual packaging
+                                    pieces I am interested in.
+                                </span>
+                            </label>
+                        </div>
+
+                        <div
+                            class="piece-selector"
+                            id="piece-selector"
+                            hidden
+                        >
+                            <h3>
+                                Select your packaging pieces
+                            </h3>
+
+                            <p>
+                                Choose at least one piece. You can refine the
+                                final combination with Luxsome later.
+                            </p>
+
+                            <div class="option-grid option-grid--three">
+                                <label class="option-card option-card--compact">
+                                    <input
+                                        type="checkbox"
+                                        name="pieces"
+                                        value="Rigid box"
+                                    >
+                                    <span class="option-card__title">
+                                        Rigid box
+                                    </span>
+                                </label>
+
+                                <label class="option-card option-card--compact">
+                                    <input
+                                        type="checkbox"
+                                        name="pieces"
+                                        value="Hang tags"
+                                    >
+                                    <span class="option-card__title">
+                                        Hang tags
+                                    </span>
+                                </label>
+
+                                <label class="option-card option-card--compact">
+                                    <input
+                                        type="checkbox"
+                                        name="pieces"
+                                        value="Thank-you card"
+                                    >
+                                    <span class="option-card__title">
+                                        Thank-you card
+                                    </span>
+                                </label>
+
+                                <label class="option-card option-card--compact">
+                                    <input
+                                        type="checkbox"
+                                        name="pieces"
+                                        value="Envelope"
+                                    >
+                                    <span class="option-card__title">
+                                        Envelope
+                                    </span>
+                                </label>
+
+                                <label class="option-card option-card--compact">
+                                    <input
+                                        type="checkbox"
+                                        name="pieces"
+                                        value="Branded tissue"
+                                    >
+                                    <span class="option-card__title">
+                                        Branded tissue
+                                    </span>
+                                </label>
+
+                                <label class="option-card option-card--compact">
+                                    <input
+                                        type="checkbox"
+                                        name="pieces"
+                                        value="Sticker seal"
+                                    >
+                                    <span class="option-card__title">
+                                        Sticker seal
+                                    </span>
+                                </label>
+
+                                <label class="option-card option-card--compact">
+                                    <input
+                                        type="checkbox"
+                                        name="pieces"
+                                        value="Ribbon"
+                                    >
+                                    <span class="option-card__title">
+                                        Ribbon
+                                    </span>
+                                </label>
+
+                                <label class="option-card option-card--compact">
+                                    <input
+                                        type="checkbox"
+                                        name="pieces"
+                                        value="Shopping bag"
+                                    >
+                                    <span class="option-card__title">
+                                        Shopping bag
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <p
+                            class="field-error"
+                            id="approach-error"
+                            aria-live="polite"
+                        ></p>
+                    </fieldset>
+
+                    <!-- Step 6 -->
+                    <fieldset
+                        class="builder-step"
+                        data-step="6"
+                        aria-describedby="investment-help investment-error"
+                    >
+                        <legend>
+                            Which level feels right for your brand?
+                        </legend>
+
+                        <p class="step-description" id="investment-help">
+                            This is not a final quotation. It helps us shape
+                            your recommendation.
+                        </p>
+
+                        <div class="tier-grid">
+                            <label class="tier-card">
+                                <input
+                                    type="radio"
+                                    name="investment"
+                                    value="Essential"
+                                >
+
+                                <span class="tier-card__name">
+                                    Essential
+                                </span>
+
+                                <span class="tier-card__description">
+                                    A focused branded presentation built around
+                                    the core pieces.
+                                </span>
+                            </label>
+
+                            <label class="tier-card">
+                                <input
+                                    type="radio"
+                                    name="investment"
+                                    value="Signature"
+                                >
+
+                                <span class="tier-card__badge">
+                                    Popular
+                                </span>
+
+                                <span class="tier-card__name">
+                                    Signature
+                                </span>
+
+                                <span class="tier-card__description">
+                                    A more complete and memorable unboxing
+                                    system.
+                                </span>
+                            </label>
+
+                            <label class="tier-card">
+                                <input
+                                    type="radio"
+                                    name="investment"
+                                    value="Complete"
+                                >
+
+                                <span class="tier-card__name">
+                                    Complete
+                                </span>
+
+                                <span class="tier-card__description">
+                                    A layered presentation across every major
+                                    customer touchpoint.
+                                </span>
+                            </label>
+
+                            <label class="tier-card">
+                                <input
+                                    type="radio"
+                                    name="investment"
+                                    value="Bespoke"
+                                >
+
+                                <span class="tier-card__name">
+                                    Bespoke
+                                </span>
+
+                                <span class="tier-card__description">
+                                    A custom project for a distinct or
+                                    specialised packaging requirement.
+                                </span>
+                            </label>
+                        </div>
+
+                        <p
+                            class="field-error"
+                            id="investment-error"
+                            aria-live="polite"
+                        ></p>
+                    </fieldset>
+
+                    <!-- Step 7 -->
+                    <fieldset
+                        class="builder-step"
+                        data-step="7"
+                        aria-describedby="timeline-help timeline-error"
+                    >
+                        <legend>
+                            When would you like your packaging?
+                        </legend>
+
+                        <p class="step-description" id="timeline-help">
+                            Production timing will be confirmed after reviewing
+                            your full requirements.
+                        </p>
+
+                        <div class="option-grid option-grid--two">
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="radio"
+                                    name="timeline"
+                                    value="As soon as possible"
+                                >
+                                <span class="option-card__title">
+                                    As soon as possible
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="radio"
+                                    name="timeline"
+                                    value="Within one month"
+                                >
+                                <span class="option-card__title">
+                                    Within one month
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="radio"
+                                    name="timeline"
+                                    value="Within two months"
+                                >
+                                <span class="option-card__title">
+                                    Within two months
+                                </span>
+                            </label>
+
+                            <label class="option-card option-card--compact">
+                                <input
+                                    type="radio"
+                                    name="timeline"
+                                    value="Just exploring"
+                                >
+                                <span class="option-card__title">
+                                    Just exploring
+                                </span>
+                            </label>
+                        </div>
+
+                        <p
+                            class="field-error"
+                            id="timeline-error"
+                            aria-live="polite"
+                        ></p>
+                    </fieldset>
+
+                    <!-- Result -->
+                    <section
+                        class="builder-step builder-result"
+                        data-step="8"
+                        aria-labelledby="result-heading"
+                        aria-live="polite"
+                    >
+                        <p class="step-kicker">
+                            Your recommendation
+                        </p>
+
+                        <div class="result-heading-row">
+                            <div>
+                                <h2 id="result-heading">
+                                    Your packaging system
+                                </h2>
+
+                                <p id="result-introduction">
+                                    A thoughtful starting point for your brand.
+                                </p>
+                            </div>
+
+                            <div class="result-tier">
+                                <span>Recommended level</span>
+                                <strong id="result-tier">Signature</strong>
+                            </div>
+                        </div>
+
+                        <div class="result-layout">
+                            <div class="result-card">
+                                <p class="result-card__label">
+                                    Suggested pieces
+                                </p>
+
+                                <ul
+                                    class="result-pieces"
+                                    id="result-pieces"
+                                ></ul>
+                            </div>
+
+                            <div class="result-card">
+                                <p class="result-card__label">
+                                    Why this system
+                                </p>
+
+                                <p
+                                    class="result-explanation"
+                                    id="result-explanation"
+                                ></p>
+                            </div>
+                        </div>
+
+                        <dl class="result-details">
+                            <div>
+                                <dt>Product</dt>
+                                <dd id="result-product"></dd>
+                            </div>
+
+                            <div>
+                                <dt>Brand stage</dt>
+                                <dd id="result-stage"></dd>
+                            </div>
+
+                            <div>
+                                <dt>Quantity</dt>
+                                <dd id="result-quantity"></dd>
+                            </div>
+
+                            <div>
+                                <dt>Timeline</dt>
+                                <dd id="result-timeline"></dd>
+                            </div>
+                        </dl>
+
+                        <p class="result-note">
+                            This recommendation is an initial guide, not a
+                            quotation. Materials, dimensions, finishing,
+                            availability and production timing will be confirmed
+                            by Luxsome.
+                        </p>
+
+                        <div class="result-actions">
+                            <a
+                                href="#"
+                                id="whatsapp-button"
+                                class="button button--primary"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Continue on WhatsApp
+                                <span aria-hidden="true">↗</span>
+                            </a>
+
+                            <button
+                                type="button"
+                                class="button button--secondary"
+                                data-action="restart"
+                            >
+                                Start again
+                            </button>
+                        </div>
+                    </section>
+
+                    <div
+                        class="builder-navigation"
+                        id="builder-navigation"
+                        hidden
+                    >
+                        <button
+                            type="button"
+                            class="button button--back"
+                            data-action="back"
+                        >
+                            <span aria-hidden="true">←</span>
+                            Back
+                        </button>
+
+                        <button
+                            type="button"
+                            class="button button--primary"
+                            data-action="next"
+                        >
+                            Continue
+                            <span aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+
+        <div class="container">
+
+            <!-- Footer columns -->
+            <div class="footer-grid reveal-group">
+
+                <!-- Brand column -->
+                <div class="footer-brand reveal reveal--up">
+
+                    <a
+                        href="/"
+                        class="footer-logo"
+                        aria-label="Luxsome Packaging homepage"
+                    >
+                        <img
+                            src="/assets/images/logo-white.png"
+                            alt="Luxsome Packaging"
+                            class="logo-image"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    </a>
+
+                    <p class="footer-description">
+                        Custom packaging boxes and complete luxury packaging
+                        systems for fashion and lifestyle brands in Lagos and
+                        across Nigeria.
+                    </p>
+
+                    <div class="footer-socials">
+
+                        <a
+                            href="https://www.instagram.com/luxsomepackaging"
+                            aria-label="Luxsome Packaging on Instagram"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-instagram"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                        <a
+                            href="https://wa.me/2348061389594"
+                            aria-label="Contact Luxsome Packaging on WhatsApp"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-whatsapp"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                        <a
+                            href="https://x.com/luxsomePG"
+                            aria-label="Luxsome Packaging on X"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-x-twitter"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                        <a
+                            href="https://www.pinterest.com/luxsomepackaging"
+                            aria-label="Luxsome Packaging on Pinterest"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-pinterest-p"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- Explore column -->
+                <div class="footer-column reveal reveal--up">
+
+                    <h2>
+                        Explore
+                    </h2>
+
+                    <div class="footer-links">
+
+                        <a href="/">
+                            Home
+                        </a>
+
+                        <a href="/pricing/">
+                            Pricing
+                        </a>
+
+                        <a href="/gallery/">
+                            Gallery
+                        </a>
+
+                        <a href="/our-story/">
+                            Our Story
+                        </a>
+
+                        <a href="/contact/">
+                            Contact Us
+                        </a>
+
+                        <a
+                            href="/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Product Guide
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- Information column -->
+                <div class="footer-column reveal reveal--up">
+
+                    <h2>
+                        Information
+                    </h2>
+
+                    <div class="footer-links">
+
+                        <a href="/faq/">
+                            Frequently Asked Questions
+                        </a>
+
+                        <a href="/shipping-production/">
+                            Shipping &amp; Production
+                        </a>
+
+                        <a href="/refund-returns/">
+                            Refund &amp; Returns
+                        </a>
+
+                        <a href="/privacy/">
+                            Privacy Policy
+                        </a>
+
+                        <a href="/terms/">
+                            Terms &amp; Conditions
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- Contact column -->
+                <div class="footer-column reveal reveal--up">
+
+                    <h2>
+                        Contact
+                    </h2>
+
+                    <div class="footer-links">
+
+                        <a
+                            href="https://wa.me/2348061389594"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            WhatsApp
+                        </a>
+
+                        <a href="mailto:hello@luxsomepackaging.com">
+                            hello@luxsomepackaging.com
+                        </a>
+
+                        <a href="/start-project/">
+                            Start a Project
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Footer bottom -->
+            <div class="footer-bottom">
+
+                <span>
+                    &copy;
+                    <span id="currentYear"></span>
+                    Luxsome Packaging. All rights reserved.
+                </span>
+
+                <div class="footer-bottom-links">
+
+                    <a href="/privacy/">
+                        Privacy
+                    </a>
+
+                    <a href="/terms/">
+                        Terms
+                    </a>
+
+                </div>
+
+                <span>
+                    Packaging created to be remembered.
+                </span>
+
+            </div>
+
+        </div>
+
+    </footer>
+</body>
+</html>
