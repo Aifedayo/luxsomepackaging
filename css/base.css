@@ -1488,7 +1488,8 @@ You can adjust individual image positions like this:
     }
 
     .system-value-intro h2 {
-        font-size: clamp(2.25rem, 11vw, 3.2rem);
+        font-size: 20px;
+        line-height: 1.5;
     }
 
     .system-value-description {
@@ -1503,7 +1504,7 @@ You can adjust individual image positions like this:
     }
 
     .system-value-item h3 {
-        font-size: 1.8rem;
+        font-size: 1.2rem;
     }
 
     .system-value-action {
