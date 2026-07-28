@@ -1,1169 +1,436 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("contactForm");
-    const projectsContainer = document.getElementById("projectsContainer");
-    const projectTemplate = document.getElementById("projectTemplate");
-    const addProjectButton = document.getElementById("addProjectButton");
-    const projectCountInput = document.getElementById("projectCount");
-    const notification = document.getElementById("notification");
+    const form = document.getElementById("projectForm");
+    if (!form) return;
 
-    if (
-        !form ||
-        !projectsContainer ||
-        !projectTemplate ||
-        !addProjectButton
-    ) {
-        console.error(
-            "The project form could not be initialised because one or more required elements are missing."
-        );
-        return;
-    }
+    const steps = Array.from(form.querySelectorAll(".project-step"));
+    const progressItems = Array.from(document.querySelectorAll("[data-progress-step]"));
+    const backButton = document.getElementById("backButton");
+    const nextButton = document.getElementById("nextButton");
+    const submitButton = document.getElementById("submitButton");
+    const mobileStepText = document.getElementById("mobileStepText");
+    const mobileProgressFill = document.getElementById("mobileProgressFill");
+    const formStatus = document.getElementById("formStatus");
+    const reviewCard = document.getElementById("reviewCard");
+    const projectSummaryInput = document.getElementById("projectSummaryInput");
+    const requiredDate = document.getElementById("requiredDate");
+    const bespokePanel = document.getElementById("bespokePanel");
+    const builderHandoff = document.getElementById("builderHandoff");
+    const builderChoice = document.getElementById("builderChoice");
+    const dismissBuilderHandoff = document.getElementById("dismissBuilderHandoff");
+    const builderRecommendationInput = document.getElementById("builderRecommendationInput");
+    const builderSource = document.getElementById("builderSource");
 
-    const submitButton = form.querySelector('button[type="submit"]');
+    let currentStep = 1;
+    const totalSteps = steps.length;
+    const builderData = readBuilderData();
 
-    if (!submitButton) {
-        console.error("The project form submit button was not found.");
-        return;
-    }
+    setMinimumDate();
+    applyBuilderData(builderData);
+    updateStepUI(false);
 
-    const MAX_PROJECTS = 5;
-
-    let nextProjectIndex = 0;
-    let notificationTimer;
-
-
-    /*
-     * Create the first project when the page loads.
-     */
-    addProject();
-
-
-    /*
-     * Add another project.
-     */
-    addProjectButton.addEventListener("click", () => {
-        addProject(true);
+    nextButton?.addEventListener("click", () => {
+        clearStatus();
+        if (!validateStep(currentStep)) return;
+        if (currentStep < totalSteps) {
+            currentStep += 1;
+            if (currentStep === totalSteps) buildReview();
+            updateStepUI();
+        }
     });
 
+    backButton?.addEventListener("click", () => {
+        clearStatus();
+        if (currentStep > 1) {
+            currentStep -= 1;
+            updateStepUI();
+        }
+    });
 
-    /*
-     * Handle project radio selections and removal using delegation.
-     */
-    projectsContainer.addEventListener("change", (event) => {
+    form.addEventListener("change", (event) => {
         const target = event.target;
-
-        if (!(target instanceof HTMLInputElement)) {
-            return;
-        }
-
-        if (target.type === "radio") {
-            const projectCard = target.closest("[data-project-card]");
-
-            if (projectCard) {
-                updateBespokeVisibility(projectCard);
-            }
-        }
+        if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement)) return;
+        target.removeAttribute("aria-invalid");
+        if (target.matches('[name="package_type"]')) updateBespokePanel(target.value);
     });
 
-
-    projectsContainer.addEventListener("click", (event) => {
-        const removeButton = event.target.closest("[data-remove-project]");
-
-        if (!removeButton) {
-            return;
-        }
-
-        const projectCard = removeButton.closest("[data-project-card]");
-
-        if (!projectCard) {
-            return;
-        }
-
-        removeProject(projectCard);
+    dismissBuilderHandoff?.addEventListener("click", () => {
+        /*
+         * Send the visitor back to the Packaging Builder so they can
+         * change their answers and generate a new recommendation.
+         *
+         * The saved builder result is intentionally kept in
+         * localStorage until the new recommendation replaces it.
+         */
+        window.location.href = "/packaging-builder/?adjust=true";
     });
 
-
-    /*
-     * Form submission.
-     */
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
+        clearStatus();
+        if (!validateStep(totalSteps)) return;
 
-        clearCustomValidationMessages();
-
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            focusFirstInvalidField();
-            return;
-        }
-
-        if (!validateBespokeProjects()) {
-            return;
-        }
-
-        const originalButtonContent = submitButton.innerHTML;
-
+        buildReview();
+        const original = submitButton.innerHTML;
         submitButton.disabled = true;
         submitButton.setAttribute("aria-busy", "true");
-
-        submitButton.innerHTML = `
-            <span class="spinner" aria-hidden="true"></span>
-            <span>Sending project request...</span>
-        `;
+        submitButton.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Sending brief...</span>';
 
         try {
             const response = await fetch(form.action, {
                 method: "POST",
                 body: new FormData(form),
-                headers: {
-                    Accept: "application/json"
-                }
+                headers: { Accept: "application/json" }
             });
 
-            if (response.ok) {
-                resetProjectForm();
-
-                window.location.href = "/start-project/project-submitted/";
-                    return;
+            if (!response.ok) {
+                let message = "Something went wrong. Please check your details and try again.";
+                try {
+                    const data = await response.json();
+                    if (Array.isArray(data.errors) && data.errors.length) {
+                        message = data.errors.map(item => item.message).filter(Boolean).join(" ");
+                    }
+                } catch (_) {}
+                throw new Error(message);
             }
-
-            let message =
-                "Something went wrong. Please check your details and try again.";
 
             try {
-                const responseData = await response.json();
+                localStorage.removeItem("luxsomePackagingBuilderResult");
+                localStorage.removeItem("luxsomePackagingBuilderAnswers");
+            } catch (_) {}
 
-                if (
-                    Array.isArray(responseData.errors) &&
-                    responseData.errors.length > 0
-                ) {
-                    message = responseData.errors
-                        .map((error) => error.message)
-                        .filter(Boolean)
-                        .join(" ");
-                }
-            } catch (error) {
-                console.warn(
-                    "Formspree returned an unreadable error response.",
-                    error
-                );
-            }
-
-            showNotification(message, "error");
+            window.location.href = "/start-project/project-submitted/";
         } catch (error) {
-            console.error("Project form submission failed:", error);
-
-            showNotification(
-                "Unable to send your project request. Please check your internet connection and try again.",
-                "error"
-            );
-        } finally {
+            showStatus(error.message || "Unable to send your project brief. Please check your connection and try again.", "error");
             submitButton.disabled = false;
             submitButton.removeAttribute("aria-busy");
-            submitButton.innerHTML = originalButtonContent;
+            submitButton.innerHTML = original;
         }
     });
 
-
-    /*
-     * Add a new project card.
-     */
-    function addProject(shouldScroll = false) {
-        const currentProjectCount = getProjectCards().length;
-
-        if (currentProjectCount >= MAX_PROJECTS) {
-            showNotification(
-                `You can add a maximum of ${MAX_PROJECTS} projects to one request.`,
-                "error"
+    function updateStepUI(shouldScroll = true) {
+        const isFirstStep = currentStep === 1;
+        const isReviewStep = currentStep === totalSteps;
+    
+        steps.forEach((step, index) => {
+            const stepNumber = index + 1;
+            const active = stepNumber === currentStep;
+    
+            step.hidden = !active;
+            step.classList.toggle("is-active", active);
+        });
+    
+        progressItems.forEach((item, index) => {
+            const stepNumber = index + 1;
+    
+            item.classList.toggle(
+                "is-active",
+                stepNumber === currentStep
             );
-
-            return;
-        }
-
-        const projectIndex = nextProjectIndex;
-        nextProjectIndex += 1;
-
-        const projectNumber = currentProjectCount + 1;
-
-        const templateHTML = projectTemplate.innerHTML
-            .replaceAll("__INDEX__", String(projectIndex));
-
-        const temporaryContainer = document.createElement("div");
-        temporaryContainer.innerHTML = templateHTML.trim();
-
-        const projectCard = temporaryContainer.firstElementChild;
-
-        if (!projectCard) {
-            console.error("The project template could not be created.");
-            return;
-        }
-
-        projectCard.dataset.projectIndex = String(projectIndex);
-
-        projectsContainer.appendChild(projectCard);
-
-        updateProjectNumbers();
-        updateProjectCount();
-        updateAddProjectButton();
-        updateMinimumDate(projectCard);
-        updateBespokeVisibility(projectCard);
-
-        if (shouldScroll) {
-            projectCard.scrollIntoView({
-                behavior: prefersReducedMotion() ? "auto" : "smooth",
-                block: "start"
-            });
-
-            const firstRadio = projectCard.querySelector(
-                'input[type="radio"]'
+    
+            item.classList.toggle(
+                "is-complete",
+                stepNumber < currentStep
             );
-
-            window.setTimeout(() => {
-                firstRadio?.focus();
-            }, prefersReducedMotion() ? 0 : 350);
-        }
-    }
-
-
-    /*
-     * Remove a project card.
-     */
-    function removeProject(projectCard) {
-        const projectCards = getProjectCards();
-
-        if (projectCards.length <= 1) {
-            showNotification(
-                "At least one packaging project is required.",
-                "error"
-            );
-
-            return;
-        }
-
-        projectCard.remove();
-
-        updateProjectNumbers();
-        updateProjectCount();
-        updateAddProjectButton();
-
-        showNotification(
-            "The packaging project was removed.",
-            "success"
-        );
-    }
-
-
-    /*
-     * Show or hide bespoke items.
-     */
-    function updateBespokeVisibility(projectCard) {
-        const selectedPackageType = projectCard.querySelector(
-            'input[type="radio"]:checked'
-        );
-
-        const bespokeOptions = projectCard.querySelector(
-            "[data-bespoke-options]"
-        );
-
-        if (!bespokeOptions) {
-            return;
-        }
-
-        const isBespoke =
-            selectedPackageType?.value === "Bespoke Packaging Project";
-
-        bespokeOptions.hidden = !isBespoke;
-
-        const bespokeInputs = bespokeOptions.querySelectorAll(
-            "input, select, textarea"
-        );
-
-        bespokeInputs.forEach((input) => {
-            input.disabled = !isBespoke;
-
-            if (!isBespoke && input instanceof HTMLInputElement) {
-                if (input.type === "checkbox") {
-                    input.checked = false;
-                }
-
-                input.setCustomValidity("");
+    
+            if (stepNumber === currentStep) {
+                item.setAttribute("aria-current", "step");
+            } else {
+                item.removeAttribute("aria-current");
             }
         });
+    
+        /*
+         * Step 1:
+         * Hide the Back button.
+         *
+         * Steps 2–4:
+         * Show the Back button.
+         */
+        backButton.hidden = isFirstStep;
+    
+        /*
+         * Hide Continue completely on the Review step.
+         */
+        nextButton.hidden = isReviewStep;
+        nextButton.disabled = isReviewStep;
+        nextButton.setAttribute(
+            "aria-hidden",
+            String(isReviewStep)
+        );
+    
+        /*
+         * Only show the Submit button on the Review step.
+         */
+        submitButton.hidden = !isReviewStep;
+    
+        mobileStepText.textContent =
+            `Step ${currentStep} of ${totalSteps}`;
+    
+        mobileProgressFill.style.width =
+            `${(currentStep / totalSteps) * 100}%`;
+    
+        if (shouldScroll) {
+            document
+                .querySelector(".project-form-shell")
+                ?.scrollIntoView({
+                    behavior: prefersReducedMotion()
+                        ? "auto"
+                        : "smooth",
+                    block: "start"
+                });
+        }
+    
+        const activeStep = steps[currentStep - 1];
+    
+        window.setTimeout(() => {
+            const firstFocusableElement =
+                activeStep?.querySelector(
+                    "input, select, textarea, button"
+                );
+    
+            firstFocusableElement?.focus({
+                preventScroll: true
+            });
+        }, prefersReducedMotion() ? 0 : 350);
     }
 
+    function validateStep(stepNumber) {
+        const step = steps[stepNumber - 1];
+        if (!step) return false;
 
-    /*
-     * Bespoke projects must contain at least one selected item.
-     */
-    function validateBespokeProjects() {
-        const projectCards = getProjectCards();
-
-        for (const projectCard of projectCards) {
-            const selectedPackageType = projectCard.querySelector(
-                'input[type="radio"]:checked'
-            );
-
-            if (
-                selectedPackageType?.value !==
-                "Bespoke Packaging Project"
-            ) {
-                continue;
-            }
-
-            const bespokeCheckboxes = Array.from(
-                projectCard.querySelectorAll(
-                    '[data-bespoke-options] input[type="checkbox"]'
-                )
-            );
-
-            const selectedBespokeItems = bespokeCheckboxes.filter(
-                (checkbox) => checkbox.checked
-            );
-
-            if (selectedBespokeItems.length === 0) {
-                const firstCheckbox = bespokeCheckboxes[0];
-
-                firstCheckbox?.setCustomValidity(
-                    "Please select at least one bespoke packaging item."
-                );
-
-                firstCheckbox?.reportValidity();
-                firstCheckbox?.focus();
-
-                showNotification(
-                    "Please select at least one item for every bespoke packaging project.",
-                    "error"
-                );
-
+        const requiredFields = Array.from(step.querySelectorAll("[required]"));
+        for (const field of requiredFields) {
+            if (!field.checkValidity()) {
+                field.setAttribute("aria-invalid", "true");
+                showStatus("Please complete the highlighted required field before continuing.", "error");
+                field.reportValidity();
+                field.focus();
                 return false;
             }
+        }
+
+        if (stepNumber === 2) {
+            const selectedPackage = form.querySelector('[name="package_type"]:checked');
+            if (!selectedPackage) {
+                showStatus("Please choose a packaging system or select ‘Guide me’.", "error");
+                form.querySelector('[name="package_type"]')?.focus();
+                return false;
+            }
+            if (selectedPackage.value === "Bespoke Packaging System") {
+                const hasBox = form.querySelector('[name="box_style"]:checked');
+                const hasComponent = form.querySelector('[name="components[]"]:checked');
+                if (!hasBox && !hasComponent) {
+                    showStatus("For a bespoke system, choose at least one box style or supporting piece.", "error");
+                    bespokePanel.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "center" });
+                    return false;
+                }
+            }
+        }
+
+        if (stepNumber === 3 && !form.querySelector('[name="desired_experience[]"]:checked')) {
+            showStatus("Please choose at least one feeling you want the packaging to create.", "error");
+            form.querySelector('[name="desired_experience[]"]')?.focus();
+            return false;
         }
 
         return true;
     }
 
-
-    /*
-     * Remove previous custom validation messages.
-     */
-    function clearCustomValidationMessages() {
-        const bespokeCheckboxes = form.querySelectorAll(
-            '[data-bespoke-options] input[type="checkbox"]'
-        );
-
-        bespokeCheckboxes.forEach((checkbox) => {
-            checkbox.setCustomValidity("");
+    function updateBespokePanel(value) {
+        const show = value === "Bespoke Packaging System";
+        bespokePanel.hidden = !show;
+        bespokePanel.querySelectorAll("input, select, textarea").forEach(input => {
+            input.disabled = !show;
+            if (!show && input instanceof HTMLInputElement) input.checked = false;
         });
     }
 
+    function buildReview() {
+        const values = {
+            brand: valueOf("brandName"),
+            name: valueOf("fullName"),
+            contact: [valueOf("email"), valueOf("phone")].filter(Boolean).join(" · "),
+            location: valueOf("location"),
+            category: selectedText("productCategory"),
+            stage: selectedText("brandStage"),
+            system: checkedValue("package_type"),
+            box: checkedValue("box_style"),
+            components: checkedValues("components[]"),
+            quantity: selectedText("quantity"),
+            date: formatDate(valueOf("requiredDate")),
+            product: valueOf("productType"),
+            dimensions: valueOf("dimensions"),
+            investment: selectedText("budget"),
+            artwork: selectedText("artworkStatus"),
+            experience: checkedValues("desired_experience[]"),
+            contactMethod: selectedText("preferredContact"),
+            notes: valueOf("projectNotes")
+        };
 
-    /*
-     * Keep project numbering visually sequential even after removal.
-     */
-    function updateProjectNumbers() {
-        const projectCards = getProjectCards();
+        reviewCard.innerHTML = [
+            reviewSection("Brand", [
+                ["Brand", values.brand], ["Contact person", values.name], ["Contact", values.contact], ["Location", values.location], ["Category", values.category], ["Brand stage", values.stage]
+            ]),
+            reviewSection("Packaging", [
+                ["Starting system", values.system], ["Box style", values.box || "To be confirmed"], ["Supporting pieces", values.components || "Included according to selected tier"]
+            ]),
+            reviewSection("Project", [
+                ["Quantity", values.quantity], ["Required date", values.date], ["Product", values.product], ["Dimensions", values.dimensions || "To be confirmed"], ["Investment level", values.investment], ["Artwork", values.artwork], ["Desired experience", values.experience], ["Preferred contact", values.contactMethod], ["Notes", values.notes || "None supplied"]
+            ])
+        ].join("");
 
-        projectCards.forEach((projectCard, index) => {
-            const projectNumberElement = projectCard.querySelector(
-                "[data-project-number]"
+        projectSummaryInput.value = [
+            `Brand: ${values.brand}`,
+            `Contact: ${values.name} (${values.contact})`,
+            `System: ${values.system}`,
+            `Box: ${values.box || "To be confirmed"}`,
+            `Components: ${values.components || "According to selected tier"}`,
+            `Quantity: ${values.quantity}`,
+            `Product: ${values.product}`,
+            `Required date: ${values.date}`,
+            `Experience: ${values.experience}`
+        ].join("\n");
+    }
+
+    function reviewSection(title, rows) {
+        const validRows = rows.filter(([, value]) => value);
+        return `<section class="review-section"><h3>${escapeHTML(title)}</h3><dl class="review-list">${validRows.map(([label, value]) => `<div class="review-row"><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`).join("")}</dl></section>`;
+    }
+
+    function readBuilderData() {
+        const params = new URLSearchParams(window.location.search);
+        const source = params.get("source");
+        const tierFromUrl = params.get("tier") || params.get("recommendation");
+        let stored = null;
+
+        try {
+            stored = JSON.parse(
+                localStorage.getItem("luxsomePackagingBuilderResult") || "null"
             );
+        } catch (error) {
+            console.warn("The saved Packaging Builder result could not be read.", error);
+        }
 
-            if (projectNumberElement) {
-                projectNumberElement.textContent = String(
-                    index + 1
-                ).padStart(2, "0");
+        const isBuilderVisit = source === "builder" || Boolean(tierFromUrl) || Boolean(stored);
+        if (!isBuilderVisit) return null;
+
+        // Ignore an expired saved recommendation. Builder results remain valid for 7 days.
+        if (stored?.savedAt) {
+            const age = Date.now() - new Date(stored.savedAt).getTime();
+            const sevenDays = 7 * 24 * 60 * 60 * 1000;
+
+            if (Number.isFinite(age) && age > sevenDays) {
+                localStorage.removeItem("luxsomePackagingBuilderResult");
+                stored = null;
             }
+        }
 
-            const removeButton = projectCard.querySelector(
-                "[data-remove-project]"
-            );
+        const recommendation = stored?.recommendationDetails || stored?.recommendation || {};
+        const answers = stored?.answers || {};
 
-            if (removeButton) {
-                removeButton.setAttribute(
-                    "aria-label",
-                    `Remove project ${index + 1}`
+        const title =
+            tierFromUrl ||
+            recommendation.title ||
+            stored?.title ||
+            stored?.tier ||
+            (typeof stored?.recommendation === "string" ? stored.recommendation : "") ||
+            "Your recommended packaging system";
+
+        const description =
+            recommendation.description ||
+            recommendation.reason ||
+            stored?.description ||
+            stored?.summary ||
+            "Continue with the recommendation created from your Packaging Builder answers. You can still adjust any detail in this brief.";
+
+        const rawComponents =
+            recommendation.components ||
+            recommendation.pieces ||
+            stored?.components ||
+            stored?.pieces ||
+            [];
+
+        const components = Array.isArray(rawComponents)
+            ? rawComponents
+                .map(item => typeof item === "string" ? item : item?.name || item?.label)
+                .filter(Boolean)
+            : [];
+
+        return {
+            title,
+            description,
+            components,
+            answers,
+            builderId: stored?.builderId || "",
+            savedAt: stored?.savedAt || ""
+        };
+    }
+
+    function applyBuilderData(data) {
+        if (!data) return;
+        builderHandoff.hidden = false;
+        builderChoice.hidden = false;
+        builderSource.value = "Packaging Builder";
+        builderRecommendationInput.value = [data.title, ...data.components].filter(Boolean).join(" — ");
+        document.getElementById("builderRecommendationTitle").textContent = data.title;
+        document.getElementById("builderRecommendationText").textContent = data.description;
+        document.getElementById("builderChoiceTitle").textContent = `Use ${data.title}`;
+        document.getElementById("builderChoiceDescription").textContent = data.components.length ? `Recommended pieces: ${data.components.join(", ")}.` : data.description;
+        const builderRadio = builderChoice.querySelector('input[type="radio"]');
+        builderRadio.checked = true;
+
+        prefillFromBuilderAnswers(data.answers);
+    }
+
+    function prefillFromBuilderAnswers(answers = {}) {
+        if (!answers || typeof answers !== "object") return;
+
+        const fieldMap = {
+            quantity: "quantity",
+            orderQuantity: "quantity",
+            timeline: "requiredDate",
+            requiredDate: "requiredDate",
+            productType: "productType",
+            product: "productType",
+            investment: "investmentLevel",
+            investmentLevel: "investmentLevel",
+            experience: "desiredExperience",
+            desiredExperience: "desiredExperience"
+        };
+
+        Object.entries(fieldMap).forEach(([answerKey, fieldId]) => {
+            const value = answers[answerKey];
+            const field = document.getElementById(fieldId);
+
+            if (!value || !field || field.value) return;
+
+            if (field instanceof HTMLSelectElement) {
+                const matchingOption = Array.from(field.options).find(option =>
+                    option.value.toLowerCase() === String(value).toLowerCase() ||
+                    option.textContent.trim().toLowerCase() === String(value).toLowerCase()
                 );
-            }
-        });
-    }
 
-
-    /*
-     * Keep the hidden Formspree project count accurate.
-     */
-    function updateProjectCount() {
-        if (projectCountInput) {
-            projectCountInput.value = String(
-                getProjectCards().length
-            );
-        }
-    }
-
-
-    /*
-     * Disable the add button after reaching the maximum.
-     */
-    function updateAddProjectButton() {
-        const projectCount = getProjectCards().length;
-        const maximumReached = projectCount >= MAX_PROJECTS;
-
-        addProjectButton.disabled = maximumReached;
-
-        if (maximumReached) {
-            addProjectButton.innerHTML = `
-                <i class="fa-solid fa-check" aria-hidden="true"></i>
-                Maximum of ${MAX_PROJECTS} projects added
-            `;
-        } else {
-            addProjectButton.innerHTML = `
-                <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                Add another packaging project
-            `;
-        }
-    }
-
-
-    /*
-     * Prevent users from selecting a date in the past.
-     */
-    function updateMinimumDate(projectCard) {
-        const dateInput = projectCard.querySelector(
-            'input[type="date"]'
-        );
-
-        if (!dateInput) {
-            return;
-        }
-
-        const today = new Date();
-        const localDate = new Date(
-            today.getTime() -
-            today.getTimezoneOffset() * 60000
-        )
-            .toISOString()
-            .split("T")[0];
-
-        dateInput.min = localDate;
-    }
-
-
-    /*
-     * Find and focus the first invalid field.
-     */
-    function focusFirstInvalidField() {
-        const firstInvalidField = form.querySelector(":invalid");
-
-        if (!firstInvalidField) {
-            return;
-        }
-
-        const projectCard = firstInvalidField.closest(
-            "[data-project-card]"
-        );
-
-        projectCard?.scrollIntoView({
-            behavior: prefersReducedMotion() ? "auto" : "smooth",
-            block: "center"
-        });
-
-        window.setTimeout(() => {
-            firstInvalidField.focus();
-        }, prefersReducedMotion() ? 0 : 300);
-    }
-
-
-    /*
-     * Reset all dynamic project cards after a successful submission.
-     */
-    function resetProjectForm() {
-        form.reset();
-
-        projectsContainer.innerHTML = "";
-        nextProjectIndex = 0;
-
-        addProject();
-
-        window.scrollTo({
-            top: 0,
-            behavior: prefersReducedMotion() ? "auto" : "smooth"
-        });
-    }
-
-
-    /*
-     * Return all project cards.
-     */
-    function getProjectCards() {
-        return Array.from(
-            projectsContainer.querySelectorAll(
-                "[data-project-card]"
-            )
-        );
-    }
-
-
-    /*
-     * Notification helper.
-     */
-    function showNotification(message, type) {
-        if (!notification) {
-            window.alert(message);
-            return;
-        }
-
-        window.clearTimeout(notificationTimer);
-
-        notification.textContent = message;
-        notification.className =
-            `notification ${type} show`;
-
-        notification.setAttribute(
-            "role",
-            type === "error" ? "alert" : "status"
-        );
-
-        notificationTimer = window.setTimeout(() => {
-            notification.classList.remove("show");
-        }, 5500);
-    }
-
-
-    /*
-     * Respect reduced-motion preferences.
-     */
-    function prefersReducedMotion() {
-        return window.matchMedia(
-            "(prefers-reduced-motion: reduce)"
-        ).matches;
-    }
-});
-
-/* =========================================================
-   LUXSOME CUSTOM DROPDOWNS
-========================================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-    const enhancedSelects = new WeakSet();
-
-    /**
-     * Convert a native select into a custom Luxsome dropdown.
-     */
-    function enhanceSelect(select) {
-        if (
-            !(select instanceof HTMLSelectElement) ||
-            enhancedSelects.has(select) ||
-            select.closest(".custom-select")
-        ) {
-            return;
-        }
-
-        enhancedSelects.add(select);
-
-        const wrapper = document.createElement("div");
-        wrapper.className = "custom-select";
-
-        const trigger = document.createElement("button");
-        trigger.type = "button";
-        trigger.className = "custom-select-trigger";
-        trigger.setAttribute("aria-haspopup", "listbox");
-        trigger.setAttribute("aria-expanded", "false");
-
-        const triggerText = document.createElement("span");
-        triggerText.className = "custom-select-value";
-
-        const arrow = document.createElement("span");
-        arrow.className = "custom-select-arrow";
-        arrow.setAttribute("aria-hidden", "true");
-
-        trigger.append(triggerText, arrow);
-
-        const optionsList = document.createElement("div");
-        optionsList.className = "custom-select-options";
-        optionsList.setAttribute("role", "listbox");
-        optionsList.tabIndex = -1;
-
-        const listboxId =
-            `custom-select-${Math.random().toString(36).slice(2, 10)}`;
-
-        optionsList.id = listboxId;
-        trigger.setAttribute("aria-controls", listboxId);
-
-        /*
-         * Insert the wrapper around the original select.
-         */
-        select.parentNode.insertBefore(wrapper, select);
-        wrapper.appendChild(select);
-        wrapper.appendChild(trigger);
-        wrapper.appendChild(optionsList);
-
-        select.classList.add("custom-select-native");
-        select.tabIndex = -1;
-
-        /*
-         * Build custom options from the native select.
-         */
-        Array.from(select.options).forEach((nativeOption, index) => {
-            const customOption = document.createElement("button");
-
-            customOption.type = "button";
-            customOption.className = "custom-select-option";
-            customOption.textContent = nativeOption.textContent;
-            customOption.dataset.value = nativeOption.value;
-            customOption.dataset.index = String(index);
-
-            customOption.setAttribute("role", "option");
-            customOption.setAttribute("aria-selected", "false");
-
-            if (nativeOption.disabled) {
-                customOption.disabled = true;
-                customOption.classList.add("is-disabled");
-            }
-
-            customOption.addEventListener("click", () => {
-                if (nativeOption.disabled) {
-                    return;
-                }
-
-                selectOption(select, index);
-                closeDropdown(wrapper);
-
-                trigger.focus();
-            });
-
-            optionsList.appendChild(customOption);
-        });
-
-        /*
-         * Open or close the dropdown.
-         */
-        trigger.addEventListener("click", () => {
-            if (select.disabled) {
-                return;
-            }
-
-            const isOpen = wrapper.classList.contains("is-open");
-
-            closeAllDropdowns(wrapper);
-
-            if (isOpen) {
-                closeDropdown(wrapper);
+                if (matchingOption) field.value = matchingOption.value;
             } else {
-                openDropdown(wrapper);
+                field.value = String(value);
             }
         });
-
-        /*
-         * Keyboard navigation.
-         */
-        trigger.addEventListener("keydown", (event) => {
-            const options = getEnabledOptions(wrapper);
-
-            if (!options.length) {
-                return;
-            }
-
-            const selectedIndex = options.findIndex((option) =>
-                option.classList.contains("is-selected")
-            );
-
-            switch (event.key) {
-                case "ArrowDown":
-                    event.preventDefault();
-
-                    if (!wrapper.classList.contains("is-open")) {
-                        openDropdown(wrapper);
-                    }
-
-                    focusOption(
-                        options,
-                        selectedIndex >= 0
-                            ? Math.min(selectedIndex + 1, options.length - 1)
-                            : 0
-                    );
-                    break;
-
-                case "ArrowUp":
-                    event.preventDefault();
-
-                    if (!wrapper.classList.contains("is-open")) {
-                        openDropdown(wrapper);
-                    }
-
-                    focusOption(
-                        options,
-                        selectedIndex > 0
-                            ? selectedIndex - 1
-                            : options.length - 1
-                    );
-                    break;
-
-                case "Enter":
-                case " ":
-                    event.preventDefault();
-
-                    if (wrapper.classList.contains("is-open")) {
-                        const focusedOption = wrapper.querySelector(
-                            ".custom-select-option.is-focused"
-                        );
-
-                        focusedOption?.click();
-                    } else {
-                        openDropdown(wrapper);
-                    }
-
-                    break;
-
-                case "Home":
-                    event.preventDefault();
-                    openDropdown(wrapper);
-                    focusOption(options, 0);
-                    break;
-
-                case "End":
-                    event.preventDefault();
-                    openDropdown(wrapper);
-                    focusOption(options, options.length - 1);
-                    break;
-
-                case "Escape":
-                    event.preventDefault();
-                    closeDropdown(wrapper);
-                    trigger.focus();
-                    break;
-
-                case "Tab":
-                    closeDropdown(wrapper);
-                    break;
-            }
-        });
-
-        /*
-         * Allow keyboard controls while the options list is open.
-         */
-        optionsList.addEventListener("keydown", (event) => {
-            const options = getEnabledOptions(wrapper);
-
-            if (!options.length) {
-                return;
-            }
-
-            const focusedIndex = options.findIndex((option) =>
-                option.classList.contains("is-focused")
-            );
-
-            switch (event.key) {
-                case "ArrowDown":
-                    event.preventDefault();
-
-                    focusOption(
-                        options,
-                        focusedIndex < options.length - 1
-                            ? focusedIndex + 1
-                            : 0
-                    );
-                    break;
-
-                case "ArrowUp":
-                    event.preventDefault();
-
-                    focusOption(
-                        options,
-                        focusedIndex > 0
-                            ? focusedIndex - 1
-                            : options.length - 1
-                    );
-                    break;
-
-                case "Enter":
-                case " ":
-                    event.preventDefault();
-
-                    options[focusedIndex >= 0 ? focusedIndex : 0]?.click();
-                    break;
-
-                case "Escape":
-                    event.preventDefault();
-                    closeDropdown(wrapper);
-                    trigger.focus();
-                    break;
-
-                case "Tab":
-                    closeDropdown(wrapper);
-                    break;
-            }
-        });
-
-        /*
-         * Keep the custom dropdown synchronised when another script
-         * changes the native select.
-         */
-        select.addEventListener("change", () => {
-            updateCustomSelect(select);
-        });
-
-        /*
-         * Remove the invalid state after a valid selection.
-         */
-        select.addEventListener("input", () => {
-            if (select.validity.valid) {
-                wrapper.classList.remove("is-invalid");
-            }
-        });
-
-        updateCustomSelect(select);
     }
 
-
-    /**
-     * Select an option and send a normal change event.
-     */
-    function selectOption(select, optionIndex) {
-        const option = select.options[optionIndex];
-
-        if (!option || option.disabled) {
-            return;
-        }
-
-        select.selectedIndex = optionIndex;
-
-        select.dispatchEvent(
-            new Event("input", {
-                bubbles: true
-            })
-        );
-
-        select.dispatchEvent(
-            new Event("change", {
-                bubbles: true
-            })
-        );
-
-        updateCustomSelect(select);
+    function setMinimumDate() {
+        if (!requiredDate) return;
+        const today = new Date();
+        const local = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+        requiredDate.min = local;
     }
 
-
-    /**
-     * Synchronise the visible custom control with the native select.
-     */
-    function updateCustomSelect(select) {
-        const wrapper = select.closest(".custom-select");
-
-        if (!wrapper) {
-            return;
-        }
-
-        const trigger = wrapper.querySelector(".custom-select-trigger");
-        const triggerText = wrapper.querySelector(".custom-select-value");
-        const customOptions = wrapper.querySelectorAll(
-            ".custom-select-option"
-        );
-
-        const selectedOption = select.options[select.selectedIndex];
-
-        if (!selectedOption) {
-            return;
-        }
-
-        triggerText.textContent = selectedOption.textContent;
-
-        const isPlaceholder =
-            selectedOption.value === "";
-
-        trigger.classList.toggle(
-            "is-placeholder",
-            isPlaceholder
-        );
-
-        customOptions.forEach((customOption) => {
-            const isSelected =
-                Number(customOption.dataset.index) === select.selectedIndex;
-
-            customOption.classList.toggle(
-                "is-selected",
-                isSelected
-            );
-
-            customOption.setAttribute(
-                "aria-selected",
-                String(isSelected)
-            );
-        });
-
-        trigger.disabled = select.disabled;
-
-        if (select.validity.valid) {
-            wrapper.classList.remove("is-invalid");
-        }
-    }
-
-
-    /**
-     * Open a dropdown.
-     */
-    function openDropdown(wrapper) {
-        const trigger = wrapper.querySelector(".custom-select-trigger");
-        const optionsList = wrapper.querySelector(".custom-select-options");
-
-        setDropdownDirection(wrapper);
-
-        wrapper.classList.add("is-open");
-        trigger.setAttribute("aria-expanded", "true");
-
-        const selectedOption = wrapper.querySelector(
-            ".custom-select-option.is-selected:not(:disabled)"
-        );
-
-        const firstOption = wrapper.querySelector(
-            ".custom-select-option:not(:disabled)"
-        );
-
-        const optionToFocus = selectedOption || firstOption;
-
-        clearFocusedOptions(wrapper);
-
-        if (optionToFocus) {
-            optionToFocus.classList.add("is-focused");
-
-            window.setTimeout(() => {
-                optionToFocus.scrollIntoView({
-                    block: "nearest"
-                });
-
-                optionsList.focus({
-                    preventScroll: true
-                });
-            }, 0);
-        }
-    }
-
-
-    /**
-     * Close a dropdown.
-     */
-    function closeDropdown(wrapper) {
-        const trigger = wrapper.querySelector(".custom-select-trigger");
-
-        wrapper.classList.remove("is-open");
-        wrapper.classList.remove("opens-upward");
-
-        trigger?.setAttribute("aria-expanded", "false");
-
-        clearFocusedOptions(wrapper);
-    }
-
-
-    /**
-     * Close every dropdown except the one currently being opened.
-     */
-    function closeAllDropdowns(exception = null) {
-        document
-            .querySelectorAll(".custom-select.is-open")
-            .forEach((wrapper) => {
-                if (wrapper !== exception) {
-                    closeDropdown(wrapper);
-                }
-            });
-    }
-
-
-    /**
-     * Focus an option during keyboard navigation.
-     */
-    function focusOption(options, index) {
-        if (!options[index]) {
-            return;
-        }
-
-        options.forEach((option) => {
-            option.classList.remove("is-focused");
-        });
-
-        options[index].classList.add("is-focused");
-
-        options[index].scrollIntoView({
-            block: "nearest"
-        });
-    }
-
-
-    /**
-     * Return options that are available for selection.
-     */
-    function getEnabledOptions(wrapper) {
-        return Array.from(
-            wrapper.querySelectorAll(
-                ".custom-select-option:not(:disabled)"
-            )
-        );
-    }
-
-
-    /**
-     * Remove temporary keyboard focus styling.
-     */
-    function clearFocusedOptions(wrapper) {
-        wrapper
-            .querySelectorAll(".custom-select-option.is-focused")
-            .forEach((option) => {
-                option.classList.remove("is-focused");
-            });
-    }
-
-
-    /**
-     * Open upward if there is not enough viewport space below.
-     */
-    function setDropdownDirection(wrapper) {
-        const trigger = wrapper.querySelector(".custom-select-trigger");
-        const optionsList = wrapper.querySelector(".custom-select-options");
-
-        wrapper.classList.remove("opens-upward");
-
-        /*
-         * Temporarily display the options to calculate their height.
-         */
-        const previousDisplay = optionsList.style.display;
-        const previousVisibility = optionsList.style.visibility;
-
-        optionsList.style.display = "block";
-        optionsList.style.visibility = "hidden";
-
-        const triggerRect = trigger.getBoundingClientRect();
-        const optionsHeight = Math.min(
-            optionsList.scrollHeight,
-            280
-        );
-
-        const spaceBelow =
-            window.innerHeight - triggerRect.bottom;
-
-        const spaceAbove = triggerRect.top;
-
-        optionsList.style.display = previousDisplay;
-        optionsList.style.visibility = previousVisibility;
-
-        if (
-            spaceBelow < optionsHeight + 20 &&
-            spaceAbove > spaceBelow
-        ) {
-            wrapper.classList.add("opens-upward");
-        }
-    }
-
-
-    /**
-     * Enhance all selects in a supplied element.
-     */
-    function enhanceSelectsInside(element) {
-        if (!(element instanceof Element)) {
-            return;
-        }
-
-        if (element.matches("select")) {
-            enhanceSelect(element);
-        }
-
-        element.querySelectorAll("select").forEach(enhanceSelect);
-    }
-
-
-    /*
-     * Enhance the dropdowns already on the page.
-     */
-    document.querySelectorAll(".project-form select").forEach(enhanceSelect);
-
-
-    /*
-     * Enhance dropdowns inside dynamically added project cards.
-     */
-    const projectsContainer =
-        document.getElementById("projectsContainer");
-
-    if (projectsContainer) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    enhanceSelectsInside(node);
-                });
-            });
-        });
-
-        observer.observe(projectsContainer, {
-            childList: true,
-            subtree: true
-        });
-    }
-
-
-    /*
-     * Close dropdowns when clicking elsewhere.
-     */
-    document.addEventListener("click", (event) => {
-        if (!event.target.closest(".custom-select")) {
-            closeAllDropdowns();
-        }
-    });
-
-
-    /*
-     * Close dropdowns when the viewport changes.
-     */
-    window.addEventListener(
-        "resize",
-        () => {
-            closeAllDropdowns();
-        },
-        {
-            passive: true
-        }
-    );
-
-    window.addEventListener(
-        "scroll",
-        () => {
-            closeAllDropdowns();
-        },
-        {
-            passive: true
-        }
-    );
-
-
-    /*
-     * Apply custom invalid styling before submission.
-     */
-    const projectForm = document.getElementById("contactForm");
-
-    projectForm?.addEventListener(
-        "invalid",
-        (event) => {
-            const invalidSelect = event.target;
-
-            if (!(invalidSelect instanceof HTMLSelectElement)) {
-                return;
-            }
-
-            const wrapper = invalidSelect.closest(".custom-select");
-
-            wrapper?.classList.add("is-invalid");
-
-            window.setTimeout(() => {
-                wrapper
-                    ?.querySelector(".custom-select-trigger")
-                    ?.focus();
-            }, 0);
-        },
-        true
-    );
-
-
-    /*
-     * Reset custom dropdown labels when the form is reset.
-     */
-    projectForm?.addEventListener("reset", () => {
-        window.setTimeout(() => {
-            projectForm
-                .querySelectorAll("select")
-                .forEach(updateCustomSelect);
-        }, 0);
-    });
+    function valueOf(id) { return document.getElementById(id)?.value.trim() || ""; }
+    function selectedText(id) { const select = document.getElementById(id); return select?.selectedOptions?.[0]?.value ? select.selectedOptions[0].textContent.trim() : ""; }
+    function checkedValue(name) { return form.querySelector(`[name="${CSS.escape(name)}"]:checked`)?.value || ""; }
+    function checkedValues(name) { return Array.from(form.querySelectorAll(`[name="${CSS.escape(name)}"]:checked`)).map(input => input.value).join(", "); }
+    function formatDate(value) { if (!value) return ""; const date = new Date(`${value}T00:00:00`); return new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "long", year: "numeric" }).format(date); }
+    function escapeHTML(value) { return String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]); }
+    function showStatus(message, type = "") { formStatus.textContent = message; formStatus.className = `form-status${type ? ` is-${type}` : ""}`; }
+    function clearStatus() { showStatus(""); form.querySelectorAll('[aria-invalid="true"]').forEach(el => el.removeAttribute("aria-invalid")); }
+    function prefersReducedMotion() { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
 });

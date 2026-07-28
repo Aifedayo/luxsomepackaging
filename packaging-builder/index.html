@@ -70,6 +70,7 @@
     }
     </script>
 
+    <script src="/js/builder-handoff.js" defer></script>
     <script src="/js/builder.js" defer></script>
 </head>
 
@@ -1040,17 +1041,27 @@
                         </p>
 
                         <div class="result-actions">
+
+                            <button
+                                type="button"
+                                id="start-project-button"
+                                class="button button--primary"
+                            >
+                                Start This Project
+                                <span aria-hidden="true">→</span>
+                            </button>
+                        
                             <a
                                 href="#"
                                 id="whatsapp-button"
-                                class="button button--primary"
+                                class="button button--secondary"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
                                 Continue on WhatsApp
                                 <span aria-hidden="true">↗</span>
                             </a>
-
+                        
                             <button
                                 type="button"
                                 class="button button--secondary"
@@ -1058,6 +1069,7 @@
                             >
                                 Start again
                             </button>
+                        
                         </div>
                     </section>
 

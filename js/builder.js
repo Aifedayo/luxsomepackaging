@@ -620,8 +620,87 @@ document.addEventListener("DOMContentLoaded", () => {
     backButton.addEventListener("click", moveBack);
     restartButton.addEventListener("click", restartBuilder);
 
-    document.getElementById("current-year").textContent =
-        String(new Date().getFullYear());
+    const currentYearElement =
+        document.getElementById("currentYear") ||
+        document.getElementById("current-year");
+
+    if (currentYearElement) {
+        currentYearElement.textContent = String(new Date().getFullYear());
+    }
 
     showStep(0);
+
+    const startProjectButton = document.getElementById(
+        "start-project-button"
+    );
+
+    if (startProjectButton) {
+        startProjectButton.addEventListener("click", () => {
+            const data = collectFormData();
+            const recommendedTier = calculateRecommendedTier(data);
+            const recommendedPieces = buildRecommendedPieces(
+                data,
+                recommendedTier
+            );
+            const explanation = buildExplanation(
+                data,
+                recommendedTier,
+                recommendedPieces
+            );
+
+            const recommendation = {
+                version: 1,
+                source: "Packaging Builder",
+                savedAt: new Date().toISOString(),
+
+                recommendationDetails: {
+                    title: `${recommendedTier} Packaging System`,
+                    tier: recommendedTier,
+                    description: explanation,
+                    components: recommendedPieces
+                },
+
+                answers: {
+                    productType: data.product,
+                    brandStage: data.stage,
+                    quantity: data.quantity,
+                    desiredExperience: data.experience,
+                    approach: data.approach,
+                    selectedPieces: data.pieces,
+                    investmentLevel: data.investment,
+                    timeline: data.timeline
+                }
+            };
+
+            try {
+                localStorage.setItem(
+                    "luxsomePackagingBuilderResult",
+                    JSON.stringify(recommendation)
+                );
+
+                window.location.assign(
+                    "/start-project/?source=builder"
+                );
+            } catch (error) {
+                console.error(
+                    "Unable to save the packaging recommendation:",
+                    error
+                );
+
+                const fallbackTier = encodeURIComponent(
+                    recommendation.recommendationDetails.title
+                );
+
+                window.location.assign(
+                    `/start-project/?source=builder&tier=${fallbackTier}`
+                );
+            }
+        });
+    } else {
+        console.warn(
+            'The button with id="start-project-button" was not found.'
+        );
+    }
+
 });
+
