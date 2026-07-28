@@ -643,3 +643,34 @@ body {
         transition: none;
     }
 }
+
+/* =====================================================
+   GALLERY — BUILDER ACTIONS
+===================================================== */
+
+.collection-statement__actions {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.collection-statement__secondary-link {
+    position: relative;
+    color: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    opacity: 0.68;
+    text-decoration: none;
+    transition: opacity 250ms ease;
+}
+
+.collection-statement__secondary-link:hover,
+.collection-statement__secondary-link:focus-visible {
+    opacity: 1;
+}
+
+.collection-statement__secondary-link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+}

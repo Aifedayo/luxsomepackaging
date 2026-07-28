@@ -823,3 +823,118 @@ header {
     }
 
 }
+
+/* =====================================================
+   PRICING PAGE — PACKAGING BUILDER
+===================================================== */
+
+.pricing-builder {
+    padding: 0 0 clamp(3.5rem, 7vw, 6rem);
+    background: #f8f4ef;
+}
+
+.pricing-builder__inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) auto;
+    align-items: center;
+    gap: clamp(2rem, 6vw, 5rem);
+    padding: clamp(2rem, 5vw, 3.75rem);
+    border: 1px solid rgba(103, 54, 41, 0.18);
+    background: #fffdf9;
+}
+
+.pricing-builder__content {
+    max-width: 700px;
+}
+
+.pricing-builder .eyebrow {
+    margin: 0 0 1rem;
+}
+
+.pricing-builder h2 {
+    max-width: 680px;
+    margin: 0;
+    color: #2f221c;
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(2rem, 4vw, 3.6rem);
+    font-weight: 400;
+    line-height: 1.05;
+}
+
+.pricing-builder__content > p:not(.eyebrow) {
+    max-width: 620px;
+    margin: 1.25rem 0 0;
+    color: #716660;
+    line-height: 1.8;
+}
+
+.pricing-builder__action {
+    display: flex;
+    min-width: 260px;
+    align-items: center;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.pricing-builder__button {
+    display: inline-flex;
+    width: 100%;
+    min-height: 54px;
+    padding: 0 1.6rem;
+    border: 1px solid #673629;
+    background: #673629;
+    color: #fffaf6;
+    align-items: center;
+    justify-content: center;
+    gap: 1.1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+        background-color 250ms ease,
+        border-color 250ms ease,
+        transform 250ms ease;
+}
+
+.pricing-builder__button:hover,
+.pricing-builder__button:focus-visible {
+    border-color: #2f221c;
+    background: #2f221c;
+    transform: translateY(-2px);
+}
+
+.pricing-builder__button:focus-visible {
+    outline: 2px solid #673629;
+    outline-offset: 4px;
+}
+
+.pricing-builder__note {
+    color: #82756e;
+    font-size: 0.75rem;
+    text-align: center;
+}
+
+@media (max-width: 820px) {
+    .pricing-builder__inner {
+        grid-template-columns: 1fr;
+    }
+
+    .pricing-builder__action {
+        width: min(100%, 360px);
+        min-width: 0;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 520px) {
+    .pricing-builder__inner {
+        padding: 2rem 1.25rem;
+    }
+
+    .pricing-builder__action {
+        width: 100%;
+    }
+}

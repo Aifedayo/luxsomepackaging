@@ -536,8 +536,7 @@ body {
 .result-explanation {
     margin: 0;
     color: var(--text);
-    font-size: clamp(1.3rem, 2.5vw, 1.75rem);
-    line-height: 1.55;
+    line-height: 2.3;
 }
 
 .result-details {

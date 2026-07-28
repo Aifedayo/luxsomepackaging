@@ -68,12 +68,70 @@
             line-height: 1.8;
         }
 
-        .error-page__actions {
+        .error-page__builder {
+            max-width: 640px;
+            margin: 38px auto 0;
+            padding: clamp(1.75rem, 5vw, 3rem);
+            border: 1px solid rgba(103, 54, 41, 0.18);
+            background: rgba(255, 253, 249, 0.72);
+        }
+
+        .error-page__builder-label {
+            margin: 0 0 0.9rem;
+            color: #673629;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .error-page__builder h2 {
+            margin: 0;
+            color: #2f211b;
+            font-size: clamp(1.7rem, 4vw, 2.6rem);
+            font-weight: 400;
+            line-height: 1.1;
+        }
+
+        .error-page__builder > p:not(.error-page__builder-label) {
+            max-width: 500px;
+            margin: 1rem auto 1.75rem;
+            color: #716660;
+            line-height: 1.7;
+        }
+
+        .error-page__builder .error-page__button {
+            width: auto;
+        }
+
+        .error-page__secondary-actions {
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 14px;
-            margin-top: 34px;
+            gap: 0.9rem;
+            margin-top: 28px;
+            color: #716660;
+            font-size: 0.82rem;
+        }
+
+        .error-page__secondary-actions a {
+            color: #673629;
+            text-underline-offset: 4px;
+        }
+
+        .error-page__secondary-actions a:hover,
+        .error-page__secondary-actions a:focus-visible {
+            color: #2f211b;
+        }
+
+        @media (max-width: 520px) {
+            .error-page__builder .error-page__button {
+                width: 100%;
+            }
+
+            .error-page__secondary-actions {
+                gap: 0.6rem;
+            }
         }
 
         .error-page__button {
@@ -136,36 +194,65 @@
 <body>
     <main class="error-page">
         <div class="error-page__content">
-            <p class="error-page__code" aria-hidden="true">404</p>
 
+            <p class="error-page__code" aria-hidden="true">
+                404
+            </p>
+        
             <p class="error-page__eyebrow">
                 Page not found
             </p>
-
+        
             <h1>
                 This page is no longer part of the collection.
             </h1>
-
+        
             <p class="error-page__text">
-                The address may have changed, or the page may no longer exist.
-                Return to the homepage or continue exploring the Luxsome collection.
+                The address may have changed or the page may no longer exist.
+                While you are here, we can help you discover the packaging system
+                that best fits your brand.
             </p>
-
-            <div class="error-page__actions">
+        
+            <div class="error-page__builder">
+        
+                <p class="error-page__builder-label">
+                    A better place to begin
+                </p>
+        
+                <h2>
+                    Not sure what packaging your brand needs?
+                </h2>
+        
+                <p>
+                    Answer a few simple questions and receive a thoughtful packaging
+                    system recommendation.
+                </p>
+        
                 <a
-                    href="/"
+                    href="/packaging-builder/"
                     class="error-page__button error-page__button--primary"
                 >
+                    Build Your Packaging System
+                    <span aria-hidden="true">→</span>
+                </a>
+        
+            </div>
+        
+            <nav
+                class="error-page__secondary-actions"
+                aria-label="Other pages"
+            >
+                <a href="/">
                     Return Home
                 </a>
-
-                <a
-                    href="/gallery/"
-                    class="error-page__button error-page__button--secondary"
-                >
+        
+                <span aria-hidden="true">•</span>
+        
+                <a href="/gallery/">
                     View Gallery
                 </a>
-            </div>
+            </nav>
+        
         </div>
     </main>
 </body>
