@@ -783,6 +783,56 @@
         }
     }
 
+    async function createOrder() {
+        const invoice = state.selected;
+
+        if (!invoice) {
+            return;
+        }
+
+        if (Number(invoice.amount_paid || 0) <= 0) {
+            window.alert(
+                "Record at least one verified payment before creating an order."
+            );
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Create a production order from ${invoice.invoice_reference}?`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const data = await api(
+                `/admin/orders/from-invoice/${encodeURIComponent(
+                    invoice.invoice_reference
+                )}`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        priority: "normal"
+                    })
+                }
+            );
+
+            window.location.href =
+                `/admin/orders/?order=${encodeURIComponent(
+                    data.order.orderReference
+                )}`;
+        } catch (error) {
+            if (error.message.includes("already exists")) {
+                window.alert(
+                    `${error.message} Open the Orders page to view it.`
+                );
+            } else {
+                window.alert(error.message);
+            }
+        }
+    }
+
     async function sendInvoice() {
         const invoice = state.selected;
 
@@ -1121,6 +1171,11 @@
     element("paymentForm").addEventListener(
         "submit",
         recordPayment
+    );
+
+    element("createOrder").addEventListener(
+        "click",
+        createOrder
     );
 
     element("sendInvoice").addEventListener(
