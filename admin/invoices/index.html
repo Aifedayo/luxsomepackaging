@@ -1,8 +1,459 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Invoices | Luxsome CRM</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/css/invoices-v1.css"></head><body>
-    <div class="app"><aside><a class="brand" href="/admin/">LUXSOME<small>PACKAGING CRM</small></a><nav><a href="/admin/">Enquiries</a><a href="/admin/">Quotations</a><a class="active" href="/admin/invoices/">Invoices</a></nav><button id="logout">Lock dashboard</button></aside><main><header><div><p>FINANCE</p><h1>Invoices</h1></div><button id="newInvoice" class="primary">Create invoice</button></header>
-    <section class="stats"><article><span>Total invoices</span><strong id="statTotal">0</strong></article><article><span>Outstanding</span><strong id="statOutstanding">₦0</strong></article><article><span>Paid</span><strong id="statPaid">₦0</strong></article><article><span>Overdue</span><strong id="statOverdue">0</strong></article></section>
-    <section class="card"><div class="toolbar"><input id="search" placeholder="Search invoice, customer or email"><select id="filter"><option value="">All statuses</option><option>draft</option><option>sent</option><option value="partially_paid">partially paid</option><option>paid</option><option>overdue</option><option>cancelled</option><option>void</option></select></div><p id="status"></p><div class="table"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Status</th><th>Total</th><th>Paid</th><th>Balance</th><th>Due</th><th></th></tr></thead><tbody id="rows"></tbody></table></div><div id="empty" class="empty" hidden>No invoices found.</div></section></main></div>
-    <div id="backdrop" class="backdrop" hidden></div><section id="builder" class="panel" aria-hidden="true"><header><div><p>INVOICE BUILDER</p><h2 id="builderTitle">New invoice</h2></div><button data-close>×</button></header><form id="form"><div class="grid"><label>Customer<input id="customerName" required></label><label>Brand<input id="brandName"></label><label>Email<input id="customerEmail" type="email"></label><label>Phone<input id="customerPhone"></label><label>Issue date<input id="issueDate" type="date" required></label><label>Due date<input id="dueDate" type="date"></label></div><div class="section-title"><h3>Items</h3><button id="addItem" type="button">Add item</button></div><div id="items"></div><div class="grid"><label>Discount<input id="discount" type="number" min="0" value="0"></label><label>Delivery fee<input id="deliveryFee" type="number" min="0" value="0"></label><label>Tax<input id="tax" type="number" min="0" value="0"></label><label>Amount paid<input id="amountPaid" type="number" min="0" value="0"></label></div><div class="totals" id="totals"></div><label>Payment terms<textarea id="paymentTerms"></textarea></label><label>Payment instructions / bank details<textarea id="paymentInstructions"></textarea></label><label>Customer note<textarea id="customerNote"></textarea></label><label>Internal note<textarea id="internalNote"></textarea></label><p id="formStatus"></p><footer><button type="button" data-close>Cancel</button><button class="primary" type="submit">Save invoice</button></footer></form></section>
-    <section id="detail" class="panel detail" aria-hidden="true"><header><div><p>INVOICE</p><h2 id="detailRef">—</h2></div><button data-close>×</button></header><div id="detailBody"></div><footer><button id="activity">Activity</button><button id="edit">Edit</button><button id="preview">Preview / PDF</button><button id="sendInvoice" class="primary">Send invoice</button></footer></section><section id="activityPanel" class="panel detail" aria-hidden="true"><header><div><p>INVOICE TIMELINE</p><h2>Activity</h2></div><button data-close>×</button></header><div id="activityBody"></div></section>
-    <div id="previewModal" class="preview" hidden><button id="closePreview">×</button><button id="print">Print / Save PDF</button><article id="invoicePaper"></article></div>
-    <script src="/js/invoices-v1.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+    <meta
+        name="robots"
+        content="noindex, nofollow"
+    >
+
+    <title>Invoices | Luxsome CRM</title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+    <link
+        rel="stylesheet"
+        href="/css/invoices-v1.css"
+    >
+</head>
+
+<body>
+    <div class="app">
+        <aside>
+            <a
+                class="brand"
+                href="/admin/"
+            >
+                LUXSOME
+                <small>PACKAGING CRM</small>
+            </a>
+
+            <nav>
+                <a href="/admin/">Enquiries</a>
+                <a href="/admin/">Quotations</a>
+                <a
+                    class="active"
+                    href="/admin/invoices/"
+                >
+                    Invoices
+                </a>
+            </nav>
+
+            <button id="logout">
+                Lock dashboard
+            </button>
+        </aside>
+
+        <main>
+            <header>
+                <div>
+                    <p>FINANCE</p>
+                    <h1>Invoices</h1>
+                </div>
+
+                <button
+                    id="newInvoice"
+                    class="primary"
+                >
+                    Create invoice
+                </button>
+            </header>
+
+            <section class="stats">
+                <article>
+                    <span>Total invoices</span>
+                    <strong id="statTotal">0</strong>
+                </article>
+
+                <article>
+                    <span>Outstanding</span>
+                    <strong id="statOutstanding">₦0</strong>
+                </article>
+
+                <article>
+                    <span>Paid</span>
+                    <strong id="statPaid">₦0</strong>
+                </article>
+
+                <article>
+                    <span>Overdue</span>
+                    <strong id="statOverdue">0</strong>
+                </article>
+            </section>
+
+            <section class="card">
+                <div class="toolbar">
+                    <input
+                        id="search"
+                        placeholder="Search invoice, customer or email"
+                    >
+
+                    <select id="filter">
+                        <option value="">All statuses</option>
+                        <option value="draft">Draft</option>
+                        <option value="sent">Sent</option>
+                        <option value="partially_paid">Partially paid</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="void">Void</option>
+                    </select>
+                </div>
+
+                <p id="status"></p>
+
+                <div class="table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Invoice</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th>Due</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="rows"></tbody>
+                    </table>
+                </div>
+
+                <div
+                    id="empty"
+                    class="empty"
+                    hidden
+                >
+                    No invoices found.
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div
+        id="backdrop"
+        class="backdrop"
+        hidden
+    ></div>
+
+    <section
+        id="builder"
+        class="panel"
+        aria-hidden="true"
+    >
+        <header>
+            <div>
+                <p>INVOICE BUILDER</p>
+                <h2 id="builderTitle">New invoice</h2>
+            </div>
+
+            <button data-close>×</button>
+        </header>
+
+        <form id="form">
+            <div class="grid">
+                <label>
+                    Customer
+                    <input
+                        id="customerName"
+                        required
+                    >
+                </label>
+
+                <label>
+                    Brand
+                    <input id="brandName">
+                </label>
+
+                <label>
+                    Email
+                    <input
+                        id="customerEmail"
+                        type="email"
+                    >
+                </label>
+
+                <label>
+                    Phone
+                    <input id="customerPhone">
+                </label>
+
+                <label>
+                    Issue date
+                    <input
+                        id="issueDate"
+                        type="date"
+                        required
+                    >
+                </label>
+
+                <label>
+                    Due date
+                    <input
+                        id="dueDate"
+                        type="date"
+                    >
+                </label>
+            </div>
+
+            <div class="section-title">
+                <h3>Items</h3>
+
+                <button
+                    id="addItem"
+                    type="button"
+                >
+                    Add item
+                </button>
+            </div>
+
+            <div id="items"></div>
+
+            <div class="grid">
+                <label>
+                    Discount
+                    <input
+                        id="discount"
+                        type="number"
+                        min="0"
+                        value="0"
+                    >
+                </label>
+
+                <label>
+                    Delivery fee
+                    <input
+                        id="deliveryFee"
+                        type="number"
+                        min="0"
+                        value="0"
+                    >
+                </label>
+
+                <label>
+                    Tax
+                    <input
+                        id="tax"
+                        type="number"
+                        min="0"
+                        value="0"
+                    >
+                </label>
+            </div>
+
+            <div
+                id="totals"
+                class="totals"
+            ></div>
+
+            <label>
+                Payment terms
+                <textarea id="paymentTerms"></textarea>
+            </label>
+
+            <label>
+                Payment instructions / bank details
+                <textarea id="paymentInstructions"></textarea>
+            </label>
+
+            <label>
+                Customer note
+                <textarea id="customerNote"></textarea>
+            </label>
+
+            <label>
+                Internal note
+                <textarea id="internalNote"></textarea>
+            </label>
+
+            <p id="formStatus"></p>
+
+            <footer>
+                <button
+                    type="button"
+                    data-close
+                >
+                    Cancel
+                </button>
+
+                <button
+                    class="primary"
+                    type="submit"
+                >
+                    Save invoice
+                </button>
+            </footer>
+        </form>
+    </section>
+
+    <section
+        id="detail"
+        class="panel detail"
+        aria-hidden="true"
+    >
+        <header>
+            <div>
+                <p>INVOICE</p>
+                <h2 id="detailRef">—</h2>
+            </div>
+
+            <button data-close>×</button>
+        </header>
+
+        <div id="detailBody"></div>
+
+        <footer>
+            <button id="activity">Activity</button>
+            <button id="edit">Edit</button>
+            <button id="preview">Preview / PDF</button>
+            <button id="recordPayment">Record payment</button>
+            <button
+                id="sendInvoice"
+                class="primary"
+            >
+                Send invoice
+            </button>
+        </footer>
+    </section>
+
+    <section
+        id="paymentPanel"
+        class="panel detail"
+        aria-hidden="true"
+    >
+        <header>
+            <div>
+                <p>PAYMENT</p>
+                <h2>Record payment</h2>
+            </div>
+
+            <button data-close>×</button>
+        </header>
+
+        <form id="paymentForm">
+            <div class="payment-summary">
+                <span>Remaining balance</span>
+                <strong id="paymentBalance">₦0</strong>
+            </div>
+
+            <label>
+                Amount received
+                <input
+                    id="paymentAmount"
+                    type="number"
+                    min="0.01"
+                    step="any"
+                    required
+                >
+            </label>
+
+            <label>
+                Payment date
+                <input
+                    id="paymentDate"
+                    type="date"
+                    required
+                >
+            </label>
+
+            <label>
+                Payment method
+                <select
+                    id="paymentMethod"
+                    required
+                >
+                    <option value="">Select method</option>
+                    <option value="Bank transfer">Bank transfer</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="Payment link">Payment link</option>
+                    <option value="Other">Other</option>
+                </select>
+            </label>
+
+            <label>
+                Payment reference
+                <input
+                    id="paymentReference"
+                    maxlength="200"
+                    placeholder="Optional"
+                >
+            </label>
+
+            <label>
+                Notes
+                <textarea
+                    id="paymentNotes"
+                    maxlength="2000"
+                    placeholder="Optional"
+                ></textarea>
+            </label>
+
+            <p id="paymentFormStatus"></p>
+
+            <footer>
+                <button
+                    type="button"
+                    data-close
+                >
+                    Cancel
+                </button>
+
+                <button
+                    id="savePayment"
+                    class="primary"
+                    type="submit"
+                >
+                    Record payment
+                </button>
+            </footer>
+        </form>
+    </section>
+
+    <section
+        id="activityPanel"
+        class="panel detail"
+        aria-hidden="true"
+    >
+        <header>
+            <div>
+                <p>INVOICE TIMELINE</p>
+                <h2>Activity</h2>
+            </div>
+
+            <button data-close>×</button>
+        </header>
+
+        <div id="activityBody"></div>
+    </section>
+
+    <div
+        id="previewModal"
+        class="preview"
+        hidden
+    >
+        <button id="closePreview">×</button>
+        <button id="print">Print / Save PDF</button>
+        <article id="invoicePaper"></article>
+    </div>
+
+    <script src="/js/invoices-v2.js"></script>
+</body>
+</html>

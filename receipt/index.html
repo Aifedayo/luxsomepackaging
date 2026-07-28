@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+    <meta
+        name="robots"
+        content="noindex, nofollow"
+    >
+
+    <title>Payment Receipt | Luxsome Packaging</title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+    <link
+        rel="stylesheet"
+        href="/css/receipt-portal.css"
+    >
+</head>
+
+<body>
+    <main class="receipt-shell">
+        <header class="receipt-header">
+            <a
+                href="/"
+                class="brand"
+            >
+                LUXSOME
+                <span>PACKAGING</span>
+            </a>
+
+            <button
+                id="printReceipt"
+                type="button"
+            >
+                Print / Save PDF
+            </button>
+        </header>
+
+        <section
+            id="loading"
+            class="state-card"
+        >
+            Loading your receipt…
+        </section>
+
+        <section
+            id="error"
+            class="state-card error"
+            hidden
+        ></section>
+
+        <article
+            id="receipt"
+            class="receipt-paper"
+            hidden
+        >
+            <div class="receipt-heading">
+                <div>
+                    <p class="eyebrow">
+                        PAYMENT RECEIPT
+                    </p>
+
+                    <h1 id="receiptReference">—</h1>
+
+                    <p id="customerName">—</p>
+                </div>
+
+                <div class="paid-stamp">
+                    PAYMENT RECEIVED
+                </div>
+            </div>
+
+            <section class="amount-card">
+                <span>Amount received</span>
+                <strong id="amountReceived">₦0</strong>
+            </section>
+
+            <section class="receipt-details">
+                <div>
+                    <span>Invoice</span>
+                    <strong id="invoiceReference">—</strong>
+                </div>
+
+                <div>
+                    <span>Payment date</span>
+                    <strong id="paymentDate">—</strong>
+                </div>
+
+                <div>
+                    <span>Payment method</span>
+                    <strong id="paymentMethod">—</strong>
+                </div>
+
+                <div>
+                    <span>Payment reference</span>
+                    <strong id="paymentReference">—</strong>
+                </div>
+
+                <div>
+                    <span>Invoice total</span>
+                    <strong id="invoiceTotal">₦0</strong>
+                </div>
+
+                <div>
+                    <span>Total paid</span>
+                    <strong id="totalPaid">₦0</strong>
+                </div>
+
+                <div>
+                    <span>Remaining balance</span>
+                    <strong id="balanceDue">₦0</strong>
+                </div>
+
+                <div>
+                    <span>Invoice status</span>
+                    <strong id="invoiceStatus">—</strong>
+                </div>
+            </section>
+
+            <section
+                id="notesSection"
+                class="receipt-note"
+                hidden
+            >
+                <h2>Payment note</h2>
+                <p id="paymentNotes"></p>
+            </section>
+
+            <footer>
+                <p>
+                    Thank you for choosing Luxsome Packaging.
+                </p>
+
+                <small>
+                    This receipt confirms that the payment shown
+                    above was recorded against the stated invoice.
+                </small>
+            </footer>
+        </article>
+    </main>
+
+    <script src="/js/receipt-portal.js"></script>
+</body>
+</html>
