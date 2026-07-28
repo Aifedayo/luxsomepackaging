@@ -527,9 +527,9 @@
                     Edit quotation
                 </button>
 
-                <a id="quoteDetailEmailAction" class="crm-button crm-button--secondary" href="#">
-                    Email customer
-                </a>
+                <button id="sendQuotationButton" class="crm-button crm-button--primary" type="button">
+                    Send quotation
+                </button>
             </section>
 
             <section class="crm-submitted-section">
@@ -676,6 +676,66 @@
                 </footer>
             </article>
         </div>
+    </section>
+
+
+    <div id="sendQuotationBackdrop" class="crm-send-backdrop" hidden></div>
+
+    <section id="sendQuotationModal" class="crm-send-modal" aria-hidden="true">
+        <header>
+            <div>
+                <p class="crm-eyebrow">EMAIL DELIVERY</p>
+                <h2>Send quotation</h2>
+            </div>
+
+            <button id="closeSendQuotationButton" class="crm-detail-close" type="button" aria-label="Close">
+                ×
+            </button>
+        </header>
+
+        <div class="crm-send-modal__body">
+            <p>
+                The quotation will be sent as a branded email and its status
+                will automatically change to <strong>Sent</strong>.
+            </p>
+
+            <dl class="crm-send-summary">
+                <div>
+                    <dt>Quotation</dt>
+                    <dd id="sendQuoteReference">—</dd>
+                </div>
+                <div>
+                    <dt>Recipient</dt>
+                    <dd id="sendQuoteRecipient">—</dd>
+                </div>
+                <div>
+                    <dt>Total</dt>
+                    <dd id="sendQuoteTotal">—</dd>
+                </div>
+            </dl>
+
+            <label class="crm-send-message">
+                Optional message
+                <textarea
+                    id="sendQuotationMessage"
+                    rows="4"
+                    maxlength="1200"
+                    placeholder="Thank you for the opportunity to prepare this quotation."
+                ></textarea>
+            </label>
+
+            <p id="sendQuotationStatus" class="crm-form-status" role="status"></p>
+        </div>
+
+        <footer>
+            <button id="cancelSendQuotationButton" class="crm-button crm-button--secondary" type="button">
+                Cancel
+            </button>
+
+            <button id="confirmSendQuotationButton" class="crm-button crm-button--primary" type="button">
+                Send now
+            </button>
+        </footer>
     </section>
 
     <script src="/js/admin-dashboard-v2.js"></script>

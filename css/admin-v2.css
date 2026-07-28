@@ -1587,3 +1587,125 @@ a {
         margin: 0;
     }
 }
+
+
+/* Quotation email delivery */
+.crm-send-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    background: rgba(23, 14, 10, .65);
+    backdrop-filter: blur(4px);
+}
+
+.crm-send-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 160;
+    width: min(540px, calc(100% - 28px));
+    transform: translate(-50%, calc(-50% + 12px));
+    border: 1px solid var(--crm-line);
+    background: var(--crm-paper);
+    box-shadow: var(--crm-shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.crm-send-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+}
+
+.crm-send-modal > header,
+.crm-send-modal > footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 20px 22px;
+}
+
+.crm-send-modal > header {
+    border-bottom: 1px solid var(--crm-line);
+}
+
+.crm-send-modal > footer {
+    justify-content: flex-end;
+    border-top: 1px solid var(--crm-line);
+}
+
+.crm-send-modal__body {
+    padding: 24px 22px;
+}
+
+.crm-send-modal__body > p {
+    margin: 0 0 20px;
+    color: var(--crm-muted);
+    line-height: 1.7;
+}
+
+.crm-send-summary {
+    margin: 0 0 22px;
+    border: 1px solid var(--crm-line);
+}
+
+.crm-send-summary div {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 18px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--crm-line);
+}
+
+.crm-send-summary div:last-child {
+    border-bottom: 0;
+}
+
+.crm-send-summary dt,
+.crm-send-summary dd {
+    margin: 0;
+}
+
+.crm-send-summary dt {
+    color: var(--crm-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.crm-send-summary dd {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.crm-send-message {
+    display: grid;
+    gap: 8px;
+    color: var(--crm-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.crm-send-message textarea {
+    width: 100%;
+    padding: 12px 13px;
+    resize: vertical;
+    border: 1px solid var(--crm-line);
+    color: var(--crm-brown);
+    background: #fff;
+    font: inherit;
+    text-transform: none;
+}
+
+@media (max-width: 560px) {
+    .crm-send-modal > footer {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}

@@ -61,7 +61,14 @@ document.addEventListener("DOMContentLoaded", function () {
         quotationPreviewBackdrop: document.getElementById("quotationPreviewBackdrop"),
         quotationPreviewModal: document.getElementById("quotationPreviewModal"),
         closeQuotationPreviewButton: document.getElementById("closeQuotationPreviewButton"),
-        previewPrintButton: document.getElementById("previewPrintButton")
+        previewPrintButton: document.getElementById("previewPrintButton"),
+        sendQuotationButton: document.getElementById("sendQuotationButton"),
+        sendQuotationBackdrop: document.getElementById("sendQuotationBackdrop"),
+        sendQuotationModal: document.getElementById("sendQuotationModal"),
+        closeSendQuotationButton: document.getElementById("closeSendQuotationButton"),
+        cancelSendQuotationButton: document.getElementById("cancelSendQuotationButton"),
+        confirmSendQuotationButton: document.getElementById("confirmSendQuotationButton"),
+        sendQuotationStatus: document.getElementById("sendQuotationStatus")
     };
 
     let searchTimer = null;
@@ -240,11 +247,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.previewPrintButton.addEventListener("click", printQuotation);
 
+    elements.sendQuotationButton.addEventListener("click", openSendQuotationModal);
+    elements.closeSendQuotationButton.addEventListener("click", closeSendQuotationModal);
+    elements.cancelSendQuotationButton.addEventListener("click", closeSendQuotationModal);
+    elements.sendQuotationBackdrop.addEventListener("click", closeSendQuotationModal);
+    elements.confirmSendQuotationButton.addEventListener("click", sendQuotation);
+
 
     document.addEventListener("keydown", function (event) {
         if (event.key !== "Escape") return;
 
-        if (elements.quotationPreviewModal.classList.contains("is-open")) {
+        if (elements.sendQuotationModal.classList.contains("is-open")) {
+            closeSendQuotationModal();
+        } else if (elements.quotationPreviewModal.classList.contains("is-open")) {
             closeQuotationPreview();
         } else if (elements.quotationBuilder.classList.contains("is-open")) {
             closeQuotationBuilder();
@@ -1059,7 +1074,9 @@ document.addEventListener("DOMContentLoaded", function () {
             ["Production timeline", quotation.production_timeline || "Not supplied"],
             ["Payment terms", quotation.payment_terms || "Not supplied"],
             ["Notes", quotation.notes || "Not supplied"],
-            ["Linked enquiry", quotation.submission_reference || "Not linked"]
+            ["Linked enquiry", quotation.submission_reference || "Not linked"],
+            ["Last sent", quotation.sent_at ? formatDate(quotation.sent_at) : "Not sent"],
+            ["Times sent", String(quotation.send_count || 0)]
         ];
 
         fields.forEach(function ([label, value]) {
@@ -1102,6 +1119,100 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+
+
+    function openSendQuotationModal() {
+        const quotation = state.selectedQuotation;
+
+        if (!quotation) return;
+
+        const email = String(quotation.customer_email || "").trim();
+
+        if (!email) {
+            window.alert("Add a customer email before sending this quotation.");
+            return;
+        }
+
+        document.getElementById("sendQuoteReference").textContent =
+            quotation.quote_reference || "—";
+
+        document.getElementById("sendQuoteRecipient").textContent = email;
+        document.getElementById("sendQuoteTotal").textContent =
+            formatMoney(quotation.grand_total);
+
+        document.getElementById("sendQuotationMessage").value = "";
+        elements.sendQuotationStatus.textContent = "";
+        elements.sendQuotationBackdrop.hidden = false;
+        elements.sendQuotationModal.classList.add("is-open");
+        elements.sendQuotationModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("crm-lock-scroll");
+    }
+
+    async function sendQuotation() {
+        const quotation = state.selectedQuotation;
+
+        if (!quotation) return;
+
+        const button = elements.confirmSendQuotationButton;
+        button.disabled = true;
+        button.textContent = "Sending...";
+        elements.sendQuotationStatus.textContent =
+            "Sending quotation to the customer...";
+
+        try {
+            const data = await apiRequest(
+                `/admin/quotations/${encodeURIComponent(
+                    quotation.quote_reference
+                )}/send`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        message:
+                            document
+                                .getElementById("sendQuotationMessage")
+                                .value
+                                .trim()
+                    })
+                }
+            );
+
+            quotation.status = "sent";
+            quotation.sent_at = data.quotation?.sentAt || new Date().toISOString();
+            quotation.send_count = Number(quotation.send_count || 0) + 1;
+
+            elements.quoteDetailStatus.value = "sent";
+            elements.sendQuotationStatus.textContent =
+                data.message || "Quotation sent.";
+
+            await Promise.all([loadStats(), loadQuotations()]);
+
+            window.setTimeout(function () {
+                closeSendQuotationModal();
+                openQuotationDetail(quotation.quote_reference);
+            }, 650);
+        } catch (error) {
+            elements.sendQuotationStatus.textContent =
+                error.message || "The quotation could not be sent.";
+        } finally {
+            button.disabled = false;
+            button.textContent = "Send now";
+        }
+    }
+
+    function closeSendQuotationModal() {
+        elements.sendQuotationModal.classList.remove("is-open");
+        elements.sendQuotationModal.setAttribute("aria-hidden", "true");
+        elements.sendQuotationBackdrop.hidden = true;
+
+        if (
+            !elements.detailPanel.classList.contains("is-open") &&
+            !elements.quotationBuilder.classList.contains("is-open") &&
+            !elements.quotationDetailPanel.classList.contains("is-open") &&
+            !elements.quotationPreviewModal.classList.contains("is-open")
+        ) {
+            document.body.classList.remove("crm-lock-scroll");
+        }
+    }
 
     function openQuotationPreview(quotation, printImmediately = false) {
         populateQuotationDocument(quotation);
