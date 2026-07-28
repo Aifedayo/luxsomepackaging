@@ -148,14 +148,13 @@
                         <div class="mobile-progress__track"><span id="mobileProgressFill"></span></div>
                     </div>
 
-                    <form id="projectForm" class="project-form" action="https://formspree.io/f/xjgnakbg" method="POST" novalidate>
+                    <form id="projectForm" class="project-form" action="https://api.luxsomepackaging.com/project" method="POST" novalidate>
                         <input
                             type="hidden"
-                            name="_subject"
+                            name="subject"
                             id="formSubject"
-                            value="New Luxsome Project Brief"
+                            value="New Project Brief"
                         >
-
                         <input
                             type="hidden"
                             name="project_reference"
@@ -342,6 +341,33 @@
                             ></div>
 
                             <label class="consent-field">
+                                <input
+                                    type="hidden"
+                                    name="submitted_packaging_system"
+                                    id="submittedPackagingSystem"
+                                    value=""
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="submitted_components"
+                                    id="submittedComponents"
+                                    value=""
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="submitted_experience"
+                                    id="submittedExperience"
+                                    value=""
+                                >
+
+                                <input
+                                    type="hidden"
+                                    name="submitted_date"
+                                    id="submittedDate"
+                                    value=""
+                                >
                                 <input
                                     type="checkbox"
                                     id="consent"

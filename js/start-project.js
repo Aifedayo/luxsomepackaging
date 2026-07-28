@@ -31,6 +31,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const builderRecommendationInput = document.getElementById("builderRecommendationInput");
     const builderSource = document.getElementById("builderSource");
 
+    const submittedPackagingSystem =
+    document.getElementById(
+        "submittedPackagingSystem"
+    );
+
+const submittedComponents =
+    document.getElementById(
+        "submittedComponents"
+    );
+
+const submittedExperience =
+    document.getElementById(
+        "submittedExperience"
+    );
+
+const submittedDate =
+    document.getElementById(
+        "submittedDate"
+    );
+
     let currentStep = 1;
     const totalSteps = steps.length;
     const builderData = readBuilderData();
@@ -118,33 +138,35 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
             );
-    
+
+            let responseData = {};
+
+            try {
+                responseData = await response.json();
+            } catch (_) {
+                // The API returned a non-JSON response.
+            }
+
             if (!response.ok) {
-                let message =
-                    "Something went wrong. Please check your details and try again.";
-    
-                try {
-                    const data = await response.json();
-    
-                    if (
-                        Array.isArray(data.errors) &&
-                        data.errors.length
-                    ) {
-                        message = data.errors
+                const message =
+                    responseData.message ||
+                    (Array.isArray(responseData.errors)
+                        ? responseData.errors
                             .map((item) => item.message)
                             .filter(Boolean)
-                            .join(" ");
-                    }
-                } catch (_) {
-                    // Formspree did not return JSON.
-                }
-    
+                            .join(" ")
+                        : "") ||
+                    "Something went wrong. Please check your details and try again.";
+
                 throw new Error(message);
             }
-    
+
+            const confirmedReference =
+                responseData.reference || projectReference;
+
             const confirmationData =
                 createConfirmationData(
-                    projectReference
+                    confirmedReference
                 );
     
             try {
@@ -171,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
             window.location.href =
                 `/start-project/project-submitted/?reference=${encodeURIComponent(
-                    projectReference
+                    confirmedReference
                 )}`;
         } catch (error) {
             showStatus(
@@ -700,6 +722,53 @@ document.addEventListener("DOMContentLoaded", () => {
             valueOf("brandName") ||
             "Unnamed Brand";
     
+        const selectedSystem =
+            checkedValue("package_type");
+    
+        const storedRecommendation =
+            readStoredBuilderRecommendation();
+    
+        const packagingSystem =
+            selectedSystem ===
+            "Packaging Builder Recommendation"
+                ? (
+                    storedRecommendation.title ||
+                    selectedSystem
+                )
+                : selectedSystem;
+    
+        const selectedBox =
+            checkedValue("box_style");
+    
+        const selectedComponents =
+            Array.from(
+                form.querySelectorAll(
+                    '[name="components[]"]:checked'
+                )
+            ).map((input) => input.value);
+    
+        const builderComponents =
+            storedRecommendation.components || [];
+    
+        const finalComponents =
+            selectedComponents.length
+                ? [...selectedComponents]
+                : [...builderComponents];
+    
+        if (
+            selectedBox &&
+            !finalComponents.includes(selectedBox)
+        ) {
+            finalComponents.unshift(selectedBox);
+        }
+    
+        const experience =
+            Array.from(
+                form.querySelectorAll(
+                    '[name="desired_experience[]"]:checked'
+                )
+            ).map((input) => input.value);
+    
         if (projectReferenceInput) {
             projectReferenceInput.value =
                 projectReference;
@@ -708,6 +777,39 @@ document.addEventListener("DOMContentLoaded", () => {
         if (formSubject) {
             formSubject.value =
                 `New Project Brief | ${projectReference} | ${brandName}`;
+        }
+    
+        if (submittedPackagingSystem) {
+            submittedPackagingSystem.value =
+                packagingSystem;
+        }
+    
+        if (submittedComponents) {
+            submittedComponents.value =
+                finalComponents.length
+                    ? finalComponents.join(", ")
+                    : "To be confirmed";
+        }
+    
+        if (submittedExperience) {
+            submittedExperience.value =
+                experience.length
+                    ? experience.join(", ")
+                    : "To be confirmed";
+        }
+    
+        if (submittedDate) {
+            submittedDate.value =
+                new Intl.DateTimeFormat(
+                    "en-NG",
+                    {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }
+                ).format(new Date());
         }
     
         appendReferenceToProjectSummary(
