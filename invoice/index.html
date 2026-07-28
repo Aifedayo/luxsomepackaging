@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Invoice | Luxsome Packaging</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/invoice-portal.css">
+</head>
+<body>
+    <main class="portal-shell">
+        <header class="portal-header">
+            <a href="/" class="brand">LUXSOME <span>PACKAGING</span></a>
+            <button id="printInvoice" type="button">Print / Save PDF</button>
+        </header>
+
+        <section id="loading" class="state-card">Loading your invoice…</section>
+        <section id="error" class="state-card error" hidden></section>
+
+        <article id="invoice" class="invoice-paper" hidden>
+            <div class="invoice-heading">
+                <div>
+                    <p class="eyebrow">INVOICE</p>
+                    <h1 id="invoiceReference">—</h1>
+                    <p id="customerName">—</p>
+                </div>
+                <div class="status-box">
+                    <span>Status</span>
+                    <strong id="invoiceStatus">—</strong>
+                </div>
+            </div>
+
+            <section class="summary-grid">
+                <article>
+                    <span>Amount due</span>
+                    <strong id="balanceDue">₦0</strong>
+                </article>
+                <article>
+                    <span>Invoice total</span>
+                    <strong id="grandTotal">₦0</strong>
+                </article>
+                <article>
+                    <span>Issue date</span>
+                    <strong id="issueDate">—</strong>
+                </article>
+                <article>
+                    <span>Due date</span>
+                    <strong id="dueDate">—</strong>
+                </article>
+            </section>
+
+            <div class="items-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Unit price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceItems"></tbody>
+                </table>
+            </div>
+
+            <section class="totals" id="invoiceTotals"></section>
+
+            <section class="notes-grid">
+                <article>
+                    <h2>Payment instructions</h2>
+                    <p id="paymentInstructions">—</p>
+                </article>
+                <article>
+                    <h2>Payment terms</h2>
+                    <p id="paymentTerms">—</p>
+                </article>
+            </section>
+
+            <section class="payment-card" id="paymentCard">
+                <div>
+                    <p class="eyebrow">PAYMENT CONFIRMATION</p>
+                    <h2>I have made payment</h2>
+                    <p>Send your payment amount and transfer reference to Luxsome for verification.</p>
+                </div>
+                <form id="paymentForm">
+                    <label>
+                        Amount paid
+                        <input id="paymentAmount" type="number" min="1" step="any" required>
+                    </label>
+                    <label>
+                        Transfer reference
+                        <input id="paymentReference" maxlength="200" placeholder="Optional">
+                    </label>
+                    <label>
+                        Note
+                        <textarea id="paymentNote" maxlength="2000" placeholder="Optional"></textarea>
+                    </label>
+                    <button id="paymentButton" type="submit">Submit payment information</button>
+                    <p id="paymentStatus" role="status"></p>
+                </form>
+            </section>
+        </article>
+    </main>
+    <script src="/js/invoice-portal.js"></script>
+</body>
+</html>
