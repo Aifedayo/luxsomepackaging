@@ -304,3 +304,1039 @@ body {
         transition: none;
     }
 }
+
+/* =========================================================
+   LUXSOME — PROJECT CONFIRMATION PAGE
+========================================================= */
+
+.confirmation-page,
+.confirmation-page * {
+    box-sizing: border-box;
+}
+
+.confirmation-page {
+    --confirmation-wine: #673629;
+    --confirmation-wine-dark: #2e1c15;
+    --confirmation-cream: #f8f4ef;
+    --confirmation-paper: #fffdf9;
+    --confirmation-gold: #a67c52;
+    --confirmation-ink: #2f211b;
+    --confirmation-muted: #756a64;
+    --confirmation-line: rgba(103, 54, 41, 0.18);
+
+    position: relative;
+    overflow: hidden;
+    background: var(--confirmation-cream);
+    color: var(--confirmation-ink);
+    font-family: "Montserrat", sans-serif;
+}
+
+.confirmation-container {
+    width: min(1180px, calc(100% - 3rem));
+    margin-inline: auto;
+}
+
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+.confirmation-particles {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 700px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.confirmation-particle {
+    position: absolute;
+    top: -20px;
+    width: 4px;
+    height: 10px;
+    background: var(--confirmation-gold);
+    opacity: 0;
+    animation: confirmation-particle-fall 1.8s ease-out forwards;
+}
+
+@keyframes confirmation-particle-fall {
+    0% {
+        opacity: 0;
+        transform:
+            translate3d(0, -20px, 0)
+            rotate(0deg);
+    }
+
+    15% {
+        opacity: 0.75;
+    }
+
+    100% {
+        opacity: 0;
+        transform:
+            translate3d(
+                var(--particle-drift),
+                620px,
+                0
+            )
+            rotate(270deg);
+    }
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.confirmation-hero {
+    position: relative;
+    padding:
+        clamp(5.5rem, 10vw, 9rem)
+        1.5rem
+        clamp(5rem, 9vw, 8rem);
+    background: var(--confirmation-wine-dark);
+    color: var(--confirmation-cream);
+    text-align: center;
+}
+
+.confirmation-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            90deg,
+            transparent 49.9%,
+            rgba(248, 244, 239, 0.04) 50%,
+            transparent 50.1%
+        );
+    pointer-events: none;
+}
+
+.confirmation-hero .confirmation-container {
+    position: relative;
+    z-index: 2;
+}
+
+.confirmation-success-mark {
+    width: 92px;
+    height: 92px;
+    margin: 0 auto 2rem;
+}
+
+.confirmation-success-mark svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.confirmation-success-mark__circle {
+    fill: transparent;
+    stroke: var(--confirmation-gold);
+    stroke-width: 1.5;
+    stroke-dasharray: 290;
+    stroke-dashoffset: 290;
+    animation:
+        confirmation-draw-circle
+        0.9s
+        0.15s
+        ease
+        forwards;
+}
+
+.confirmation-success-mark__check {
+    fill: none;
+    stroke: var(--confirmation-cream);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 70;
+    stroke-dashoffset: 70;
+    animation:
+        confirmation-draw-check
+        0.55s
+        0.85s
+        ease
+        forwards;
+}
+
+@keyframes confirmation-draw-circle {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+@keyframes confirmation-draw-check {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.confirmation-eyebrow {
+    margin: 0 0 1.3rem;
+    color: var(--confirmation-gold);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+}
+
+.confirmation-hero h1 {
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(3.2rem, 8vw, 7rem);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+}
+
+.confirmation-hero h1 em {
+    display: block;
+    color: var(--confirmation-gold);
+    font-weight: 400;
+}
+
+.confirmation-hero__text {
+    max-width: 700px;
+    margin: 1.8rem auto 0;
+    color: rgba(248, 244, 239, 0.72);
+    font-size: clamp(0.9rem, 1.4vw, 1.05rem);
+    line-height: 1.85;
+}
+
+
+/* =========================================================
+   PROJECT REFERENCE
+========================================================= */
+
+.project-reference-card {
+    width: min(620px, 100%);
+    margin: clamp(3rem, 6vw, 5rem) auto 0;
+    padding: clamp(1.7rem, 4vw, 2.5rem);
+    border:
+        1px solid
+        rgba(248, 244, 239, 0.18);
+    background:
+        rgba(248, 244, 239, 0.045);
+}
+
+.project-reference-card__label {
+    margin: 0 0 1rem;
+    color: rgba(248, 244, 239, 0.55);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+}
+
+.project-reference-card__number {
+    display: block;
+    margin-bottom: 0.8rem;
+    color: var(--confirmation-cream);
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(1.8rem, 5vw, 3.15rem);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    word-break: break-word;
+}
+
+.project-reference-card > p:last-of-type {
+    margin: 0;
+    color: rgba(248, 244, 239, 0.62);
+    font-size: 0.74rem;
+    line-height: 1.6;
+}
+
+.copy-reference-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    margin-top: 1.3rem;
+    padding: 0;
+    border: 0;
+    border-bottom: 1px solid currentColor;
+    background: transparent;
+    color: var(--confirmation-gold);
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   GENERAL HEADINGS
+========================================================= */
+
+.confirmation-section-heading {
+    margin-bottom: 2.5rem;
+}
+
+.confirmation-section-heading > p {
+    margin: 0 0 0.8rem;
+    color: var(--confirmation-gold);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.17em;
+}
+
+.confirmation-section-heading h2 {
+    margin: 0;
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(2.1rem, 4.5vw, 4rem);
+    font-weight: 400;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+}
+
+.confirmation-section-heading > span {
+    display: block;
+    max-width: 680px;
+    margin: 1rem auto 0;
+    color: var(--confirmation-muted);
+    font-size: 0.85rem;
+    line-height: 1.75;
+}
+
+.confirmation-section-heading--centred {
+    max-width: 800px;
+    margin-right: auto;
+    margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
+    margin-left: auto;
+    text-align: center;
+}
+
+
+/* =========================================================
+   OVERVIEW
+========================================================= */
+
+.confirmation-overview {
+    padding:
+        clamp(4.5rem, 9vw, 8rem)
+        0;
+}
+
+.confirmation-overview__grid {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 0.9fr)
+        minmax(0, 1.1fr);
+    gap: clamp(3rem, 7vw, 7rem);
+    align-items: start;
+}
+
+
+/* =========================================================
+   TIMELINE
+========================================================= */
+
+.project-timeline {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.project-timeline__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 1.2rem;
+    padding-bottom: 2.2rem;
+}
+
+.project-timeline__item:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 44px;
+    bottom: 0;
+    left: 21px;
+    width: 1px;
+    background: var(--confirmation-line);
+}
+
+.project-timeline__marker {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border:
+        1px solid
+        var(--confirmation-line);
+    border-radius: 50%;
+    background: var(--confirmation-cream);
+    color: var(--confirmation-muted);
+    font-size: 0.62rem;
+    font-weight: 700;
+}
+
+.project-timeline__item.is-complete
+.project-timeline__marker {
+    border-color: var(--confirmation-wine);
+    background: var(--confirmation-wine);
+    color: var(--confirmation-cream);
+}
+
+.project-timeline__item small {
+    display: block;
+    margin: 0.2rem 0 0.45rem;
+    color: var(--confirmation-gold);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+}
+
+.project-timeline__item h3 {
+    margin: 0 0 0.5rem;
+    font-family: "DM Serif Display", serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+}
+
+.project-timeline__item p {
+    max-width: 430px;
+    margin: 0;
+    color: var(--confirmation-muted);
+    font-size: 0.77rem;
+    line-height: 1.65;
+}
+
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.project-summary-panel {
+    padding: clamp(2rem, 5vw, 4rem);
+    border:
+        1px solid
+        var(--confirmation-line);
+    background: var(--confirmation-paper);
+}
+
+.project-summary-list {
+    margin: 0;
+}
+
+.project-summary-row {
+    display: grid;
+    grid-template-columns:
+        minmax(130px, 0.65fr)
+        minmax(0, 1.35fr);
+    gap: 1.2rem;
+    padding: 1rem 0;
+    border-bottom:
+        1px solid
+        var(--confirmation-line);
+}
+
+.project-summary-row:first-child {
+    border-top:
+        1px solid
+        var(--confirmation-line);
+}
+
+.project-summary-row dt {
+    color: var(--confirmation-muted);
+    font-size: 0.7rem;
+}
+
+.project-summary-row dd {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.recommended-components {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top:
+        1px solid
+        var(--confirmation-line);
+}
+
+.recommended-components[hidden] {
+    display: none;
+}
+
+.recommended-components__label {
+    margin: 0 0 1rem;
+    color: var(--confirmation-gold);
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.recommended-components__list {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.recommended-components__list li {
+    position: relative;
+    padding-left: 1.3rem;
+    color: var(--confirmation-ink);
+    font-size: 0.73rem;
+    line-height: 1.55;
+}
+
+.recommended-components__list li::before {
+    content: "✓";
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: var(--confirmation-gold);
+    font-weight: 700;
+}
+
+.summary-download-button {
+    display: grid;
+    grid-template-columns:
+        auto minmax(0, 1fr) auto;
+    gap: 0.9rem;
+    align-items: center;
+    width: 100%;
+    margin-top: 2.3rem;
+    padding: 1rem 1.1rem;
+    border:
+        1px solid
+        var(--confirmation-line);
+    background: transparent;
+    color: var(--confirmation-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.summary-download-button > span {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.summary-download-button small {
+    color: var(--confirmation-muted);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   NEXT STEPS
+========================================================= */
+
+.next-steps-section {
+    padding:
+        clamp(4.5rem, 9vw, 8rem)
+        0;
+    border-top:
+        1px solid
+        var(--confirmation-line);
+    background: #efe6de;
+}
+
+.next-steps-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    border-top:
+        1px solid
+        var(--confirmation-line);
+    border-left:
+        1px solid
+        var(--confirmation-line);
+}
+
+.next-step-card {
+    min-height: 280px;
+    padding: clamp(1.5rem, 3vw, 2.3rem);
+    border-right:
+        1px solid
+        var(--confirmation-line);
+    border-bottom:
+        1px solid
+        var(--confirmation-line);
+}
+
+.next-step-card > span {
+    display: block;
+    margin-bottom: 3rem;
+    color: var(--confirmation-gold);
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+
+.next-step-card h3 {
+    margin: 0 0 0.8rem;
+    font-family: "DM Serif Display", serif;
+    font-size: 1.65rem;
+    font-weight: 400;
+}
+
+.next-step-card p {
+    margin: 0;
+    color: var(--confirmation-muted);
+    font-size: 0.76rem;
+    line-height: 1.7;
+}
+
+
+/* =========================================================
+   SUPPORT
+========================================================= */
+
+.confirmation-support {
+    padding:
+        clamp(4rem, 8vw, 7rem)
+        0;
+}
+
+.confirmation-support__card {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+    gap: 3rem;
+    align-items: center;
+    padding: clamp(2rem, 6vw, 5rem);
+    background: var(--confirmation-wine);
+    color: var(--confirmation-cream);
+}
+
+.confirmation-support__eyebrow {
+    margin: 0 0 0.8rem;
+    color: rgba(248, 244, 239, 0.58);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.confirmation-support h2 {
+    margin: 0;
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(2.3rem, 5vw, 4.6rem);
+    font-weight: 400;
+    line-height: 1;
+}
+
+.confirmation-support div > p:last-child {
+    max-width: 650px;
+    margin: 1rem 0 0;
+    color: rgba(248, 244, 239, 0.7);
+    font-size: 0.8rem;
+    line-height: 1.75;
+}
+
+.confirmation-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+    min-height: 54px;
+    padding: 0 1.5rem;
+    border:
+        1px solid
+        currentColor;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.confirmation-button:hover {
+    transform: translateY(-2px);
+}
+
+.confirmation-button--light {
+    background: var(--confirmation-cream);
+    color: var(--confirmation-wine);
+}
+
+
+/* =========================================================
+   EXPLORE
+========================================================= */
+
+.confirmation-explore {
+    padding:
+        clamp(4rem, 8vw, 7rem)
+        0
+        clamp(5rem, 10vw, 9rem);
+}
+
+.confirmation-explore__grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    border-top:
+        1px solid
+        var(--confirmation-line);
+    border-left:
+        1px solid
+        var(--confirmation-line);
+}
+
+.explore-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: 1fr auto;
+    gap: 2rem 1.2rem;
+    min-height: 300px;
+    padding: clamp(1.5rem, 3vw, 2.4rem);
+    border-right:
+        1px solid
+        var(--confirmation-line);
+    border-bottom:
+        1px solid
+        var(--confirmation-line);
+    color: var(--confirmation-ink);
+    text-decoration: none;
+    transition:
+        background 0.25s ease,
+        color 0.25s ease;
+}
+
+.explore-card:hover {
+    background: var(--confirmation-wine);
+    color: var(--confirmation-cream);
+}
+
+.explore-card > span {
+    color: var(--confirmation-gold);
+    font-size: 0.64rem;
+    font-weight: 700;
+}
+
+.explore-card > div {
+    align-self: end;
+    grid-column: 1 / -1;
+}
+
+.explore-card p {
+    margin: 0 0 0.7rem;
+    color: var(--confirmation-gold);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+}
+
+.explore-card h3 {
+    margin: 0 0 0.75rem;
+    font-family: "DM Serif Display", serif;
+    font-size: 2rem;
+    font-weight: 400;
+}
+
+.explore-card small {
+    display: block;
+    max-width: 310px;
+    color: var(--confirmation-muted);
+    font-size: 0.72rem;
+    line-height: 1.65;
+}
+
+.explore-card:hover small {
+    color: rgba(248, 244, 239, 0.68);
+}
+
+.explore-card > i {
+    justify-self: end;
+    transition: transform 0.2s ease;
+}
+
+.explore-card:hover > i {
+    transform: translateX(4px);
+}
+
+
+/* =========================================================
+   QUOTE
+========================================================= */
+
+.confirmation-quote {
+    padding:
+        clamp(5rem, 11vw, 10rem)
+        0;
+    background: var(--confirmation-wine-dark);
+    color: var(--confirmation-cream);
+    text-align: center;
+}
+
+.confirmation-quote blockquote {
+    max-width: 940px;
+    margin: 0 auto;
+    font-family: "DM Serif Display", serif;
+    font-size: clamp(2.3rem, 6vw, 5.5rem);
+    font-weight: 400;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+}
+
+.confirmation-quote blockquote em {
+    color: var(--confirmation-gold);
+    font-weight: 400;
+}
+
+.confirmation-quote p {
+    margin: 2rem 0 0;
+    color: rgba(248, 244, 239, 0.55);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.confirmation-footer {
+    padding: 2.5rem 0;
+    background: #1f1410;
+    color: rgba(248, 244, 239, 0.6);
+    font-family: "Montserrat", sans-serif;
+}
+
+.confirmation-footer__inner {
+    display: grid;
+    grid-template-columns:
+        auto minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: center;
+}
+
+.confirmation-footer__logo img {
+    display: block;
+    width: 120px;
+    height: auto;
+}
+
+.confirmation-footer__links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.confirmation-footer__links a {
+    color: inherit;
+    font-size: 0.68rem;
+    text-decoration: none;
+}
+
+.confirmation-footer__links a:hover {
+    color: var(--confirmation-cream);
+}
+
+.confirmation-footer p {
+    margin: 0;
+    font-size: 0.65rem;
+}
+
+
+/* =========================================================
+   NOTIFICATION
+========================================================= */
+
+.confirmation-notification {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 1.5rem;
+    z-index: 9999;
+    max-width: min(380px, calc(100vw - 3rem));
+    padding: 1rem 1.2rem;
+    background: var(--confirmation-wine);
+    color: var(--confirmation-cream);
+    font-family: "Montserrat", sans-serif;
+    font-size: 0.73rem;
+    line-height: 1.5;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s ease,
+        transform 0.25s ease;
+}
+
+.confirmation-notification.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+
+/* =========================================================
+   PAGE ENTRANCE
+========================================================= */
+
+.confirmation-hero
+.confirmation-eyebrow,
+.confirmation-hero h1,
+.confirmation-hero__text,
+.project-reference-card {
+    opacity: 0;
+    transform: translateY(16px);
+    animation:
+        confirmation-content-in
+        0.65s
+        ease
+        forwards;
+}
+
+.confirmation-hero
+.confirmation-eyebrow {
+    animation-delay: 0.7s;
+}
+
+.confirmation-hero h1 {
+    animation-delay: 0.85s;
+}
+
+.confirmation-hero__text {
+    animation-delay: 1s;
+}
+
+.project-reference-card {
+    animation-delay: 1.15s;
+}
+
+@keyframes confirmation-content-in {
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 960px) {
+    .confirmation-overview__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .project-summary-panel {
+        order: -1;
+    }
+
+    .next-steps-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .confirmation-explore__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .explore-card {
+        min-height: 230px;
+    }
+}
+
+@media (max-width: 760px) {
+    .confirmation-container {
+        width: min(100% - 2rem, 1180px);
+    }
+
+    .confirmation-support__card {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .confirmation-button {
+        width: 100%;
+    }
+
+    .confirmation-footer__inner {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        text-align: center;
+    }
+
+    .recommended-components__list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .confirmation-hero {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+    .confirmation-success-mark {
+        width: 76px;
+        height: 76px;
+    }
+
+    .next-steps-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .next-step-card {
+        min-height: auto;
+    }
+
+    .next-step-card > span {
+        margin-bottom: 2rem;
+    }
+
+    .project-summary-row {
+        grid-template-columns: 1fr;
+        gap: 0.35rem;
+    }
+
+    .summary-download-button {
+        grid-template-columns: auto 1fr;
+    }
+
+    .summary-download-button small {
+        grid-column: 2;
+    }
+
+    .confirmation-footer__links {
+        gap: 1rem;
+    }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .confirmation-page *,
+    .confirmation-page *::before,
+    .confirmation-page *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .confirmation-particles {
+        display: none;
+    }
+}

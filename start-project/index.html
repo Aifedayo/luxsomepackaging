@@ -149,7 +149,19 @@
                     </div>
 
                     <form id="projectForm" class="project-form" action="https://formspree.io/f/xjgnakbg" method="POST" novalidate>
-                        <input type="hidden" name="_subject" value="New Luxsome Project Brief">
+                        <input
+                            type="hidden"
+                            name="_subject"
+                            id="formSubject"
+                            value="New Luxsome Project Brief"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="project_reference"
+                            id="projectReferenceInput"
+                            value=""
+                        >
                         <input type="hidden" name="builder_source" id="builderSource" value="Direct project enquiry">
                         <input type="hidden" name="builder_recommendation" id="builderRecommendationInput" value="">
                         <input type="hidden" name="project_summary" id="projectSummaryInput" value="">

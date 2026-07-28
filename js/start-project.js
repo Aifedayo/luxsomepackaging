@@ -9,9 +9,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitButton = document.getElementById("submitButton");
     const mobileStepText = document.getElementById("mobileStepText");
     const mobileProgressFill = document.getElementById("mobileProgressFill");
-    const formStatus = document.getElementById("formStatus");
-    const reviewCard = document.getElementById("reviewCard");
-    const projectSummaryInput = document.getElementById("projectSummaryInput");
+    const formStatus =
+        document.getElementById("formStatus");
+
+    const reviewCard =
+        document.getElementById("reviewCard");
+
+    const projectSummaryInput =
+        document.getElementById("projectSummaryInput");
+
+    const projectReferenceInput =
+        document.getElementById("projectReferenceInput");
+
+    const formSubject =
+        document.getElementById("formSubject");
     const requiredDate = document.getElementById("requiredDate");
     const bespokePanel = document.getElementById("bespokePanel");
     const builderHandoff = document.getElementById("builderHandoff");
@@ -65,43 +76,118 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         clearStatus();
-        if (!validateStep(totalSteps)) return;
-
+    
+        if (!validateStep(totalSteps)) {
+            return;
+        }
+    
         buildReview();
-        const original = submitButton.innerHTML;
+    
+        const projectReference =
+            getOrCreateProjectReference();
+    
+        prepareSubmissionMetadata(projectReference);
+    
+        const originalButtonContent =
+            submitButton.innerHTML;
+    
         submitButton.disabled = true;
-        submitButton.setAttribute("aria-busy", "true");
-        submitButton.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Sending brief...</span>';
-
+    
+        submitButton.setAttribute(
+            "aria-busy",
+            "true"
+        );
+    
+        submitButton.innerHTML = `
+            <span
+                class="spinner"
+                aria-hidden="true"
+            ></span>
+    
+            <span>Sending brief...</span>
+        `;
+    
         try {
-            const response = await fetch(form.action, {
-                method: "POST",
-                body: new FormData(form),
-                headers: { Accept: "application/json" }
-            });
-
+            const response = await fetch(
+                form.action,
+                {
+                    method: "POST",
+                    body: new FormData(form),
+                    headers: {
+                        Accept: "application/json"
+                    }
+                }
+            );
+    
             if (!response.ok) {
-                let message = "Something went wrong. Please check your details and try again.";
+                let message =
+                    "Something went wrong. Please check your details and try again.";
+    
                 try {
                     const data = await response.json();
-                    if (Array.isArray(data.errors) && data.errors.length) {
-                        message = data.errors.map(item => item.message).filter(Boolean).join(" ");
+    
+                    if (
+                        Array.isArray(data.errors) &&
+                        data.errors.length
+                    ) {
+                        message = data.errors
+                            .map((item) => item.message)
+                            .filter(Boolean)
+                            .join(" ");
                     }
-                } catch (_) {}
+                } catch (_) {
+                    // Formspree did not return JSON.
+                }
+    
                 throw new Error(message);
             }
-
+    
+            const confirmationData =
+                createConfirmationData(
+                    projectReference
+                );
+    
             try {
-                localStorage.removeItem("luxsomePackagingBuilderResult");
-                localStorage.removeItem("luxsomePackagingBuilderAnswers");
-            } catch (_) {}
-
-            window.location.href = "/start-project/project-submitted/";
+                localStorage.setItem(
+                    "luxsomeProjectConfirmation",
+                    JSON.stringify(
+                        confirmationData
+                    )
+                );
+    
+                localStorage.removeItem(
+                    "luxsomePackagingBuilderResult"
+                );
+    
+                localStorage.removeItem(
+                    "luxsomePackagingBuilderAnswers"
+                );
+            } catch (storageError) {
+                console.warn(
+                    "The project was submitted, but its confirmation data could not be saved.",
+                    storageError
+                );
+            }
+    
+            window.location.href =
+                `/start-project/project-submitted/?reference=${encodeURIComponent(
+                    projectReference
+                )}`;
         } catch (error) {
-            showStatus(error.message || "Unable to send your project brief. Please check your connection and try again.", "error");
+            showStatus(
+                error.message ||
+                    "Unable to send your project brief. Please check your connection and try again.",
+                "error"
+            );
+    
             submitButton.disabled = false;
-            submitButton.removeAttribute("aria-busy");
-            submitButton.innerHTML = original;
+    
+            submitButton.removeAttribute(
+                "aria-busy"
+            );
+    
+            submitButton.innerHTML =
+                originalButtonContent;
         }
     });
 
@@ -241,6 +327,162 @@ document.addEventListener("DOMContentLoaded", () => {
             input.disabled = !show;
             if (!show && input instanceof HTMLInputElement) input.checked = false;
         });
+    }
+
+    function createConfirmationData(
+        projectReference
+    ) {
+        const now = new Date();
+    
+        const builderRecommendation =
+            readStoredBuilderRecommendation();
+    
+        const selectedSystem =
+            checkedValue("package_type");
+    
+        const bespokeComponents = Array.from(
+            form.querySelectorAll(
+                '[name="components[]"]:checked'
+            )
+        ).map((input) => input.value);
+    
+        const builderComponents =
+            builderRecommendation.components;
+    
+        const components =
+            bespokeComponents.length > 0
+                ? bespokeComponents
+                : builderComponents;
+    
+        const selectedBox =
+            checkedValue("box_style");
+    
+        if (
+            selectedBox &&
+            !components.includes(selectedBox)
+        ) {
+            components.unshift(selectedBox);
+        }
+    
+        return {
+            version: 1,
+    
+            reference: projectReference,
+    
+            submittedAt: now.toISOString(),
+    
+            customer: {
+                fullName: valueOf("fullName"),
+                brandName: valueOf("brandName"),
+                email: valueOf("email"),
+                phone: valueOf("phone"),
+                location: valueOf("location")
+            },
+    
+            project: {
+                category: selectedText("productCategory"),
+                brandStage: selectedText("brandStage"),
+    
+                packagingSystem:
+                    selectedSystem ===
+                        "Packaging Builder Recommendation"
+                        ? (
+                            builderRecommendation.title ||
+                            selectedSystem
+                        )
+                        : selectedSystem,
+    
+                builderRecommendation:
+                    builderRecommendation.title,
+    
+                boxStyle: selectedBox,
+    
+                components,
+    
+                quantity: selectedText("quantity"),
+    
+                requiredDate: formatDate(
+                    valueOf("requiredDate")
+                ),
+    
+                productType: valueOf("productType"),
+    
+                dimensions: valueOf("dimensions"),
+    
+                investmentLevel:
+                    selectedText("budget"),
+    
+                artworkStatus:
+                    selectedText("artworkStatus"),
+    
+                desiredExperience:
+                    Array.from(
+                        form.querySelectorAll(
+                            '[name="desired_experience[]"]:checked'
+                        )
+                    ).map((input) => input.value),
+    
+                preferredContact:
+                    selectedText("preferredContact"),
+    
+                notes: valueOf("projectNotes")
+            }
+        };
+    }
+    
+    function readStoredBuilderRecommendation() {
+        try {
+            const stored = JSON.parse(
+                localStorage.getItem(
+                    "luxsomePackagingBuilderResult"
+                ) || "null"
+            );
+    
+            const details =
+                stored?.recommendationDetails || stored || {};
+    
+            return {
+                title:
+                    details.title ||
+                    details.tier ||
+                    details.recommendation ||
+                    "",
+    
+                description:
+                    details.description ||
+                    details.summary ||
+                    "",
+    
+                components:
+                    Array.isArray(details.components)
+                        ? [...details.components]
+                        : []
+            };
+        } catch (error) {
+            return {
+                title: "",
+                description: "",
+                components: []
+            };
+        }
+    }
+    
+    function generateProjectReference(date = new Date()) {
+        const year = date.getFullYear();
+    
+        const month = String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+    
+        const day = String(
+            date.getDate()
+        ).padStart(2, "0");
+    
+        const randomCode = String(
+            Math.floor(1000 + Math.random() * 9000)
+        );
+    
+        return `LX-${year}${month}${day}-${randomCode}`;
     }
 
     function buildReview() {
@@ -431,4 +673,72 @@ document.addEventListener("DOMContentLoaded", () => {
     function showStatus(message, type = "") { formStatus.textContent = message; formStatus.className = `form-status${type ? ` is-${type}` : ""}`; }
     function clearStatus() { showStatus(""); form.querySelectorAll('[aria-invalid="true"]').forEach(el => el.removeAttribute("aria-invalid")); }
     function prefersReducedMotion() { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+
+    function getOrCreateProjectReference() {
+        const existingReference =
+            projectReferenceInput?.value.trim();
+    
+        if (existingReference) {
+            return existingReference;
+        }
+    
+        const reference =
+            generateProjectReference();
+    
+        if (projectReferenceInput) {
+            projectReferenceInput.value =
+                reference;
+        }
+    
+        return reference;
+    }
+    
+    function prepareSubmissionMetadata(
+        projectReference
+    ) {
+        const brandName =
+            valueOf("brandName") ||
+            "Unnamed Brand";
+    
+        if (projectReferenceInput) {
+            projectReferenceInput.value =
+                projectReference;
+        }
+    
+        if (formSubject) {
+            formSubject.value =
+                `New Project Brief | ${projectReference} | ${brandName}`;
+        }
+    
+        appendReferenceToProjectSummary(
+            projectReference
+        );
+    }
+    
+    function appendReferenceToProjectSummary(
+        projectReference
+    ) {
+        if (!projectSummaryInput) {
+            return;
+        }
+    
+        const currentSummary =
+            projectSummaryInput.value.trim();
+    
+        const referenceLine =
+            `Project reference: ${projectReference}`;
+    
+        if (
+            currentSummary.includes(referenceLine)
+        ) {
+            return;
+        }
+    
+        projectSummaryInput.value = [
+            referenceLine,
+            currentSummary
+        ]
+            .filter(Boolean)
+            .join("\n");
+    }
 });
