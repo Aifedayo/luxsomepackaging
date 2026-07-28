@@ -63,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
         closeQuotationPreviewButton: document.getElementById("closeQuotationPreviewButton"),
         previewPrintButton: document.getElementById("previewPrintButton"),
         sendQuotationButton: document.getElementById("sendQuotationButton"),
+        createInvoiceFromQuoteButton: document.getElementById("createInvoiceFromQuoteButton"),
         sendQuotationBackdrop: document.getElementById("sendQuotationBackdrop"),
         sendQuotationModal: document.getElementById("sendQuotationModal"),
         closeSendQuotationButton: document.getElementById("closeSendQuotationButton"),
@@ -248,6 +249,21 @@ document.addEventListener("DOMContentLoaded", function () {
     elements.previewPrintButton.addEventListener("click", printQuotation);
 
     elements.sendQuotationButton.addEventListener("click", openSendQuotationModal);
+    elements.createInvoiceFromQuoteButton.addEventListener("click", async function () {
+        if (!state.selectedQuotation) return;
+        if (state.selectedQuotation.status !== "accepted") {
+            window.alert("Only accepted quotations can be converted to invoices.");
+            return;
+        }
+        const button = elements.createInvoiceFromQuoteButton;
+        button.disabled = true;
+        try {
+            const data = await apiRequest(`/admin/invoices/from-quotation/${encodeURIComponent(state.selectedQuotation.quote_reference)}`, { method: "POST" });
+            window.location.href = `/admin/invoices/?invoice=${encodeURIComponent(data.invoice.invoiceReference)}`;
+        } catch (error) {
+            window.alert(error.message || "The invoice could not be created.");
+        } finally { button.disabled = false; }
+    });
     elements.closeSendQuotationButton.addEventListener("click", closeSendQuotationModal);
     elements.cancelSendQuotationButton.addEventListener("click", closeSendQuotationModal);
     elements.sendQuotationBackdrop.addEventListener("click", closeSendQuotationModal);
