@@ -1000,13 +1000,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             elements.quoteDetailStatus.value = quotation.status;
 
-            document.getElementById("quoteDetailEmailAction").href =
-                quotation.customer_email
-                    ? `mailto:${quotation.customer_email}?subject=${encodeURIComponent(
-                        `Luxsome quotation ${quotation.quote_reference}`
-                    )}`
-                    : "#";
-
             renderQuotationDetailItems(quotation);
             renderQuotationDetailTerms(quotation);
 
