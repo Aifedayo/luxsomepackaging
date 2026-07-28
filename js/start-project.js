@@ -54,14 +54,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     dismissBuilderHandoff?.addEventListener("click", () => {
-        /*
-         * Send the visitor back to the Packaging Builder so they can
-         * change their answers and generate a new recommendation.
-         *
-         * The saved builder result is intentionally kept in
-         * localStorage until the new recommendation replaces it.
-         */
-        window.location.href = "/packaging-builder/?adjust=true";
+        dismissBuilderHandoff.disabled = true;
+        dismissBuilderHandoff.textContent =
+            "Opening Packaging Builder…";
+    
+        window.location.href =
+            "/packaging-builder/?adjust=true";
     });
 
     form.addEventListener("submit", async (event) => {
