@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Luxsome CRM</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#2e1c15">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+    <div class="admin-shell">
+        <aside class="sidebar">
+            <a href="/" class="sidebar-brand">
+                <span>LUXSOME</span>
+                <small>CRM</small>
+            </a>
+
+            <nav class="sidebar-nav" aria-label="CRM navigation">
+                <button class="nav-item is-active" type="button" data-view="all">
+                    All Enquiries
+                </button>
+                <button class="nav-item" type="button" data-view="project">
+                    Project Briefs
+                </button>
+                <button class="nav-item" type="button" data-view="contact">
+                    Contact Messages
+                </button>
+            </nav>
+
+            <button id="logoutButton" class="logout-button" type="button">
+                Lock Dashboard
+            </button>
+        </aside>
+
+        <main class="dashboard">
+            <header class="dashboard-header">
+                <div>
+                    <p class="eyebrow">LUXSOME OPERATIONS</p>
+                    <h1>Enquiry Dashboard</h1>
+                </div>
+
+                <button id="refreshButton" class="refresh-button" type="button">
+                    Refresh
+                </button>
+            </header>
+
+            <section class="stats-grid" aria-label="CRM overview">
+                <article class="stat-card">
+                    <span>Total enquiries</span>
+                    <strong id="totalStat">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>New</span>
+                    <strong id="newStat">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Reviewing</span>
+                    <strong id="reviewingStat">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Quoted</span>
+                    <strong id="quotedStat">0</strong>
+                </article>
+                <article class="stat-card">
+                    <span>Won</span>
+                    <strong id="wonStat">0</strong>
+                </article>
+            </section>
+
+            <section class="toolbar">
+                <label class="search-field">
+                    <span class="sr-only">Search enquiries</span>
+                    <input
+                        type="search"
+                        id="searchInput"
+                        placeholder="Search brand, email, phone or reference"
+                    >
+                </label>
+
+                <label>
+                    <span class="sr-only">Filter by status</span>
+                    <select id="statusFilter">
+                        <option value="">All statuses</option>
+                        <option value="new">New</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="quoted">Quoted</option>
+                        <option value="follow_up">Follow up</option>
+                        <option value="won">Won</option>
+                        <option value="lost">Lost</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </label>
+            </section>
+
+            <p id="dashboardStatus" class="dashboard-status" role="status"></p>
+
+            <section class="table-card">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Brand / Customer</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Submitted</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="submissionsTableBody"></tbody>
+                    </table>
+                </div>
+
+                <div id="emptyState" class="empty-state" hidden>
+                    No enquiries match this view.
+                </div>
+
+                <div class="pagination">
+                    <button id="previousButton" type="button">Previous</button>
+                    <span id="paginationText">Page 1</span>
+                    <button id="nextButton" type="button">Next</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="loginOverlay" class="login-overlay">
+        <form id="loginForm" class="login-card">
+            <p class="eyebrow">PRIVATE CRM</p>
+            <h2>Open the Luxsome dashboard</h2>
+            <p>Enter the administrator token configured in Cloudflare.</p>
+
+            <label>
+                Administrator token
+                <input
+                    type="password"
+                    id="tokenInput"
+                    autocomplete="current-password"
+                    required
+                >
+            </label>
+
+            <button type="submit">Open Dashboard</button>
+            <p id="loginError" class="login-error" role="alert"></p>
+        </form>
+    </div>
+
+    <div id="detailOverlay" class="detail-overlay" hidden>
+        <article class="detail-panel">
+            <button
+                id="closeDetailButton"
+                class="detail-close"
+                type="button"
+                aria-label="Close enquiry"
+            >×</button>
+
+            <p class="eyebrow" id="detailType">ENQUIRY</p>
+            <h2 id="detailReference"></h2>
+
+            <div class="detail-summary">
+                <div>
+                    <span>Brand</span>
+                    <strong id="detailBrand"></strong>
+                </div>
+                <div>
+                    <span>Customer</span>
+                    <strong id="detailCustomer"></strong>
+                </div>
+                <div>
+                    <span>Email</span>
+                    <a id="detailEmail"></a>
+                </div>
+                <div>
+                    <span>Phone</span>
+                    <a id="detailPhone"></a>
+                </div>
+            </div>
+
+            <label class="status-editor">
+                Lead status
+                <select id="detailStatus">
+                    <option value="new">New</option>
+                    <option value="reviewing">Reviewing</option>
+                    <option value="quoted">Quoted</option>
+                    <option value="follow_up">Follow up</option>
+                    <option value="won">Won</option>
+                    <option value="lost">Lost</option>
+                    <option value="archived">Archived</option>
+                </select>
+            </label>
+
+            <section class="payload-section">
+                <h3>Submitted details</h3>
+                <dl id="payloadList"></dl>
+            </section>
+        </article>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>
