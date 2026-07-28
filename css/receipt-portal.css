@@ -1,0 +1,238 @@
+:root {
+    --brown: #2e1c15;
+    --cream: #f8f4ef;
+    --line: #e1d5cc;
+    --muted: #755f53;
+    --white: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--brown);
+    font-family: "Montserrat", Arial, sans-serif;
+}
+
+.receipt-shell {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 20px 70px;
+}
+
+.receipt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+.brand {
+    color: var(--brown);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-decoration: none;
+}
+
+.brand span {
+    display: block;
+    margin-top: 4px;
+    font-size: 9px;
+    letter-spacing: 4px;
+}
+
+.receipt-header button {
+    border: 0;
+    padding: 13px 18px;
+    background: var(--brown);
+    color: var(--white);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.state-card,
+.receipt-paper {
+    padding: 34px;
+    border: 1px solid var(--line);
+    background: var(--white);
+}
+
+.error {
+    color: #9b1c1c;
+}
+
+.receipt-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 26px;
+    border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+    margin: 0;
+    color: #8d654d;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.receipt-heading h1 {
+    margin: 7px 0 10px;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 42px;
+    font-weight: 400;
+}
+
+.paid-stamp {
+    align-self: flex-start;
+    padding: 14px 17px;
+    border: 2px solid #2e6a3b;
+    color: #2e6a3b;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+}
+
+.amount-card {
+    margin: 28px 0;
+    padding: 25px;
+    background: var(--brown);
+    color: var(--white);
+    text-align: center;
+}
+
+.amount-card span,
+.amount-card strong {
+    display: block;
+}
+
+.amount-card span {
+    margin-bottom: 8px;
+    color: #d8c4b7;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.amount-card strong {
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 38px;
+    font-weight: 400;
+}
+
+.receipt-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+}
+
+.receipt-details div {
+    padding: 18px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+
+.receipt-details span,
+.receipt-details strong {
+    display: block;
+}
+
+.receipt-details span {
+    margin-bottom: 7px;
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.receipt-note {
+    margin-top: 24px;
+    padding: 20px;
+    background: var(--cream);
+}
+
+.receipt-note h2 {
+    margin: 0 0 9px;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 23px;
+    font-weight: 400;
+}
+
+.receipt-note p {
+    margin: 0;
+    white-space: pre-wrap;
+    line-height: 1.7;
+}
+
+.receipt-paper footer {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+}
+
+.receipt-paper footer p {
+    margin: 0 0 8px;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 21px;
+}
+
+.receipt-paper footer small {
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+@media (max-width: 650px) {
+    .receipt-paper,
+    .state-card {
+        padding: 22px 16px;
+    }
+
+    .receipt-heading {
+        display: block;
+    }
+
+    .paid-stamp {
+        display: inline-block;
+        margin-top: 18px;
+    }
+
+    .receipt-details {
+        grid-template-columns: 1fr;
+    }
+
+    .receipt-header {
+        align-items: flex-start;
+    }
+
+    .receipt-header button {
+        padding: 10px;
+        font-size: 11px;
+    }
+}
+
+@media print {
+    body {
+        background: #ffffff;
+    }
+
+    .receipt-shell {
+        max-width: none;
+        padding: 0;
+    }
+
+    .receipt-header {
+        display: none;
+    }
+
+    .receipt-paper {
+        border: 0;
+        padding: 0;
+    }
+}
