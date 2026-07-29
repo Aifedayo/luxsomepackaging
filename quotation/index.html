@@ -90,31 +90,71 @@
     </main>
 
     <div id="responseBackdrop" class="response-backdrop" hidden></div>
-    <section id="responseModal" class="response-modal" aria-hidden="true">
-        <button id="closeResponseModal" class="response-close" type="button">×</button>
-        <p class="portal-eyebrow" id="responseEyebrow">CONFIRM RESPONSE</p>
-        <h2 id="responseTitle">Accept quotation</h2>
+    <section
+        id="responseModal"
+        class="response-modal"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="responseTitle"
+    >
+        <button
+            id="closeResponseModal"
+            class="response-close"
+            type="button"
+            aria-label="Close response window"
+        >
+            ×
+        </button>
+
+        <p class="portal-eyebrow" id="responseEyebrow">
+            CONFIRM RESPONSE
+        </p>
+
+        <h2 id="responseTitle">
+            Accept quotation
+        </h2>
+
         <p id="responseDescription"></p>
 
+        <!-- Only displayed when declining -->
         <label id="reasonField" hidden>
-            Reason
+            Reason for declining
             <select id="responseReason">
-                <option value="">Select a reason</option>
-                <option value="Budget">Budget</option>
-                <option value="No longer required">No longer required</option>
+                <option value="">Select a reason (optional)</option>
+                <option value="Budget">Price is above my budget</option>
+                <option value="No longer required">Packaging is no longer required</option>
                 <option value="Chose another supplier">Chose another supplier</option>
-                <option value="Timing">Timing</option>
+                <option value="Timing">The timeline does not work for me</option>
+                <option value="Requirements changed">My requirements have changed</option>
                 <option value="Other">Other</option>
             </select>
         </label>
 
-        <label>
+        <!-- Displayed for request changes and decline, but not acceptance -->
+        <label id="commentField" hidden>
             <span id="commentLabel">Optional comment</span>
-            <textarea id="responseComment" rows="5" maxlength="3000"></textarea>
+
+            <textarea
+                id="responseComment"
+                rows="5"
+                maxlength="3000"
+            ></textarea>
         </label>
 
-        <p id="responseStatus" class="response-status" role="status"></p>
-        <button id="submitResponse" class="portal-button portal-button--primary portal-button--full">Confirm</button>
+        <p
+            id="responseStatus"
+            class="response-status"
+            role="status"
+        ></p>
+
+        <button
+            id="submitResponse"
+            class="portal-button portal-button--primary portal-button--full"
+            type="button"
+        >
+            Confirm
+        </button>
     </section>
 
     <footer class="portal-footer">
@@ -123,6 +163,5 @@
     </footer>
 
     <script src="/js/quotation-portal.js"></script>
-    <script src="/js/crm-brand.js"></script>
 </body>
 </html>
