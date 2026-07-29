@@ -753,7 +753,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const seen = new Set();
         const quantityWords = /(?:quantity|qty|units?|pieces?|copies|order[_\s-]*size|requested[_\s-]*quantity|number[_\s-]*required|how[_\s-]*many)/i;
         const ignoredWords = /(?:phone|mobile|whatsapp|postal|zip|year|date|budget|price|amount|cost|width|height|length|depth|gsm|email)/i;
-        const nameWords = /(?:name|item|product|packaging|component|type|category|style|option|title|description)/i;
+        const nameWords = /(?:item|product|packaging|component|system|package[_\s-]*type|box[_\s-]*style|type|category|style|option|title|description)/i;
+        const personNameWords = /^(?:name|full[_\s-]*name|contact[_\s-]*(?:name|person)|customer[_\s-]*name|brand[_\s-]*name)$/i;
 
         function title(value) {
             return String(value || "")
@@ -792,9 +793,42 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         function pickName(obj, fallback) {
+            const priorityKeys = [
+                "packaging_system",
+                "packagingSystem",
+                "package_type",
+                "packageType",
+                "system",
+                "item_description",
+                "itemDescription",
+                "description",
+                "item_name",
+                "itemName",
+                "product_name",
+                "productName",
+                "product",
+                "component",
+                "box_style",
+                "boxStyle",
+                "style",
+                "type",
+                "title"
+            ];
+
+            for (const key of priorityKeys) {
+                const value = obj[key];
+                if (typeof value === "string" && value.trim()) {
+                    return value;
+                }
+            }
+
             const preferred = Object.entries(obj).find(function ([key, value]) {
-                return nameWords.test(key) && typeof value === "string" && value.trim();
+                return !personNameWords.test(key) &&
+                    nameWords.test(key) &&
+                    typeof value === "string" &&
+                    value.trim();
             });
+
             return preferred ? preferred[1] : fallback;
         }
 
