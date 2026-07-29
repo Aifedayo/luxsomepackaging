@@ -236,3 +236,16 @@ body {
         padding: 0;
     }
 }
+
+.invoice-brand {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.invoice-brand__logo {
+    display: block;
+    width: 180px;
+    max-width: 100%;
+    height: auto;
+}
