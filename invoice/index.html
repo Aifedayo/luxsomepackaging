@@ -9,16 +9,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/invoice-portal.css">
+    <style>
+        .payment-slip-field{display:grid;gap:10px}
+        .payment-slip-field input[type=file]{padding:12px;border:1px dashed #bda89a;background:#fff}
+        .payment-slip-help{margin:0;font-size:12px;line-height:1.5;color:#806b60}
+        .payment-slip-preview{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #eadfd7;background:#f8f4ef}
+        .payment-slip-preview img{width:72px;height:72px;object-fit:cover;border:1px solid #e4d8d0;background:#fff}
+        .payment-slip-preview__details{min-width:0;flex:1}
+        .payment-slip-preview__details strong,.payment-slip-preview__details span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .payment-slip-preview__details span{margin-top:4px;font-size:12px;color:#806b60}
+        .payment-slip-preview button{width:auto}
+    </style>
 </head>
 <body>
     <main class="portal-shell">
         <header class="portal-header">
             <a href="/" class="invoice-brand" aria-label="Luxsome Packaging homepage">
-                <img
-                    src="/assets/images/luxsome-logo.png"
-                    alt="Luxsome Packaging"
-                    class="invoice-brand__logo"
-                >
+                <img src="/assets/images/luxsome-logo.png" alt="Luxsome Packaging" class="invoice-brand__logo">
             </a>
             <button id="printInvoice" type="button">Print / Save PDF</button>
         </header>
@@ -40,34 +47,15 @@
             </div>
 
             <section class="summary-grid">
-                <article>
-                    <span>Amount due</span>
-                    <strong id="balanceDue">₦0</strong>
-                </article>
-                <article>
-                    <span>Invoice total</span>
-                    <strong id="grandTotal">₦0</strong>
-                </article>
-                <article>
-                    <span>Issue date</span>
-                    <strong id="issueDate">—</strong>
-                </article>
-                <article>
-                    <span>Due date</span>
-                    <strong id="dueDate">—</strong>
-                </article>
+                <article><span>Amount due</span><strong id="balanceDue">₦0</strong></article>
+                <article><span>Invoice total</span><strong id="grandTotal">₦0</strong></article>
+                <article><span>Issue date</span><strong id="issueDate">—</strong></article>
+                <article><span>Due date</span><strong id="dueDate">—</strong></article>
             </section>
 
             <div class="items-wrap">
                 <table>
-                    <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th>Qty</th>
-                            <th>Unit price</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead>
                     <tbody id="invoiceItems"></tbody>
                 </table>
             </div>
@@ -75,34 +63,41 @@
             <section class="totals" id="invoiceTotals"></section>
 
             <section class="notes-grid">
-                <article>
-                    <h2>Payment instructions</h2>
-                    <p id="paymentInstructions">—</p>
-                </article>
-                <article>
-                    <h2>Payment terms</h2>
-                    <p id="paymentTerms">—</p>
-                </article>
+                <article><h2>Payment instructions</h2><p id="paymentInstructions">—</p></article>
+                <article><h2>Payment terms</h2><p id="paymentTerms">—</p></article>
             </section>
 
             <section class="payment-card" id="paymentCard">
                 <div>
                     <p class="eyebrow">PAYMENT CONFIRMATION</p>
                     <h2>I have made payment</h2>
-                    <p>Send your payment amount and transfer reference to Luxsome for verification.</p>
+                    <p>Send your payment amount, transfer reference and payment slip to Luxsome for verification.</p>
                 </div>
-                <form id="paymentForm">
+                <form id="paymentForm" enctype="multipart/form-data">
                     <label>
                         Amount paid
-                        <input id="paymentAmount" type="number" min="1" step="any" required>
+                        <input id="paymentAmount" name="amount" type="number" min="1" step="any" required>
                     </label>
                     <label>
                         Transfer reference
-                        <input id="paymentReference" maxlength="200" placeholder="Optional">
+                        <input id="paymentReference" name="reference" maxlength="200" placeholder="Optional">
                     </label>
+                    <label class="payment-slip-field">
+                        Payment slip
+                        <input id="paymentSlip" name="paymentSlip" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" required>
+                        <span class="payment-slip-help">Upload a JPG, PNG, WEBP or PDF file. Maximum size: 5 MB.</span>
+                    </label>
+                    <div id="paymentSlipPreview" class="payment-slip-preview" hidden>
+                        <img id="paymentSlipImage" alt="Payment slip preview" hidden>
+                        <div class="payment-slip-preview__details">
+                            <strong id="paymentSlipName"></strong>
+                            <span id="paymentSlipSize"></span>
+                        </div>
+                        <button id="removePaymentSlip" type="button">Remove</button>
+                    </div>
                     <label>
                         Note
-                        <textarea id="paymentNote" maxlength="2000" placeholder="Optional"></textarea>
+                        <textarea id="paymentNote" name="note" maxlength="2000" placeholder="Optional"></textarea>
                     </label>
                     <button id="paymentButton" type="submit">Submit payment information</button>
                     <p id="paymentStatus" role="status"></p>
