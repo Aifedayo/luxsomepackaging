@@ -227,3 +227,62 @@
     }
 
 }
+
+/* Prevent payment form fields from overflowing */
+.payment-card,
+.payment-card > *,
+.payment-card form,
+.payment-card label {
+    min-width: 0;
+}
+
+.payment-card input,
+.payment-card textarea,
+.payment-card button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* File inputs can overflow because of long filenames */
+.payment-card input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    padding: 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Style the file-selection button */
+.payment-card input[type="file"]::file-selector-button {
+    max-width: 140px;
+    margin-right: 10px;
+    padding: 10px 12px;
+    border: 0;
+    background: var(--brown);
+    color: var(--white);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Keep previews inside the payment card */
+.payment-slip-preview,
+.payment-slip-preview img,
+#paymentSlipPreview {
+    max-width: 100%;
+}
+
+.payment-slip-preview img,
+#paymentSlipPreview img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 320px;
+    object-fit: contain;
+}
