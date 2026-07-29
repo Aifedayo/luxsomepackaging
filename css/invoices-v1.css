@@ -126,3 +126,62 @@
 .app > main {
     min-width: 0;
 }
+
+.table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table table {
+    min-width: 900px;
+}
+
+.table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table table {
+    min-width: 900px;
+}
+
+@media (min-width: 901px) {
+    .app {
+        display: grid;
+        grid-template-columns: 250px minmax(0, 1fr);
+        align-items: start;
+        min-height: 100vh;
+        overflow: visible;
+    }
+
+    .app > aside {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        display: flex;
+        flex-direction: column;
+
+        width: 250px;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 20;
+    }
+
+    .app > aside #logout {
+        margin-top: auto;
+    }
+
+    .app > main {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .table {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+}
