@@ -654,12 +654,10 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("quoteCustomerPhone").value =
                 submission.phone || "";
 
-            // Project briefs now seed the quotation with the customer's
-            // requested products and quantities. Unit prices remain for the
-            // CRM user to complete.
-            if (submission.submission_type === "project") {
-                populateQuotationItemsFromProject(submission.payload || {});
-            }
+            // Do not depend on one exact submission_type value. Older and newer
+            // project forms may use different type names. Instead, inspect the
+            // submitted payload and import every recognised requested item.
+            populateQuotationItemsFromSubmission(submission);
         }
 
         if (quotation) {
@@ -699,17 +697,29 @@ document.addEventListener("DOMContentLoaded", function () {
         updateQuotationTotals();
     }
 
-    function populateQuotationItemsFromProject(payload) {
+    function populateQuotationItemsFromSubmission(submission) {
+        const payload = normaliseSubmissionPayload(submission?.payload);
         const projectItems = extractProjectItems(payload);
 
-        if (!projectItems.length) return;
+        console.debug("[Luxsome CRM] quotation inheritance", {
+            reference: submission?.reference,
+            submissionType: submission?.submission_type,
+            payload,
+            projectItems
+        });
+
+        if (!projectItems.length) {
+            elements.quotationFormStatus.textContent =
+                "No item quantities were detected in this project brief. Review the submitted details and add the quotation items manually.";
+            return;
+        }
 
         elements.quotationItems.replaceChildren();
 
         projectItems.forEach(function (item) {
             addQuotationItem({
                 description: item.description,
-                details: item.details || "",
+                details: item.details || "Imported from project brief",
                 quantity: item.quantity,
                 unitPrice: 0,
                 requestedQuantity: item.quantity,
@@ -717,189 +727,123 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
 
+        elements.quotationFormStatus.textContent =
+            `${projectItems.length} project item${projectItems.length === 1 ? "" : "s"} imported. Confirm the specifications and enter unit prices.`;
         updateQuotationTotals();
     }
 
-    function extractProjectItems(payload) {
-        const results = [];
-        const seen = new Set();
+    function normaliseSubmissionPayload(payload) {
+        if (!payload) return {};
+        if (typeof payload === "object") return payload;
 
-        function cleanLabel(value) {
+        if (typeof payload === "string") {
+            try {
+                const parsed = JSON.parse(payload);
+                return parsed && typeof parsed === "object" ? parsed : {};
+            } catch (_) {
+                return { project_request: payload };
+            }
+        }
+
+        return {};
+    }
+
+    function extractProjectItems(payload) {
+        const items = [];
+        const seen = new Set();
+        const quantityWords = /(?:quantity|qty|units?|pieces?|copies|order[_\s-]*size|requested[_\s-]*quantity|number[_\s-]*required|how[_\s-]*many)/i;
+        const ignoredWords = /(?:phone|mobile|whatsapp|postal|zip|year|date|budget|price|amount|cost|width|height|length|depth|gsm|email)/i;
+        const nameWords = /(?:name|item|product|packaging|component|type|category|style|option|title|description)/i;
+
+        function title(value) {
             return String(value || "")
+                .replace(/([a-z])([A-Z])/g, "$1 $2")
                 .replace(/[_-]+/g, " ")
                 .replace(/\s+/g, " ")
                 .trim()
-                .replace(/\b\w/g, function (letter) {
-                    return letter.toUpperCase();
-                });
+                .replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
         }
 
-        function parseQuantity(value) {
+        function number(value) {
             if (typeof value === "number") {
                 return Number.isFinite(value) && value > 0 ? value : null;
             }
-
-            const match = String(value ?? "")
-                .replace(/,/g, "")
-                .match(/\d+(?:\.\d+)?/);
-
+            const match = String(value ?? "").replace(/,/g, "").match(/\d+(?:\.\d+)?/);
             if (!match) return null;
-
-            const quantity = Number(match[0]);
-            return Number.isFinite(quantity) && quantity > 0 ? quantity : null;
+            const result = Number(match[0]);
+            return Number.isFinite(result) && result > 0 ? result : null;
         }
 
-        function add(description, quantity, details) {
-            const name = cleanLabel(description);
-            const amount = parseQuantity(quantity);
+        function add(description, quantity, details, sourcePath) {
+            const cleanDescription = title(description);
+            const cleanQuantity = number(quantity);
+            if (!cleanDescription || !cleanQuantity) return;
+            if (ignoredWords.test(cleanDescription)) return;
 
-            if (!name || !amount) return;
-
-            const key = `${name.toLowerCase()}::${amount}`;
+            const key = `${cleanDescription.toLowerCase()}::${cleanQuantity}`;
             if (seen.has(key)) return;
             seen.add(key);
-
-            results.push({
-                description: name,
-                quantity: amount,
-                details: String(details || "").trim()
+            items.push({
+                description: cleanDescription,
+                quantity: cleanQuantity,
+                details: String(details || "").trim(),
+                sourcePath: sourcePath || ""
             });
         }
 
-        function normaliseObject(item, fallbackName) {
-            if (!item || typeof item !== "object" || Array.isArray(item)) return;
-
-            const description =
-                item.description ||
-                item.name ||
-                item.product ||
-                item.product_name ||
-                item.item ||
-                item.item_name ||
-                item.type ||
-                item.category ||
-                fallbackName;
-
-            const quantity =
-                item.quantity ??
-                item.qty ??
-                item.requested_quantity ??
-                item.requestedQuantity ??
-                item.units ??
-                item.amount;
-
-            const details =
-                item.details ||
-                item.specification ||
-                item.specifications ||
-                item.notes ||
-                item.finish ||
-                "";
-
-            add(description, quantity, details);
+        function pickName(obj, fallback) {
+            const preferred = Object.entries(obj).find(function ([key, value]) {
+                return nameWords.test(key) && typeof value === "string" && value.trim();
+            });
+            return preferred ? preferred[1] : fallback;
         }
 
-        const collectionKeys = [
-            "items",
-            "products",
-            "packaging_items",
-            "packagingItems",
-            "requested_items",
-            "requestedItems",
-            "product_items",
-            "productItems",
-            "selected_products",
-            "selectedProducts",
-            "requirements"
-        ];
-
-        collectionKeys.forEach(function (key) {
-            const collection = payload[key];
-
-            if (Array.isArray(collection)) {
-                collection.forEach(function (item) {
-                    if (typeof item === "object") {
-                        normaliseObject(item);
+        function walk(value, path, parentKey) {
+            if (Array.isArray(value)) {
+                value.forEach(function (entry, index) {
+                    if (typeof entry === "string") {
+                        const embedded = entry.match(/^(.*?)[\s:–—-]+(\d[\d,]*(?:\.\d+)?)\s*(?:pcs?|pieces?|units?)?$/i);
+                        if (embedded) add(embedded[1], embedded[2], "", `${path}[${index}]`);
                     }
+                    walk(entry, `${path}[${index}]`, parentKey);
                 });
-            } else if (collection && typeof collection === "object") {
-                Object.entries(collection).forEach(function ([name, value]) {
-                    if (value && typeof value === "object") {
-                        normaliseObject(value, name);
-                    } else {
-                        add(name, value, "");
+                return;
+            }
+
+            if (!value || typeof value !== "object") return;
+
+            const entries = Object.entries(value);
+            const quantityEntry = entries.find(function ([key, val]) {
+                return quantityWords.test(key) && !ignoredWords.test(key) && number(val);
+            });
+
+            if (quantityEntry) {
+                const [quantityKey, quantityValue] = quantityEntry;
+                const fallback = parentKey && !/^(items?|products?|requirements?|selection)$/i.test(parentKey)
+                    ? parentKey
+                    : path.split(".").pop();
+                const description = pickName(value, fallback);
+                const detailEntry = entries.find(function ([key, val]) {
+                    return /(?:details?|specifications?|finish|material|size|colour|color|notes?)/i.test(key) && typeof val !== "object";
+                });
+                add(description, quantityValue, detailEntry?.[1] || "", `${path}.${quantityKey}`);
+            }
+
+            entries.forEach(function ([key, child]) {
+                if (quantityWords.test(key) && !ignoredWords.test(key)) {
+                    const base = key.replace(quantityWords, "").replace(/^[_\s-]+|[_\s-]+$/g, "");
+                    if (base && number(child)) {
+                        const siblingName = value[`${base}_name`] || value[`${base}Name`] ||
+                            value[`${base}_type`] || value[`${base}Type`] || base;
+                        add(siblingName, child, "", `${path}.${key}`);
                     }
-                });
-            }
-        });
-
-        // Support flat form payloads such as box_quantity, tag_qty,
-        // tissueQuantity, etc.
-        Object.entries(payload).forEach(function ([key, value]) {
-            const quantityKey = key.match(
-                /^(.*?)(?:_quantity|_qty|Quantity|Qty|_units|Units)$/
-            );
-
-            if (!quantityKey) return;
-
-            const baseKey = quantityKey[1];
-            const description =
-                payload[`${baseKey}_name`] ||
-                payload[`${baseKey}Name`] ||
-                payload[`${baseKey}_type`] ||
-                payload[`${baseKey}Type`] ||
-                baseKey;
-
-            const detail =
-                payload[`${baseKey}_details`] ||
-                payload[`${baseKey}Details`] ||
-                payload[`${baseKey}_finish`] ||
-                payload[`${baseKey}Finish`] ||
-                "";
-
-            add(description, value, detail);
-        });
-
-        // Some forms store selected products as strings and use one general
-        // quantity for the entire packaging system.
-        if (!results.length) {
-            const selected =
-                payload.products ||
-                payload.selected_products ||
-                payload.selectedProducts ||
-                payload.packaging_items ||
-                payload.packagingItems;
-
-            const generalQuantity =
-                payload.quantity ??
-                payload.requested_quantity ??
-                payload.requestedQuantity ??
-                payload.order_quantity ??
-                payload.orderQuantity;
-
-            if (Array.isArray(selected)) {
-                selected.forEach(function (name) {
-                    if (typeof name === "string") add(name, generalQuantity, "");
-                });
-            }
+                }
+                walk(child, path ? `${path}.${key}` : key, key);
+            });
         }
 
-        return results;
-    }
-
-    function getChangedInheritedQuantities() {
-        return Array.from(
-            elements.quotationItems.querySelectorAll(
-                '.crm-quote-item[data-inherited-from-project="true"]'
-            )
-        ).filter(function (item) {
-            const requested = Number(item.dataset.requestedQuantity);
-            const quoted = Number(
-                item.querySelector("[data-item-quantity]").value
-            );
-
-            return Number.isFinite(requested) && quoted !== requested;
-        });
+        walk(payload, "payload", "");
+        return items;
     }
 
     function populateQuotationForm(quotation) {
@@ -972,11 +916,8 @@ document.addEventListener("DOMContentLoaded", function () {
     function addQuotationItem(item = {}) {
         const wrapper = document.createElement("div");
         wrapper.className = "crm-quote-item";
-
-        if (item.inheritedFromProject) {
-            wrapper.dataset.inheritedFromProject = "true";
-            wrapper.dataset.requestedQuantity = String(item.requestedQuantity);
-        }
+        wrapper.dataset.requestedQuantity = item.requestedQuantity ?? "";
+        wrapper.dataset.inheritedFromProject = item.inheritedFromProject ? "true" : "false";
 
         wrapper.innerHTML = `
             <label>
@@ -1036,20 +977,6 @@ document.addEventListener("DOMContentLoaded", function () {
             >×</button>
         `;
 
-        if (item.inheritedFromProject) {
-            const quantityLabel = wrapper
-                .querySelector("[data-item-quantity]")
-                .closest("label");
-            const sourceNote = document.createElement("small");
-            sourceNote.dataset.requestedQuantityNote = "";
-            sourceNote.style.display = "block";
-            sourceNote.style.marginTop = "6px";
-            sourceNote.style.color = "var(--crm-muted, #7a665b)";
-            sourceNote.style.fontSize = "10px";
-            sourceNote.textContent = `Requested in project: ${formatQuantity(item.requestedQuantity)}`;
-            quantityLabel.appendChild(sourceNote);
-        }
-
         elements.quotationItems.appendChild(wrapper);
         updateQuotationTotals();
     }
@@ -1090,23 +1017,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 item.querySelector("[data-item-total]").textContent =
                     formatMoney(total);
-
-                if (item.dataset.inheritedFromProject === "true") {
-                    const requested = Number(item.dataset.requestedQuantity);
-                    const note = item.querySelector("[data-requested-quantity-note]");
-                    const changed = Number.isFinite(requested) && quantity !== requested;
-
-                    item.classList.toggle("has-quantity-mismatch", changed);
-
-                    if (note) {
-                        note.textContent = changed
-                            ? `Requested in project: ${formatQuantity(requested)} — quotation quantity changed`
-                            : `Requested in project: ${formatQuantity(requested)}`;
-                        note.style.color = changed
-                            ? "var(--crm-danger, #7a3232)"
-                            : "var(--crm-muted, #7a665b)";
-                    }
-                }
             });
 
         const discount = Math.max(
@@ -1150,29 +1060,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const quoteReference =
             document.getElementById("quotationReference").value.trim();
-
-        const changedInheritedItems = getChangedInheritedQuantities();
-
-        if (changedInheritedItems.length) {
-            const differences = changedInheritedItems.map(function (item) {
-                const description =
-                    item.querySelector("[data-item-description]").value.trim() ||
-                    "Packaging item";
-                const requested = formatQuantity(item.dataset.requestedQuantity);
-                const quoted = formatQuantity(
-                    item.querySelector("[data-item-quantity]").value
-                );
-                return `• ${description}: requested ${requested}, quoted ${quoted}`;
-            });
-
-            const proceed = window.confirm(
-                "Some quotation quantities differ from the customer\'s project request:\n\n" +
-                differences.join("\n") +
-                "\n\nSave the quotation with these changes?"
-            );
-
-            if (!proceed) return;
-        }
 
         const payload = {
             submissionReference:
