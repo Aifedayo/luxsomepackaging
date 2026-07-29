@@ -23,30 +23,38 @@
                 <div data-luxsome-crm-logo></div>
 
                 <nav class="crm-nav" aria-label="CRM navigation">
-                    <button class="crm-nav__item is-active" type="button" data-view="all">
-                        <span>All enquiries</span>
-                        <small id="navAllCount">0</small>
-                    </button>
+                    <section class="crm-nav__group" aria-labelledby="navOverviewLabel">
+                        <p id="navOverviewLabel" class="crm-nav__label">Overview</p>
 
-                    <button class="crm-nav__item" type="button" data-view="project">
-                        <span>Project briefs</span>
-                        <small id="navProjectCount">0</small>
-                    </button>
+                        <button class="crm-nav__item is-active" type="button" data-view="all">
+                            <span>Dashboard</span>
+                            <small id="navAllCount">0</small>
+                        </button>
+                    </section>
 
-                    <button class="crm-nav__item" type="button" data-view="contact">
-                        <span>Contact messages</span>
-                        <small id="navContactCount">0</small>
-                    </button>
+                    <section class="crm-nav__group" aria-labelledby="navSalesLabel">
+                        <p id="navSalesLabel" class="crm-nav__label">Sales</p>
 
-                    <button class="crm-nav__item" type="button" data-view="quotations">
-                        <span>Quotations</span>
-                        <small id="navQuotationCount">0</small>
-                    </button>
+                        <button class="crm-nav__item" type="button" data-view="project">
+                            <span>Project briefs</span>
+                            <small id="navProjectCount">0</small>
+                        </button>
 
-                    <a class="crm-nav__item" href="/admin/invoices/">
-                        <span>Invoices</span>
-                        <small>→</small>
-                    </a>
+                        <button class="crm-nav__item" type="button" data-view="contact">
+                            <span>Contact messages</span>
+                            <small id="navContactCount">0</small>
+                        </button>
+
+                        <button class="crm-nav__item" type="button" data-view="quotations">
+                            <span>Quotations</span>
+                            <small id="navQuotationCount">0</small>
+                        </button>
+
+                        <a class="crm-nav__item crm-nav__item--link" href="/admin/invoices/">
+                            <span>Invoices</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+                    </section>
                 </nav>
             </div>
 
@@ -70,8 +78,8 @@
                 </button>
 
                 <div>
-                    <p class="crm-eyebrow">LUXSOME OPERATIONS</p>
-                    <h1>Enquiry dashboard</h1>
+                    <p id="pageEyebrow" class="crm-eyebrow">LUXSOME OPERATIONS</p>
+                    <h1 id="pageTitle">Sales dashboard</h1>
                 </div>
 
                 <div class="crm-topbar__actions">
@@ -751,7 +759,7 @@
         </footer>
     </section>
 
-    <script src="/js/admin-dashboard-v2.js"></script>
+    <script src="/js/admin-dashboard-v2.js?v=3"></script>
     <script src="/js/crm-brand.js"></script>
 </body>
 </html>
