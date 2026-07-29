@@ -16,6 +16,10 @@
     --project-muted: #756a64;
     --project-line: rgba(103, 54, 41, 0.18);
     --project-gold: #a67c52;
+    --project-select-hover: #f3e8de;
+    --project-select-selected: #673629;
+    --project-select-selected-text: #fffdf9;
+    --project-focus-ring: rgba(103, 54, 41, 0.12);
     background: var(--project-cream);
     color: var(--project-ink);
     font-family: "Montserrat", sans-serif;
@@ -72,12 +76,106 @@
 .form-grid--spaced { margin-top: 1.35rem; }
 .field { min-width: 0; }
 .field label, .choice-fieldset > legend, .experience-fieldset > legend { display: block; margin-bottom: .65rem; color: var(--project-ink); font-size: .75rem; font-weight: 600; line-height: 1.4; }
-.field input, .field select, .field textarea { width: 100%; border: 1px solid rgba(103,54,41,.22); border-radius: 0; background: #fff; color: var(--project-ink); font: inherit; font-size: .83rem; outline: none; transition: border-color .2s ease, box-shadow .2s ease; }
-.field input, .field select { min-height: 54px; padding: 0 .95rem; }
-.field textarea { min-height: 150px; padding: .95rem; resize: vertical; line-height: 1.65; }
-.field input::placeholder, .field textarea::placeholder { color: #aaa09a; }
-.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--project-wine); box-shadow: 0 0 0 3px rgba(103,54,41,.09); }
-.field input[aria-invalid="true"], .field select[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: #a53030; }
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    border: 1px solid rgba(103,54,41,.22);
+    border-radius: 0;
+    background-color: #fff;
+    color: var(--project-ink);
+    font: inherit;
+    font-size: .83rem;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.field input {
+    min-height: 54px;
+    padding: 0 .95rem;
+}
+
+.field textarea {
+    min-height: 150px;
+    padding: .95rem;
+    resize: vertical;
+    line-height: 1.65;
+}
+
+/* Luxsome native dropdown styling */
+.field select {
+    min-height: 54px;
+    padding: 0 3rem 0 .95rem;
+    cursor: pointer;
+    color-scheme: light;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image:
+        linear-gradient(45deg, transparent 50%, var(--project-wine) 50%),
+        linear-gradient(135deg, var(--project-wine) 50%, transparent 50%);
+    background-position:
+        calc(100% - 21px) 50%,
+        calc(100% - 15px) 50%;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
+}
+
+.field select:hover {
+    border-color: var(--project-gold);
+    background-color: #fffaf6;
+}
+
+.field select:focus,
+.field select:focus-visible {
+    border-color: var(--project-wine);
+    background-color: #fff;
+    box-shadow: 0 0 0 4px var(--project-focus-ring);
+}
+
+.field select option {
+    background-color: #fffdf9;
+    color: var(--project-ink);
+}
+
+.field select option:checked {
+    background: var(--project-select-selected) linear-gradient(0deg, var(--project-select-selected), var(--project-select-selected));
+    color: var(--project-select-selected-text);
+}
+
+.field select option:hover,
+.field select option:focus {
+    background: var(--project-select-hover) linear-gradient(0deg, var(--project-select-hover), var(--project-select-hover));
+    color: var(--project-wine-dark);
+}
+
+.field select:disabled {
+    cursor: not-allowed;
+    background-color: #f0ebe7;
+    color: #958a84;
+    opacity: .8;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+    color: #aaa09a;
+}
+
+.field input:focus,
+.field textarea:focus {
+    border-color: var(--project-wine);
+    box-shadow: 0 0 0 3px rgba(103,54,41,.09);
+}
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+    border-color: #a53030;
+}
+
+.field select[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 4px rgba(165,48,48,.10);
+}
 
 .choice-fieldset, .experience-fieldset, .component-group { margin: 0; padding: 0; border: 0; }
 .system-choice-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .9rem; }
