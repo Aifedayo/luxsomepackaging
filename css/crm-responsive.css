@@ -286,3 +286,20 @@
         text-align: left;
     }
 }
+
+@media print {
+    .document-logo {
+        display: block !important;
+        width: 175px !important;
+        height: auto !important;
+        visibility: visible !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .document-header {
+        display: flex !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
