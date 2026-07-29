@@ -12,3 +12,218 @@
     max-width: 100%;
     height: auto;
 }
+
+/* ===========================
+   MOBILE & TABLET OPTIMIZATION
+   =========================== */
+
+   @media (max-width: 768px) {
+
+    .portal-shell {
+        padding: 14px;
+    }
+
+    .portal-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+        margin-bottom: 18px;
+    }
+
+    .invoice-brand {
+        justify-content: center;
+    }
+
+    .invoice-brand__logo {
+        width: 150px;
+    }
+
+    .portal-header button {
+        width: 100%;
+        padding: 14px;
+        font-size: 14px;
+    }
+
+    .invoice-paper,
+    .state-card {
+        padding: 18px;
+    }
+
+    /* Invoice Header */
+
+    .invoice-heading {
+        flex-direction: column;
+        gap: 18px;
+        padding-bottom: 18px;
+    }
+
+    .invoice-heading h1 {
+        font-size: 32px;
+        line-height: 1.1;
+    }
+
+    .status-box {
+        width: 100%;
+        min-width: auto;
+        padding: 16px;
+    }
+
+    /* Summary Cards */
+
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin: 18px 0;
+    }
+
+    .summary-grid article {
+        padding: 14px;
+    }
+
+    .summary-grid strong {
+        font-size: 16px;
+    }
+
+    /* Table */
+
+    th,
+    td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+
+    th {
+        font-size: 10px;
+    }
+
+    .item-detail {
+        font-size: 11px;
+    }
+
+    /* Totals */
+
+    .totals {
+        max-width: 100%;
+        margin-top: 22px;
+    }
+
+    .totals div {
+        font-size: 14px;
+    }
+
+    .totals .grand {
+        font-size: 18px;
+    }
+
+    /* Notes */
+
+    .notes-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .notes-grid article {
+        padding: 16px;
+    }
+
+    .notes-grid h2 {
+        font-size: 24px;
+    }
+
+    /* Payment */
+
+    .payment-card {
+        grid-template-columns: 1fr;
+        gap: 22px;
+        padding: 20px;
+    }
+
+    .payment-card h2 {
+        font-size: 28px;
+    }
+
+    .payment-card p {
+        line-height: 1.6;
+    }
+
+    .payment-card label {
+        font-size: 13px;
+    }
+
+    .payment-card input,
+    .payment-card textarea {
+        padding: 14px;
+        font-size: 16px;
+        border-radius: 6px;
+    }
+
+    .payment-card textarea {
+        min-height: 120px;
+    }
+
+    .payment-card button {
+        width: 100%;
+        padding: 16px;
+        font-size: 15px;
+    }
+
+    .paid-note,
+    .payment-submitted {
+        padding: 18px;
+        border-radius: 8px;
+    }
+
+}
+
+/* ===========================
+   SMALL PHONES
+   =========================== */
+
+@media (max-width: 480px) {
+
+    .portal-shell {
+        padding: 10px;
+    }
+
+    .invoice-paper,
+    .state-card {
+        padding: 14px;
+    }
+
+    .invoice-heading h1 {
+        font-size: 28px;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-grid article {
+        text-align: center;
+    }
+
+    .summary-grid span {
+        margin-bottom: 6px;
+    }
+
+    table {
+        min-width: 600px;
+    }
+
+    .items-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .notes-grid h2,
+    .payment-card h2 {
+        font-size: 24px;
+    }
+
+    .portal-header button {
+        position: sticky;
+        bottom: 10px;
+        z-index: 10;
+    }
+
+}
