@@ -205,186 +205,179 @@
 
     function openModal(selectedAction) {
         action = selectedAction;
-
+    
         const configurations = {
             accepted: {
                 eyebrow: "ACCEPT QUOTATION",
                 title: "Ready to proceed?",
                 description:
                     "Once confirmed, Luxsome Packaging will be notified that you have accepted this quotation and will contact you with the next steps.",
-                submitText: "Accept quotation",
-                showReason: false,
-                showComment: false,
+                buttonText: "Accept quotation",
+                reasonVisible: false,
+                commentVisible: false,
                 commentLabel: ""
             },
-
+    
             needs_revision: {
                 eyebrow: "REQUEST CHANGES",
                 title: "What would you like us to change?",
                 description:
-                    "Tell us what you would like adjusted, and Luxsome Packaging will review your request.",
-                submitText: "Send change request",
-                showReason: false,
-                showComment: true,
+                    "Describe the changes you would like Luxsome Packaging to make to this quotation.",
+                buttonText: "Send change request",
+                reasonVisible: false,
+                commentVisible: true,
                 commentLabel: "Requested changes"
             },
-
+    
             declined: {
                 eyebrow: "DECLINE QUOTATION",
                 title: "Are you sure you want to decline?",
                 description:
-                    "You may share why this quotation was not the right fit. Your feedback is optional but helps us improve.",
-                submitText: "Decline quotation",
-                showReason: true,
-                showComment: true,
+                    "You may tell us why this quotation was not the right fit. Your feedback is optional.",
+                buttonText: "Decline quotation",
+                reasonVisible: true,
+                commentVisible: true,
                 commentLabel: "Additional comment (optional)"
             }
         };
-
-        const configuration = configurations[action];
-
+    
+        const configuration = configurations[selectedAction];
+    
         if (!configuration) {
             return;
         }
-
+    
+        const reasonField = $("reasonField");
+        const commentField = $("commentField");
+        const submitButton = $("submitResponse");
+    
         $("responseEyebrow").textContent =
             configuration.eyebrow;
-
+    
         $("responseTitle").textContent =
             configuration.title;
-
+    
         $("responseDescription").textContent =
             configuration.description;
-
+    
         $("commentLabel").textContent =
             configuration.commentLabel;
-
-        $("reasonField").hidden =
-            !configuration.showReason;
-
-        $("commentField").hidden =
-            !configuration.showComment;
-
+    
+        reasonField.hidden =
+            !configuration.reasonVisible;
+    
+        commentField.hidden =
+            !configuration.commentVisible;
+    
+        /*
+         * Also set display directly in case an existing
+         * stylesheet overrides the hidden attribute.
+         */
+        reasonField.style.display =
+            configuration.reasonVisible ? "grid" : "none";
+    
+        commentField.style.display =
+            configuration.commentVisible ? "grid" : "none";
+    
         $("responseReason").value = "";
         $("responseComment").value = "";
         $("responseStatus").textContent = "";
-
-        const submitButton = $("submitResponse");
-
+    
         submitButton.textContent =
-            configuration.submitText;
-
+            configuration.buttonText;
+    
         submitButton.dataset.defaultText =
-            configuration.submitText;
-
+            configuration.buttonText;
+    
         $("responseBackdrop").hidden = false;
-
+        $("responseBackdrop").style.display = "block";
+    
         $("responseModal").classList.add("is-open");
-
+    
         $("responseModal").setAttribute(
             "aria-hidden",
             "false"
         );
-
+    
         document.body.classList.add("modal-open");
-
-        if (configuration.showComment) {
-            setTimeout(() => {
+    
+        window.setTimeout(() => {
+            if (configuration.commentVisible) {
                 $("responseComment").focus();
-            }, 100);
-        } else {
-            setTimeout(() => {
+            } else {
                 submitButton.focus();
-            }, 100);
-        }
+            }
+        }, 100);
     }
 
     function closeModal() {
-        $("responseBackdrop").hidden = true;
-
+        const backdrop = $("responseBackdrop");
+    
+        backdrop.hidden = true;
+        backdrop.style.display = "none";
+    
         $("responseModal").classList.remove("is-open");
-
+    
         $("responseModal").setAttribute(
             "aria-hidden",
             "true"
         );
-
+    
         document.body.classList.remove("modal-open");
-
+    
         action = "";
     }
 
     async function submit() {
-        if (!action) {
-            return;
-        }
-
-        const comment = $("responseComment").value.trim();
-        const reason = $("responseReason").value;
-
         if (
             action === "needs_revision" &&
-            !comment
+            !$("responseComment").value.trim()
         ) {
             $("responseStatus").textContent =
-                "Please describe the changes you would like us to make.";
-
-            $("responseComment").focus();
+                "Please tell us what you would like changed.";
             return;
         }
-
+    
         const button = $("submitResponse");
-        const defaultText =
-            button.dataset.defaultText || "Confirm";
-
+    
         button.disabled = true;
         button.textContent = "Submitting...";
-
+    
         $("responseStatus").textContent = "";
-
+    
         const payload = {
             action
         };
-
-        /*
-         * Do not send an unnecessary reason or comment
-         * when the quotation is accepted.
-         */
+    
         if (action === "needs_revision") {
-            payload.comment = comment;
-            payload.reason = "";
+            payload.comment = $("responseComment").value.trim();
         }
-
+    
         if (action === "declined") {
-            payload.comment = comment;
-            payload.reason = reason;
+            payload.comment = $("responseComment").value.trim();
+            payload.reason = $("responseReason").value;
         }
-
+    
         try {
             const data = await api(
-                `/public/quotations/${encodeURIComponent(token)}`,
+                "/public/quotations/" + encodeURIComponent(token),
                 {
                     method: "POST",
                     body: JSON.stringify(payload)
                 }
             );
-
-            const completedAction = action;
-
+    
             closeModal();
-
-            quote.status = completedAction;
-
-            showCompleted(
-                completedAction,
-                data.message
-            );
-        } catch (error) {
-            $("responseStatus").textContent =
-                error.message;
+    
+            quote.status = action;
+    
+            showCompleted(action, data.message);
+    
+        } catch (e) {
+            $("responseStatus").textContent = e.message;
         } finally {
             button.disabled = false;
-            button.textContent = defaultText;
+            button.textContent = "Confirm";
         }
     }
 
