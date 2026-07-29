@@ -102,3 +102,27 @@
         margin-top: 14px;
     }
 }
+
+/* Keep the CRM sidebar visible while the invoice page scrolls */
+.app {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    align-items: start;
+    min-height: 100vh;
+}
+
+.app > aside {
+    position: sticky;
+    top: 0;
+    align-self: start;
+
+    height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
+
+    z-index: 20;
+}
+
+.app > main {
+    min-width: 0;
+}
