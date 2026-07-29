@@ -233,3 +233,56 @@
         width: 140px;
     }
 }
+
+/* =========================================
+   Quotation, invoice and receipt branding
+========================================= */
+
+.document-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(103, 54, 41, 0.2);
+}
+
+.document-brand {
+    display: flex;
+    align-items: center;
+}
+
+.document-logo {
+    display: block;
+    width: 175px;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.document-company {
+    color: #756a64;
+    font-size: 12px;
+    line-height: 1.7;
+    text-align: right;
+}
+
+.document-company p {
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .document-header {
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .document-logo {
+        width: 145px;
+    }
+
+    .document-company {
+        text-align: left;
+    }
+}
