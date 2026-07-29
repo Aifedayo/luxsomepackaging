@@ -653,6 +653,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("quoteCustomerPhone").value =
                 submission.phone || "";
+
+            // Project briefs now seed the quotation with the customer's
+            // requested products and quantities. Unit prices remain for the
+            // CRM user to complete.
+            if (submission.submission_type === "project") {
+                populateQuotationItemsFromProject(submission.payload || {});
+            }
         }
 
         if (quotation) {
@@ -690,6 +697,209 @@ document.addEventListener("DOMContentLoaded", function () {
 
         addQuotationItem();
         updateQuotationTotals();
+    }
+
+    function populateQuotationItemsFromProject(payload) {
+        const projectItems = extractProjectItems(payload);
+
+        if (!projectItems.length) return;
+
+        elements.quotationItems.replaceChildren();
+
+        projectItems.forEach(function (item) {
+            addQuotationItem({
+                description: item.description,
+                details: item.details || "",
+                quantity: item.quantity,
+                unitPrice: 0,
+                requestedQuantity: item.quantity,
+                inheritedFromProject: true
+            });
+        });
+
+        updateQuotationTotals();
+    }
+
+    function extractProjectItems(payload) {
+        const results = [];
+        const seen = new Set();
+
+        function cleanLabel(value) {
+            return String(value || "")
+                .replace(/[_-]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+                .replace(/\b\w/g, function (letter) {
+                    return letter.toUpperCase();
+                });
+        }
+
+        function parseQuantity(value) {
+            if (typeof value === "number") {
+                return Number.isFinite(value) && value > 0 ? value : null;
+            }
+
+            const match = String(value ?? "")
+                .replace(/,/g, "")
+                .match(/\d+(?:\.\d+)?/);
+
+            if (!match) return null;
+
+            const quantity = Number(match[0]);
+            return Number.isFinite(quantity) && quantity > 0 ? quantity : null;
+        }
+
+        function add(description, quantity, details) {
+            const name = cleanLabel(description);
+            const amount = parseQuantity(quantity);
+
+            if (!name || !amount) return;
+
+            const key = `${name.toLowerCase()}::${amount}`;
+            if (seen.has(key)) return;
+            seen.add(key);
+
+            results.push({
+                description: name,
+                quantity: amount,
+                details: String(details || "").trim()
+            });
+        }
+
+        function normaliseObject(item, fallbackName) {
+            if (!item || typeof item !== "object" || Array.isArray(item)) return;
+
+            const description =
+                item.description ||
+                item.name ||
+                item.product ||
+                item.product_name ||
+                item.item ||
+                item.item_name ||
+                item.type ||
+                item.category ||
+                fallbackName;
+
+            const quantity =
+                item.quantity ??
+                item.qty ??
+                item.requested_quantity ??
+                item.requestedQuantity ??
+                item.units ??
+                item.amount;
+
+            const details =
+                item.details ||
+                item.specification ||
+                item.specifications ||
+                item.notes ||
+                item.finish ||
+                "";
+
+            add(description, quantity, details);
+        }
+
+        const collectionKeys = [
+            "items",
+            "products",
+            "packaging_items",
+            "packagingItems",
+            "requested_items",
+            "requestedItems",
+            "product_items",
+            "productItems",
+            "selected_products",
+            "selectedProducts",
+            "requirements"
+        ];
+
+        collectionKeys.forEach(function (key) {
+            const collection = payload[key];
+
+            if (Array.isArray(collection)) {
+                collection.forEach(function (item) {
+                    if (typeof item === "object") {
+                        normaliseObject(item);
+                    }
+                });
+            } else if (collection && typeof collection === "object") {
+                Object.entries(collection).forEach(function ([name, value]) {
+                    if (value && typeof value === "object") {
+                        normaliseObject(value, name);
+                    } else {
+                        add(name, value, "");
+                    }
+                });
+            }
+        });
+
+        // Support flat form payloads such as box_quantity, tag_qty,
+        // tissueQuantity, etc.
+        Object.entries(payload).forEach(function ([key, value]) {
+            const quantityKey = key.match(
+                /^(.*?)(?:_quantity|_qty|Quantity|Qty|_units|Units)$/
+            );
+
+            if (!quantityKey) return;
+
+            const baseKey = quantityKey[1];
+            const description =
+                payload[`${baseKey}_name`] ||
+                payload[`${baseKey}Name`] ||
+                payload[`${baseKey}_type`] ||
+                payload[`${baseKey}Type`] ||
+                baseKey;
+
+            const detail =
+                payload[`${baseKey}_details`] ||
+                payload[`${baseKey}Details`] ||
+                payload[`${baseKey}_finish`] ||
+                payload[`${baseKey}Finish`] ||
+                "";
+
+            add(description, value, detail);
+        });
+
+        // Some forms store selected products as strings and use one general
+        // quantity for the entire packaging system.
+        if (!results.length) {
+            const selected =
+                payload.products ||
+                payload.selected_products ||
+                payload.selectedProducts ||
+                payload.packaging_items ||
+                payload.packagingItems;
+
+            const generalQuantity =
+                payload.quantity ??
+                payload.requested_quantity ??
+                payload.requestedQuantity ??
+                payload.order_quantity ??
+                payload.orderQuantity;
+
+            if (Array.isArray(selected)) {
+                selected.forEach(function (name) {
+                    if (typeof name === "string") add(name, generalQuantity, "");
+                });
+            }
+        }
+
+        return results;
+    }
+
+    function getChangedInheritedQuantities() {
+        return Array.from(
+            elements.quotationItems.querySelectorAll(
+                '.crm-quote-item[data-inherited-from-project="true"]'
+            )
+        ).filter(function (item) {
+            const requested = Number(item.dataset.requestedQuantity);
+            const quoted = Number(
+                item.querySelector("[data-item-quantity]").value
+            );
+
+            return Number.isFinite(requested) && quoted !== requested;
+        });
     }
 
     function populateQuotationForm(quotation) {
@@ -763,6 +973,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const wrapper = document.createElement("div");
         wrapper.className = "crm-quote-item";
 
+        if (item.inheritedFromProject) {
+            wrapper.dataset.inheritedFromProject = "true";
+            wrapper.dataset.requestedQuantity = String(item.requestedQuantity);
+        }
+
         wrapper.innerHTML = `
             <label>
                 Item description
@@ -821,6 +1036,20 @@ document.addEventListener("DOMContentLoaded", function () {
             >×</button>
         `;
 
+        if (item.inheritedFromProject) {
+            const quantityLabel = wrapper
+                .querySelector("[data-item-quantity]")
+                .closest("label");
+            const sourceNote = document.createElement("small");
+            sourceNote.dataset.requestedQuantityNote = "";
+            sourceNote.style.display = "block";
+            sourceNote.style.marginTop = "6px";
+            sourceNote.style.color = "var(--crm-muted, #7a665b)";
+            sourceNote.style.fontSize = "10px";
+            sourceNote.textContent = `Requested in project: ${formatQuantity(item.requestedQuantity)}`;
+            quantityLabel.appendChild(sourceNote);
+        }
+
         elements.quotationItems.appendChild(wrapper);
         updateQuotationTotals();
     }
@@ -861,6 +1090,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 item.querySelector("[data-item-total]").textContent =
                     formatMoney(total);
+
+                if (item.dataset.inheritedFromProject === "true") {
+                    const requested = Number(item.dataset.requestedQuantity);
+                    const note = item.querySelector("[data-requested-quantity-note]");
+                    const changed = Number.isFinite(requested) && quantity !== requested;
+
+                    item.classList.toggle("has-quantity-mismatch", changed);
+
+                    if (note) {
+                        note.textContent = changed
+                            ? `Requested in project: ${formatQuantity(requested)} — quotation quantity changed`
+                            : `Requested in project: ${formatQuantity(requested)}`;
+                        note.style.color = changed
+                            ? "var(--crm-danger, #7a3232)"
+                            : "var(--crm-muted, #7a665b)";
+                    }
+                }
             });
 
         const discount = Math.max(
@@ -904,6 +1150,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const quoteReference =
             document.getElementById("quotationReference").value.trim();
+
+        const changedInheritedItems = getChangedInheritedQuantities();
+
+        if (changedInheritedItems.length) {
+            const differences = changedInheritedItems.map(function (item) {
+                const description =
+                    item.querySelector("[data-item-description]").value.trim() ||
+                    "Packaging item";
+                const requested = formatQuantity(item.dataset.requestedQuantity);
+                const quoted = formatQuantity(
+                    item.querySelector("[data-item-quantity]").value
+                );
+                return `• ${description}: requested ${requested}, quoted ${quoted}`;
+            });
+
+            const proceed = window.confirm(
+                "Some quotation quantities differ from the customer\'s project request:\n\n" +
+                differences.join("\n") +
+                "\n\nSave the quotation with these changes?"
+            );
+
+            if (!proceed) return;
+        }
 
         const payload = {
             submissionReference:

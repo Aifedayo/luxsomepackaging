@@ -301,7 +301,28 @@
             <div class="crm-quotation-panel__body">
                 <input type="hidden" id="quotationReference">
                 <input type="hidden" id="quotationSubmissionReference">
+                <section
+                    id="quotationSourceSection"
+                    class="crm-quotation-source"
+                    hidden
+                >
+                    <div>
+                        <p class="crm-eyebrow">SOURCE PROJECT</p>
+                        <h3 id="quotationSourceReference">—</h3>
+                        <p>
+                            This quotation was created from a customer project brief.
+                            Requested quantities have been imported automatically.
+                        </p>
+                    </div>
 
+                    <button
+                        id="viewSourceProjectButton"
+                        class="crm-button crm-button--secondary crm-button--small"
+                        type="button"
+                    >
+                        View original brief
+                    </button>
+                </section>
                 <section class="crm-form-section">
                     <div class="crm-section-heading">
                         <p class="crm-eyebrow">CUSTOMER</p>
