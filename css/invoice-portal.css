@@ -286,3 +286,35 @@
     max-height: 320px;
     object-fit: contain;
 }
+
+.payment-slip-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+}
+
+.remove-slip {
+    align-self: flex-start;
+    max-width: 100%;
+    padding: 10px 16px;
+    border: 1px solid #fff;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width:760px){
+
+    .remove-slip{
+        width:100%;
+        align-self:stretch;
+        text-align:center;
+    }
+
+}
