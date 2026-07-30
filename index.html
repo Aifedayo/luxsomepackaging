@@ -74,6 +74,8 @@
     <link rel="stylesheet" href="css/flipbook.css">
     <link rel="stylesheet" href="css/newsletter.css">
     <link rel="stylesheet" href="css/our-story.css">
+    <link rel="stylesheet" href="css/gallery.css">
+    <link rel="stylesheet" href="css/home-shop-integration.css">
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
@@ -248,10 +250,9 @@
                 id="siteNavigation"
                 aria-label="Main navigation"
             >
-                <a href="/"
-                    aria-current="page"
+                <a href="/shop/"
                 >
-                    Home
+                    Shop
                 </a>
                 <a
                     href="/gallery/"
@@ -302,7 +303,6 @@
                 </p>
 
                 <h1>
-                    Elevate every unboxing.
                     <span>Make your brand unforgettable.</span>
                 </h1>
 
@@ -310,6 +310,15 @@
                     Thoughtful packaging, designed as one complete system
                     around your brand.
                 </p>
+
+                <!-- <div class="story-hero__actions">
+                    <a
+                        href="/shop/"
+                        class="story-hero__button story-hero__button--primary"
+                    >
+                        Shop
+                    </a>
+                </div> -->
 
             </div>
 
@@ -323,6 +332,158 @@
             </a>
 
         </section>
+        
+        <div class="collection-scroll-scene" id="collectionScene">
+            <div class="collection-sticky">
+                <div class="collection-viewport" id="collectionViewport">
+                    <div class="collection-track" id="collectionTrack">
+                        <article id="complete-brand-packaging" class="collection-slide" data-category="packaging-system">
+                            <figure>
+                                <div class="collection-slide__image is-loading">
+                                    <img src="../assets/images/gallery/packaging-system-01.webp"
+                                         alt="Complete custom packaging system with rigid box, branded card and hang tag"
+                                         width="1600" height="2000" loading="eager" fetchpriority="high">
+                                </div>
+                                <figcaption><span>Packaging System</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="magnetic-flap-box" class="collection-slide" data-category="rigid-box">
+                            <figure>
+                                <div class="collection-slide__image is-loading">
+                                    <img src="../assets/images/gallery/rigid-box-01.webp"
+                                         alt="Custom magnetic flap rigid box with printed branding"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Packaging Box</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="layered-hang-tag" class="collection-slide" data-category="hang-tag">
+                            <figure>
+                                <div class="collection-slide__image is-loading">
+                                    <img src="../assets/images/gallery/hang-tag-01.webp"
+                                         alt="Layered branded hang tag with printed logo"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Hang Tag</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="thank-you-card-set" class="collection-slide" data-category="card-envelope">
+                            <figure>
+                                <div class="collection-slide__image is-loading">
+                                    <img src="../assets/images/gallery/card-envelope-01.png"
+                                         alt="Branded thank-you card with matching envelope"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Cards &amp; Envelopes</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="shoulder-box" class="collection-slide" data-category="rigid-box">
+                            <figure>
+                                <div class="collection-slide__image is-loading">
+                                    <img src="../assets/images/gallery/rigid-box.webp"
+                                         alt="Luxury shoulder box with custom printed finish"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Packaging Box</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="tissue-sticker-seal" class="collection-slide" data-category="finishing-detail">
+                            <figure>
+                                <div class="collection-slide__image is-loading">
+                                    <img src="../assets/images/gallery/tissue.webp"
+                                         alt="Branded tissue paper finished with a custom sticker seal"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Finishing Detail</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="coordinated-unboxing-system" class="collection-slide" data-category="packaging-system">
+                            <figure>
+                                <div class="collection-slide__image is-loading">
+                                    <img src="../assets/images/gallery/packaging-system-02.webp"
+                                         alt="Coordinated packaging system with box, card, tissue and ribbon"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Packaging System</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="three-piece-hang-tag" class="collection-slide" data-category="hang-tag">
+                            <figure>
+                                <div class="collection-slide__image is-loading">
+                                    <img src="../assets/images/gallery/hang-tag-02.webp"
+                                         alt="Three-piece printed hang tag set for a fashion brand"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Hang Tag</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="tray-in-bed-box" class="collection-slide" data-category="rigid-box">
+                            <figure>
+                                <div class="collection-slide__image">
+                                    <img src="../assets/images/gallery/rigid-box-03.png"
+                                         alt="Tray-in-bed rigid box with permanently attached inner tray"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Packaging Box</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="branded-note-set" class="collection-slide" data-category="card-envelope">
+                            <figure>
+                                <div class="collection-slide__image">
+                                    <img src="../assets/images/gallery/card-envelope-02.png"
+                                         alt="Printed brand note presented with a matching envelope"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Cards &amp; Envelopes</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="branded-ribbon" class="collection-slide" data-category="finishing-detail">
+                            <figure>
+                                <div class="collection-slide__image">
+                                    <img src="../assets/images/gallery/ribbon-01.webp"
+                                         alt="Close-up of printed branded ribbon used in luxury packaging"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Finishing Detail</span></figcaption>
+                            </figure>
+                        </article>
+
+                        <article id="fashion-brand-packaging-suite" class="collection-slide" data-category="packaging-system">
+                            <figure>
+                                <div class="collection-slide__image">
+                                    <img src="../assets/images/gallery/packaging-system-03.webp"
+                                         alt="Complete fashion brand packaging suite arranged for an unboxing presentation"
+                                         width="1600" height="2000" loading="lazy">
+                                </div>
+                                <figcaption><span>Packaging System</span></figcaption>
+                            </figure>
+                        </article>
+                    </div>
+                </div>
+
+                <div class="collection-status" aria-hidden="true">
+                    
+                    <span class="collection-status__line"></span>
+                    <span id="collectionCurrent">01</span>
+                    <span>/</span>
+                    <span id="collectionTotal">12</span>
+                </div>
+
+                <p class="collection-empty" id="collectionEmpty" hidden>
+                    No projects are currently available in this category.
+                </p>
+            </div>
+        </div>
 
         <!-- =====================================================
              PACKAGING SYSTEM CAROUSEL
@@ -971,6 +1132,10 @@
                             Home
                         </a>
 
+                        <a href="/shop/">
+                            Shop
+                        </a>
+
                         <a href="/pricing/">
                             Pricing
                         </a>
@@ -1533,6 +1698,7 @@
     <script src="js/main.js"></script>
     <script src="js/flipbook.js"></script>
     <script src="js/newsletter.js"></script>
+    <script src="js/gallery.js"></script>
     <script
         type="module"
         src="js/catalogue-lightbox.js"

@@ -1,0 +1,60 @@
+/* =========================================================
+   HOMEPAGE SHOP INTEGRATION
+   Adds the primary shop entry points to the existing hero.
+========================================================= */
+
+.story-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.story-hero__button {
+    min-height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 13px 22px;
+    border: 1px solid #ffffff;
+    text-decoration: none;
+    font-family: "Montserrat", Arial, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        transform 180ms ease;
+}
+
+.story-hero__button:hover {
+    transform: translateY(-2px);
+}
+
+.story-hero__button--primary {
+    background: #ffffff;
+    color: #2e1c15;
+}
+
+.story-hero__button--secondary {
+    background: transparent;
+    color: #ffffff;
+}
+
+@media (max-width: 680px) {
+    .story-hero__actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .story-hero__button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .story-hero__button {
+        transition: none;
+    }
+}
