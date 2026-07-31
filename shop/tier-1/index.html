@@ -417,18 +417,18 @@
             </p>
 
             <div class="option-grid">
-                <label>
-                    <input type="radio" name="stickerStyle" value="Standard sticker seal" checked>
+                <label class="option-disabled">
+                    <input type="radio" name="stickerStyle" value="Standard sticker seal">
                     <span>
-                        Standard seal
-                        <small>Included</small>
+                        Standard Sticker
+                        <small>Available in higher tier</small>
                     </span>
                 </label>
 
                 <label class="option-disabled">
                     <input type="radio" name="stickerStyle" value="Custom die-cut sticker" disabled>
                     <span>
-                        Custom die-cut
+                        Branded Sticker
                         <small>Available in a higher tier</small>
                     </span>
                 </label>
@@ -627,6 +627,70 @@
     </p>
 </fieldset>
 
+    <fieldset class="configuration-group artwork-status-group">
+        <legend>
+            Logo and artwork status
+            <span class="option-status option-status--included">Project preparation</span>
+        </legend>
+
+        <p class="configuration-help">
+            Tell us what is ready so we can plan the correct design support after your order request.
+        </p>
+
+        <div class="option-grid option-grid--artwork-status">
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Logo and packaging artwork ready"
+                    required
+                >
+                <span>
+                    Everything is ready
+                    <small>I can supply my logo and final packaging artwork.</small>
+                </span>
+            </label>
+
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Logo ready, packaging artwork required"
+                    required
+                >
+                <span>
+                    Logo ready
+                    <small>I need Luxsome to prepare the packaging artwork.</small>
+                </span>
+            </label>
+
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Some brand assets available"
+                    required
+                >
+                <span>
+                    Some assets available
+                    <small>I have some files, but they still need to be reviewed.</small>
+                </span>
+            </label>
+
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Full logo and packaging design support required"
+                    required
+                >
+                <span>
+                    Full design support
+                    <small>I need help with both my logo and packaging artwork.</small>
+                </span>
+            </label>
+        </div>
+    </fieldset>
 
     <label class="product-field">
         <span>Additional comments</span>
@@ -640,7 +704,7 @@
 
     <div class="order-summary-note">
         <strong>What happens next?</strong>
-        <span>Your selections will be added to the project form, where you can provide your brand, artwork and delivery details.</span>
+        <span>Your selections will be saved. Next, you will only provide your customer details and review the complete order request.</span>
     </div>
 
     <button type="submit" class="buy-now-button">Order Tier 1</button>

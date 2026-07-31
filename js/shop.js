@@ -159,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('envelope_style', data.get('envelopeStyle') || '');
         params.set('ribbon_style', data.get('ribbonStyle') || '');
         params.set('logo_finish', data.get('logoFinish') || '');
+        params.set('artwork_status', data.get('artworkStatus') || '');
         params.set('quantity', selectedQuantity);
         params.set('box_length_cm', data.get('boxLength') || '');
         params.set('box_breadth_cm', data.get('boxBreadth') || '');
@@ -172,9 +173,15 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('comments', data.get('comments') || '');
         params.set('accessories', data.getAll('accessories').join(', '));
 
+        const configuration = {
+            ...Object.fromEntries(params.entries()),
+            version: 2,
+            saved_at: new Date().toISOString()
+        };
+
         localStorage.setItem(
             'luxsomeShopConfiguration',
-            JSON.stringify(Object.fromEntries(params.entries()))
+            JSON.stringify(configuration)
         );
 
         window.location.href = `/start-project/?${params.toString()}`;
