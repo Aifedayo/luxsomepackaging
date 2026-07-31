@@ -258,64 +258,365 @@
 
                 <details class="product-accordion" open>
                     <summary>Included</summary>
-                    <ul class="included-list"><li>Rigid box</li><li>Hang tag</li><li>Thank-you card</li><li>Sticker seal</li></ul>
+                    <ul class="included-list"><li>Custom rigid box</li><li>One-piece hang tag</li><li>Flat thank-you card</li><li>Standard sticker seal</li></ul>
                 </details>
 
-                <form class="product-config" id="productConfigForm">
-                    <fieldset>
-                        <legend>Box style</legend>
-                        <div class="option-grid">
-                            <label><input type="radio" name="boxStyle" value="Magnetic flap" checked><span>Magnetic flap</span></label>
-                            <label><input type="radio" name="boxStyle" value="Shoulder box"><span>Shoulder box</span></label>
-                            <label><input type="radio" name="boxStyle" value="Tray-in-bed"><span>Tray-in-bed</span></label>
-                            <label><input type="radio" name="boxStyle" value="Door style"><span>Door style</span></label>
-                        </div>
-                    </fieldset>
+<form class="product-config" id="productConfigForm">
+    <section class="configuration-section" aria-labelledby="includedOptionsHeading">
+        <div class="configuration-section__heading">
+            <div>
+                <p class="configuration-section__eyebrow">Included in Tier 1</p>
+                <h2 id="includedOptionsHeading">Choose your included styles</h2>
+            </div>
+            <p>Select one option for each packaging item.</p>
+        </div>
 
-                    <fieldset>
-                        <legend>Finish</legend>
-                        <div class="option-grid">
-                            <label><input type="radio" name="finish" value="Matte" checked><span>Matte</span></label>
-                            <label><input type="radio" name="finish" value="Soft touch"><span>Soft touch</span></label>
-                            <label><input type="radio" name="finish" value="Gloss"><span>Gloss</span></label>
-                            <label><input type="radio" name="finish" value="Uncoated"><span>Uncoated</span></label>
-                        </div>
-                    </fieldset>
+        <fieldset class="configuration-group">
+            <legend>
+                Box style
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Choose the box construction that suits your product.
+            </p>
 
-                    <fieldset>
-                        <legend>Foil</legend>
-                        <div class="option-grid">
-                            <label><input type="radio" name="foil" value="None" checked><span>None</span></label>
-                            <label><input type="radio" name="foil" value="Gold"><span>Gold</span></label>
-                            <label><input type="radio" name="foil" value="Silver"><span>Silver</span></label>
-                            <label><input type="radio" name="foil" value="Rose gold"><span>Rose gold</span></label>
-                        </div>
-                    </fieldset>
+            <div class="option-grid option-grid--box-styles">
+                <label>
+                    <input type="radio" name="boxStyle" value="Magnetic flap" checked>
+                    <span>Magnetic flap</span>
+                </label>
 
-                    <fieldset>
-                        <legend>Extras</legend>
-                        <div class="check-grid">
-                            <label><input type="checkbox" name="extras" value="Embossing"><span>Embossing</span></label>
-                            <label><input type="checkbox" name="extras" value="Spot UV"><span>Spot UV</span></label>
-                            <label><input type="checkbox" name="extras" value="Ribbon"><span>Ribbon</span></label>
-                            <label><input type="checkbox" name="extras" value="Insert"><span>Insert</span></label>
-                        </div>
-                    </fieldset>
+                <label>
+                    <input type="radio" name="boxStyle" value="Shoulder box">
+                    <span>Shoulder box</span>
+                </label>
 
-                    <div class="product-field-row">
-                        <label class="product-field"><span>Quantity</span><select name="quantity"><option>100</option><option>200</option><option>300</option><option>500</option><option>1000</option><option value="Other">Other</option></select></label>
-                    </div>
+                <label>
+                    <input type="radio" name="boxStyle" value="Tray-in-bed">
+                    <span>Tray-in-bed</span>
+                </label>
 
-                    <label class="product-field"><span>Additional comments</span><textarea name="comments" rows="4" placeholder="Colours, dimensions, deadline or anything else we should know."></textarea></label>
+                <label>
+                    <input type="radio" name="boxStyle" value="Door style">
+                    <span>Door style</span>
+                </label>
 
-                    <button type="submit" class="buy-now-button">Buy Now</button>
-                    <p class="buy-note">You will continue to the project form to add your brand and delivery details.</p>
-                </form>
+                <label>
+                    <input type="radio" name="boxStyle" value="Collapsible magnetic flap">
+                    <span>Collapsible magnetic</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Hang tag
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Tier 1 includes a one-piece hang tag.
+            </p>
+
+            <div class="option-grid option-grid--three">
+                <label>
+                    <input type="radio" name="tagStyle" value="One-piece tag" checked>
+                    <span>
+                        One-piece
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label class="option-disabled">
+                    <input type="radio" name="tagStyle" value="Two-piece tag" disabled>
+                    <span>
+                        Two-piece
+                        <small>Available in Tier 2</small>
+                    </span>
+                </label>
+
+                <label class="option-disabled">
+                    <input type="radio" name="tagStyle" value="Three-piece tag" disabled>
+                    <span>
+                        Three-piece
+                        <small>Available in Tier 3</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Thank-you card
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Tier 1 includes a flat thank-you card.
+            </p>
+
+            <div class="option-grid">
+                <label>
+                    <input type="radio" name="thankYouCard" value="Flat thank-you card" checked>
+                    <span>
+                        Flat card
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label class="option-disabled">
+                    <input type="radio" name="thankYouCard" value="Folded thank-you card" disabled>
+                    <span>
+                        Folded card
+                        <small>Available in a higher tier</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Sticker seal
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Tier 1 includes one standard branded sticker seal.
+            </p>
+
+            <div class="option-grid">
+                <label>
+                    <input type="radio" name="stickerStyle" value="Standard sticker seal" checked>
+                    <span>
+                        Standard seal
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label class="option-disabled">
+                    <input type="radio" name="stickerStyle" value="Custom die-cut sticker" disabled>
+                    <span>
+                        Custom die-cut
+                        <small>Available in a higher tier</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+    </section>
+
+    <section class="configuration-section configuration-section--finishing" aria-labelledby="finishingHeading">
+        <div class="finishing-price-alert" role="note">
+            <div class="finishing-price-alert__icon" aria-hidden="true">i</div>
+
+            <div>
+                <strong>Finishing options are priced separately.</strong>
+                <p>
+                    Any logo finish or accessory selected below attracts an additional fee outside the Tier 1 price.
+                </p>
+            </div>
+
+            <a href="/pricing/">View pricing guide</a>
+        </div>
+
+        <div class="configuration-section__heading">
+            <div>
+                <p class="configuration-section__eyebrow">Optional upgrades</p>
+                <h2 id="finishingHeading">Finishing options</h2>
+            </div>
+            <p>Leave the defaults selected when no upgrade is required.</p>
+        </div>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Logo finish
+                <span class="option-status option-status--paid">Additional fee</span>
+            </legend>
+            <p class="configuration-help">
+                Choose how your logo should appear on the packaging.
+            </p>
+
+            <div class="option-grid option-grid--three">
+                <label>
+                    <input type="radio" name="logoFinish" value="Standard print" checked>
+                    <span>
+                        Standard print
+                        <small>No upgrade</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input type="radio" name="logoFinish" value="Embossed">
+                    <span>Embossed</span>
+                </label>
+
+                <label>
+                    <input type="radio" name="logoFinish" value="Debossed">
+                    <span>Debossed</span>
+                </label>
+
+                <label>
+                    <input type="radio" name="logoFinish" value="Foiled">
+                    <span>Foiled</span>
+                </label>
+
+                <label>
+                    <input type="radio" name="logoFinish" value="UV printed">
+                    <span>UV printed</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Accessories
+                <span class="option-status option-status--paid">Additional fee</span>
+            </legend>
+            <p class="configuration-help">
+                Select only the extras you want added to the system.
+            </p>
+
+            <div class="check-grid accessory-grid">
+                <label>
+                    <input type="checkbox" name="accessories" value="Ribbon handle">
+                    <span>Ribbon handle</span>
+                </label>
+
+                <label>
+                    <input type="checkbox" name="accessories" value="Pull tab">
+                    <span>Pull tab</span>
+                </label>
+
+                <label>
+                    <input type="checkbox" name="accessories" value="Product description card">
+                    <span>Product description card</span>
+                </label>
+
+                <label>
+                    <input type="checkbox" name="accessories" value="Insert">
+                    <span>Insert</span>
+                </label>
+            </div>
+        </fieldset>
+    </section>
+
+    <section class="configuration-section configuration-section--order" aria-labelledby="tierOneOrderHeading">
+    <div class="configuration-section__heading">
+        <div>
+            <p class="configuration-section__eyebrow">Order details</p>
+            <h2 id="tierOneOrderHeading">Tell us what you need</h2>
+        </div>
+    </div>
+
+    <label class="product-field">
+        <span>Quantity</span>
+        <input type="number" name="quantity" id="quantity" min="25" step="25" value="25" inputmode="numeric" required>
+        <small>Minimum order is 25 pieces. Quantities must be in multiples of 25.</small>
+    </label>
+
+
+<div class="product-dimensions">
+    <div class="product-dimensions__heading">
+        <div>
+            <span>Finished box dimensions</span>
+            <small>Enter the approximate finished box size, not only the product size.</small>
+        </div>
+        <span class="product-dimensions__unit">Centimetres</span>
+    </div>
+
+    <div class="dimension-grid">
+        <label class="product-field">
+            <span>Length</span>
+            <div class="measurement-input">
+                <input type="number" name="boxLength" id="boxLength" min="0.1" step="0.1" inputmode="decimal" placeholder="30" required>
+                <span>cm</span>
+            </div>
+        </label>
+
+        <label class="product-field">
+            <span>Breadth</span>
+            <div class="measurement-input">
+                <input type="number" name="boxBreadth" id="boxBreadth" min="0.1" step="0.1" inputmode="decimal" placeholder="22" required>
+                <span>cm</span>
+            </div>
+        </label>
+
+        <label class="product-field">
+            <span>Height</span>
+            <div class="measurement-input">
+                <input type="number" name="boxHeight" id="boxHeight" min="0.1" step="0.1" inputmode="decimal" placeholder="8" required>
+                <span>cm</span>
+            </div>
+        </label>
+    </div>
+
+    <div class="weight-calculator" id="weightCalculator" aria-live="polite">
+        <div>
+            <span>Estimated volumetric weight</span>
+            <strong id="volumetricWeight">Enter dimensions</strong>
+        </div>
+        <p id="weightStatus">Pricing covers a finished box of up to 1 kg volumetric weight.</p>
+    </div>
+</div>
+
+
+
+<fieldset class="configuration-group colour-selection">
+    <legend>
+        Box colour
+        <span class="option-status option-status--included">Standard colours</span>
+    </legend>
+    <p class="configuration-help">
+        Choose a standard colour. Custom colour matching may attract an additional fee.
+    </p>
+
+    <div class="colour-option-grid">
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Burgundy"><span><i style="--swatch:#673629"></i>Burgundy</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
+        <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
+    </div>
+
+    <label class="product-field custom-colour-field" id="customColourField" hidden>
+        <span>Preferred colour or HEX code</span>
+        <input type="text" name="customColour" id="customColour" placeholder="e.g. #673629 or wine red">
+        <small>Custom colour matching may attract an additional fee and is subject to material availability.</small>
+    </label>
+
+    <p class="colour-disclaimer">
+        Screen colours are references only. Final colours may vary across materials and printing methods.
+    </p>
+</fieldset>
+
+
+    <label class="product-field">
+        <span>Additional comments</span>
+        <textarea
+            name="comments"
+            rows="4"
+            placeholder="Add product details, brand direction, deadline or any other requirement."
+
+        ></textarea>
+    </label>
+
+    <div class="order-summary-note">
+        <strong>What happens next?</strong>
+        <span>Your selections will be added to the project form, where you can provide your brand, artwork and delivery details.</span>
+    </div>
+
+    <button type="submit" class="buy-now-button">Order Tier 1</button>
+    <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
+</section>
+</form>
             </div>
         </div>
     </section>
 
-    <div class="mobile-buy-bar"><button type="button" id="mobileBuyButton">Buy Now</button></div>
+    <div class="mobile-buy-bar"><button type="button" id="mobileBuyButton">Order Tier 1</button></div>
 </main>
 
         <footer class="site-footer">

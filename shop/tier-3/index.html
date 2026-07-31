@@ -258,64 +258,489 @@
 
                 <details class="product-accordion" open>
                     <summary>Included</summary>
-                    <ul class="included-list"><li>Premium rigid box</li><li>Branded tissue</li><li>Layered hang tag</li><li>Thank-you card</li><li>Envelope</li><li>Sticker seal</li><li>Branded ribbon</li></ul>
+                    <ul class="included-list"><li>Premium rigid box</li><li>Branded tissue</li><li>Up to three-piece hang tag</li><li>Flat or folded thank-you card</li><li>Envelope</li><li>Sticker seal</li><li>Branded ribbon</li></ul>
                 </details>
+<form class="product-config" id="productConfigForm">
+    <section class="configuration-section" aria-labelledby="tierThreeIncludedHeading">
+        <div class="configuration-section__heading">
+            <div>
+                <p class="configuration-section__eyebrow">Included in Tier 3</p>
+                <h2 id="tierThreeIncludedHeading">Choose your included styles</h2>
+            </div>
+            <p>Select one option for each packaging item.</p>
+        </div>
 
-                <form class="product-config" id="productConfigForm">
-                    <fieldset>
-                        <legend>Box style</legend>
-                        <div class="option-grid">
-                            <label><input type="radio" name="boxStyle" value="Magnetic flap" checked><span>Magnetic flap</span></label>
-                            <label><input type="radio" name="boxStyle" value="Shoulder box"><span>Shoulder box</span></label>
-                            <label><input type="radio" name="boxStyle" value="Tray-in-bed"><span>Tray-in-bed</span></label>
-                            <label><input type="radio" name="boxStyle" value="Door style"><span>Door style</span></label>
-                        </div>
-                    </fieldset>
+        <fieldset class="configuration-group">
+            <legend>
+                Box style
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Choose the box construction that best suits your product.
+            </p>
 
-                    <fieldset>
-                        <legend>Finish</legend>
-                        <div class="option-grid">
-                            <label><input type="radio" name="finish" value="Matte" checked><span>Matte</span></label>
-                            <label><input type="radio" name="finish" value="Soft touch"><span>Soft touch</span></label>
-                            <label><input type="radio" name="finish" value="Gloss"><span>Gloss</span></label>
-                            <label><input type="radio" name="finish" value="Uncoated"><span>Uncoated</span></label>
-                        </div>
-                    </fieldset>
+            <div class="option-grid option-grid--box-styles">
+                <label>
+                    <input type="radio" name="boxStyle" value="Magnetic flap" checked>
+                    <span>Magnetic flap</span>
+                </label>
 
-                    <fieldset>
-                        <legend>Foil</legend>
-                        <div class="option-grid">
-                            <label><input type="radio" name="foil" value="None" checked><span>None</span></label>
-                            <label><input type="radio" name="foil" value="Gold"><span>Gold</span></label>
-                            <label><input type="radio" name="foil" value="Silver"><span>Silver</span></label>
-                            <label><input type="radio" name="foil" value="Rose gold"><span>Rose gold</span></label>
-                        </div>
-                    </fieldset>
+                <label>
+                    <input type="radio" name="boxStyle" value="Shoulder box">
+                    <span>Shoulder box</span>
+                </label>
 
-                    <fieldset>
-                        <legend>Extras</legend>
-                        <div class="check-grid">
-                            <label><input type="checkbox" name="extras" value="Embossing"><span>Embossing</span></label>
-                            <label><input type="checkbox" name="extras" value="Spot UV"><span>Spot UV</span></label>
-                            <label><input type="checkbox" name="extras" value="Ribbon"><span>Ribbon</span></label>
-                            <label><input type="checkbox" name="extras" value="Insert"><span>Insert</span></label>
-                        </div>
-                    </fieldset>
+                <label>
+                    <input type="radio" name="boxStyle" value="Tray-in-bed">
+                    <span>Tray-in-bed</span>
+                </label>
 
-                    <div class="product-field-row">
-                        <label class="product-field"><span>Quantity</span><select name="quantity"><option>100</option><option>200</option><option>300</option><option>500</option><option>1000</option><option value="Other">Other</option></select></label>
-                    </div>
+                <label>
+                    <input type="radio" name="boxStyle" value="Door style">
+                    <span>Door style</span>
+                </label>
 
-                    <label class="product-field"><span>Additional comments</span><textarea name="comments" rows="4" placeholder="Colours, dimensions, deadline or anything else we should know."></textarea></label>
+                <label>
+                    <input type="radio" name="boxStyle" value="Collapsible magnetic flap">
+                    <span>Collapsible magnetic</span>
+                </label>
+            </div>
+        </fieldset>
 
-                    <button type="submit" class="buy-now-button">Buy Now</button>
-                    <p class="buy-note">You will continue to the project form to add your brand and delivery details.</p>
-                </form>
+        <fieldset class="configuration-group">
+            <legend>
+                Hang tag
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Choose a one-piece, two-piece or three-piece hang tag.
+            </p>
+
+            <div class="option-grid option-grid--three">
+                <label>
+                    <input type="radio" name="tagStyle" value="One-piece tag">
+                    <span>
+                        One-piece
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input type="radio" name="tagStyle" value="Two-piece tag">
+                    <span>
+                        Two-piece
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input type="radio" name="tagStyle" value="Three-piece tag" checked>
+                    <span>
+                        Three-piece
+                        <small>Included</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Thank-you card
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Choose a flat card or a folded card.
+            </p>
+
+            <div class="option-grid">
+                <label>
+                    <input type="radio" name="thankYouCard" value="Flat thank-you card">
+                    <span>
+                        Flat card
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input type="radio" name="thankYouCard" value="Folded thank-you card" checked>
+                    <span>
+                        Folded card
+                        <small>Included</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Sticker seal
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Choose a standard branded seal or a custom die-cut sticker.
+            </p>
+
+            <div class="option-grid">
+                <label>
+                    <input type="radio" name="stickerStyle" value="Standard sticker seal">
+                    <span>
+                        Standard seal
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input type="radio" name="stickerStyle" value="Custom die-cut sticker" checked>
+                    <span>
+                        Custom die-cut
+                        <small>Included</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Branded tissue
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Choose how your logo should be arranged on the tissue.
+            </p>
+
+            <div class="option-grid">
+                <label>
+                    <input type="radio" name="tissueStyle" value="Single logo placement">
+                    <span>
+                        Single logo
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input type="radio" name="tissueStyle" value="Repeating logo pattern" checked>
+                    <span>
+                        Repeat pattern
+                        <small>Included</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Envelope
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Choose the envelope presentation for the thank-you card.
+            </p>
+
+            <div class="option-grid">
+                <label>
+                    <input type="radio" name="envelopeStyle" value="Classic envelope">
+                    <span>
+                        Classic envelope
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input type="radio" name="envelopeStyle" value="Wallet envelope" checked>
+                    <span>
+                        Wallet envelope
+                        <small>Included</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Branded ribbon
+                <span class="option-status option-status--included">Included</span>
+            </legend>
+            <p class="configuration-help">
+                Choose the ribbon treatment included in the Prestige System.
+            </p>
+
+            <div class="option-grid">
+                <label>
+                    <input type="radio" name="ribbonStyle" value="Single-colour branded ribbon" checked>
+                    <span>
+                        Single-colour ribbon
+                        <small>Included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input type="radio" name="ribbonStyle" value="Repeat-logo branded ribbon">
+                    <span>
+                        Repeat-logo ribbon
+                        <small>Included</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+    </section>
+
+    <section class="configuration-section configuration-section--finishing" aria-labelledby="tierThreeFinishingHeading">
+        <div class="finishing-price-alert" role="note">
+            <div class="finishing-price-alert__icon" aria-hidden="true">i</div>
+
+            <div>
+                <strong>Some finishing options are priced separately.</strong>
+                <p>
+                    Standard print, matte vinyl and metallic vinyl are included.
+                    Embossing, debossing, foiling and UV printing attract an additional fee.
+                </p>
+            </div>
+
+            <a href="/pricing/">View pricing guide</a>
+        </div>
+
+        <div class="configuration-section__heading">
+            <div>
+                <p class="configuration-section__eyebrow">Finishing</p>
+                <h2 id="tierThreeFinishingHeading">Choose your logo finish</h2>
+            </div>
+            <p>Included finishes and premium upgrades are shown separately.</p>
+        </div>
+
+        <fieldset class="configuration-group">
+            <legend>Logo finish</legend>
+
+            <div class="finish-option-group">
+                <div class="finish-option-group__heading">
+                    <span>Included finishes</span>
+                    <small>No additional fee</small>
+                </div>
+
+                <div class="option-grid option-grid--three">
+                    <label>
+                        <input type="radio" name="logoFinish" value="Standard print" checked>
+                        <span>
+                            Standard print
+                            <small>Included</small>
+                        </span>
+                    </label>
+
+                    <label>
+                        <input type="radio" name="logoFinish" value="Matte vinyl">
+                        <span>
+                            Matte vinyl
+                            <small>Included</small>
+                        </span>
+                    </label>
+
+                    <label>
+                        <input type="radio" name="logoFinish" value="Metallic vinyl">
+                        <span>
+                            Metallic vinyl
+                            <small>Included</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="finish-option-group finish-option-group--paid">
+                <div class="finish-option-group__heading">
+                    <span>Premium finishes</span>
+                    <small>Additional fee applies</small>
+                </div>
+
+                <div class="option-grid option-grid--four">
+                    <label>
+                        <input type="radio" name="logoFinish" value="Embossed">
+                        <span>
+                            Embossed
+                            <small>Additional fee</small>
+                        </span>
+                    </label>
+
+                    <label>
+                        <input type="radio" name="logoFinish" value="Debossed">
+                        <span>
+                            Debossed
+                            <small>Additional fee</small>
+                        </span>
+                    </label>
+
+                    <label>
+                        <input type="radio" name="logoFinish" value="Foiled">
+                        <span>
+                            Foiled
+                            <small>Additional fee</small>
+                        </span>
+                    </label>
+
+                    <label>
+                        <input type="radio" name="logoFinish" value="UV printed">
+                        <span>
+                            UV printed
+                            <small>Additional fee</small>
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="configuration-group">
+            <legend>
+                Accessories
+                <span class="option-status option-status--paid">Additional fee</span>
+            </legend>
+            <p class="configuration-help">
+                Select only the optional extras you want added to the system.
+            </p>
+
+            <div class="check-grid accessory-grid">
+                <label>
+                    <input type="checkbox" name="accessories" value="Ribbon handle">
+                    <span>Ribbon handle</span>
+                </label>
+
+                <label>
+                    <input type="checkbox" name="accessories" value="Pull tab">
+                    <span>Pull tab</span>
+                </label>
+
+                <label>
+                    <input type="checkbox" name="accessories" value="Product description card">
+                    <span>Product description card</span>
+                </label>
+
+                <label>
+                    <input type="checkbox" name="accessories" value="Custom insert">
+                    <span>Custom insert</span>
+                </label>
+            </div>
+        </fieldset>
+    </section>
+
+    <section class="configuration-section configuration-section--order" aria-labelledby="tierThreeOrderHeading">
+    <div class="configuration-section__heading">
+        <div>
+            <p class="configuration-section__eyebrow">Order details</p>
+            <h2 id="tierThreeOrderHeading">Tell us what you need</h2>
+        </div>
+    </div>
+
+    <label class="product-field">
+        <span>Quantity</span>
+        <input type="number" name="quantity" id="quantity" min="25" step="25" value="25" inputmode="numeric" required>
+        <small>Minimum order is 25 pieces. Quantities must be in multiples of 25.</small>
+    </label>
+
+
+<div class="product-dimensions">
+    <div class="product-dimensions__heading">
+        <div>
+            <span>Finished box dimensions</span>
+            <small>Enter the approximate finished box size, not only the product size.</small>
+        </div>
+        <span class="product-dimensions__unit">Centimetres</span>
+    </div>
+
+    <div class="dimension-grid">
+        <label class="product-field">
+            <span>Length</span>
+            <div class="measurement-input">
+                <input type="number" name="boxLength" id="boxLength" min="0.1" step="0.1" inputmode="decimal" placeholder="30" required>
+                <span>cm</span>
+            </div>
+        </label>
+
+        <label class="product-field">
+            <span>Breadth</span>
+            <div class="measurement-input">
+                <input type="number" name="boxBreadth" id="boxBreadth" min="0.1" step="0.1" inputmode="decimal" placeholder="22" required>
+                <span>cm</span>
+            </div>
+        </label>
+
+        <label class="product-field">
+            <span>Height</span>
+            <div class="measurement-input">
+                <input type="number" name="boxHeight" id="boxHeight" min="0.1" step="0.1" inputmode="decimal" placeholder="8" required>
+                <span>cm</span>
+            </div>
+        </label>
+    </div>
+
+    <div class="weight-calculator" id="weightCalculator" aria-live="polite">
+        <div>
+            <span>Estimated volumetric weight</span>
+            <strong id="volumetricWeight">Enter dimensions</strong>
+        </div>
+        <p id="weightStatus">Pricing covers a finished box of up to 1 kg volumetric weight.</p>
+    </div>
+</div>
+
+
+
+<fieldset class="configuration-group colour-selection">
+    <legend>
+        Packaging colour
+        <span class="option-status option-status--included">Custom colour available</span>
+    </legend>
+    <p class="configuration-help">Choose a standard colour or provide your brand colour.</p>
+
+    <div class="colour-choice-row">
+        <label class="product-field">
+            <span>Colour selection</span>
+            <select name="primaryColour" id="tierThreeColourSelection">
+                <option value="Black">Black</option>
+                <option value="White">White</option>
+                <option value="Ivory">Ivory</option>
+                <option value="Cream">Cream</option>
+                <option value="Kraft">Kraft</option>
+                <option value="Dark brown">Dark brown</option>
+                <option value="Burgundy">Burgundy</option>
+                <option value="Navy">Navy</option>
+                <option value="Forest green">Forest green</option>
+                <option value="Blush">Blush</option>
+                <option value="Grey">Grey</option>
+                <option value="Custom">Custom colour</option>
+            </select>
+        </label>
+
+        <label class="product-field" id="tierThreeCustomColourField" hidden>
+            <span>HEX code or colour reference</span>
+            <input type="text" name="customColour" id="tierThreeCustomColour" placeholder="e.g. #673629">
+        </label>
+    </div>
+
+    <p class="colour-disclaimer">
+        Screen colours are references only. Final production colours may vary across materials and printing methods.
+    </p>
+</fieldset>
+
+
+    <label class="product-field">
+        <span>Additional comments</span>
+        <textarea
+            name="comments"
+            rows="4"
+            placeholder="Add product details, brand direction, deadline or any other requirement."
+
+        ></textarea>
+    </label>
+
+    <div class="order-summary-note">
+        <strong>What happens next?</strong>
+        <span>Your selections will be added to the project form, where you can provide your brand, artwork and delivery details.</span>
+    </div>
+
+    <button type="submit" class="buy-now-button">Order Tier 3</button>
+    <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
+</section>
+</form>
             </div>
         </div>
     </section>
 
-    <div class="mobile-buy-bar"><button type="button" id="mobileBuyButton">Buy Now</button></div>
+    <div class="mobile-buy-bar"><button type="button" id="mobileBuyButton">Order Tier 3</button></div>
 </main>
 
         <footer class="site-footer">
