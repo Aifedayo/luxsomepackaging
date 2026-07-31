@@ -737,3 +737,89 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* =========================================================
+   WELCOME HEADING — REMOVE DECORATIVE BORDER
+========================================================= */
+
+#welcome-heading,
+.builder-step--welcome #welcome-heading {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+#welcome-heading::before,
+#welcome-heading::after,
+.builder-step--welcome #welcome-heading::before,
+.builder-step--welcome #welcome-heading::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* =========================================================
+   RECOMMENDATION BUILDER — COMING SOON STATES
+========================================================= */
+
+.option-card--coming-soon {
+    cursor: not-allowed;
+    opacity: 0.52;
+    filter: grayscale(0.25);
+}
+
+.option-card--coming-soon:hover {
+    border-color: var(--border);
+    transform: none;
+}
+
+.option-card--coming-soon .option-card__badge {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    left: auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(103, 54, 41, 0.1);
+    color: var(--brown);
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.option-card--coming-soon::before {
+    position: absolute;
+    z-index: 10;
+    right: 14px;
+    bottom: calc(100% + 8px);
+    width: max-content;
+    max-width: 190px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--brown-dark);
+    color: #fff;
+    content: attr(data-tooltip);
+    font-size: 0.67rem;
+    line-height: 1.35;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity var(--transition), transform var(--transition);
+}
+
+.option-card--coming-soon:hover::before,
+.option-card--coming-soon:focus-within::before {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (max-width: 560px) {
+    .option-card--coming-soon::before {
+        display: none;
+    }
+}

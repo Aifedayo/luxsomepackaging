@@ -4,243 +4,259 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("packaging-form");
     const steps = [...document.querySelectorAll(".builder-step")];
 
+    if (!form || !steps.length) return;
+
     const progressContainer = document.getElementById("builder-progress");
     const navigation = document.getElementById("builder-navigation");
-
-    const progressTrack = document.querySelector(
-        ".builder-progress__track"
-    );
-
+    const progressTrack = document.querySelector(".builder-progress__track");
     const progressLabel = document.getElementById("progress-label");
-    const progressPercentage = document.getElementById(
-        "progress-percentage"
-    );
+    const progressPercentage = document.getElementById("progress-percentage");
     const progressValue = document.getElementById("progress-value");
-
     const nextButton = document.querySelector('[data-action="next"]');
     const backButton = document.querySelector('[data-action="back"]');
     const startButton = document.querySelector('[data-action="start"]');
     const restartButton = document.querySelector('[data-action="restart"]');
-
-    const approachInputs = document.querySelectorAll(
-        'input[name="approach"]'
-    );
-
-    const pieceSelector = document.getElementById("piece-selector");
-
+    const startProjectButton = document.getElementById("start-project-button");
+    const whatsappButton = document.getElementById("whatsapp-button");
     const experienceInputs = [
         ...document.querySelectorAll('input[name="experience"]')
     ];
-
     const experienceCount = document.getElementById("experience-count");
 
-    const whatsappButton = document.getElementById("whatsapp-button");
-
-    const totalQuestionSteps = 7;
-    let currentStep = 0;
-
-    /*
-     * Replace this number with the Luxsome WhatsApp number.
-     * Use the international format without +, spaces or dashes.
-     *
-     * Nigeria example:
-     * 2348012345678
-     */
+    const totalQuestionSteps = 5;
+    const resultStep = 6;
     const whatsappNumber = "2349068804133";
+    let currentStep = 0;
+    let latestRecommendation = null;
 
     const errorIds = {
         1: "product-error",
         2: "stage-error",
         3: "quantity-error",
         4: "experience-error",
-        5: "approach-error",
-        6: "investment-error",
-        7: "timeline-error"
+        5: "timeline-error"
     };
 
-    const tierPieces = {
-        Essential: [
-            "Branded hang tags",
-            "Thank-you card",
-            "Sticker seal"
-        ],
-
-        Signature: [
-            "Rigid presentation box",
-            "Branded hang tags",
-            "Thank-you card",
-            "Branded tissue",
-            "Sticker seal"
-        ],
-
-        Complete: [
-            "Rigid presentation box",
-            "Branded hang tags",
-            "Thank-you card and envelope",
-            "Branded tissue",
-            "Sticker seal",
-            "Ribbon or shopping bag"
-        ],
-
-        Bespoke: [
-            "Custom box structure",
-            "Coordinated branded stationery",
-            "Custom wrapping elements",
-            "Specialised finishing",
-            "Additional pieces based on the project"
-        ]
+    /*
+     * The engine scores individual packaging pieces, rather than asking
+     * customers to choose a tier. Product fit has the strongest weight.
+     * Brand maturity and desired experience then add or remove layers.
+     */
+    const productProfiles = {
+        Womenswear: {
+            direction: "A polished fashion system",
+            box: "Magnetic flap or collapsible rigid box",
+            base: [
+                "Rigid presentation box",
+                "Branded tissue",
+                "One-piece hang tag",
+                "Thank-you card",
+                "Sticker seal"
+            ],
+            boosts: {
+                "Branded ribbon": 2,
+                "Thank-you card and envelope": 1,
+                "Shopping bag": 1
+            }
+        },
+        Menswear: {
+            direction: "A structured menswear system",
+            box: "Shoulder box or magnetic flap box",
+            base: [
+                "Structured rigid presentation box",
+                "Branded tissue",
+                "One-piece hang tag",
+                "Thank-you card",
+                "Sticker seal"
+            ],
+            boosts: {
+                "Product description or care card": 2,
+                "Branded ribbon": 1,
+                "Shopping bag": 1
+            }
+        },
+        "Modest fashion and hijabs": {
+            direction: "A layered modest-fashion system",
+            box: "Magnetic flap or tray-in-bed presentation box",
+            base: [
+                "Rigid presentation box",
+                "Branded tissue",
+                "One-piece hang tag",
+                "Thank-you card and envelope",
+                "Sticker seal"
+            ],
+            boosts: {
+                "Branded ribbon": 2,
+                "Product care card": 1,
+                "Shopping bag": 1
+            }
+        },
+        Shoes: {
+            direction: "A protective footwear system",
+            box: "Reinforced shoulder box or rigid shoe box",
+            base: [
+                "Reinforced rigid box",
+                "Branded tissue",
+                "Product care card",
+                "Sticker seal"
+            ],
+            boosts: {
+                "Branded ribbon": 1,
+                "Shopping bag": 2,
+                "Thank-you card": 1
+            }
+        },
+        Bags: {
+            direction: "A protective accessories system",
+            box: "Magnetic flap or shoulder presentation box",
+            base: [
+                "Rigid presentation box",
+                "Branded tissue",
+                "One-piece hang tag",
+                "Product care card",
+                "Sticker seal"
+            ],
+            boosts: {
+                "Branded ribbon": 2,
+                "Shopping bag": 2,
+                "Thank-you card and envelope": 1
+            }
+        },
+        "Jewellery and accessories": {
+            direction: "A compact premium presentation system",
+            box: "Compact shoulder box or tray-in-bed box",
+            base: [
+                "Compact rigid presentation box",
+                "Protective product insert",
+                "Thank-you card",
+                "Sticker seal"
+            ],
+            boosts: {
+                "Branded ribbon": 2,
+                "Shopping bag": 2,
+                "Product description card": 2,
+                "Branded tissue": 1
+            }
+        }
     };
 
-    const productBoxRecommendations = {
-        Womenswear: "Magnetic flap or collapsible rigid box",
-        Menswear: "Shoulder box or magnetic flap box",
-        "Modest fashion and hijabs":
-            "Magnetic flap or tray-in-bed presentation box",
-        Shoes: "Shoulder box or reinforced rigid box",
-        Bags: "Magnetic flap or shoulder presentation box",
-        "Jewellery and accessories":
-            "Compact shoulder box or tray-in-bed box",
-        "Beauty and cosmetics":
-            "Tray-in-bed or compartmented rigid box",
-        "Gift items": "Magnetic flap or door-style presentation box",
-        Other: "Custom rigid box selected after consultation"
+    const stageRules = {
+        "Just starting": {
+            targetCount: 4,
+            score: 0,
+            note: "keeps the system focused on the strongest essentials"
+        },
+        Growing: {
+            targetCount: 5,
+            score: 1,
+            note: "adds consistency across the main unboxing touchpoints"
+        },
+        Established: {
+            targetCount: 6,
+            score: 2,
+            note: "supports a more complete and recognisable brand presentation"
+        },
+        Luxury: {
+            targetCount: 7,
+            score: 3,
+            note: "creates a fuller, more layered premium experience"
+        }
+    };
+
+    const quantityRules = {
+        "25–50 units": { score: 0, targetAdjustment: 0 },
+        "51–100 units": { score: 1, targetAdjustment: 0 },
+        "101–250 units": { score: 2, targetAdjustment: 1 },
+        "More than 250 units": { score: 3, targetAdjustment: 1 }
+    };
+
+    const experiencePieceScores = {
+        Premium: {
+            "Branded ribbon": 2,
+            "Thank-you card and envelope": 1,
+            "Product description card": 1
+        },
+        Elegant: {
+            "Branded ribbon": 2,
+            "Thank-you card and envelope": 2,
+            "Branded tissue": 1
+        },
+        Memorable: {
+            "Shopping bag": 2,
+            "Product description card": 2,
+            "Branded ribbon": 1
+        },
+        "Gift-worthy": {
+            "Thank-you card and envelope": 3,
+            "Branded ribbon": 2,
+            "Shopping bag": 1
+        },
+        Luxurious: {
+            "Branded ribbon": 3,
+            "Protective product insert": 2,
+            "Thank-you card and envelope": 2,
+            "Shopping bag": 1
+        },
+        Minimal: {
+            "One-piece hang tag": 2,
+            "Thank-you card": 2,
+            "Sticker seal": 1
+        }
+    };
+
+    const systemRoutes = {
+        Foundation: "/shop/tier-1/",
+        Signature: "/shop/tier-2/",
+        Prestige: "/shop/tier-3/"
     };
 
     function getSelectedValue(name) {
-        const input = form.querySelector(
-            `input[name="${name}"]:checked`
-        );
-
-        return input ? input.value : "";
+        return form.querySelector(`input[name="${name}"]:checked`)?.value || "";
     }
 
     function getSelectedValues(name) {
         return [
-            ...form.querySelectorAll(
-                `input[name="${name}"]:checked`
-            )
-        ].map((input) => input.value);
+            ...form.querySelectorAll(`input[name="${name}"]:checked`)
+        ].map(input => input.value);
     }
 
     function clearError(stepNumber) {
-        const errorId = errorIds[stepNumber];
-
-        if (!errorId) {
-            return;
-        }
-
-        const errorElement = document.getElementById(errorId);
-
-        if (errorElement) {
-            errorElement.textContent = "";
-        }
+        const errorElement = document.getElementById(errorIds[stepNumber]);
+        if (errorElement) errorElement.textContent = "";
     }
 
     function showError(stepNumber, message) {
-        const errorId = errorIds[stepNumber];
-
-        if (!errorId) {
-            return;
-        }
-
-        const errorElement = document.getElementById(errorId);
-
-        if (errorElement) {
-            errorElement.textContent = message;
-        }
+        const errorElement = document.getElementById(errorIds[stepNumber]);
+        if (errorElement) errorElement.textContent = message;
     }
 
     function validateStep(stepNumber) {
         clearError(stepNumber);
 
-        switch (stepNumber) {
-            case 1:
-                if (!getSelectedValue("product")) {
-                    showError(
-                        stepNumber,
-                        "Please select the product category closest to your brand."
-                    );
-                    return false;
-                }
-                break;
+        const rules = {
+            1: ["product", "Please select a supported fashion category."],
+            2: ["stage", "Please select your current brand stage."],
+            3: ["quantity", "Please select an estimated quantity."],
+            5: ["timeline", "Please select your preferred timeline."]
+        };
 
-            case 2:
-                if (!getSelectedValue("stage")) {
-                    showError(
-                        stepNumber,
-                        "Please select your current brand stage."
-                    );
-                    return false;
-                }
-                break;
-
-            case 3:
-                if (!getSelectedValue("quantity")) {
-                    showError(
-                        stepNumber,
-                        "Please select an estimated quantity."
-                    );
-                    return false;
-                }
-                break;
-
-            case 4:
-                if (getSelectedValues("experience").length === 0) {
-                    showError(
-                        stepNumber,
-                        "Please select at least one quality for your customer experience."
-                    );
-                    return false;
-                }
-                break;
-
-            case 5: {
-                const approach = getSelectedValue("approach");
-
-                if (!approach) {
-                    showError(
-                        stepNumber,
-                        "Please choose how you would like to build your system."
-                    );
-                    return false;
-                }
-
-                if (
-                    approach === "choose" &&
-                    getSelectedValues("pieces").length === 0
-                ) {
-                    showError(
-                        stepNumber,
-                        "Please select at least one packaging piece."
-                    );
-                    return false;
-                }
-
-                break;
+        if (stepNumber === 4) {
+            if (!getSelectedValues("experience").length) {
+                showError(
+                    4,
+                    "Please select at least one quality for your customer experience."
+                );
+                return false;
             }
 
-            case 6:
-                if (!getSelectedValue("investment")) {
-                    showError(
-                        stepNumber,
-                        "Please choose the packaging level that feels right."
-                    );
-                    return false;
-                }
-                break;
+            return true;
+        }
 
-            case 7:
-                if (!getSelectedValue("timeline")) {
-                    showError(
-                        stepNumber,
-                        "Please select your preferred timeline."
-                    );
-                    return false;
-                }
-                break;
+        const rule = rules[stepNumber];
 
-            default:
-                break;
+        if (rule && !getSelectedValue(rule[0])) {
+            showError(stepNumber, rule[1]);
+            return false;
         }
 
         return true;
@@ -252,62 +268,51 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        progressContainer.hidden = false;
-
         const percentage = Math.round(
             (currentStep / totalQuestionSteps) * 100
         );
 
+        progressContainer.hidden = false;
         progressLabel.textContent =
             `Step ${currentStep} of ${totalQuestionSteps}`;
-
         progressPercentage.textContent = `${percentage}%`;
         progressValue.style.width = `${percentage}%`;
-
-        progressTrack.setAttribute(
-            "aria-valuenow",
-            String(currentStep)
-        );
+        progressTrack.setAttribute("aria-valuenow", String(currentStep));
+        progressTrack.setAttribute("aria-valuemax", String(totalQuestionSteps));
     }
 
     function showStep(stepNumber) {
         currentStep = stepNumber;
 
-        steps.forEach((step) => {
-            const isCurrent =
-                Number(step.dataset.step) === stepNumber;
-
-            step.classList.toggle("is-active", isCurrent);
-            step.hidden = !isCurrent;
+        steps.forEach(step => {
+            const active = Number(step.dataset.step) === stepNumber;
+            step.classList.toggle("is-active", active);
+            step.hidden = !active;
         });
 
         const isWelcome = stepNumber === 0;
-        const isResult = stepNumber === 8;
+        const isResult = stepNumber === resultStep;
 
         navigation.hidden = isWelcome || isResult;
 
         if (!isWelcome && !isResult) {
             backButton.hidden = false;
-
             nextButton.innerHTML =
                 stepNumber === totalQuestionSteps
-                    ? 'View recommendation <span aria-hidden="true">→</span>'
+                    ? 'See my recommendation <span aria-hidden="true">→</span>'
                     : 'Continue <span aria-hidden="true">→</span>';
         }
 
         updateProgress();
 
         const activeStep = steps.find(
-            (step) => Number(step.dataset.step) === stepNumber
+            step => Number(step.dataset.step) === stepNumber
         );
+        const heading = activeStep?.querySelector("legend, h1, h2");
 
-        const heading = activeStep?.querySelector(
-            "legend, h1, h2"
-        );
-
-        window.requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
             activeStep?.scrollIntoView({
-                behavior: "smooth",
+                behavior: prefersReducedMotion() ? "auto" : "smooth",
                 block: "start"
             });
 
@@ -318,123 +323,100 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function calculateRecommendedTier(data) {
-        let score = 0;
-
-        const stageScores = {
-            "Just starting": 0,
-            Growing: 1,
-            Established: 2,
-            Luxury: 3
-        };
-
-        const quantityScores = {
-            "25–50 units": 0,
-            "51–100 units": 1,
-            "101–250 units": 2,
-            "More than 250 units": 3
-        };
-
-        score += stageScores[data.stage] ?? 0;
-        score += quantityScores[data.quantity] ?? 0;
-
-        if (
-            data.experience.includes("Luxurious") ||
-            data.experience.includes("Gift-worthy")
-        ) {
-            score += 2;
-        }
-
-        if (
-            data.experience.includes("Premium") ||
-            data.experience.includes("Memorable")
-        ) {
-            score += 1;
-        }
-
-        if (data.investment === "Bespoke") {
-            return "Bespoke";
-        }
-
-        if (data.investment === "Complete") {
-            return "Complete";
-        }
-
-        if (data.investment === "Signature") {
-            return score >= 7 ? "Complete" : "Signature";
-        }
-
-        if (score >= 8) {
-            return "Complete";
-        }
-
-        if (score >= 3) {
-            return "Signature";
-        }
-
-        return "Essential";
+    function addScore(scoreMap, piece, score) {
+        scoreMap.set(piece, (scoreMap.get(piece) || 0) + score);
     }
 
-    function buildRecommendedPieces(data, tier) {
-        if (data.approach === "choose") {
-            return data.pieces;
+    function calculateRecommendation(data) {
+        const profile = productProfiles[data.product];
+        const stage = stageRules[data.stage];
+        const quantity = quantityRules[data.quantity];
+        const scores = new Map();
+
+        profile.base.forEach((piece, index) => {
+            addScore(scores, piece, 12 - index);
+        });
+
+        Object.entries(profile.boosts).forEach(([piece, score]) => {
+            addScore(scores, piece, score);
+        });
+
+        data.experience.forEach(quality => {
+            Object.entries(experiencePieceScores[quality] || {})
+                .forEach(([piece, score]) => addScore(scores, piece, score));
+        });
+
+        if (["Established", "Luxury"].includes(data.stage)) {
+            addScore(scores, "Thank-you card and envelope", 2);
+            addScore(scores, "Branded ribbon", 2);
         }
 
-        const pieces = [...tierPieces[tier]];
-
-        if (
-            ["Signature", "Complete", "Bespoke"].includes(tier)
-        ) {
-            pieces[0] =
-                productBoxRecommendations[data.product] ||
-                pieces[0];
+        if (data.stage === "Luxury") {
+            addScore(scores, "Shopping bag", 2);
+            addScore(scores, "Product description card", 1);
         }
 
-        if (
-            data.product === "Jewellery and accessories" &&
-            !pieces.some((piece) =>
-                piece.toLowerCase().includes("insert")
+        if (data.quantity === "More than 250 units") {
+            addScore(scores, "Sticker seal", 2);
+            addScore(scores, "One-piece hang tag", 1);
+        }
+
+        if (data.timeline === "As soon as possible") {
+            addScore(scores, "Custom structural development", -5);
+            addScore(scores, "Shopping bag", -1);
+        }
+
+        const targetCount = Math.min(
+            7,
+            Math.max(
+                4,
+                stage.targetCount + quantity.targetAdjustment
             )
-        ) {
-            pieces.push("Protective product insert");
-        }
-
-        if (
-            data.product === "Beauty and cosmetics" &&
-            !pieces.some((piece) =>
-                piece.toLowerCase().includes("insert")
-            )
-        ) {
-            pieces.push("Structured product insert");
-        }
-
-        return [...new Set(pieces)];
-    }
-
-    function buildExplanation(data, tier, pieces) {
-        const experienceText =
-            data.experience.length === 1
-                ? data.experience[0].toLowerCase()
-                : `${data.experience
-                    .slice(0, -1)
-                    .join(", ")
-                    .toLowerCase()} and ${data.experience
-                    .at(-1)
-                    .toLowerCase()}`;
-
-        const pieceText =
-            pieces.length > 1
-                ? `${pieces[0]} supported by coordinated branded details`
-                : pieces[0];
-
-        return (
-            `Based on your ${data.product.toLowerCase()} brand, ` +
-            `your ${data.quantity.toLowerCase()} requirement and the ` +
-            `${experienceText} experience you want to create, the ` +
-            `${tier} level offers a suitable starting point. ` +
-            `${pieceText} can help present your products as one cohesive ` +
-            `brand experience rather than a collection of unrelated pieces.`
         );
+
+        const pieces = [...scores.entries()]
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, targetCount)
+            .map(([piece]) => piece);
+
+        if (!pieces.some(piece => piece.toLowerCase().includes("box"))) {
+            pieces.unshift(profile.box);
+        } else {
+            const boxIndex = pieces.findIndex(
+                piece => piece.toLowerCase().includes("box")
+            );
+            pieces[boxIndex] = profile.box;
+        }
+
+        const maturityScore =
+            stage.score +
+            quantity.score +
+            data.experience.reduce((total, quality) => (
+                total + (
+                    ["Luxurious", "Gift-worthy"].includes(quality) ? 2 :
+                    ["Premium", "Memorable", "Elegant"].includes(quality) ? 1 :
+                    0
+                )
+            ), 0);
+
+        const internalSystem =
+            maturityScore >= 7 ? "Prestige" :
+            maturityScore >= 3 ? "Signature" :
+            "Foundation";
+
+        return {
+            direction: profile.direction,
+            boxRecommendation: profile.box,
+            pieces: [...new Set(pieces)].slice(0, targetCount),
+            internalSystem,
+            shopUrl: systemRoutes[internalSystem],
+            confidence: Math.min(96, 74 + (data.experience.length * 5) + stage.score),
+            explanation:
+                `Your ${data.product.toLowerCase()} category calls for ${profile.box.toLowerCase()}. ` +
+                `Because your brand is ${data.stage.toLowerCase()} and you want the experience to feel ` +
+                `${formatList(data.experience).toLowerCase()}, this combination ${stage.note}. ` +
+                `The recommendation prioritises pieces that work together as one system rather than adding items simply to increase the package size.`
+        };
     }
 
     function collectFormData() {
@@ -443,104 +425,82 @@ document.addEventListener("DOMContentLoaded", () => {
             stage: getSelectedValue("stage"),
             quantity: getSelectedValue("quantity"),
             experience: getSelectedValues("experience"),
-            approach: getSelectedValue("approach"),
-            pieces: getSelectedValues("pieces"),
-            investment: getSelectedValue("investment"),
             timeline: getSelectedValue("timeline")
         };
     }
 
-    function createWhatsAppMessage(data, tier, pieces) {
+    function formatList(items) {
+        if (!items.length) return "";
+        if (items.length === 1) return items[0];
+        if (items.length === 2) return `${items[0]} and ${items[1]}`;
+        return `${items.slice(0, -1).join(", ")}, and ${items.at(-1)}`;
+    }
+
+    function createWhatsAppMessage(data, recommendation) {
         return [
             "Hello Luxsome,",
             "",
-            "I completed the Packaging System Builder.",
+            "I completed the Packaging Recommendation Builder.",
             "",
             `Product: ${data.product}`,
             `Brand stage: ${data.stage}`,
             `Quantity: ${data.quantity}`,
             `Desired experience: ${data.experience.join(", ")}`,
-            `Preferred level: ${data.investment}`,
-            `Recommended level: ${tier}`,
             `Timeline: ${data.timeline}`,
             "",
-            "Packaging pieces:",
-            ...pieces.map((piece) => `• ${piece}`),
+            `Recommended direction: ${recommendation.direction}`,
+            `Suggested box: ${recommendation.boxRecommendation}`,
             "",
-            "I would like to discuss this packaging system and the next steps."
+            "Recommended packaging pieces:",
+            ...recommendation.pieces.map(piece => `• ${piece}`),
+            "",
+            "I would like to refine this recommendation with Luxsome."
         ].join("\n");
     }
 
     function renderResult() {
         const data = collectFormData();
-        const recommendedTier = calculateRecommendedTier(data);
-        const recommendedPieces = buildRecommendedPieces(
-            data,
-            recommendedTier
-        );
+        const recommendation = calculateRecommendation(data);
+        latestRecommendation = { data, ...recommendation };
 
         document.getElementById("result-tier").textContent =
-            recommendedTier;
-
-        document.getElementById("result-product").textContent =
-            data.product;
-
-        document.getElementById("result-stage").textContent =
-            data.stage;
-
-        document.getElementById("result-quantity").textContent =
-            data.quantity;
-
-        document.getElementById("result-timeline").textContent =
-            data.timeline;
-
-        document.getElementById(
-            "result-introduction"
-        ).textContent =
-            `A considered starting point for your ${data.product.toLowerCase()} brand.`;
-
-        document.getElementById(
-            "result-explanation"
-        ).textContent = buildExplanation(
-            data,
-            recommendedTier,
-            recommendedPieces
-        );
+            recommendation.direction;
+        document.getElementById("result-product").textContent = data.product;
+        document.getElementById("result-stage").textContent = data.stage;
+        document.getElementById("result-quantity").textContent = data.quantity;
+        document.getElementById("result-timeline").textContent = data.timeline;
+        document.getElementById("result-introduction").textContent =
+            `${recommendation.confidence}% match based on your answers.`;
+        document.getElementById("result-explanation").textContent =
+            recommendation.explanation;
 
         const piecesList = document.getElementById("result-pieces");
         piecesList.replaceChildren();
 
-        recommendedPieces.forEach((piece) => {
-            const listItem = document.createElement("li");
-            listItem.textContent = piece;
-            piecesList.appendChild(listItem);
+        recommendation.pieces.forEach(piece => {
+            const item = document.createElement("li");
+            item.textContent = piece;
+            piecesList.appendChild(item);
         });
 
-        const message = createWhatsAppMessage(
-            data,
-            recommendedTier,
-            recommendedPieces
-        );
-
         whatsappButton.href =
-            `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+            `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+                createWhatsAppMessage(data, recommendation)
+            )}`;
     }
 
     function moveNext() {
         if (!validateStep(currentStep)) {
-            const errorId = errorIds[currentStep];
-
-            document.getElementById(errorId)?.scrollIntoView({
-                behavior: "smooth",
+            document.getElementById(errorIds[currentStep])?.scrollIntoView({
+                behavior: prefersReducedMotion() ? "auto" : "smooth",
                 block: "center"
             });
-
             return;
         }
 
         if (currentStep === totalQuestionSteps) {
             renderResult();
-            showStep(8);
+            showStep(resultStep);
             return;
         }
 
@@ -548,77 +508,82 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function moveBack() {
-        if (currentStep > 1) {
-            showStep(currentStep - 1);
-        } else {
-            showStep(0);
-        }
+        showStep(currentStep > 1 ? currentStep - 1 : 0);
     }
 
     function restartBuilder() {
         form.reset();
-        pieceSelector.hidden = true;
         experienceCount.textContent = "0";
+        latestRecommendation = null;
 
-        Object.values(errorIds).forEach((errorId) => {
-            const errorElement = document.getElementById(errorId);
-
-            if (errorElement) {
-                errorElement.textContent = "";
-            }
+        Object.values(errorIds).forEach(errorId => {
+            const element = document.getElementById(errorId);
+            if (element) element.textContent = "";
         });
 
         showStep(0);
     }
 
-    experienceInputs.forEach((input) => {
-        input.addEventListener("change", (event) => {
+    experienceInputs.forEach(input => {
+        input.addEventListener("change", event => {
             const selected = getSelectedValues("experience");
 
             if (selected.length > 3) {
                 event.currentTarget.checked = false;
-
-                showError(
-                    4,
-                    "You can select up to three experience qualities."
-                );
+                showError(4, "You can select up to three experience qualities.");
             } else {
                 clearError(4);
             }
 
-            experienceCount.textContent = String(
-                getSelectedValues("experience").length
-            );
+            experienceCount.textContent =
+                String(getSelectedValues("experience").length);
         });
     });
 
-    approachInputs.forEach((input) => {
-        input.addEventListener("change", () => {
-            const shouldChoosePieces =
-                getSelectedValue("approach") === "choose";
+    form.addEventListener("change", event => {
+        const step = event.target.closest("[data-step]");
+        if (step) clearError(Number(step.dataset.step));
+    });
 
-            pieceSelector.hidden = !shouldChoosePieces;
-            clearError(5);
+    document.querySelectorAll(".option-card--coming-soon").forEach(card => {
+        card.addEventListener("click", event => {
+            event.preventDefault();
         });
     });
 
-    form.addEventListener("change", (event) => {
-        const fieldset = event.target.closest("[data-step]");
+    startButton?.addEventListener("click", () => showStep(1));
+    nextButton?.addEventListener("click", moveNext);
+    backButton?.addEventListener("click", moveBack);
+    restartButton?.addEventListener("click", restartBuilder);
 
-        if (!fieldset) {
-            return;
-        }
+    startProjectButton?.addEventListener("click", () => {
+        if (!latestRecommendation) renderResult();
 
-        clearError(Number(fieldset.dataset.step));
+        const recommendation = {
+            version: 2,
+            source: "Packaging Recommendation Builder",
+            savedAt: new Date().toISOString(),
+            recommendationDetails: {
+                title: latestRecommendation.direction,
+                tier: latestRecommendation.internalSystem,
+                description: latestRecommendation.explanation,
+                components: latestRecommendation.pieces,
+                boxRecommendation: latestRecommendation.boxRecommendation,
+                confidence: latestRecommendation.confidence,
+                shopUrl: latestRecommendation.shopUrl
+            },
+            answers: latestRecommendation.data
+        };
+
+        localStorage.setItem(
+            "luxsomePackagingBuilderResult",
+            JSON.stringify(recommendation)
+        );
+
+        window.location.assign(
+            `${latestRecommendation.shopUrl}?source=builder`
+        );
     });
-
-    startButton.addEventListener("click", () => {
-        showStep(1);
-    });
-
-    nextButton.addEventListener("click", moveNext);
-    backButton.addEventListener("click", moveBack);
-    restartButton.addEventListener("click", restartBuilder);
 
     const currentYearElement =
         document.getElementById("currentYear") ||
@@ -630,77 +595,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     showStep(0);
 
-    const startProjectButton = document.getElementById(
-        "start-project-button"
-    );
-
-    if (startProjectButton) {
-        startProjectButton.addEventListener("click", () => {
-            const data = collectFormData();
-            const recommendedTier = calculateRecommendedTier(data);
-            const recommendedPieces = buildRecommendedPieces(
-                data,
-                recommendedTier
-            );
-            const explanation = buildExplanation(
-                data,
-                recommendedTier,
-                recommendedPieces
-            );
-
-            const recommendation = {
-                version: 1,
-                source: "Packaging Builder",
-                savedAt: new Date().toISOString(),
-
-                recommendationDetails: {
-                    title: `${recommendedTier} Packaging System`,
-                    tier: recommendedTier,
-                    description: explanation,
-                    components: recommendedPieces
-                },
-
-                answers: {
-                    productType: data.product,
-                    brandStage: data.stage,
-                    quantity: data.quantity,
-                    desiredExperience: data.experience,
-                    approach: data.approach,
-                    selectedPieces: data.pieces,
-                    investmentLevel: data.investment,
-                    timeline: data.timeline
-                }
-            };
-
-            try {
-                localStorage.setItem(
-                    "luxsomePackagingBuilderResult",
-                    JSON.stringify(recommendation)
-                );
-
-                window.location.assign(
-                    "/start-project/?source=builder"
-                );
-            } catch (error) {
-                console.error(
-                    "Unable to save the packaging recommendation:",
-                    error
-                );
-
-                const fallbackTier = encodeURIComponent(
-                    recommendation.recommendationDetails.title
-                );
-
-                window.location.assign(
-                    `/start-project/?source=builder&tier=${fallbackTier}`
-                );
-            }
-        });
-    } else {
-        console.warn(
-            'The button with id="start-project-button" was not found.'
-        );
+    function prefersReducedMotion() {
+        return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     }
-
 });
-

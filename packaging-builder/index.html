@@ -174,7 +174,7 @@
                 >
                     <div class="builder-progress__top">
                         <span id="progress-label">
-                            Step 1 of 7
+                            Step 1 of 5
                         </span>
 
                         <span id="progress-percentage">
@@ -186,7 +186,7 @@
                         class="builder-progress__track"
                         role="progressbar"
                         aria-valuemin="1"
-                        aria-valuemax="7"
+                        aria-valuemax="5"
                         aria-valuenow="1"
                         aria-labelledby="progress-label"
                     >
@@ -219,8 +219,8 @@
 
                         <p>
                             This should take less than two minutes. Your answers
-                            will be used to recommend a packaging tier and the
-                            pieces that may suit your brand.
+                            will be analysed to recommend the packaging pieces,
+                            structure and presentation details that best suit your brand.
                         </p>
 
                         <button
@@ -320,39 +320,45 @@
                                 </span>
                             </label>
 
-                            <label class="option-card">
+                            <label class="option-card option-card--coming-soon" data-tooltip="Coming soon">
                                 <input
                                     type="radio"
                                     name="product"
                                     value="Beauty and cosmetics"
+                                    disabled
                                 >
                                 <span class="option-card__number">07</span>
+                                <span class="option-card__badge">Coming soon</span>
                                 <span class="option-card__title">
                                     Beauty
                                 </span>
                             </label>
 
-                            <label class="option-card">
+                            <label class="option-card option-card--coming-soon" data-tooltip="Coming soon">
                                 <input
                                     type="radio"
                                     name="product"
                                     value="Gift items"
+                                    disabled
                                 >
                                 <span class="option-card__number">08</span>
+                                <span class="option-card__badge">Coming soon</span>
                                 <span class="option-card__title">
                                     Gift items
                                 </span>
                             </label>
 
-                            <label class="option-card">
+                            <label class="option-card option-card--coming-soon" data-tooltip="Coming soon">
                                 <input
                                     type="radio"
                                     name="product"
                                     value="Other"
+                                    disabled
                                 >
                                 <span class="option-card__number">09</span>
+                                <span class="option-card__badge">Coming soon</span>
                                 <span class="option-card__title">
-                                    Other
+                                    Other industries
                                 </span>
                             </label>
                         </div>
@@ -628,273 +634,10 @@
                         ></p>
                     </fieldset>
 
-                    <!-- Step 5 -->
+<!-- Step 5 -->
                     <fieldset
                         class="builder-step"
                         data-step="5"
-                        aria-describedby="approach-help approach-error"
-                    >
-                        <legend>
-                            How would you like to build?
-                        </legend>
-
-                        <p class="step-description" id="approach-help">
-                            Luxsome can recommend the pieces or you can select
-                            them yourself.
-                        </p>
-
-                        <div class="option-grid option-grid--two">
-                            <label class="option-card option-card--text">
-                                <input
-                                    type="radio"
-                                    name="approach"
-                                    value="recommend"
-                                >
-
-                                <span class="option-card__badge">
-                                    Recommended
-                                </span>
-
-                                <span class="option-card__title">
-                                    Recommend my system
-                                </span>
-
-                                <span class="option-card__description">
-                                    Choose a cohesive starting system based on
-                                    my answers.
-                                </span>
-                            </label>
-
-                            <label class="option-card option-card--text">
-                                <input
-                                    type="radio"
-                                    name="approach"
-                                    value="choose"
-                                >
-
-                                <span class="option-card__title">
-                                    I would like to choose
-                                </span>
-
-                                <span class="option-card__description">
-                                    Let me select the individual packaging
-                                    pieces I am interested in.
-                                </span>
-                            </label>
-                        </div>
-
-                        <div
-                            class="piece-selector"
-                            id="piece-selector"
-                            hidden
-                        >
-                            <h3>
-                                Select your packaging pieces
-                            </h3>
-
-                            <p>
-                                Choose at least one piece. You can refine the
-                                final combination with Luxsome later.
-                            </p>
-
-                            <div class="option-grid option-grid--three">
-                                <label class="option-card option-card--compact">
-                                    <input
-                                        type="checkbox"
-                                        name="pieces"
-                                        value="Rigid box"
-                                    >
-                                    <span class="option-card__title">
-                                        Rigid box
-                                    </span>
-                                </label>
-
-                                <label class="option-card option-card--compact">
-                                    <input
-                                        type="checkbox"
-                                        name="pieces"
-                                        value="Hang tags"
-                                    >
-                                    <span class="option-card__title">
-                                        Hang tags
-                                    </span>
-                                </label>
-
-                                <label class="option-card option-card--compact">
-                                    <input
-                                        type="checkbox"
-                                        name="pieces"
-                                        value="Thank-you card"
-                                    >
-                                    <span class="option-card__title">
-                                        Thank-you card
-                                    </span>
-                                </label>
-
-                                <label class="option-card option-card--compact">
-                                    <input
-                                        type="checkbox"
-                                        name="pieces"
-                                        value="Envelope"
-                                    >
-                                    <span class="option-card__title">
-                                        Envelope
-                                    </span>
-                                </label>
-
-                                <label class="option-card option-card--compact">
-                                    <input
-                                        type="checkbox"
-                                        name="pieces"
-                                        value="Branded tissue"
-                                    >
-                                    <span class="option-card__title">
-                                        Branded tissue
-                                    </span>
-                                </label>
-
-                                <label class="option-card option-card--compact">
-                                    <input
-                                        type="checkbox"
-                                        name="pieces"
-                                        value="Sticker seal"
-                                    >
-                                    <span class="option-card__title">
-                                        Sticker seal
-                                    </span>
-                                </label>
-
-                                <label class="option-card option-card--compact">
-                                    <input
-                                        type="checkbox"
-                                        name="pieces"
-                                        value="Ribbon"
-                                    >
-                                    <span class="option-card__title">
-                                        Ribbon
-                                    </span>
-                                </label>
-
-                                <label class="option-card option-card--compact">
-                                    <input
-                                        type="checkbox"
-                                        name="pieces"
-                                        value="Shopping bag"
-                                    >
-                                    <span class="option-card__title">
-                                        Shopping bag
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <p
-                            class="field-error"
-                            id="approach-error"
-                            aria-live="polite"
-                        ></p>
-                    </fieldset>
-
-                    <!-- Step 6 -->
-                    <fieldset
-                        class="builder-step"
-                        data-step="6"
-                        aria-describedby="investment-help investment-error"
-                    >
-                        <legend>
-                            Which level feels right for your brand?
-                        </legend>
-
-                        <p class="step-description" id="investment-help">
-                            This is not a final quotation. It helps us shape
-                            your recommendation.
-                        </p>
-
-                        <div class="tier-grid">
-                            <label class="tier-card">
-                                <input
-                                    type="radio"
-                                    name="investment"
-                                    value="Essential"
-                                >
-
-                                <span class="tier-card__name">
-                                    Essential
-                                </span>
-
-                                <span class="tier-card__description">
-                                    A focused branded presentation built around
-                                    the core pieces.
-                                </span>
-                            </label>
-
-                            <label class="tier-card">
-                                <input
-                                    type="radio"
-                                    name="investment"
-                                    value="Signature"
-                                >
-
-                                <span class="tier-card__badge">
-                                    Popular
-                                </span>
-
-                                <span class="tier-card__name">
-                                    Signature
-                                </span>
-
-                                <span class="tier-card__description">
-                                    A more complete and memorable unboxing
-                                    system.
-                                </span>
-                            </label>
-
-                            <label class="tier-card">
-                                <input
-                                    type="radio"
-                                    name="investment"
-                                    value="Complete"
-                                >
-
-                                <span class="tier-card__name">
-                                    Complete
-                                </span>
-
-                                <span class="tier-card__description">
-                                    A layered presentation across every major
-                                    customer touchpoint.
-                                </span>
-                            </label>
-
-                            <label class="tier-card">
-                                <input
-                                    type="radio"
-                                    name="investment"
-                                    value="Bespoke"
-                                >
-
-                                <span class="tier-card__name">
-                                    Bespoke
-                                </span>
-
-                                <span class="tier-card__description">
-                                    A custom project for a distinct or
-                                    specialised packaging requirement.
-                                </span>
-                            </label>
-                        </div>
-
-                        <p
-                            class="field-error"
-                            id="investment-error"
-                            aria-live="polite"
-                        ></p>
-                    </fieldset>
-
-                    <!-- Step 7 -->
-                    <fieldset
-                        class="builder-step"
-                        data-step="7"
                         aria-describedby="timeline-help timeline-error"
                     >
                         <legend>
@@ -959,10 +702,10 @@
                         ></p>
                     </fieldset>
 
-                    <!-- Result -->
+                    <!-- Recommendation result -->
                     <section
                         class="builder-step builder-result"
-                        data-step="8"
+                        data-step="6"
                         aria-labelledby="result-heading"
                         aria-live="polite"
                     >
@@ -982,15 +725,15 @@
                             </div>
 
                             <div class="result-tier">
-                                <span>Recommended level</span>
-                                <strong id="result-tier">Signature</strong>
+                                <span>Recommended direction</span>
+                                <strong id="result-tier">A coordinated system</strong>
                             </div>
                         </div>
 
                         <div class="result-layout">
                             <div class="result-card">
                                 <p class="result-card__label">
-                                    Suggested pieces
+                                    Recommended pieces
                                 </p>
 
                                 <ul
@@ -1001,7 +744,7 @@
 
                             <div class="result-card">
                                 <p class="result-card__label">
-                                    Why this system
+                                    Why these pieces fit
                                 </p>
 
                                 <p
@@ -1034,10 +777,7 @@
                         </dl>
 
                         <p class="result-note">
-                            This recommendation is an initial guide, not a
-                            quotation. Materials, dimensions, finishing,
-                            availability and production timing will be confirmed
-                            by Luxsome.
+                            This recommendation is a considered starting point based on your answers. You can refine colours, dimensions, finishes and quantities on the recommended product page.
                         </p>
 
                         <div class="result-actions">
@@ -1047,7 +787,7 @@
                                 id="start-project-button"
                                 class="button button--primary"
                             >
-                                Start This Project
+                                Configure This System
                                 <span aria-hidden="true">→</span>
                             </button>
                         
