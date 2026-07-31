@@ -483,6 +483,80 @@ document.addEventListener('DOMContentLoaded', () => {
             button.addEventListener('click', closeOptionVisual);
         });
 
+
+    /*
+     * Robust View Larger handler.
+     * Uses event delegation so it still works when the gallery button or
+     * gallery slides are generated dynamically.
+     */
+    document.addEventListener('click', event => {
+        const expandButton = event.target.closest(
+            '#productGalleryExpand, .product-gallery__expand'
+        );
+
+        if (!expandButton) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const gallery = expandButton.closest('[data-synchronised-gallery]') ||
+            document.querySelector('[data-synchronised-gallery]');
+
+        const activeSlide = gallery?.querySelector(
+            '.product-gallery__slide.is-active'
+        );
+
+        const activeImage = activeSlide?.querySelector('img');
+        const activeTitle = document.getElementById(
+            'productGalleryTitle'
+        )?.textContent?.trim();
+        const activeCategory = document.getElementById(
+            'productGalleryCategory'
+        )?.textContent?.trim();
+        const catalogueLink = document.getElementById(
+            'productGalleryCatalogue'
+        );
+
+        if (
+            !optionVisualModal ||
+            !optionVisualImage ||
+            !optionVisualTitle ||
+            !optionVisualCategory ||
+            !optionVisualCatalogue ||
+            !activeImage
+        ) {
+            return;
+        }
+
+        optionVisualTrigger = expandButton;
+        optionVisualFallback = '';
+
+        optionVisualImage.dataset.fallbackApplied = 'false';
+        optionVisualImage.src = activeImage.currentSrc || activeImage.src;
+        optionVisualImage.alt = activeImage.alt || (
+            `${activeTitle || 'Packaging option'} visual preview`
+        );
+
+        optionVisualTitle.textContent =
+            activeTitle || activeImage.alt || 'Packaging option';
+
+        optionVisualCategory.textContent =
+            activeCategory || 'Packaging option';
+
+        optionVisualCatalogue.href =
+            catalogueLink?.href ||
+            '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf';
+
+        optionVisualModal.hidden = false;
+        document.body.classList.add('option-visual-open');
+
+        window.requestAnimationFrame(() => {
+            optionVisualModal
+                .querySelector('.option-visual-modal__close')
+                ?.focus();
+        });
+    });
+
     document.addEventListener('keydown', event => {
         if (!optionVisualModal || optionVisualModal.hidden) return;
 
@@ -724,16 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showPreview(initiallySelected);
         }
 
-        galleryExpand?.addEventListener('click', () => {
-            const activeInput = visualInputs.find(input => (
-                input.name === galleryExpand.dataset.inputName &&
-                input.value === galleryExpand.dataset.inputValue
-            ));
-
-            if (activeInput) {
-                openOptionVisual(activeInput);
-            }
-        });
+        
 
         const preloadImages = () => {
             previewStates.forEach(state => {
@@ -748,5 +813,12 @@ document.addEventListener('DOMContentLoaded', () => {
             window.setTimeout(preloadImages, 800);
         }
     }
+
+
+    document.querySelectorAll(
+        '#productGalleryExpand, .product-gallery__expand'
+    ).forEach(button => {
+        button.setAttribute('type', 'button');
+    });
 
 });

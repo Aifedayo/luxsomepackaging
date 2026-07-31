@@ -2569,3 +2569,58 @@ body.option-visual-open {
         padding-bottom: 7px;
     }
 }
+
+/* =========================================================
+   VIEW LARGER MODAL — STACKING AND CLIPPING FIX
+========================================================= */
+
+/*
+ * Do not clip fixed overlays inside the product detail section.
+ * Removing the isolated stacking context allows the modal's z-index
+ * to sit above the sticky gallery, breadcrumb and footer.
+ */
+.product-detail {
+    overflow: visible;
+    isolation: auto;
+    z-index: auto;
+}
+
+/*
+ * Keep the sticky gallery below the footer without trapping the modal.
+ */
+.product-gallery,
+.product-gallery__sticky {
+    z-index: 20;
+}
+
+.site-footer {
+    position: relative;
+    z-index: 80;
+}
+
+/*
+ * The expand control must remain clickable above the active slide,
+ * caption and image overlays.
+ */
+.product-gallery__expand {
+    z-index: 12;
+    pointer-events: auto;
+}
+
+/*
+ * Guarantee that the image-first modal occupies the viewport and sits
+ * above every site layer.
+ */
+.option-visual-modal {
+    position: fixed;
+    z-index: 20000;
+    inset: 0;
+    pointer-events: auto;
+}
+
+.option-visual-modal__backdrop,
+.option-visual-modal__dialog,
+.option-visual-modal__close,
+.option-visual-modal__actions {
+    pointer-events: auto;
+}
