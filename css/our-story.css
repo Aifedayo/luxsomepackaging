@@ -166,7 +166,6 @@
     position: absolute;
     z-index: 3;
     right: clamp(24px, 5vw, 72px);
-    bottom: 90px;
 
     display: flex;
     align-items: center;

@@ -2855,3 +2855,76 @@ html.reveal-ready .reveal-group > .reveal {
         animation: none;
     }
 }
+
+@media (max-width: 640px) {
+    .story-hero__content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .story-scroll-indicator {
+        position: relative !important;
+        inset: auto !important;
+
+        width: 100%;
+        max-width: 370px;
+
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+
+        margin: 25px 0 0;
+        padding: 13px 0;
+        background: transparent;
+        color: #ffffff;
+
+        font-size: 0.61rem;
+        letter-spacing: 0.13em;
+        margin-bottom: -40px;
+        transform: none !important;
+    }
+
+    .story-scroll-indicator > span:first-child {
+        flex: 0 1 auto;
+        white-space: nowrap;
+    }
+
+    .story-scroll-indicator__line {
+        width: min(92px, 25vw);
+        height: 1px;
+        flex: 0 1 92px;
+
+        background: rgba(255, 255, 255, 0.78);
+        transition:
+            width 220ms ease,
+            background-color 220ms ease;
+    }
+
+    .story-scroll-indicator:hover .story-scroll-indicator__line,
+    .story-scroll-indicator:focus-visible .story-scroll-indicator__line {
+        width: min(112px, 31vw);
+        height: 1px;
+        background: #ffffff;
+    }
+
+    .story-scroll-indicator:focus-visible {
+        outline: 1px solid rgba(255, 255, 255, 0.85);
+        outline-offset: 5px;
+    }
+}
+
+@media (max-width: 380px) {
+    .story-scroll-indicator {
+        gap: 12px;
+        font-size: 0.55rem;
+        letter-spacing: 0.1em;
+    }
+
+    .story-scroll-indicator__line {
+        width: 48px;
+        flex-basis: 48px;
+    }
+}
