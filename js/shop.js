@@ -959,11 +959,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     );
                 });
 
-            state.thumbnail.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center'
-            });
+            /*
+             * Desktop can use scrollIntoView because the gallery and
+             * options sit side by side.
+             *
+             * On mobile, scrollIntoView may move the whole page back
+             * to the gallery. Move only the horizontal thumbnail strip
+             * instead, leaving the user's vertical position untouched.
+             */
+            const isMobileGallery = window.matchMedia(
+                '(max-width: 768px)'
+            ).matches;
+
+            if (isMobileGallery) {
+                const thumbnailLeft =
+                    state.thumbnail.offsetLeft -
+                    (
+                        thumbsContainer.clientWidth -
+                        state.thumbnail.offsetWidth
+                    ) / 2;
+
+                thumbsContainer.scrollTo({
+                    left: Math.max(0, thumbnailLeft),
+                    behavior: 'smooth'
+                });
+            } else {
+                state.thumbnail.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            }
 
             galleryCategory.textContent = state.group.label;
             galleryTitle.textContent = state.input.value;
@@ -976,8 +1002,37 @@ document.addEventListener('DOMContentLoaded', () => {
         function showPreview(input) {
             if (!input || input.disabled) return;
 
+            const isMobileGallery = window.matchMedia(
+                '(max-width: 768px)'
+            ).matches;
+
+            const mobileScrollPosition = isMobileGallery
+                ? window.scrollY
+                : null;
+
             const state = createPreview(input);
             setCurrentPreview(state);
+
+            /*
+             * Some mobile browsers may still adjust the viewport when
+             * a checked control changes inside a long form. Restore the
+             * exact vertical position after the gallery has updated.
+             */
+            if (isMobileGallery && mobileScrollPosition !== null) {
+                window.requestAnimationFrame(() => {
+                    if (
+                        Math.abs(
+                            window.scrollY -
+                            mobileScrollPosition
+                        ) > 2
+                    ) {
+                        window.scrollTo({
+                            top: mobileScrollPosition,
+                            behavior: 'auto'
+                        });
+                    }
+                });
+            }
 
             const previousIndex = previewHistory.indexOf(input);
 
