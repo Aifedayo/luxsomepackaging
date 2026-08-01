@@ -165,7 +165,9 @@
 .story-scroll-indicator {
     position: absolute;
     z-index: 3;
-    right: clamp(24px, 5vw, 72px);
+
+    right: -32px;
+    bottom: 90px;
 
     display: flex;
     align-items: center;
@@ -180,7 +182,7 @@
     text-transform: uppercase;
 
     transform: rotate(90deg);
-    transform-origin: right bottom;
+    transform-origin: right center;
 }
 
 .story-scroll-indicator__line {
