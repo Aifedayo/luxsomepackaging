@@ -403,6 +403,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const serialized = JSON.stringify(data);
         const reference = String(data.reference || "").trim();
 
+        /*
+         * localStorage and sessionStorage are tied to the exact
+         * hostname. We save there first for normal same-origin use.
+         */
         for (const store of [localStorage, sessionStorage]) {
             try {
                 store.setItem(
@@ -422,6 +426,23 @@ document.addEventListener("DOMContentLoaded", () => {
                     error
                 );
             }
+        }
+
+        /*
+         * window.name survives a same-tab redirect even when the
+         * site redirects between the apex and www hostnames.
+         */
+        try {
+            window.name = JSON.stringify({
+                type: "luxsomeProjectConfirmation",
+                reference,
+                payload: data
+            });
+        } catch (error) {
+            console.warn(
+                "Unable to save the redirect confirmation fallback.",
+                error
+            );
         }
     }
 

@@ -54,6 +54,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const confirmationData =
         readConfirmationData(referenceFromUrl);
 
+    if (!confirmationData) {
+        console.warn(
+            "Luxsome confirmation brief was not found.",
+            {
+                referenceFromUrl,
+                hostname: window.location.hostname,
+                localStorageAvailable:
+                    Boolean(
+                        localStorage.getItem(
+                            "luxsomeProjectConfirmation"
+                        )
+                    ),
+                sessionStorageAvailable:
+                    Boolean(
+                        sessionStorage.getItem(
+                            "luxsomeProjectConfirmation"
+                        )
+                    ),
+                windowNameAvailable:
+                    Boolean(window.name)
+            }
+        );
+    }
+
     const reference =
         confirmationData?.reference ||
         referenceFromUrl ||
@@ -91,6 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
             "luxsomeProjectConfirmation"
         ].filter(Boolean);
 
+        /*
+         * First try same-origin browser storage.
+         */
         for (const store of [
             window.sessionStorage,
             window.localStorage
@@ -125,6 +152,84 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 }
             }
+        }
+
+        /*
+         * If the site redirected between www and the apex hostname,
+         * localStorage and sessionStorage belong to the previous
+         * origin. window.name still follows this browser tab.
+         */
+        try {
+            if (window.name) {
+                const fallback = JSON.parse(window.name);
+
+                if (
+                    fallback?.type ===
+                        "luxsomeProjectConfirmation" &&
+                    fallback?.payload &&
+                    typeof fallback.payload === "object"
+                ) {
+                    const fallbackReference = String(
+                        fallback.reference ||
+                        fallback.payload.reference ||
+                        ""
+                    ).trim();
+
+                    if (
+                        !reference ||
+                        !fallbackReference ||
+                        fallbackReference === reference
+                    ) {
+                        const recovered = fallback.payload;
+
+                        /*
+                         * Repopulate storage on the final hostname so
+                         * refreshing the confirmation page still works.
+                         */
+                        try {
+                            const serialized =
+                                JSON.stringify(recovered);
+
+                            sessionStorage.setItem(
+                                "luxsomeProjectConfirmation",
+                                serialized
+                            );
+
+                            localStorage.setItem(
+                                "luxsomeProjectConfirmation",
+                                serialized
+                            );
+
+                            if (fallbackReference) {
+                                sessionStorage.setItem(
+                                    `luxsomeProjectConfirmation:${fallbackReference}`,
+                                    serialized
+                                );
+
+                                localStorage.setItem(
+                                    `luxsomeProjectConfirmation:${fallbackReference}`,
+                                    serialized
+                                );
+                            }
+                        } catch (_) {
+                            // The recovered object can still be rendered.
+                        }
+
+                        /*
+                         * Clear the temporary cross-host transport after
+                         * successfully recovering the brief.
+                         */
+                        window.name = "";
+
+                        return recovered;
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn(
+                "Unable to recover the redirect confirmation fallback.",
+                error
+            );
         }
 
         return null;
