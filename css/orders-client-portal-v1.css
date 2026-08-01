@@ -90,7 +90,7 @@
 
 .client-portal-link {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     gap: 9px;
     margin-top: 14px;
 }
@@ -126,4 +126,22 @@
     .client-portal-link {
         grid-template-columns: 1fr;
     }
+}
+
+.client-portal-link__email {
+    border-color: #673629 !important;
+    background: #673629 !important;
+}
+.client-portal-link button {
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.client-portal-link button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(33,23,19,.16);
+}
+.client-portal-link button:disabled {
+    opacity: .55;
+    cursor: wait;
+    transform: none;
+    box-shadow: none;
 }

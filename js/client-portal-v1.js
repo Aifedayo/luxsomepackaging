@@ -47,7 +47,15 @@
         }).format(new Date(value));
     };
 
+    function showPortalState(state) {
+        element("portalLoading").hidden = state !== "loading";
+        element("portalError").hidden = state !== "error";
+        element("portalOrder").hidden = state !== "order";
+    }
+
     async function loadOrder() {
+        showPortalState("loading");
+
         const token = new URLSearchParams(
             window.location.search
         ).get("token");
@@ -78,8 +86,7 @@
     }
 
     function renderOrder(order) {
-        element("portalLoading").hidden = true;
-        element("portalOrder").hidden = false;
+        showPortalState("order");
 
         element("brandName").textContent =
             order.brandName ||
@@ -147,8 +154,7 @@
     }
 
     function showError(message) {
-        element("portalLoading").hidden = true;
-        element("portalError").hidden = false;
+        showPortalState("error");
         element("portalErrorMessage").textContent = message;
     }
 

@@ -131,6 +131,39 @@
         return url.toString();
     }
 
+    async function emailPortalLink() {
+        if (!state.selected) return;
+
+        const button = element("emailClientPortalLink");
+        const originalText = button.textContent;
+
+        try {
+            button.disabled = true;
+            button.textContent = "Sending…";
+            element("formMessage").textContent =
+                "Sending the tracking link…";
+
+            const data = await api(
+                `/admin/orders/${encodeURIComponent(
+                    state.selected.order_reference
+                )}/send-tracking`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({})
+                }
+            );
+
+            element("formMessage").textContent =
+                data.message ||
+                "Tracking link emailed to the client.";
+        } catch (error) {
+            element("formMessage").textContent = error.message;
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    }
+
     async function copyPortalLink() {
         const link = element("clientPortalLink").value;
 
@@ -602,6 +635,11 @@
     element("copyClientPortalLink").addEventListener(
         "click",
         copyPortalLink
+    );
+
+    element("emailClientPortalLink").addEventListener(
+        "click",
+        emailPortalLink
     );
 
     element("orderStatus").addEventListener(

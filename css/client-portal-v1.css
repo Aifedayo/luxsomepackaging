@@ -1,3 +1,9 @@
+/* CLIENT PORTAL VIEW STATE */
+.portal-loading[hidden],
+.portal-error[hidden],
+.portal-order[hidden],
+[hidden] { display: none !important; }
+
 
 :root {
     color-scheme: light;
