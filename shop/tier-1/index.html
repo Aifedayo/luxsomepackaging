@@ -287,11 +287,10 @@
                 <div class="product-panel__heading">
                     <p class="shop-eyebrow">Tier 1</p>
                     <h1>The Foundation</h1>
-                    <p class="product-count">4 items</p>
                     <p class="product-summary">A simple branded packaging system for growing brands.</p>
                 </div>
 
-                <details class="product-accordion" open>
+                <details class="product-accordion">
                     <summary>Included</summary>
                     <ul class="included-list"><li>Custom rigid box</li><li>One-piece hang tag</li><li>Flat thank-you card</li><li>Standard sticker seal</li></ul>
                 </details>
@@ -300,8 +299,7 @@
     <section class="configuration-section" aria-labelledby="includedOptionsHeading">
         <div class="configuration-section__heading">
             <div>
-                <p class="configuration-section__eyebrow">Included in Tier 1</p>
-                <h2 id="includedOptionsHeading">Choose your included styles</h2>
+                <h2 id="includedOptionsHeading">Choose your preferred styles</h2>
             </div>
             <p>Select one option for each packaging item.</p>
         </div>
@@ -318,7 +316,7 @@
             <div class="option-grid option-grid--box-styles">
                 <label>
                     <input type="radio" name="boxStyle" value="Magnetic flap" checked>
-                    <span>Magnetic flap</span>
+                    <span>Collapsible Box</span>
                 </label>
 
                 <label>
@@ -334,11 +332,6 @@
                 <label>
                     <input type="radio" name="boxStyle" value="Door style">
                     <span>Door style</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="boxStyle" value="Collapsible magnetic flap">
-                    <span>Collapsible magnetic</span>
                 </label>
             </div>
         </fieldset>
@@ -417,10 +410,10 @@
             </p>
 
             <div class="option-grid">
-                <label class="option-disabled">
-                    <input type="radio" name="stickerStyle" value="Standard sticker seal">
+                <label class="">
+                    <input type="radio" name="stickerStyle" value="Standard sticker seal" checked>
                     <span>
-                        Standard Sticker
+                        Generic Thank You Sticker
                         <small>Available in higher tier</small>
                     </span>
                 </label>
@@ -459,42 +452,30 @@
         </div>
 
         <fieldset class="configuration-group">
-            <legend>
-                Logo finish
-                <span class="option-status option-status--paid">Additional fee</span>
-            </legend>
-            <p class="configuration-help">
-                Choose how your logo should appear on the packaging.
-            </p>
+            <legend>Logo finish</legend>
 
-            <div class="option-grid option-grid--three">
-                <label>
-                    <input type="radio" name="logoFinish" value="Standard print" checked>
-                    <span>
-                        Standard print
-                        <small>No upgrade</small>
-                    </span>
-                </label>
+            <div class="finish-option-group">
+                <div class="finish-option-group__heading">
+                    <span>Included finishes</span>
+                    <small>No extra cost</small>
+                </div>
+                <div class="option-grid option-grid--three">
+                    <label><input type="radio" name="logoFinish" value="Matte vinyl" checked><span>Matte vinyl<small>Included</small></span></label>
+                    <label><input type="radio" name="logoFinish" value="Metallic vinyl"><span>Metallic vinyl<small>Included</small></span></label>
+                </div>
+            </div>
 
-                <label>
-                    <input type="radio" name="logoFinish" value="Embossed">
-                    <span>Embossed</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="logoFinish" value="Debossed">
-                    <span>Debossed</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="logoFinish" value="Foiled">
-                    <span>Foiled</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="logoFinish" value="UV printed">
-                    <span>UV printed</span>
-                </label>
+            <div class="finish-option-group finish-option-group--paid">
+                <div class="finish-option-group__heading">
+                    <span>Premium finishes</span>
+                    <small>Available soon</small>
+                </div>
+                <div class="option-grid option-grid--four">
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed"><span>Embossed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed"><span>Debossed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed"><span>UV printed<small>Additional fee</small></span></label>
+                </div>
             </div>
         </fieldset>
 
@@ -523,9 +504,9 @@
                     <span>Product description card</span>
                 </label>
 
-                <label>
+                <label class="option-disabled">
                     <input type="checkbox" name="accessories" value="Insert">
-                    <span>Insert</span>
+                    <span>Insert<small>Available soon</small></span>
                 </label>
             </div>
         </fieldset>
@@ -542,7 +523,7 @@
     <label class="product-field">
         <span>Quantity</span>
         <input type="number" name="quantity" id="quantity" min="25" step="25" value="25" inputmode="numeric" required>
-        <small>Minimum order is 25 pieces. Quantities must be in multiples of 25.</small>
+        <small>Minimum order is 25 pieces.</small>
     </label>
 
 
@@ -550,7 +531,7 @@
     <div class="product-dimensions__heading">
         <div>
             <span>Finished box dimensions</span>
-            <small>Enter the approximate finished box size, not only the product size.</small>
+            <small>Enter the approximate product size.</small>
         </div>
         <span class="product-dimensions__unit">Centimetres</span>
     </div>

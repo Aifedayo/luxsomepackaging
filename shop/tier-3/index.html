@@ -165,6 +165,24 @@
         }
         </script>
     
+
+        <style>
+            .ribbon-colour-selection {
+                margin-top: 20px;
+                padding-top: 20px;
+                border-top: 1px solid #eee6e1;
+            }
+
+            .configuration-subheading {
+                margin: 0 0 5px;
+                color: #2e1c15;
+                font-size: 0.66rem;
+                font-weight: 600;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+        </style>
+
     </head>
 
     <body class="shop-page">
@@ -287,7 +305,6 @@
                 <div class="product-panel__heading">
                     <p class="shop-eyebrow">Tier 3</p>
                     <h1>The Prestige System</h1>
-                    <p class="product-count">7 items</p>
                     <p class="product-summary">The complete premium system for a polished unboxing experience.</p>
                 </div>
 
@@ -300,7 +317,7 @@
         <div class="configuration-section__heading">
             <div>
                 <p class="configuration-section__eyebrow">Included in Tier 3</p>
-                <h2 id="tierThreeIncludedHeading">Choose your included styles</h2>
+                <h2 id="tierThreeIncludedHeading">Choose your preferred styles</h2>
             </div>
             <p>Select one option for each packaging item.</p>
         </div>
@@ -317,7 +334,7 @@
             <div class="option-grid option-grid--box-styles">
                 <label>
                     <input type="radio" name="boxStyle" value="Magnetic flap" checked>
-                    <span>Magnetic flap</span>
+                    <span>Collapsible Box</span>
                 </label>
 
                 <label>
@@ -333,11 +350,6 @@
                 <label>
                     <input type="radio" name="boxStyle" value="Door style">
                     <span>Door style</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="boxStyle" value="Collapsible magnetic flap">
-                    <span>Collapsible magnetic</span>
                 </label>
             </div>
         </fieldset>
@@ -440,14 +452,14 @@
                 <span class="option-status option-status--included">Included</span>
             </legend>
             <p class="configuration-help">
-                Choose how your logo should be arranged on the tissue.
+                Choose your preferred pattern on tissue.
             </p>
 
             <div class="option-grid">
                 <label>
                     <input type="radio" name="tissueStyle" value="Single logo placement">
                     <span>
-                        Single logo
+                        Plain
                         <small>Included</small>
                     </span>
                 </label>
@@ -492,29 +504,91 @@
 
         <fieldset class="configuration-group">
             <legend>
-                Branded ribbon
+                Ribbon
                 <span class="option-status option-status--included">Included</span>
             </legend>
+
             <p class="configuration-help">
-                Choose the ribbon treatment included in the Prestige System.
+                Choose between an unprinted premium ribbon or a branded ribbon
+                printed repeatedly with your logo.
             </p>
 
             <div class="option-grid">
                 <label>
-                    <input type="radio" name="ribbonStyle" value="Single-colour branded ribbon" checked>
+                    <input
+                        type="radio"
+                        name="ribbonStyle"
+                        value="Premium ribbon"
+                        checked
+                    >
                     <span>
-                        Single-colour ribbon
-                        <small>Included</small>
+                        Premium ribbon
+                        <small>Plain satin or grosgrain ribbon</small>
                     </span>
                 </label>
 
                 <label>
-                    <input type="radio" name="ribbonStyle" value="Repeat-logo branded ribbon">
+                    <input
+                        type="radio"
+                        name="ribbonStyle"
+                        value="Branded ribbon"
+                    >
                     <span>
-                        Repeat-logo ribbon
-                        <small>Included</small>
+                        Branded ribbon
+                        <small>Your logo repeated along the ribbon</small>
                     </span>
                 </label>
+            </div>
+
+            <div class="ribbon-colour-selection">
+                <p class="configuration-subheading">Ribbon colour</p>
+
+                <p class="configuration-help">
+                    Select the colour you would like for your ribbon.
+                    Final shades are subject to material availability.
+                </p>
+
+                <div class="colour-option-grid">
+                    <label class="colour-option">
+                        <input type="radio" name="ribbonColour" value="White">
+                        <span><i style="--swatch:#ffffff"></i>White</span>
+                    </label>
+
+                    <label class="colour-option">
+                        <input type="radio" name="ribbonColour" value="Off white / Ivory">
+                        <span><i style="--swatch:#f3eee3"></i>Off white / Ivory</span>
+                    </label>
+
+                    <label class="colour-option">
+                        <input type="radio" name="ribbonColour" value="Brown">
+                        <span><i style="--swatch:#6b4636"></i>Brown</span>
+                    </label>
+
+                    <label class="colour-option">
+                        <input type="radio" name="ribbonColour" value="Wine">
+                        <span><i style="--swatch:#673629"></i>Wine</span>
+                    </label>
+
+                    <label class="colour-option">
+                        <input type="radio" name="ribbonColour" value="Forest Green">
+                        <span><i style="--swatch:#314936"></i>Forest Green</span>
+                    </label>
+
+                    <label class="colour-option">
+                        <input type="radio" name="ribbonColour" value="Blue">
+                        <span><i style="--swatch:#27456b"></i>Blue</span>
+                    </label>
+
+                    <label class="colour-option">
+                        <input type="radio" name="ribbonColour" value="Gold">
+                        <span><i style="--swatch:#c6a15b"></i>Gold</span>
+                    </label>
+
+                    <label class="colour-option">
+                        <input type="radio" name="ribbonColour" value="Black" checked>
+                        <span><i style="--swatch:#111111"></i>Black</span>
+                    </label>
+                </div>
             </div>
         </fieldset>
     </section>
@@ -548,74 +622,24 @@
             <div class="finish-option-group">
                 <div class="finish-option-group__heading">
                     <span>Included finishes</span>
-                    <small>No additional fee</small>
+                    <small>No extra cost</small>
                 </div>
-
                 <div class="option-grid option-grid--three">
-                    <label>
-                        <input type="radio" name="logoFinish" value="Standard print" checked>
-                        <span>
-                            Standard print
-                            <small>Included</small>
-                        </span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="logoFinish" value="Matte vinyl">
-                        <span>
-                            Matte vinyl
-                            <small>Included</small>
-                        </span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="logoFinish" value="Metallic vinyl">
-                        <span>
-                            Metallic vinyl
-                            <small>Included</small>
-                        </span>
-                    </label>
+                    <label><input type="radio" name="logoFinish" value="Matte vinyl" checked><span>Matte vinyl<small>Included</small></span></label>
+                    <label><input type="radio" name="logoFinish" value="Metallic vinyl"><span>Metallic vinyl<small>Included</small></span></label>
                 </div>
             </div>
 
             <div class="finish-option-group finish-option-group--paid">
                 <div class="finish-option-group__heading">
                     <span>Premium finishes</span>
-                    <small>Additional fee applies</small>
+                    <small>Available soon</small>
                 </div>
-
                 <div class="option-grid option-grid--four">
-                    <label>
-                        <input type="radio" name="logoFinish" value="Embossed">
-                        <span>
-                            Embossed
-                            <small>Additional fee</small>
-                        </span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="logoFinish" value="Debossed">
-                        <span>
-                            Debossed
-                            <small>Additional fee</small>
-                        </span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="logoFinish" value="Foiled">
-                        <span>
-                            Foiled
-                            <small>Additional fee</small>
-                        </span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="logoFinish" value="UV printed">
-                        <span>
-                            UV printed
-                            <small>Additional fee</small>
-                        </span>
-                    </label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed"><span>Embossed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed"><span>Debossed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed"><span>UV printed<small>Additional fee</small></span></label>
                 </div>
             </div>
         </fieldset>
@@ -645,9 +669,9 @@
                     <span>Product description card</span>
                 </label>
 
-                <label>
+                <label class="option-disabled">
                     <input type="checkbox" name="accessories" value="Custom insert">
-                    <span>Custom insert</span>
+                    <span>Insert<small>Available soon</small></span>
                 </label>
             </div>
         </fieldset>
@@ -664,7 +688,7 @@
     <label class="product-field">
         <span>Quantity</span>
         <input type="number" name="quantity" id="quantity" min="25" step="25" value="25" inputmode="numeric" required>
-        <small>Minimum order is 25 pieces. Quantities must be in multiples of 25.</small>
+        <small>Minimum order is 25 pieces.</small>
     </label>
 
 
@@ -672,7 +696,7 @@
     <div class="product-dimensions__heading">
         <div>
             <span>Finished box dimensions</span>
-            <small>Enter the approximate finished box size, not only the product size.</small>
+            <small>Enter the approximate product size.</small>
         </div>
         <span class="product-dimensions__unit">Centimetres</span>
     </div>

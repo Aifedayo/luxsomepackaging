@@ -816,7 +816,7 @@ You can adjust individual image positions like this:
     --system-line: rgba(74, 45, 35, 0.24);
 
     position: relative;
-    padding: clamp(80px, 10vw, 140px) 0;
+    padding: clamp(10px, 10vw, 14px) 0;
     overflow: hidden;
     background: var(--active-system-background);
     color: var(--system-ink);

@@ -1,4 +1,150 @@
 document.addEventListener('DOMContentLoaded', () => {
+    /*
+     * Restore a configuration before the rest of the product page
+     * initialises. This ensures gallery state, colour controls and
+     * calculations start from the customer's saved selections.
+     */
+    const restoreProductConfiguration = () => {
+        const form = document.getElementById('productConfigForm');
+        if (!form) return;
+
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.get('restore_configuration') !== '1') return;
+
+        let stored = {};
+
+        try {
+            stored = JSON.parse(
+                localStorage.getItem('luxsomeShopConfiguration') || '{}'
+            );
+        } catch (error) {
+            console.warn(
+                'The saved shop configuration could not be restored.',
+                error
+            );
+        }
+
+        const queryValues = {};
+
+        params.forEach((value, key) => {
+            queryValues[key] = value;
+        });
+
+        const configuration = {
+            ...stored,
+            ...queryValues
+        };
+
+        const fieldMap = {
+            project_type: 'projectType',
+            box_style: 'boxStyle',
+            tag_style: 'tagStyle',
+            thank_you_card: 'thankYouCard',
+            sticker_style: 'stickerStyle',
+            tissue_style: 'tissueStyle',
+            envelope_style: 'envelopeStyle',
+            ribbon_style: 'ribbonStyle',
+            ribbon_colour: 'ribbonColour',
+            logo_finish: 'logoFinish',
+            artwork_status: 'artworkStatus',
+            quantity: 'quantity',
+            box_length_cm: 'boxLength',
+            box_breadth_cm: 'boxBreadth',
+            box_height_cm: 'boxHeight',
+            primary_colour: 'primaryColour',
+            custom_colour: 'customColour',
+            secondary_colour: 'secondaryColour',
+            accent_colour: 'accentColour',
+            pantone_reference: 'pantoneReference',
+            comments: 'comments'
+        };
+
+        const setFieldValue = (fieldName, value) => {
+            if (
+                value === null ||
+                value === undefined ||
+                String(value).trim() === ''
+            ) {
+                return;
+            }
+
+            const fields = Array.from(
+                form.querySelectorAll(
+                    `[name="${CSS.escape(fieldName)}"]`
+                )
+            );
+
+            if (!fields.length) {
+                const element = document.getElementById(fieldName);
+
+                if (element) {
+                    element.value = String(value);
+                }
+
+                return;
+            }
+
+            const firstField = fields[0];
+
+            if (
+                firstField instanceof HTMLInputElement &&
+                firstField.type === 'radio'
+            ) {
+                const matchingField = fields.find(field => (
+                    field.value.trim().toLowerCase() ===
+                    String(value).trim().toLowerCase()
+                ));
+
+                if (matchingField) {
+                    matchingField.checked = true;
+                }
+
+                return;
+            }
+
+            firstField.value = String(value);
+        };
+
+        Object.entries(fieldMap).forEach(([key, fieldName]) => {
+            setFieldValue(fieldName, configuration[key]);
+        });
+
+        const selectedAccessories = String(
+            configuration.accessories || ''
+        )
+            .split(',')
+            .map(item => item.trim().toLowerCase())
+            .filter(Boolean);
+
+        form
+            .querySelectorAll('input[name="accessories"]')
+            .forEach(input => {
+                input.checked = selectedAccessories.includes(
+                    input.value.trim().toLowerCase()
+                );
+            });
+
+        const selectedPieces = String(
+            configuration.packaging_pieces || ''
+        )
+            .split(',')
+            .map(item => item.trim().toLowerCase())
+            .filter(Boolean);
+
+        form
+            .querySelectorAll('input[name="packagingPieces"]')
+            .forEach(input => {
+                input.checked = selectedPieces.includes(
+                    input.value.trim().toLowerCase()
+                );
+            });
+
+        form.dataset.configurationRestored = 'true';
+    };
+
+    restoreProductConfiguration();
+
     const sort = document.getElementById('shopSort');
     const grid = document.getElementById('productGrid');
 
@@ -158,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('tissue_style', data.get('tissueStyle') || '');
         params.set('envelope_style', data.get('envelopeStyle') || '');
         params.set('ribbon_style', data.get('ribbonStyle') || '');
+        params.set('ribbon_colour', data.get('ribbonColour') || '');
         params.set('logo_finish', data.get('logoFinish') || '');
         params.set('artwork_status', data.get('artworkStatus') || '');
         params.set('quantity', selectedQuantity);
@@ -173,15 +320,9 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('comments', data.get('comments') || '');
         params.set('accessories', data.getAll('accessories').join(', '));
 
-        const configuration = {
-            ...Object.fromEntries(params.entries()),
-            version: 2,
-            saved_at: new Date().toISOString()
-        };
-
         localStorage.setItem(
             'luxsomeShopConfiguration',
-            JSON.stringify(configuration)
+            JSON.stringify(Object.fromEntries(params.entries()))
         );
 
         window.location.href = `/start-project/?${params.toString()}`;
@@ -827,5 +968,46 @@ document.addEventListener('DOMContentLoaded', () => {
     ).forEach(button => {
         button.setAttribute('type', 'button');
     });
+
+
+    /*
+     * Re-run state-dependent controls after every listener has been
+     * attached. The values themselves were restored at the top.
+     */
+    if (
+        document.getElementById('productConfigForm')
+            ?.dataset.configurationRestored === 'true'
+    ) {
+        window.requestAnimationFrame(() => {
+            document
+                .querySelectorAll(
+                    '#productConfigForm input:checked'
+                )
+                .forEach(input => {
+                    input.dispatchEvent(
+                        new Event('change', { bubbles: true })
+                    );
+                });
+
+            [
+                'quantity',
+                'boxLength',
+                'boxBreadth',
+                'boxHeight',
+                'customColour',
+                'secondaryColour',
+                'accentColour',
+                'pantoneReference',
+                'comments'
+            ].forEach(id => {
+                const input = document.getElementById(id);
+                if (!input) return;
+
+                input.dispatchEvent(
+                    new Event('input', { bubbles: true })
+                );
+            });
+        });
+    }
 
 });
