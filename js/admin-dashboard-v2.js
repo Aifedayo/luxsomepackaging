@@ -751,132 +751,450 @@ document.addEventListener("DOMContentLoaded", function () {
     function extractProjectItems(payload) {
         const items = [];
         const seen = new Set();
-        const quantityWords = /(?:quantity|qty|units?|pieces?|copies|order[_\s-]*size|requested[_\s-]*quantity|number[_\s-]*required|how[_\s-]*many)/i;
-        const ignoredWords = /(?:phone|mobile|whatsapp|postal|zip|year|date|budget|price|amount|cost|width|height|length|depth|gsm|email)/i;
-        const nameWords = /(?:item|product|packaging|component|system|package[_\s-]*type|box[_\s-]*style|type|category|style|option|title|description)/i;
-        const personNameWords = /^(?:name|full[_\s-]*name|contact[_\s-]*(?:name|person)|customer[_\s-]*name|brand[_\s-]*name)$/i;
+
+        function clean(value) {
+            return String(value ?? "").trim();
+        }
 
         function title(value) {
-            return String(value || "")
+            return clean(value)
                 .replace(/([a-z])([A-Z])/g, "$1 $2")
                 .replace(/[_-]+/g, " ")
                 .replace(/\s+/g, " ")
-                .trim()
-                .replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+                .replace(/\b\w/g, function (letter) {
+                    return letter.toUpperCase();
+                });
         }
 
         function number(value) {
             if (typeof value === "number") {
-                return Number.isFinite(value) && value > 0 ? value : null;
+                return Number.isFinite(value) && value > 0
+                    ? value
+                    : null;
             }
-            const match = String(value ?? "").replace(/,/g, "").match(/\d+(?:\.\d+)?/);
+
+            const match = clean(value)
+                .replace(/,/g, "")
+                .match(/\d+(?:\.\d+)?/);
+
             if (!match) return null;
+
             const result = Number(match[0]);
-            return Number.isFinite(result) && result > 0 ? result : null;
+
+            return Number.isFinite(result) && result > 0
+                ? result
+                : null;
+        }
+
+        function parseJsonValue(value, fallback) {
+            if (Array.isArray(value)) return value;
+
+            if (
+                value &&
+                typeof value === "object"
+            ) {
+                return value;
+            }
+
+            const rawValue = clean(value);
+
+            if (!rawValue) return fallback;
+
+            try {
+                return JSON.parse(rawValue);
+            } catch (_) {
+                return fallback;
+            }
+        }
+
+        function firstValue(object, keys) {
+            for (const key of keys) {
+                const value = object?.[key];
+
+                if (
+                    value !== undefined &&
+                    value !== null &&
+                    clean(value)
+                ) {
+                    return value;
+                }
+            }
+
+            return "";
+        }
+
+        function list(value) {
+            if (Array.isArray(value)) {
+                return value
+                    .map(clean)
+                    .filter(Boolean);
+            }
+
+            const parsed = parseJsonValue(value, null);
+
+            if (Array.isArray(parsed)) {
+                return parsed
+                    .map(clean)
+                    .filter(Boolean);
+            }
+
+            return clean(value)
+                .split(/[,;|]/)
+                .map(clean)
+                .filter(Boolean);
         }
 
         function add(description, quantity, details, sourcePath) {
             const cleanDescription = title(description);
             const cleanQuantity = number(quantity);
-            if (!cleanDescription || !cleanQuantity) return;
-            if (ignoredWords.test(cleanDescription)) return;
 
-            const key = `${cleanDescription.toLowerCase()}::${cleanQuantity}`;
+            if (!cleanDescription || !cleanQuantity) return;
+
+            const key =
+                `${cleanDescription.toLowerCase()}::${cleanQuantity}`;
+
             if (seen.has(key)) return;
+
             seen.add(key);
             items.push({
                 description: cleanDescription,
                 quantity: cleanQuantity,
-                details: String(details || "").trim(),
+                details: clean(details),
                 sourcePath: sourcePath || ""
             });
         }
 
-        function pickName(obj, fallback) {
-            const priorityKeys = [
-                "packaging_system",
-                "packagingSystem",
-                "package_type",
-                "packageType",
-                "system",
-                "item_description",
-                "itemDescription",
-                "description",
-                "item_name",
-                "itemName",
-                "product_name",
-                "productName",
-                "product",
-                "component",
-                "box_style",
-                "boxStyle",
-                "style",
-                "type",
-                "title"
+        function configurationFromPayload(source) {
+            const candidates = [
+                source?.shop_configuration,
+                source?.shopConfiguration,
+                source?.configuration,
+                source?.project_configuration,
+                source?.projectConfiguration,
+                source?.project?.configuration
             ];
 
-            for (const key of priorityKeys) {
-                const value = obj[key];
-                if (typeof value === "string" && value.trim()) {
-                    return value;
+            for (const candidate of candidates) {
+                const parsed = parseJsonValue(candidate, null);
+
+                if (
+                    parsed &&
+                    typeof parsed === "object" &&
+                    !Array.isArray(parsed)
+                ) {
+                    return parsed;
                 }
             }
 
-            const preferred = Object.entries(obj).find(function ([key, value]) {
-                return !personNameWords.test(key) &&
-                    nameWords.test(key) &&
-                    typeof value === "string" &&
-                    value.trim();
-            });
-
-            return preferred ? preferred[1] : fallback;
+            return source && typeof source === "object"
+                ? source
+                : {};
         }
 
-        function walk(value, path, parentKey) {
-            if (Array.isArray(value)) {
-                value.forEach(function (entry, index) {
-                    if (typeof entry === "string") {
-                        const embedded = entry.match(/^(.*?)[\s:–—-]+(\d[\d,]*(?:\.\d+)?)\s*(?:pcs?|pieces?|units?)?$/i);
-                        if (embedded) add(embedded[1], embedded[2], "", `${path}[${index}]`);
-                    }
-                    walk(entry, `${path}[${index}]`, parentKey);
-                });
+        function pieceName(piece) {
+            const normalised = clean(piece).toLowerCase();
+
+            if (/rigid|box/.test(normalised)) return "Rigid box";
+            if (/hang\s*tag|product\s*tag|tag/.test(normalised)) return "Hang tag";
+            if (/thank/.test(normalised) && /card/.test(normalised)) return "Thank-you card";
+            if (/sticker|seal/.test(normalised)) return "Sticker seal";
+            if (/tissue/.test(normalised)) return "Branded tissue";
+            if (/envelope/.test(normalised)) return "Envelope";
+            if (/ribbon/.test(normalised)) return "Branded ribbon";
+            if (/shopping\s*bag|paper\s*bag|bag/.test(normalised)) return "Shopping bag";
+
+            return title(piece);
+        }
+
+        function pieceDetails(piece, configuration) {
+            const name = pieceName(piece);
+            const details = [];
+
+            const styleMap = {
+                "Hang tag": ["tag_style", "tagStyle"],
+                "Thank-you card": ["thank_you_card", "thankYouCard", "card_style", "cardStyle"],
+                "Sticker seal": ["sticker_style", "stickerStyle"],
+                "Branded tissue": ["tissue_style", "tissueStyle"],
+                "Envelope": ["envelope_style", "envelopeStyle"],
+                "Branded ribbon": ["ribbon_style", "ribbonStyle"],
+                "Shopping bag": ["bag_style", "bagStyle"]
+            };
+
+            const style = firstValue(
+                configuration,
+                styleMap[name] || []
+            );
+
+            if (style) details.push(clean(style));
+
+            if (name === "Branded ribbon") {
+                const ribbonColour = firstValue(
+                    configuration,
+                    ["ribbon_colour", "ribbon_color", "ribbonColour", "ribbonColor"]
+                );
+
+                if (ribbonColour) {
+                    details.push(`Colour: ${clean(ribbonColour)}`);
+                }
+            }
+
+            return details.join(" · ");
+        }
+
+        function boxDetails(configuration) {
+            const details = [];
+            const length = firstValue(
+                configuration,
+                ["box_length_cm", "boxLength", "length"]
+            );
+            const breadth = firstValue(
+                configuration,
+                ["box_breadth_cm", "boxBreadth", "breadth", "width"]
+            );
+            const height = firstValue(
+                configuration,
+                ["box_height_cm", "boxHeight", "height"]
+            );
+
+            if (length && breadth && height) {
+                details.push(
+                    `${clean(length)} × ${clean(breadth)} × ${clean(height)} cm`
+                );
+            }
+
+            const logoFinish = firstValue(
+                configuration,
+                ["logo_finish", "logoFinish"]
+            );
+
+            if (logoFinish) {
+                details.push(`Logo finish: ${clean(logoFinish)}`);
+            }
+
+            return details.join(" · ");
+        }
+
+        function importConfiguration(configuration, prefix = "") {
+            if (!configuration || typeof configuration !== "object") {
                 return;
             }
 
-            if (!value || typeof value !== "object") return;
+            let pieces = list(
+                firstValue(configuration, [
+                    "packaging_pieces",
+                    "packagingPieces",
+                    "submitted_components",
+                    "components"
+                ])
+            );
 
-            const entries = Object.entries(value);
-            const quantityEntry = entries.find(function ([key, val]) {
-                return quantityWords.test(key) && !ignoredWords.test(key) && number(val);
-            });
+            /*
+             * Some tier submissions store only the chosen style fields.
+             * Infer the matching requested pieces when the explicit list
+             * is absent.
+             */
+            if (!pieces.length) {
+                const inferred = [
+                    ["box_style", "Rigid box"],
+                    ["boxStyle", "Rigid box"],
+                    ["tag_style", "Hang tag"],
+                    ["tagStyle", "Hang tag"],
+                    ["thank_you_card", "Thank-you card"],
+                    ["thankYouCard", "Thank-you card"],
+                    ["sticker_style", "Sticker seal"],
+                    ["stickerStyle", "Sticker seal"],
+                    ["tissue_style", "Branded tissue"],
+                    ["tissueStyle", "Branded tissue"],
+                    ["envelope_style", "Envelope"],
+                    ["envelopeStyle", "Envelope"],
+                    ["ribbon_style", "Branded ribbon"],
+                    ["ribbonStyle", "Branded ribbon"]
+                ];
 
-            if (quantityEntry) {
-                const [quantityKey, quantityValue] = quantityEntry;
-                const fallback = parentKey && !/^(items?|products?|requirements?|selection)$/i.test(parentKey)
-                    ? parentKey
-                    : path.split(".").pop();
-                const description = pickName(value, fallback);
-                const detailEntry = entries.find(function ([key, val]) {
-                    return /(?:details?|specifications?|finish|material|size|colour|color|notes?)/i.test(key) && typeof val !== "object";
+                inferred.forEach(function ([key, label]) {
+                    if (clean(configuration[key]) && !pieces.includes(label)) {
+                        pieces.push(label);
+                    }
                 });
-                add(description, quantityValue, detailEntry?.[1] || "", `${path}.${quantityKey}`);
             }
 
-            entries.forEach(function ([key, child]) {
-                if (quantityWords.test(key) && !ignoredWords.test(key)) {
-                    const base = key.replace(quantityWords, "").replace(/^[_\s-]+|[_\s-]+$/g, "");
-                    if (base && number(child)) {
-                        const siblingName = value[`${base}_name`] || value[`${base}Name`] ||
-                            value[`${base}_type`] || value[`${base}Type`] || base;
-                        add(siblingName, child, "", `${path}.${key}`);
-                    }
+            const generalQuantity = firstValue(
+                configuration,
+                ["quantity", "requested_quantity", "requestedQuantity"]
+            );
+
+            const boxQuantity = firstValue(
+                configuration,
+                ["box_quantity", "boxQuantity"]
+            ) || generalQuantity;
+
+            const otherQuantity = firstValue(
+                configuration,
+                [
+                    "other_pieces_quantity",
+                    "otherPiecesQuantity",
+                    "other_quantity",
+                    "otherQuantity"
+                ]
+            ) || generalQuantity;
+
+            pieces.forEach(function (rawPiece) {
+                const name = pieceName(rawPiece);
+
+                if (name === "Rigid box") {
+                    const boxStyle = firstValue(
+                        configuration,
+                        ["box_style", "boxStyle"]
+                    ) || "Rigid box";
+
+                    add(
+                        prefix ? `${prefix} — ${boxStyle}` : boxStyle,
+                        boxQuantity,
+                        boxDetails(configuration),
+                        "shop_configuration.box_quantity"
+                    );
+
+                    return;
                 }
-                walk(child, path ? `${path}.${key}` : key, key);
+
+                add(
+                    prefix ? `${prefix} — ${name}` : name,
+                    otherQuantity,
+                    pieceDetails(name, configuration),
+                    "shop_configuration.other_pieces_quantity"
+                );
             });
+
+            const additionalProjects = parseJsonValue(
+                firstValue(configuration, [
+                    "additional_projects",
+                    "additionalProjects"
+                ]),
+                []
+            );
+
+            if (Array.isArray(additionalProjects)) {
+                additionalProjects.forEach(function (project, index) {
+                    if (!project || typeof project !== "object") return;
+
+                    const projectName = clean(
+                        firstValue(project, [
+                            "brand_name",
+                            "brandName",
+                            "project_name",
+                            "projectName"
+                        ])
+                    ) || `Additional project ${index + 1}`;
+
+                    importConfiguration(project, projectName);
+                });
+            }
         }
 
-        walk(payload, "payload", "");
+        const source = normaliseSubmissionPayload(payload);
+        const configuration = configurationFromPayload(source);
+
+        importConfiguration(configuration);
+
+        /*
+         * The current Luxsome Shop structure has now been handled.
+         * Keep a conservative fallback for legacy project forms whose
+         * payloads used arbitrary item/quantity objects.
+         */
+        if (!items.length) {
+            const quantityWords = /(?:quantity|qty|units?|copies|order[_\s-]*size|requested[_\s-]*quantity|number[_\s-]*required|how[_\s-]*many)/i;
+            const ignoredWords = /(?:phone|mobile|whatsapp|postal|zip|year|date|budget|price|amount|cost|width|height|length|depth|gsm|email)/i;
+            const nameWords = /(?:item|product|packaging|component|system|package[_\s-]*type|box[_\s-]*style|type|category|style|option|title|description)/i;
+            const personNameWords = /^(?:name|full[_\s-]*name|contact[_\s-]*(?:name|person)|customer[_\s-]*name|brand[_\s-]*name)$/i;
+
+            function pickName(object, fallback) {
+                const priorityKeys = [
+                    "item_description",
+                    "itemDescription",
+                    "description",
+                    "item_name",
+                    "itemName",
+                    "product_name",
+                    "productName",
+                    "product",
+                    "component",
+                    "box_style",
+                    "boxStyle",
+                    "style",
+                    "type",
+                    "title"
+                ];
+
+                for (const key of priorityKeys) {
+                    const value = object[key];
+
+                    if (typeof value === "string" && value.trim()) {
+                        return value;
+                    }
+                }
+
+                const preferred = Object.entries(object).find(
+                    function ([key, value]) {
+                        return !personNameWords.test(key) &&
+                            nameWords.test(key) &&
+                            typeof value === "string" &&
+                            value.trim();
+                    }
+                );
+
+                return preferred ? preferred[1] : fallback;
+            }
+
+            function walk(value, path, parentKey) {
+                if (typeof value === "string") {
+                    const parsed = parseJsonValue(value, null);
+
+                    if (parsed && typeof parsed === "object") {
+                        walk(parsed, path, parentKey);
+                    }
+
+                    return;
+                }
+
+                if (Array.isArray(value)) {
+                    value.forEach(function (entry, index) {
+                        walk(entry, `${path}[${index}]`, parentKey);
+                    });
+                    return;
+                }
+
+                if (!value || typeof value !== "object") return;
+
+                const entries = Object.entries(value);
+                const quantityEntry = entries.find(function ([key, fieldValue]) {
+                    return quantityWords.test(key) &&
+                        !ignoredWords.test(key) &&
+                        number(fieldValue);
+                });
+
+                if (quantityEntry) {
+                    const [quantityKey, quantityValue] = quantityEntry;
+                    const fallback = parentKey &&
+                        !/^(items?|products?|requirements?|selection)$/i.test(parentKey)
+                        ? parentKey
+                        : path.split(".").pop();
+
+                    add(
+                        pickName(value, fallback),
+                        quantityValue,
+                        "Imported from legacy project brief",
+                        `${path}.${quantityKey}`
+                    );
+                }
+
+                entries.forEach(function ([key, child]) {
+                    walk(child, path ? `${path}.${key}` : key, key);
+                });
+            }
+
+            walk(source, "payload", "");
+        }
+
         return items;
     }
 
