@@ -333,6 +333,12 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Contact person", valueOf("fullName")],
             ["Email", valueOf("email")],
             ["Phone or WhatsApp", valueOf("phone")],
+            [
+                "Preferred contact",
+                contactMethodLabel(
+                    valueOf("preferredContactMethod")
+                )
+            ],
             ["Instagram", valueOf("instagram")],
             ["Location", valueOf("location")]
         ];
@@ -365,21 +371,33 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Additional comments", labelValue("comments")]
         ];
 
+        const additionalProjects =
+            parseAdditionalProjects(
+                shopConfiguration.additional_projects
+            );
+
         reviewCard.innerHTML = [
             reviewSection("Customer", customerRows),
             reviewSection("Packaging system", packagingRows),
-            reviewSection("Order specifications", specificationRows)
+            reviewSection("Order specifications", specificationRows),
+            renderAdditionalProjectsReview(additionalProjects)
         ].join("");
 
         const summaryLines = [
             `Brand: ${valueOf("brandName")}`,
             `Contact: ${valueOf("fullName")} (${valueOf("email")} · ${valueOf("phone")})`,
+            `Preferred contact: ${contactMethodLabel(
+                valueOf("preferredContactMethod")
+            )}`,
             ...packagingRows
                 .filter(([, value]) => value)
                 .map(([label, value]) => `${label}: ${value}`),
             ...specificationRows
                 .filter(([, value]) => value)
-                .map(([label, value]) => `${label}: ${value}`)
+                .map(([label, value]) => `${label}: ${value}`),
+            ...additionalProjectsSummaryLines(
+                additionalProjects
+            )
         ];
 
         if (projectSummaryInput) {
@@ -389,6 +407,239 @@ document.addEventListener("DOMContentLoaded", () => {
         if (shopConfigurationInput) {
             shopConfigurationInput.value = JSON.stringify(shopConfiguration);
         }
+    }
+
+    function contactMethodLabel(value) {
+        const method = String(value || "")
+            .trim()
+            .toLowerCase();
+
+        if (method === "whatsapp") return "WhatsApp";
+        if (method === "email") return "Email";
+
+        return String(value || "").trim();
+    }
+
+    function parseAdditionalProjects(value) {
+        if (Array.isArray(value)) {
+            return value.filter(
+                project =>
+                    project &&
+                    typeof project === "object"
+            );
+        }
+
+        const rawValue = String(value || "").trim();
+
+        if (!rawValue) return [];
+
+        try {
+            const parsed = JSON.parse(rawValue);
+
+            return Array.isArray(parsed)
+                ? parsed.filter(
+                    project =>
+                        project &&
+                        typeof project === "object"
+                )
+                : [];
+        } catch (error) {
+            console.warn(
+                "Additional Bespoke projects could not be read.",
+                error
+            );
+
+            return [];
+        }
+    }
+
+    function formatProjectQuantity(value, unit) {
+        const quantity = String(value || "").trim();
+
+        if (!quantity) return "";
+
+        if (
+            /piece|box|unit/i.test(quantity)
+        ) {
+            return quantity;
+        }
+
+        return `${quantity} ${unit}`;
+    }
+
+    function renderAdditionalProjectsReview(projects) {
+        if (!projects.length) return "";
+
+        const cards = projects.map(
+            (project, index) => {
+                const pieces = Array.isArray(
+                    project.packaging_pieces
+                )
+                    ? project.packaging_pieces
+                        .map(item => String(item).trim())
+                        .filter(Boolean)
+                        .join(", ")
+                    : String(
+                        project.packaging_pieces || ""
+                    ).trim();
+
+                const hasBox = Array.isArray(
+                    project.packaging_pieces
+                )
+                    ? project.packaging_pieces.includes(
+                        "Rigid box"
+                    )
+                    : pieces
+                        .split(",")
+                        .map(item => item.trim())
+                        .includes("Rigid box");
+
+                const hasOtherPieces = Array.isArray(
+                    project.packaging_pieces
+                )
+                    ? project.packaging_pieces.some(
+                        piece => piece !== "Rigid box"
+                    )
+                    : pieces
+                        .split(",")
+                        .map(item => item.trim())
+                        .filter(Boolean)
+                        .some(
+                            piece => piece !== "Rigid box"
+                        );
+
+                const rows = [
+                    ["Brand", project.brand_name],
+                    ["Packaging pieces", pieces],
+                    [
+                        "Box style",
+                        hasBox
+                            ? project.box_style
+                            : ""
+                    ],
+                    [
+                        "Box quantity",
+                        hasBox
+                            ? formatProjectQuantity(
+                                project.box_quantity,
+                                "boxes"
+                            )
+                            : ""
+                    ],
+                    [
+                        "Other packaging quantity",
+                        hasOtherPieces
+                            ? formatProjectQuantity(
+                                project.other_pieces_quantity,
+                                "pieces"
+                            )
+                            : ""
+                    ],
+                    ["Notes", project.notes]
+                ];
+
+                return reviewSection(
+                    `Additional project ${index + 1}`,
+                    rows
+                );
+            }
+        );
+
+        return `
+            <section class="review-additional-projects">
+                <div class="review-additional-projects__heading">
+                    <span>Multiple brands</span>
+                    <h3>Additional Bespoke projects</h3>
+                    <p>
+                        Each project below will be reviewed and quoted
+                        separately.
+                    </p>
+                </div>
+
+                ${cards.join("")}
+            </section>
+        `;
+    }
+
+    function additionalProjectsSummaryLines(projects) {
+        if (!projects.length) return [];
+
+        return projects.flatMap(
+            (project, index) => {
+                const pieces = Array.isArray(
+                    project.packaging_pieces
+                )
+                    ? project.packaging_pieces.join(", ")
+                    : String(
+                        project.packaging_pieces || ""
+                    ).trim();
+
+                const hasBox = Array.isArray(
+                    project.packaging_pieces
+                )
+                    ? project.packaging_pieces.includes(
+                        "Rigid box"
+                    )
+                    : pieces
+                        .split(",")
+                        .map(item => item.trim())
+                        .includes("Rigid box");
+
+                const hasOtherPieces = Array.isArray(
+                    project.packaging_pieces
+                )
+                    ? project.packaging_pieces.some(
+                        piece => piece !== "Rigid box"
+                    )
+                    : pieces
+                        .split(",")
+                        .map(item => item.trim())
+                        .filter(Boolean)
+                        .some(
+                            piece => piece !== "Rigid box"
+                        );
+
+                return [
+                    "",
+                    `Additional project ${index + 1}`,
+                    `Brand: ${
+                        project.brand_name ||
+                        "Not supplied"
+                    }`,
+                    `Packaging pieces: ${
+                        pieces ||
+                        "Not supplied"
+                    }`,
+                    hasBox
+                        ? `Box style: ${
+                            project.box_style ||
+                            "Not supplied"
+                        }`
+                        : "",
+                    hasBox
+                        ? `Box quantity: ${
+                            formatProjectQuantity(
+                                project.box_quantity,
+                                "boxes"
+                            ) ||
+                            "Not supplied"
+                        }`
+                        : "",
+                    hasOtherPieces
+                        ? `Other packaging quantity: ${
+                            formatProjectQuantity(
+                                project.other_pieces_quantity,
+                                "pieces"
+                            ) ||
+                            "Not supplied"
+                        }`
+                        : "",
+                    project.notes
+                        ? `Notes: ${project.notes}`
+                        : ""
+                ].filter(Boolean);
+            }
+        );
     }
 
     function reviewSection(title, rows) {
@@ -549,6 +800,10 @@ document.addEventListener("DOMContentLoaded", () => {
             project: {
                 source: "Luxsome shop",
                 packagingSystem: labelValue("system"),
+                additionalProjects:
+                    parseAdditionalProjects(
+                        shopConfiguration.additional_projects
+                    ),
                 configuration: shopConfiguration
             }
         };
