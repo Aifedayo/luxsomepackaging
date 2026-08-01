@@ -728,7 +728,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         elements.quotationFormStatus.textContent =
-            `${projectItems.length} project item${projectItems.length === 1 ? "" : "s"} imported. Confirm the specifications and enter unit prices.`;
+            `${projectItems.length} quotation item${projectItems.length === 1 ? "" : "s"} imported from the customer's selection. Tier systems are kept as one package; Bespoke selections are listed by piece.`;
         updateQuotationTotals();
     }
 
@@ -768,9 +768,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         function number(value) {
             if (typeof value === "number") {
-                return Number.isFinite(value) && value > 0
-                    ? value
-                    : null;
+                return Number.isFinite(value) && value > 0 ? value : null;
             }
 
             const match = clean(value)
@@ -780,24 +778,17 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!match) return null;
 
             const result = Number(match[0]);
-
-            return Number.isFinite(result) && result > 0
-                ? result
-                : null;
+            return Number.isFinite(result) && result > 0 ? result : null;
         }
 
         function parseJsonValue(value, fallback) {
             if (Array.isArray(value)) return value;
 
-            if (
-                value &&
-                typeof value === "object"
-            ) {
+            if (value && typeof value === "object") {
                 return value;
             }
 
             const rawValue = clean(value);
-
             if (!rawValue) return fallback;
 
             try {
@@ -825,17 +816,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         function list(value) {
             if (Array.isArray(value)) {
-                return value
-                    .map(clean)
-                    .filter(Boolean);
+                return value.map(clean).filter(Boolean);
             }
 
             const parsed = parseJsonValue(value, null);
 
             if (Array.isArray(parsed)) {
-                return parsed
-                    .map(clean)
-                    .filter(Boolean);
+                return parsed.map(clean).filter(Boolean);
             }
 
             return clean(value)
@@ -886,9 +873,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
 
-            return source && typeof source === "object"
-                ? source
-                : {};
+            return source && typeof source === "object" ? source : {};
         }
 
         function pieceName(piece) {
@@ -906,13 +891,72 @@ document.addEventListener("DOMContentLoaded", function () {
             return title(piece);
         }
 
+        function selectedSystem(configuration) {
+            return clean(
+                firstValue(configuration, [
+                    "system",
+                    "product_name",
+                    "productName",
+                    "package_type",
+                    "packageType",
+                    "submitted_packaging_system",
+                    "packaging_system",
+                    "packagingSystem",
+                    "tier"
+                ])
+            );
+        }
+
+        function isBespokeSelection(configuration) {
+            const system = selectedSystem(configuration).toLowerCase();
+
+            const projectType = clean(
+                firstValue(configuration, [
+                    "project_type",
+                    "projectType"
+                ])
+            ).toLowerCase();
+
+            return (
+                system.includes("bespoke") ||
+                projectType.includes("bespoke") ||
+                projectType.includes("custom")
+            );
+        }
+
+        function tierDisplayName(configuration) {
+            const system = selectedSystem(configuration);
+
+            if (/\btier\s*1\b/i.test(system) || /foundation/i.test(system)) {
+                return "Tier 1 Packaging System";
+            }
+
+            if (/\btier\s*2\b/i.test(system) || /signature/i.test(system)) {
+                return "Tier 2 Packaging System";
+            }
+
+            if (
+                /\btier\s*3\b/i.test(system) ||
+                /prestige|platinum/i.test(system)
+            ) {
+                return "Tier 3 Packaging System";
+            }
+
+            return system || "Packaging System";
+        }
+
         function pieceDetails(piece, configuration) {
             const name = pieceName(piece);
             const details = [];
 
             const styleMap = {
                 "Hang tag": ["tag_style", "tagStyle"],
-                "Thank-you card": ["thank_you_card", "thankYouCard", "card_style", "cardStyle"],
+                "Thank-you card": [
+                    "thank_you_card",
+                    "thankYouCard",
+                    "card_style",
+                    "cardStyle"
+                ],
                 "Sticker seal": ["sticker_style", "stickerStyle"],
                 "Branded tissue": ["tissue_style", "tissueStyle"],
                 "Envelope": ["envelope_style", "envelopeStyle"],
@@ -930,7 +974,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if (name === "Branded ribbon") {
                 const ribbonColour = firstValue(
                     configuration,
-                    ["ribbon_colour", "ribbon_color", "ribbonColour", "ribbonColor"]
+                    [
+                        "ribbon_colour",
+                        "ribbon_color",
+                        "ribbonColour",
+                        "ribbonColor"
+                    ]
                 );
 
                 if (ribbonColour) {
@@ -943,14 +992,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         function boxDetails(configuration) {
             const details = [];
+
             const length = firstValue(
                 configuration,
                 ["box_length_cm", "boxLength", "length"]
             );
+
             const breadth = firstValue(
                 configuration,
                 ["box_breadth_cm", "boxBreadth", "breadth", "width"]
             );
+
             const height = firstValue(
                 configuration,
                 ["box_height_cm", "boxHeight", "height"]
@@ -974,11 +1026,99 @@ document.addEventListener("DOMContentLoaded", function () {
             return details.join(" · ");
         }
 
-        function importConfiguration(configuration, prefix = "") {
-            if (!configuration || typeof configuration !== "object") {
-                return;
+        function tierDetails(configuration) {
+            const details = [];
+            const boxStyle = firstValue(
+                configuration,
+                ["box_style", "boxStyle"]
+            );
+
+            if (boxStyle) {
+                details.push(`Box: ${clean(boxStyle)}`);
             }
 
+            const pieces = list(
+                firstValue(configuration, [
+                    "packaging_pieces",
+                    "packagingPieces",
+                    "submitted_components",
+                    "components"
+                ])
+            );
+
+            if (pieces.length) {
+                details.push(
+                    `Includes: ${pieces.map(pieceName).join(", ")}`
+                );
+            }
+
+            const dimensions = boxDetails(configuration);
+            if (dimensions) details.push(dimensions);
+
+            return details.join(" · ");
+        }
+
+        function accessoryNames(configuration) {
+            return list(
+                firstValue(configuration, [
+                    "accessories",
+                    "added_accessories",
+                    "addedAccessories",
+                    "additional_accessories",
+                    "additionalAccessories",
+                    "extras",
+                    "selected_extras",
+                    "selectedExtras"
+                ])
+            ).map(pieceName);
+        }
+
+        function accessoryQuantity(accessory, configuration, fallbackQuantity) {
+            const slug = clean(accessory)
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "_")
+                .replace(/^_+|_+$/g, "");
+
+            return firstValue(configuration, [
+                `${slug}_quantity`,
+                `${slug}Quantity`,
+                "accessory_quantity",
+                "accessoryQuantity",
+                "other_pieces_quantity",
+                "otherPiecesQuantity"
+            ]) || fallbackQuantity;
+        }
+
+        function importTier(configuration) {
+            const quantity = firstValue(
+                configuration,
+                [
+                    "quantity",
+                    "requested_quantity",
+                    "requestedQuantity",
+                    "box_quantity",
+                    "boxQuantity"
+                ]
+            );
+
+            add(
+                tierDisplayName(configuration),
+                quantity,
+                tierDetails(configuration),
+                "shop_configuration.quantity"
+            );
+
+            accessoryNames(configuration).forEach(function (accessory) {
+                add(
+                    accessory,
+                    accessoryQuantity(accessory, configuration, quantity),
+                    pieceDetails(accessory, configuration),
+                    "shop_configuration.accessories"
+                );
+            });
+        }
+
+        function importBespoke(configuration, prefix = "") {
             let pieces = list(
                 firstValue(configuration, [
                     "packaging_pieces",
@@ -988,11 +1128,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 ])
             );
 
-            /*
-             * Some tier submissions store only the chosen style fields.
-             * Infer the matching requested pieces when the explicit list
-             * is absent.
-             */
             if (!pieces.length) {
                 const inferred = [
                     ["box_style", "Rigid box"],
@@ -1012,7 +1147,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 ];
 
                 inferred.forEach(function ([key, label]) {
-                    if (clean(configuration[key]) && !pieces.includes(label)) {
+                    if (
+                        clean(configuration[key]) &&
+                        !pieces.includes(label)
+                    ) {
                         pieces.push(label);
                     }
                 });
@@ -1086,7 +1224,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         ])
                     ) || `Additional project ${index + 1}`;
 
-                    importConfiguration(project, projectName);
+                    importBespoke(project, projectName);
                 });
             }
         }
@@ -1094,18 +1232,24 @@ document.addEventListener("DOMContentLoaded", function () {
         const source = normaliseSubmissionPayload(payload);
         const configuration = configurationFromPayload(source);
 
-        importConfiguration(configuration);
+        if (isBespokeSelection(configuration)) {
+            importBespoke(configuration);
+        } else {
+            importTier(configuration);
+        }
 
-        /*
-         * The current Luxsome Shop structure has now been handled.
-         * Keep a conservative fallback for legacy project forms whose
-         * payloads used arbitrary item/quantity objects.
-         */
         if (!items.length) {
-            const quantityWords = /(?:quantity|qty|units?|copies|order[_\s-]*size|requested[_\s-]*quantity|number[_\s-]*required|how[_\s-]*many)/i;
-            const ignoredWords = /(?:phone|mobile|whatsapp|postal|zip|year|date|budget|price|amount|cost|width|height|length|depth|gsm|email)/i;
-            const nameWords = /(?:item|product|packaging|component|system|package[_\s-]*type|box[_\s-]*style|type|category|style|option|title|description)/i;
-            const personNameWords = /^(?:name|full[_\s-]*name|contact[_\s-]*(?:name|person)|customer[_\s-]*name|brand[_\s-]*name)$/i;
+            const quantityWords =
+                /(?:quantity|qty|units?|copies|order[_\s-]*size|requested[_\s-]*quantity|number[_\s-]*required|how[_\s-]*many)/i;
+
+            const ignoredWords =
+                /(?:phone|mobile|whatsapp|postal|zip|year|date|budget|price|amount|cost|width|height|length|depth|gsm|email)/i;
+
+            const nameWords =
+                /(?:item|product|packaging|component|system|package[_\s-]*type|box[_\s-]*style|type|category|style|option|title|description)/i;
+
+            const personNameWords =
+                /^(?:name|full[_\s-]*name|contact[_\s-]*(?:name|person)|customer[_\s-]*name|brand[_\s-]*name)$/i;
 
             function pickName(object, fallback) {
                 const priorityKeys = [
@@ -1135,10 +1279,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const preferred = Object.entries(object).find(
                     function ([key, value]) {
-                        return !personNameWords.test(key) &&
+                        return (
+                            !personNameWords.test(key) &&
                             nameWords.test(key) &&
                             typeof value === "string" &&
-                            value.trim();
+                            value.trim()
+                        );
                     }
                 );
 
@@ -1160,24 +1306,34 @@ document.addEventListener("DOMContentLoaded", function () {
                     value.forEach(function (entry, index) {
                         walk(entry, `${path}[${index}]`, parentKey);
                     });
+
                     return;
                 }
 
                 if (!value || typeof value !== "object") return;
 
                 const entries = Object.entries(value);
-                const quantityEntry = entries.find(function ([key, fieldValue]) {
-                    return quantityWords.test(key) &&
-                        !ignoredWords.test(key) &&
-                        number(fieldValue);
-                });
+
+                const quantityEntry = entries.find(
+                    function ([key, fieldValue]) {
+                        return (
+                            quantityWords.test(key) &&
+                            !ignoredWords.test(key) &&
+                            number(fieldValue)
+                        );
+                    }
+                );
 
                 if (quantityEntry) {
                     const [quantityKey, quantityValue] = quantityEntry;
-                    const fallback = parentKey &&
-                        !/^(items?|products?|requirements?|selection)$/i.test(parentKey)
-                        ? parentKey
-                        : path.split(".").pop();
+
+                    const fallback =
+                        parentKey &&
+                        !/^(items?|products?|requirements?|selection)$/i.test(
+                            parentKey
+                        )
+                            ? parentKey
+                            : path.split(".").pop();
 
                     add(
                         pickName(value, fallback),
@@ -1188,7 +1344,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 entries.forEach(function ([key, child]) {
-                    walk(child, path ? `${path}.${key}` : key, key);
+                    walk(
+                        child,
+                        path ? `${path}.${key}` : key,
+                        key
+                    );
                 });
             }
 
