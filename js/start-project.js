@@ -333,7 +333,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Email", valueOf("email")],
             ["Phone or WhatsApp", valueOf("phone")],
             ["Instagram", valueOf("instagram")],
-            ["Location", valueOf("location")]
+            ["Location", valueOf("location")],
+            ["Preferred Contact", valueOf("preferredContactMethod")]
         ];
 
         const packagingRows = [
@@ -650,7 +651,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 email: valueOf("email"),
                 phone: valueOf("phone"),
                 instagram: valueOf("instagram"),
-                location: valueOf("location")
+                location: valueOf("location"),
+                preferredContactMethod: valueOf("preferredContactMethod")
             },
             project: {
                 source: "Luxsome shop",
