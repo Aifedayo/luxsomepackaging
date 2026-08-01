@@ -18,12 +18,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const submittedPackagingSystem = document.getElementById("submittedPackagingSystem");
     const submittedComponents = document.getElementById("submittedComponents");
     const submittedDate = document.getElementById("submittedDate");
+    const changeProductSelections = document.getElementById(
+        "changeProductSelections"
+    );
 
     const totalSteps = 2;
     let currentStep = 1;
     const shopConfiguration = readShopConfiguration();
 
     addConfigurationFields(shopConfiguration);
+    configureProductSelectionReturnLink(shopConfiguration);
     updateStepUI(false);
 
     nextButton?.addEventListener("click", () => {
@@ -107,10 +111,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const confirmedReference = responseData.reference || projectReference;
 
-            const confirmationData =
-                createConfirmationData(confirmedReference);
-
-            saveProjectConfirmation(confirmationData);
+            localStorage.setItem(
+                "luxsomeProjectConfirmation",
+                JSON.stringify(createConfirmationData(confirmedReference))
+            );
 
             window.location.href =
                 `/start-project/project-submitted/?reference=${encodeURIComponent(
@@ -235,6 +239,85 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function configureProductSelectionReturnLink(configuration) {
+        if (!changeProductSelections) return;
+
+        const productPath = getProductDetailPath(configuration);
+        const params = new URLSearchParams();
+
+        Object.entries(configuration).forEach(([key, value]) => {
+            if (
+                value === null ||
+                value === undefined ||
+                String(value).trim() === "" ||
+                ["version", "saved_at"].includes(key)
+            ) {
+                return;
+            }
+
+            params.set(key, String(value));
+        });
+
+        params.set("restore_configuration", "1");
+
+        changeProductSelections.href =
+            `${productPath}?${params.toString()}`;
+
+        changeProductSelections.addEventListener("click", () => {
+            localStorage.setItem(
+                "luxsomeShopConfiguration",
+                JSON.stringify({
+                    ...configuration,
+                    restore_configuration: "1"
+                })
+            );
+        });
+    }
+
+    function getProductDetailPath(configuration) {
+        const product = String(
+            configuration.product ||
+            configuration.source_product ||
+            ""
+        ).trim().toLowerCase();
+
+        const system = String(
+            configuration.system ||
+            ""
+        ).trim().toLowerCase();
+
+        if (
+            product === "tier-1" ||
+            system.includes("foundation")
+        ) {
+            return "/shop/tier-1/";
+        }
+
+        if (
+            product === "tier-2" ||
+            system.includes("signature")
+        ) {
+            return "/shop/tier-2/";
+        }
+
+        if (
+            product === "tier-3" ||
+            system.includes("prestige")
+        ) {
+            return "/shop/tier-3/";
+        }
+
+        if (
+            product === "bespoke" ||
+            system.includes("bespoke") ||
+            system.includes("made for your brand")
+        ) {
+            return "/shop/bespoke/";
+        }
+
+        return "/shop/";
+    }
+
     function hasShopConfiguration(configuration) {
         return Boolean(
             configuration.product ||
@@ -264,7 +347,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Sticker seal", labelValue("sticker_style")],
             ["Tissue", labelValue("tissue_style")],
             ["Envelope", labelValue("envelope_style")],
-            ["Ribbon", labelValue("ribbon_style")]
+            ["Ribbon", labelValue("ribbon_style")],
+            ["Ribbon colour", labelValue("ribbon_colour")]
         ];
 
         const specificationRows = [
