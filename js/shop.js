@@ -716,30 +716,30 @@ document.addEventListener('DOMContentLoaded', () => {
     /*
      * Add a compact catalogue button to each applicable configuration group.
      */
-    Object.entries(visualOptionGroups).forEach(([inputName, group]) => {
-        const inputs = [
-            ...document.querySelectorAll(`input[name="${inputName}"]`)
-        ];
+    // Object.entries(visualOptionGroups).forEach(([inputName, group]) => {
+    //     const inputs = [
+    //         ...document.querySelectorAll(`input[name="${inputName}"]`)
+    //     ];
 
-        if (!inputs.length) return;
+    //     if (!inputs.length) return;
 
-        const fieldset = inputs[0].closest('fieldset');
-        if (!fieldset || fieldset.querySelector('.configuration-catalogue-link')) {
-            return;
-        }
+    //     const fieldset = inputs[0].closest('fieldset');
+    //     if (!fieldset || fieldset.querySelector('.configuration-catalogue-link')) {
+    //         return;
+    //     }
 
-        const link = document.createElement('a');
-        link.className = 'configuration-catalogue-link';
-        link.href = group.catalogue;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.innerHTML = `
-            <span>View ${group.label.toLowerCase()} in catalogue</span>
-            <span aria-hidden="true">&rarr;</span>
-        `;
+    //     const link = document.createElement('a');
+    //     link.className = 'configuration-catalogue-link';
+    //     link.href = group.catalogue;
+    //     link.target = '_blank';
+    //     link.rel = 'noopener noreferrer';
+    //     link.innerHTML = `
+    //         <span>View ${group.label.toLowerCase()} in catalogue</span>
+    //         <span aria-hidden="true">&rarr;</span>
+    //     `;
 
-        fieldset.appendChild(link);
-    });
+    //     fieldset.appendChild(link);
+    // });
 
 
     /*

@@ -3468,3 +3468,83 @@ body.option-visual-open {
         margin-top: 3px;
     }
 }
+
+/* =========================================================
+   MOBILE PRODUCT DETAIL — RELEASE GALLERY AFTER BOX STYLE
+========================================================= */
+
+/*
+ * The regular order button inside the form remains visible.
+ * The fixed bottom purchase bar is removed on mobile.
+ */
+.mobile-buy-bar {
+    display: none !important;
+}
+
+@media (max-width: 980px) {
+    /*
+     * While the customer is viewing the introduction and Box Style,
+     * the gallery remains sticky beneath the breadcrumb.
+     */
+    .product-gallery {
+        position: sticky;
+        top: 108px;
+        transition:
+            box-shadow 180ms ease,
+            border-color 180ms ease;
+    }
+
+    /*
+     * After the full Box Style fieldset has passed, release the image.
+     * It returns to normal document flow and scrolls out of view,
+     * leaving the remaining options with the full mobile screen.
+     */
+    .product-gallery.product-gallery--mobile-released {
+        position: static !important;
+        top: auto !important;
+        z-index: 1 !important;
+        margin-inline: 0 !important;
+        padding-inline: 0 !important;
+        border-bottom-color: transparent !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .product-gallery.product-gallery--mobile-released
+        .product-gallery__sticky {
+        position: static !important;
+    }
+
+    /*
+     * Remove the extra space previously reserved for the fixed
+     * bottom Order button.
+     */
+    .buy-now-button {
+        margin-bottom: 0 !important;
+    }
+
+    .product-detail {
+        padding-bottom: 28px;
+    }
+}
+
+@media (max-width: 620px) {
+    .product-gallery {
+        top: 102px;
+    }
+
+    /*
+     * Give the form text more vertical breathing room once the image
+     * has released.
+     */
+    .product-gallery.product-gallery--mobile-released
+        + .product-panel {
+        padding-top: 10px;
+    }
+
+    .configuration-group {
+        scroll-margin-top: 118px;
+    }
+}

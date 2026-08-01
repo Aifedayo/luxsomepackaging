@@ -1,1013 +1,614 @@
-document.addEventListener('DOMContentLoaded', () => {
-    /*
-     * Restore a configuration before the rest of the product page
-     * initialises. This ensures gallery state, colour controls and
-     * calculations start from the customer's saved selections.
-     */
-    const restoreProductConfiguration = () => {
-        const form = document.getElementById('productConfigForm');
-        if (!form) return;
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("projectForm");
+    if (!form) return;
 
+    const steps = Array.from(form.querySelectorAll(".project-step"));
+    const progressItems = Array.from(document.querySelectorAll("[data-progress-step]"));
+    const backButton = document.getElementById("backButton");
+    const nextButton = document.getElementById("nextButton");
+    const submitButton = document.getElementById("submitButton");
+    const mobileStepText = document.getElementById("mobileStepText");
+    const mobileProgressFill = document.getElementById("mobileProgressFill");
+    const formStatus = document.getElementById("formStatus");
+    const reviewCard = document.getElementById("reviewCard");
+    const projectSummaryInput = document.getElementById("projectSummaryInput");
+    const projectReferenceInput = document.getElementById("projectReferenceInput");
+    const formSubject = document.getElementById("formSubject");
+    const shopConfigurationInput = document.getElementById("shopConfigurationInput");
+    const submittedPackagingSystem = document.getElementById("submittedPackagingSystem");
+    const submittedComponents = document.getElementById("submittedComponents");
+    const submittedDate = document.getElementById("submittedDate");
+    const changeProductSelections = document.getElementById(
+        "changeProductSelections"
+    );
+
+    const totalSteps = 2;
+    let currentStep = 1;
+    const shopConfiguration = readShopConfiguration();
+
+    addConfigurationFields(shopConfiguration);
+    configureProductSelectionReturnLink(shopConfiguration);
+    updateStepUI(false);
+
+    nextButton?.addEventListener("click", () => {
+        clearStatus();
+
+        if (!validateStep(1)) return;
+
+        currentStep = 2;
+        buildReview();
+        updateStepUI();
+    });
+
+    backButton?.addEventListener("click", () => {
+        clearStatus();
+
+        if (currentStep > 1) {
+            currentStep = 1;
+            updateStepUI();
+        }
+    });
+
+    form.addEventListener("change", event => {
+        const target = event.target;
+
+        if (
+            target instanceof HTMLInputElement ||
+            target instanceof HTMLSelectElement ||
+            target instanceof HTMLTextAreaElement
+        ) {
+            target.removeAttribute("aria-invalid");
+        }
+    });
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+        clearStatus();
+
+        if (!validateStep(2)) return;
+
+        buildReview();
+
+        const projectReference = getOrCreateProjectReference();
+        prepareSubmissionMetadata(projectReference);
+
+        const originalButtonContent = submitButton.innerHTML;
+        submitButton.disabled = true;
+        submitButton.setAttribute("aria-busy", "true");
+        submitButton.innerHTML = `
+            <span class="spinner" aria-hidden="true"></span>
+            <span>Sending request...</span>
+        `;
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                body: new FormData(form),
+                headers: { Accept: "application/json" }
+            });
+
+            let responseData = {};
+
+            try {
+                responseData = await response.json();
+            } catch (_) {
+                // The endpoint may return an empty or non-JSON response.
+            }
+
+            if (!response.ok) {
+                const message =
+                    responseData.message ||
+                    (Array.isArray(responseData.errors)
+                        ? responseData.errors
+                            .map(item => item.message)
+                            .filter(Boolean)
+                            .join(" ")
+                        : "") ||
+                    "Something went wrong. Please check your details and try again.";
+
+                throw new Error(message);
+            }
+
+            const confirmedReference = responseData.reference || projectReference;
+
+            localStorage.setItem(
+                "luxsomeProjectConfirmation",
+                JSON.stringify(createConfirmationData(confirmedReference))
+            );
+
+            window.location.href =
+                `/start-project/project-submitted/?reference=${encodeURIComponent(
+                    confirmedReference
+                )}`;
+        } catch (error) {
+            showStatus(
+                error.message ||
+                    "Unable to send your order request. Please check your connection and try again.",
+                "error"
+            );
+
+            submitButton.disabled = false;
+            submitButton.removeAttribute("aria-busy");
+            submitButton.innerHTML = originalButtonContent;
+        }
+    });
+
+    function updateStepUI(shouldScroll = true) {
+        const isFirstStep = currentStep === 1;
+        const isReviewStep = currentStep === totalSteps;
+
+        steps.forEach((step, index) => {
+            const active = index + 1 === currentStep;
+            step.hidden = !active;
+            step.classList.toggle("is-active", active);
+        });
+
+        progressItems.forEach((item, index) => {
+            const stepNumber = index + 1;
+            item.classList.toggle("is-active", stepNumber === currentStep);
+            item.classList.toggle("is-complete", stepNumber < currentStep);
+
+            if (stepNumber === currentStep) {
+                item.setAttribute("aria-current", "step");
+            } else {
+                item.removeAttribute("aria-current");
+            }
+        });
+
+        backButton.hidden = isFirstStep;
+        nextButton.hidden = isReviewStep;
+        nextButton.disabled = isReviewStep;
+        submitButton.hidden = !isReviewStep;
+
+        if (mobileStepText) {
+            mobileStepText.textContent = `Step ${currentStep} of ${totalSteps}`;
+        }
+
+        if (mobileProgressFill) {
+            mobileProgressFill.style.width =
+                `${(currentStep / totalSteps) * 100}%`;
+        }
+
+        if (shouldScroll) {
+            document.querySelector(".project-form-shell")?.scrollIntoView({
+                behavior: prefersReducedMotion() ? "auto" : "smooth",
+                block: "start"
+            });
+        }
+
+        const activeStep = steps[currentStep - 1];
+
+        window.setTimeout(() => {
+            activeStep
+                ?.querySelector("input, select, textarea, button")
+                ?.focus({ preventScroll: true });
+        }, prefersReducedMotion() ? 0 : 250);
+    }
+
+    function validateStep(stepNumber) {
+        const step = steps[stepNumber - 1];
+        if (!step) return false;
+
+        const requiredFields = Array.from(step.querySelectorAll("[required]"));
+
+        for (const field of requiredFields) {
+            if (!field.checkValidity()) {
+                field.setAttribute("aria-invalid", "true");
+                showStatus(
+                    "Please complete the highlighted required field before continuing.",
+                    "error"
+                );
+                field.reportValidity();
+                field.focus();
+                return false;
+            }
+        }
+
+        if (stepNumber === 2 && !hasShopConfiguration(shopConfiguration)) {
+            showStatus(
+                "Your product selections could not be found. Please return to the shop and configure a packaging system first.",
+                "error"
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    function readShopConfiguration() {
         const params = new URLSearchParams(window.location.search);
-
-        if (params.get('restore_configuration') !== '1') return;
-
         let stored = {};
 
         try {
             stored = JSON.parse(
-                localStorage.getItem('luxsomeShopConfiguration') || '{}'
+                localStorage.getItem("luxsomeShopConfiguration") || "{}"
             );
         } catch (error) {
-            console.warn(
-                'The saved shop configuration could not be restored.',
-                error
-            );
+            console.warn("The saved shop configuration could not be read.", error);
         }
 
-        const queryValues = {};
+        const urlValues = {};
 
         params.forEach((value, key) => {
-            queryValues[key] = value;
+            urlValues[key] = value;
         });
 
-        const configuration = {
+        return cleanObject({
             ...stored,
-            ...queryValues
-        };
+            ...urlValues
+        });
+    }
 
-        const fieldMap = {
-            project_type: 'projectType',
-            box_style: 'boxStyle',
-            tag_style: 'tagStyle',
-            thank_you_card: 'thankYouCard',
-            sticker_style: 'stickerStyle',
-            tissue_style: 'tissueStyle',
-            envelope_style: 'envelopeStyle',
-            ribbon_style: 'ribbonStyle',
-            ribbon_colour: 'ribbonColour',
-            logo_finish: 'logoFinish',
-            artwork_status: 'artworkStatus',
-            quantity: 'quantity',
-            box_length_cm: 'boxLength',
-            box_breadth_cm: 'boxBreadth',
-            box_height_cm: 'boxHeight',
-            primary_colour: 'primaryColour',
-            custom_colour: 'customColour',
-            secondary_colour: 'secondaryColour',
-            accent_colour: 'accentColour',
-            pantone_reference: 'pantoneReference',
-            comments: 'comments'
-        };
+    function configureProductSelectionReturnLink(configuration) {
+        if (!changeProductSelections) return;
 
-        const setFieldValue = (fieldName, value) => {
+        const productPath = getProductDetailPath(configuration);
+        const params = new URLSearchParams();
+
+        Object.entries(configuration).forEach(([key, value]) => {
             if (
                 value === null ||
                 value === undefined ||
-                String(value).trim() === ''
+                String(value).trim() === "" ||
+                ["version", "saved_at"].includes(key)
             ) {
                 return;
             }
 
-            const fields = Array.from(
-                form.querySelectorAll(
-                    `[name="${CSS.escape(fieldName)}"]`
-                )
+            params.set(key, String(value));
+        });
+
+        params.set("restore_configuration", "1");
+
+        changeProductSelections.href =
+            `${productPath}?${params.toString()}`;
+
+        changeProductSelections.addEventListener("click", () => {
+            localStorage.setItem(
+                "luxsomeShopConfiguration",
+                JSON.stringify({
+                    ...configuration,
+                    restore_configuration: "1"
+                })
             );
-
-            if (!fields.length) {
-                const element = document.getElementById(fieldName);
-
-                if (element) {
-                    element.value = String(value);
-                }
-
-                return;
-            }
-
-            const firstField = fields[0];
-
-            if (
-                firstField instanceof HTMLInputElement &&
-                firstField.type === 'radio'
-            ) {
-                const matchingField = fields.find(field => (
-                    field.value.trim().toLowerCase() ===
-                    String(value).trim().toLowerCase()
-                ));
-
-                if (matchingField) {
-                    matchingField.checked = true;
-                }
-
-                return;
-            }
-
-            firstField.value = String(value);
-        };
-
-        Object.entries(fieldMap).forEach(([key, fieldName]) => {
-            setFieldValue(fieldName, configuration[key]);
-        });
-
-        const selectedAccessories = String(
-            configuration.accessories || ''
-        )
-            .split(',')
-            .map(item => item.trim().toLowerCase())
-            .filter(Boolean);
-
-        form
-            .querySelectorAll('input[name="accessories"]')
-            .forEach(input => {
-                input.checked = selectedAccessories.includes(
-                    input.value.trim().toLowerCase()
-                );
-            });
-
-        const selectedPieces = String(
-            configuration.packaging_pieces || ''
-        )
-            .split(',')
-            .map(item => item.trim().toLowerCase())
-            .filter(Boolean);
-
-        form
-            .querySelectorAll('input[name="packagingPieces"]')
-            .forEach(input => {
-                input.checked = selectedPieces.includes(
-                    input.value.trim().toLowerCase()
-                );
-            });
-
-        form.dataset.configurationRestored = 'true';
-    };
-
-    restoreProductConfiguration();
-
-    const sort = document.getElementById('shopSort');
-    const grid = document.getElementById('productGrid');
-
-    if (sort && grid) {
-        sort.addEventListener('change', () => {
-            const cards = [...grid.querySelectorAll('.product-card')];
-
-            cards.sort((a, b) => {
-                if (sort.value === 'items-low') return Number(a.dataset.items) - Number(b.dataset.items);
-                if (sort.value === 'items-high') return Number(b.dataset.items) - Number(a.dataset.items);
-                return Number(a.dataset.order) - Number(b.dataset.order);
-            });
-
-            cards.forEach(card => grid.appendChild(card));
         });
     }
 
-    const mainImage = document.getElementById('productMainImage');
+    function getProductDetailPath(configuration) {
+        const product = String(
+            configuration.product ||
+            configuration.source_product ||
+            ""
+        ).trim().toLowerCase();
 
-    document.querySelectorAll('.product-thumb').forEach(button => {
-        button.addEventListener('click', () => {
-            if (!mainImage) return;
+        const system = String(
+            configuration.system ||
+            ""
+        ).trim().toLowerCase();
 
-            mainImage.src = button.dataset.image;
-
-            document.querySelectorAll('.product-thumb').forEach(item => {
-                item.classList.remove('is-active');
-            });
-
-            button.classList.add('is-active');
-        });
-    });
-
-    const quantityInput = document.getElementById('quantity');
-
-    const getSelectedQuantity = () => {
-        if (!quantityInput) return '';
-
-        const quantity = Number(quantityInput.value);
-
-        if (!Number.isInteger(quantity) || quantity < 25 || quantity % 25 !== 0) {
-            quantityInput.setCustomValidity('Enter at least 25 pieces in multiples of 25.');
-            quantityInput.reportValidity();
-            return null;
+        if (
+            product === "tier-1" ||
+            system.includes("foundation")
+        ) {
+            return "/shop/tier-1/";
         }
 
-        quantityInput.setCustomValidity('');
-        return String(quantity);
-    };
-
-    quantityInput?.addEventListener('input', () => {
-        quantityInput.setCustomValidity('');
-    });
-
-    const lengthInput = document.getElementById('boxLength');
-    const breadthInput = document.getElementById('boxBreadth');
-    const heightInput = document.getElementById('boxHeight');
-    const weightCalculator = document.getElementById('weightCalculator');
-    const volumetricWeight = document.getElementById('volumetricWeight');
-    const weightStatus = document.getElementById('weightStatus');
-
-    const calculateVolumetricWeight = () => {
-        if (!lengthInput || !breadthInput || !heightInput || !weightCalculator || !volumetricWeight || !weightStatus) {
-            return null;
+        if (
+            product === "tier-2" ||
+            system.includes("signature")
+        ) {
+            return "/shop/tier-2/";
         }
 
-        const length = Number(lengthInput.value);
-        const breadth = Number(breadthInput.value);
-        const height = Number(heightInput.value);
-
-        weightCalculator.classList.remove('is-within-limit', 'is-over-limit');
-
-        if (length <= 0 || breadth <= 0 || height <= 0) {
-            volumetricWeight.textContent = 'Enter dimensions';
-            weightStatus.textContent = 'Pricing covers a finished box of up to 1 kg volumetric weight.';
-            return null;
+        if (
+            product === "tier-3" ||
+            system.includes("prestige")
+        ) {
+            return "/shop/tier-3/";
         }
 
-        const weight = (length * breadth * height) / 5000;
-        const roundedWeight = Number(weight.toFixed(2));
-
-        volumetricWeight.textContent = `${roundedWeight.toFixed(2)} kg`;
-
-        if (roundedWeight <= 1) {
-            weightCalculator.classList.add('is-within-limit');
-            weightStatus.textContent = 'Included within the standard 1 kg pricing allowance.';
-        } else {
-            weightCalculator.classList.add('is-over-limit');
-            weightStatus.textContent = 'This exceeds the standard 1 kg allowance. An additional size charge may apply.';
+        if (
+            product === "bespoke" ||
+            system.includes("bespoke") ||
+            system.includes("made for your brand")
+        ) {
+            return "/shop/bespoke/";
         }
 
-        return roundedWeight;
-    };
-
-    [lengthInput, breadthInput, heightInput].forEach(input => {
-        input?.addEventListener('input', calculateVolumetricWeight);
-    });
-
-    const standardColourOptions = document.querySelectorAll('input[name="primaryColour"]');
-    const customColourField = document.getElementById('customColourField');
-    const customColourInput = document.getElementById('customColour');
-
-    const toggleStandardCustomColour = () => {
-        if (!customColourField || !customColourInput) return;
-
-        const selected = document.querySelector('input[name="primaryColour"]:checked');
-        const isCustom = selected?.value === 'Other';
-
-        customColourField.hidden = !isCustom;
-        customColourInput.required = isCustom;
-
-        if (!isCustom) customColourInput.value = '';
-    };
-
-    standardColourOptions.forEach(option => {
-        option.addEventListener('change', toggleStandardCustomColour);
-    });
-
-    toggleStandardCustomColour();
-
-    const form = document.getElementById('productConfigForm');
-    const product = document.querySelector('.product-detail');
-
-    const submitConfiguration = () => {
-        if (!form || !product) return;
-
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        const selectedQuantity = getSelectedQuantity();
-        if (selectedQuantity === null) return;
-
-        const calculatedWeight = calculateVolumetricWeight();
-
-        if (calculatedWeight === null) {
-            lengthInput?.setCustomValidity('Enter the finished box dimensions.');
-            lengthInput?.reportValidity();
-            return;
-        }
-
-        lengthInput?.setCustomValidity('');
-
-        const data = new FormData(form);
-        const params = new URLSearchParams();
-
-        params.set('source', 'shop');
-        params.set('product', product.dataset.product || '');
-        params.set('system', product.dataset.productName || '');
-        params.set('project_type', data.get('projectType') || '');
-        params.set('packaging_pieces', data.getAll('packagingPieces').join(', '));
-        params.set('box_style', data.get('boxStyle') || '');
-        params.set('tag_style', data.get('tagStyle') || '');
-        params.set('thank_you_card', data.get('thankYouCard') || '');
-        params.set('sticker_style', data.get('stickerStyle') || '');
-        params.set('tissue_style', data.get('tissueStyle') || '');
-        params.set('envelope_style', data.get('envelopeStyle') || '');
-        params.set('ribbon_style', data.get('ribbonStyle') || '');
-        params.set('ribbon_colour', data.get('ribbonColour') || '');
-        params.set('logo_finish', data.get('logoFinish') || '');
-        params.set('artwork_status', data.get('artworkStatus') || '');
-        params.set('quantity', selectedQuantity);
-        params.set('box_length_cm', data.get('boxLength') || '');
-        params.set('box_breadth_cm', data.get('boxBreadth') || '');
-        params.set('box_height_cm', data.get('boxHeight') || '');
-        params.set('volumetric_weight_kg', calculatedWeight.toFixed(2));
-        params.set('primary_colour', data.get('primaryColour') || '');
-        params.set('custom_colour', data.get('customColour') || '');
-        params.set('secondary_colour', data.get('secondaryColour') || '');
-        params.set('accent_colour', data.get('accentColour') || '');
-        params.set('pantone_reference', data.get('pantoneReference') || '');
-        params.set('comments', data.get('comments') || '');
-        params.set('accessories', data.getAll('accessories').join(', '));
-
-        localStorage.setItem(
-            'luxsomeShopConfiguration',
-            JSON.stringify(Object.fromEntries(params.entries()))
-        );
-
-        window.location.href = `/start-project/?${params.toString()}`;
-    };
-
-    form?.addEventListener('submit', event => {
-        event.preventDefault();
-        submitConfiguration();
-    });
-
-    document.getElementById('mobileBuyButton')?.addEventListener('click', submitConfiguration);
-
-
-    /*
-     * Inline pricing guide
-     */
-    const pricingModal = document.getElementById('pricingModal');
-    const pricingOpenButtons = document.querySelectorAll('[data-pricing-open]');
-    const pricingCloseButtons = document.querySelectorAll('[data-pricing-close]');
-    let pricingModalTrigger = null;
-    
-    const getPricingFocusableElements = () => {
-        if (!pricingModal) return [];
-    
-        return [...pricingModal.querySelectorAll(
-            'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )];
-    };
-    
-    const openPricingModal = event => {
-        if (!pricingModal) return;
-    
-        pricingModalTrigger = event?.currentTarget || document.activeElement;
-        pricingModal.hidden = false;
-        document.body.classList.add('pricing-modal-open');
-    
-        const closeButton = pricingModal.querySelector('.pricing-modal__close');
-        closeButton?.focus();
-    };
-    
-    const closePricingModal = () => {
-        if (!pricingModal || pricingModal.hidden) return;
-    
-        pricingModal.hidden = true;
-        document.body.classList.remove('pricing-modal-open');
-        pricingModalTrigger?.focus();
-    };
-    
-    pricingOpenButtons.forEach(button => {
-        button.addEventListener('click', openPricingModal);
-    });
-    
-    pricingCloseButtons.forEach(button => {
-        button.addEventListener('click', closePricingModal);
-    });
-    
-    document.addEventListener('keydown', event => {
-        if (!pricingModal || pricingModal.hidden) return;
-    
-        if (event.key === 'Escape') {
-            closePricingModal();
-            return;
-        }
-    
-        if (event.key !== 'Tab') return;
-    
-        const focusable = getPricingFocusableElements();
-        if (!focusable.length) return;
-    
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-    
-        if (event.shiftKey && document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-            event.preventDefault();
-            first.focus();
-        }
-    });
-
-
-    /*
-     * Visual option preview
-     *
-     * Add exact Luxsome images using this path pattern:
-     * /assets/images/catalogue-preview/<option-slug>.webp
-     *
-     * Exact option images can be added later without changing this logic.
-     */
-    const visualOptionGroups = {
-        boxStyle: {
-            label: 'Box styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=5',
-            fallback: ''
-        },
-        tagStyle: {
-            label: 'Tag styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=9',
-            fallback: ''
-        },
-        thankYouCard: {
-            label: 'Thank-you card styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=10',
-            fallback: ''
-        },
-        stickerStyle: {
-            label: 'Sticker styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=11',
-            fallback: ''
-        },
-        tissueStyle: {
-            label: 'Tissue styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=12',
-            fallback: ''
-        },
-        envelopeStyle: {
-            label: 'Envelope styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=12',
-            fallback: ''
-        },
-        ribbonStyle: {
-            label: 'Ribbon styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=13',
-            fallback: ''
-        },
-        logoFinish: {
-            label: 'Finishing options',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=13',
-            fallback: ''
-        },
-        accessories: {
-            label: 'Accessories',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=17',
-            fallback: ''
-        },
-        packagingPieces: {
-            label: 'Packaging pieces',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=4',
-            fallback: ''
-        },
-        projectType: {
-            label: 'Project types',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf',
-            fallback: ''
-        }
-    };
-
-    const visualOptionImageOverrides = {
-        'Magnetic flap': '/assets/images/catalogue-preview/magnetic-flap-box.webp',
-        'Shoulder box': '/assets/images/catalogue-preview/shoulder-box.webp',
-        'Tray-in-bed': '/assets/images/catalogue-preview/tray-in-bed-box.webp',
-        'Door style': '/assets/images/catalogue-preview/door-style-box.webp',
-        'Collapsible magnetic flap': '/assets/images/catalogue-preview/collapsible-magnetic-flap-box.webp',
-        'Recommend a structure': '/assets/images/catalogue-preview/recommend-a-box-structure.webp',
-        'Custom structure': '/assets/images/catalogue-preview/custom-box-structure.webp',
-
-        'One-piece tag': '/assets/images/catalogue-preview/one-piece-tag.webp',
-        'Two-piece tag': '/assets/images/catalogue-preview/two-piece-tag.webp',
-        'Three-piece tag': '/assets/images/catalogue-preview/three-piece-tag.webp',
-
-        'Standard print': '/assets/images/catalogue-preview/standard-print.webp',
-        'Matte vinyl': '/assets/images/catalogue-preview/matte-vinyl.webp',
-        'Metallic vinyl': '/assets/images/catalogue-preview/metallic-vinyl.webp',
-        'Embossed': '/assets/images/catalogue-preview/embossed-finish.webp',
-        'Debossed': '/assets/images/catalogue-preview/debossed-finish.webp',
-        'Foiled': '/assets/images/catalogue-preview/foil-finish.webp',
-        'UV printed': '/assets/images/catalogue-preview/uv-print.webp',
-
-        'Ribbon handle': '/assets/images/catalogue-preview/ribbon-handle.webp',
-        'Pull tab': '/assets/images/catalogue-preview/pull-tab.webp',
-        'Product description card': '/assets/images/catalogue-preview/product-description-card.webp',
-        'Insert': '/assets/images/catalogue-preview/box-insert.webp',
-        'Custom insert': '/assets/images/catalogue-preview/custom-box-insert.webp',
-        'Foam insert': '/assets/images/catalogue-preview/foam-insert.webp',
-        'Card insert': '/assets/images/catalogue-preview/card-insert.webp',
-        'Fabric lining': '/assets/images/catalogue-preview/fabric-lining.webp',
-        'Window cut-out': '/assets/images/catalogue-preview/window-cut-out.webp',
-        'Special closure': '/assets/images/catalogue-preview/special-closure.webp',
-        'Compartment divider': '/assets/images/catalogue-preview/compartment-divider.webp'
-    };
-
-    const slugifyVisualOption = value => (
-        String(value || '')
-            .toLowerCase()
-            .trim()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '')
-    );
-
-    const visualModalMarkup = `
-        <div class="option-visual-modal" id="optionVisualModal" hidden>
-            <div class="option-visual-modal__backdrop" data-option-visual-close></div>
-
-            <section
-                class="option-visual-modal__dialog"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="optionVisualTitle"
-            >
-                <button
-                    type="button"
-                    class="option-visual-modal__close"
-                    data-option-visual-close
-                    aria-label="Close option preview"
-                >
-                    &times;
-                </button>
-
-                <div class="option-visual-modal__media">
-                    <img id="optionVisualImage" src="" alt="">
-                    <div class="option-visual-modal__shade"></div>
-
-                    <div class="option-visual-modal__label">
-                        <span id="optionVisualCategory"></span>
-                        <h2 id="optionVisualTitle"></h2>
-                    </div>
-                </div>
-
-                <div class="option-visual-modal__actions">
-                    <button
-                        type="button"
-                        class="option-visual-modal__keep"
-                        data-option-visual-close
-                    >
-                        Keep this choice
-                    </button>
-
-                    <a
-                        class="option-visual-modal__catalogue"
-                        id="optionVisualCatalogue"
-                        href="/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        View in catalogue
-                    </a>
-                </div>
-            </section>
-        </div>
-    `;
-
-    if (!document.getElementById('optionVisualModal')) {
-        document.body.insertAdjacentHTML('beforeend', visualModalMarkup);
+        return "/shop/";
     }
 
-    const optionVisualModal = document.getElementById('optionVisualModal');
-    const optionVisualImage = document.getElementById('optionVisualImage');
-    const optionVisualTitle = document.getElementById('optionVisualTitle');
-    const optionVisualCategory = document.getElementById('optionVisualCategory');
-    const optionVisualCatalogue = document.getElementById('optionVisualCatalogue');
-
-    let optionVisualTrigger = null;
-    let optionVisualFallback = '';
-
-    const closeOptionVisual = () => {
-        if (!optionVisualModal || optionVisualModal.hidden) return;
-
-        optionVisualModal.hidden = true;
-        document.body.classList.remove('option-visual-open');
-        optionVisualTrigger?.focus();
-    };
-
-    const openOptionVisual = input => {
-        const group = visualOptionGroups[input.name];
-        if (!group || !input.value || !optionVisualModal) return;
-
-        optionVisualTrigger = input.closest('label') || input;
-        optionVisualFallback = group.fallback;
-
-        optionVisualTitle.textContent = input.value;
-        optionVisualCategory.textContent = group.label;
-        optionVisualCatalogue.href = group.catalogue;
-
-        const exactImage = visualOptionImageOverrides[input.value];
-        const generatedPath = `/assets/images/catalogue-preview/${slugifyVisualOption(input.value)}.webp`;
-
-        optionVisualImage.dataset.fallbackApplied = 'false';
-        optionVisualImage.src = exactImage || generatedPath;
-        optionVisualImage.alt = `${input.value} visual example`;
-
-        optionVisualModal.hidden = false;
-        document.body.classList.add('option-visual-open');
-
-        optionVisualModal
-            .querySelector('.option-visual-modal__close')
-            ?.focus();
-    };
-
-    optionVisualImage?.addEventListener('error', () => {
-        if (
-            optionVisualImage.dataset.fallbackApplied === 'true' ||
-            !optionVisualFallback
-        ) {
-            return;
-        }
-
-        optionVisualImage.dataset.fallbackApplied = 'true';
-        optionVisualImage.src = optionVisualFallback;
-    });
-
-
-    document
-        .querySelectorAll('[data-option-visual-close]')
-        .forEach(button => {
-            button.addEventListener('click', closeOptionVisual);
-        });
-
-
-    /*
-     * Robust View Larger handler.
-     * Uses event delegation so it still works when the gallery button or
-     * gallery slides are generated dynamically.
-     */
-    document.addEventListener('click', event => {
-        const expandButton = event.target.closest(
-            '#productGalleryExpand, .product-gallery__expand'
+    function hasShopConfiguration(configuration) {
+        return Boolean(
+            configuration.product ||
+            configuration.system ||
+            configuration.box_style ||
+            configuration.quantity
         );
+    }
 
-        if (!expandButton) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        const gallery = expandButton.closest('[data-synchronised-gallery]') ||
-            document.querySelector('[data-synchronised-gallery]');
-
-        const activeSlide = gallery?.querySelector(
-            '.product-gallery__slide.is-active'
-        );
-
-        const activeImage = activeSlide?.querySelector('img');
-        const activeTitle = document.getElementById(
-            'productGalleryTitle'
-        )?.textContent?.trim();
-        const activeCategory = document.getElementById(
-            'productGalleryCategory'
-        )?.textContent?.trim();
-        const catalogueLink = document.getElementById(
-            'productGalleryCatalogue'
-        );
-
-        if (
-            !optionVisualModal ||
-            !optionVisualImage ||
-            !optionVisualTitle ||
-            !optionVisualCategory ||
-            !optionVisualCatalogue ||
-            !activeImage
-        ) {
-            return;
-        }
-
-        optionVisualTrigger = expandButton;
-        optionVisualFallback = '';
-
-        optionVisualImage.dataset.fallbackApplied = 'false';
-        optionVisualImage.src = activeImage.currentSrc || activeImage.src;
-        optionVisualImage.alt = activeImage.alt || (
-            `${activeTitle || 'Packaging option'} visual preview`
-        );
-
-        optionVisualTitle.textContent =
-            activeTitle || activeImage.alt || 'Packaging option';
-
-        optionVisualCategory.textContent =
-            activeCategory || 'Packaging option';
-
-        optionVisualCatalogue.href =
-            catalogueLink?.href ||
-            '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf';
-
-        optionVisualModal.hidden = false;
-        document.body.classList.add('option-visual-open');
-
-        window.requestAnimationFrame(() => {
-            optionVisualModal
-                .querySelector('.option-visual-modal__close')
-                ?.focus();
-        });
-    });
-
-    document.addEventListener('keydown', event => {
-        if (!optionVisualModal || optionVisualModal.hidden) return;
-
-        if (event.key === 'Escape') {
-            closeOptionVisual();
-        }
-    });
-
-    /*
-     * Add a compact catalogue button to each applicable configuration group.
-     */
-    Object.entries(visualOptionGroups).forEach(([inputName, group]) => {
-        const inputs = [
-            ...document.querySelectorAll(`input[name="${inputName}"]`)
+    function buildReview() {
+        const customerRows = [
+            ["Brand", valueOf("brandName")],
+            ["Contact person", valueOf("fullName")],
+            ["Email", valueOf("email")],
+            ["Phone or WhatsApp", valueOf("phone")],
+            ["Instagram", valueOf("instagram")],
+            ["Location", valueOf("location")]
         ];
 
-        if (!inputs.length) return;
+        const packagingRows = [
+            ["Packaging system", labelValue("system")],
+            ["Project type", labelValue("project_type")],
+            ["Packaging pieces", labelValue("packaging_pieces")],
+            ["Box style", labelValue("box_style")],
+            ["Hang tag", labelValue("tag_style")],
+            ["Thank-you card", labelValue("thank_you_card")],
+            ["Sticker seal", labelValue("sticker_style")],
+            ["Tissue", labelValue("tissue_style")],
+            ["Envelope", labelValue("envelope_style")],
+            ["Ribbon", labelValue("ribbon_style")],
+            ["Ribbon colour", labelValue("ribbon_colour")]
+        ];
 
-        const fieldset = inputs[0].closest('fieldset');
-        if (!fieldset || fieldset.querySelector('.configuration-catalogue-link')) {
-            return;
+        const specificationRows = [
+            ["Quantity", unitValue("quantity", "pieces")],
+            ["Finished dimensions", dimensionsValue()],
+            ["Volumetric weight", unitValue("volumetric_weight_kg", "kg")],
+            ["Primary colour", colourValue()],
+            ["Secondary colour", labelValue("secondary_colour")],
+            ["Accent colour", labelValue("accent_colour")],
+            ["Pantone reference", labelValue("pantone_reference")],
+            ["Logo finish", labelValue("logo_finish")],
+            ["Logo and artwork status", labelValue("artwork_status")],
+            ["Accessories", labelValue("accessories")],
+            ["Additional comments", labelValue("comments")]
+        ];
+
+        reviewCard.innerHTML = [
+            reviewSection("Customer", customerRows),
+            reviewSection("Packaging system", packagingRows),
+            reviewSection("Order specifications", specificationRows)
+        ].join("");
+
+        const summaryLines = [
+            `Brand: ${valueOf("brandName")}`,
+            `Contact: ${valueOf("fullName")} (${valueOf("email")} · ${valueOf("phone")})`,
+            ...packagingRows
+                .filter(([, value]) => value)
+                .map(([label, value]) => `${label}: ${value}`),
+            ...specificationRows
+                .filter(([, value]) => value)
+                .map(([label, value]) => `${label}: ${value}`)
+        ];
+
+        if (projectSummaryInput) {
+            projectSummaryInput.value = summaryLines.join("\n");
         }
 
-        const link = document.createElement('a');
-        link.className = 'configuration-catalogue-link';
-        link.href = group.catalogue;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.innerHTML = `
-            <span>View ${group.label.toLowerCase()} in catalogue</span>
-            <span aria-hidden="true">&rarr;</span>
-        `;
+        if (shopConfigurationInput) {
+            shopConfigurationInput.value = JSON.stringify(shopConfiguration);
+        }
+    }
 
-        fieldset.appendChild(link);
-    });
+    function reviewSection(title, rows) {
+        const validRows = rows.filter(([, value]) => value);
 
-
-    /*
-     * Synchronised visual configurator
-     */
-    const synchronisedGallery = document.querySelector(
-        '[data-synchronised-gallery]'
-    );
-
-    if (synchronisedGallery) {
-        const slidesContainer = document.getElementById('productGallerySlides');
-        const thumbsContainer = document.getElementById('productGalleryThumbs');
-        const galleryCategory = document.getElementById('productGalleryCategory');
-        const galleryTitle = document.getElementById('productGalleryTitle');
-        const galleryCatalogue = document.getElementById('productGalleryCatalogue');
-        const galleryExpand = document.getElementById('productGalleryExpand');
-
-        const visualInputSelector = Object.keys(visualOptionGroups)
-            .map(name => `input[name="${name}"]`)
-            .join(', ');
-
-        const visualInputs = [
-            ...document.querySelectorAll(visualInputSelector)
-        ].filter(input => !input.disabled);
-
-        const previewStates = new Map();
-        const previewHistory = [];
-
-        const getPreviewKey = input => (
-            `${input.name}-${slugifyVisualOption(input.value)}`
-        );
-
-        const getPreviewImage = input => (
-            visualOptionImageOverrides[input.value] ||
-            `/assets/images/catalogue-preview/${slugifyVisualOption(input.value)}.webp`
-        );
-
-        const getGroup = input => (
-            visualOptionGroups[input.name] || {
-                label: 'Packaging option',
-                catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf'
-            }
-        );
-
-        const createPreview = input => {
-            const key = getPreviewKey(input);
-
-            if (previewStates.has(key)) {
-                return previewStates.get(key);
-            }
-
-            const group = getGroup(input);
-            const imagePath = getPreviewImage(input);
-
-            const slide = document.createElement('figure');
-            slide.className = 'product-gallery__slide';
-            slide.dataset.previewKey = key;
-
-            const image = document.createElement('img');
-            image.src = imagePath;
-            image.alt = `${input.value} visual preview`;
-            image.decoding = 'async';
-
-            slide.appendChild(image);
-            slidesContainer.appendChild(slide);
-
-            const thumbnail = document.createElement('button');
-            thumbnail.type = 'button';
-            thumbnail.className = 'product-thumb';
-            thumbnail.dataset.previewKey = key;
-            thumbnail.setAttribute('aria-label', `Show ${input.value}`);
-            thumbnail.innerHTML = `
-                <img src="${imagePath}" alt="" loading="lazy">
+        if (!validRows.length) {
+            return `
+                <section class="review-section">
+                    <h3>${escapeHTML(title)}</h3>
+                    <p class="review-empty">
+                        No information was supplied for this section.
+                    </p>
+                </section>
             `;
+        }
 
-            thumbnail.addEventListener('click', () => {
-                if (!input.checked) {
-                    input.checked = true;
-                    input.dispatchEvent(
-                        new Event('change', { bubbles: true })
-                    );
-                } else {
-                    showPreview(input);
-                }
-            });
+        return `
+            <section class="review-section">
+                <h3>${escapeHTML(title)}</h3>
+                <dl class="review-list">
+                    ${validRows.map(([label, value]) => `
+                        <div class="review-row">
+                            <dt>${escapeHTML(label)}</dt>
+                            <dd>${escapeHTML(value)}</dd>
+                        </div>
+                    `).join("")}
+                </dl>
+            </section>
+        `;
+    }
 
-            thumbsContainer.appendChild(thumbnail);
+    function addConfigurationFields(configuration) {
+        Object.entries(configuration).forEach(([key, value]) => {
+            if (!value || ["version", "saved_at"].includes(key)) return;
 
-            const state = {
-                input,
-                group,
-                slide,
-                image,
-                thumbnail
-            };
-
-            previewStates.set(key, state);
-            return state;
-        };
-
-        const setCurrentPreview = state => {
-            const activeSlide = slidesContainer.querySelector(
-                '.product-gallery__slide.is-active'
+            const existing = form.querySelector(
+                `[name="shop_${CSS.escape(key)}"]`
             );
 
-            if (activeSlide && activeSlide !== state.slide) {
-                activeSlide.classList.remove('is-active');
-                activeSlide.classList.add('is-leaving');
-
-                window.setTimeout(() => {
-                    activeSlide.classList.remove('is-leaving');
-                }, 420);
+            if (existing) {
+                existing.value = String(value);
+                return;
             }
 
-            slidesContainer
-                .querySelectorAll('.product-gallery__slide')
-                .forEach(slide => {
-                    if (slide !== state.slide) {
-                        slide.classList.remove('is-active');
-                    }
-                });
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = `shop_${key}`;
+            input.value = String(value);
+            input.dataset.shopField = "true";
+            form.appendChild(input);
+        });
+    }
 
-            state.slide.classList.add('is-active');
+    function prepareSubmissionMetadata(projectReference) {
+        const brandName = valueOf("brandName") || "Unnamed Brand";
+        const system = labelValue("system") || "Shop configuration";
 
-            thumbsContainer
-                .querySelectorAll('.product-thumb')
-                .forEach(thumbnail => {
-                    thumbnail.classList.toggle(
-                        'is-active',
-                        thumbnail === state.thumbnail
-                    );
-                });
-
-            state.thumbnail.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'center'
-            });
-
-            galleryCategory.textContent = state.group.label;
-            galleryTitle.textContent = state.input.value;
-            galleryCatalogue.href = state.group.catalogue;
-
-            galleryExpand.dataset.inputName = state.input.name;
-            galleryExpand.dataset.inputValue = state.input.value;
-        };
-
-        function showPreview(input) {
-            if (!input || input.disabled) return;
-
-            const state = createPreview(input);
-            setCurrentPreview(state);
-
-            const previousIndex = previewHistory.indexOf(input);
-
-            if (previousIndex !== -1) {
-                previewHistory.splice(previousIndex, 1);
-            }
-
-            previewHistory.push(input);
+        if (projectReferenceInput) {
+            projectReferenceInput.value = projectReference;
         }
 
-        visualInputs.forEach(input => {
-            createPreview(input);
+        if (formSubject) {
+            formSubject.value =
+                `New Shop Order | ${projectReference} | ${brandName}`;
+        }
 
-            input.addEventListener('click', () => {
-                if (input.type === 'checkbox' && !input.checked) {
-                    const historyIndex = previewHistory.indexOf(input);
+        if (submittedPackagingSystem) {
+            submittedPackagingSystem.value = system;
+        }
 
-                    if (historyIndex !== -1) {
-                        previewHistory.splice(historyIndex, 1);
-                    }
+        if (submittedComponents) {
+            submittedComponents.value =
+                labelValue("packaging_pieces") || "According to selected tier";
+        }
 
-                    const previousInput = [...previewHistory]
-                        .reverse()
-                        .find(item => (
-                            item.type !== 'checkbox' || item.checked
-                        ));
+        if (submittedDate) {
+            submittedDate.value = new Intl.DateTimeFormat("en-NG", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }).format(new Date());
+        }
 
-                    if (previousInput) {
-                        showPreview(previousInput);
-                    }
+        if (shopConfigurationInput) {
+            shopConfigurationInput.value = JSON.stringify(shopConfiguration);
+        }
 
-                    return;
-                }
+        appendReferenceToProjectSummary(projectReference);
+    }
 
-                showPreview(input);
-            });
+    function createConfirmationData(projectReference) {
+        return {
+            version: 2,
+            reference: projectReference,
+            submittedAt: new Date().toISOString(),
+            customer: {
+                fullName: valueOf("fullName"),
+                brandName: valueOf("brandName"),
+                email: valueOf("email"),
+                phone: valueOf("phone"),
+                instagram: valueOf("instagram"),
+                location: valueOf("location")
+            },
+            project: {
+                source: "Luxsome shop",
+                packagingSystem: labelValue("system"),
+                configuration: shopConfiguration
+            }
+        };
+    }
 
-            input.addEventListener('change', () => {
-                if (input.type === 'checkbox' && !input.checked) return;
-                showPreview(input);
-            });
-        });
+    function dimensionsValue() {
+        const length = labelValue("box_length_cm");
+        const breadth = labelValue("box_breadth_cm");
+        const height = labelValue("box_height_cm");
 
-        const initiallySelected = (
-            visualInputs.find(input => (
-                input.name === 'boxStyle' && input.checked
-            )) ||
-            visualInputs.find(input => input.checked)
+        if (!length && !breadth && !height) return "";
+
+        return `${length || "—"} × ${breadth || "—"} × ${height || "—"} cm`;
+    }
+
+    function colourValue() {
+        const primary = labelValue("primary_colour");
+        const custom = labelValue("custom_colour");
+
+        if (primary === "Other" && custom) return custom;
+        return primary;
+    }
+
+    function unitValue(key, unit) {
+        const value = labelValue(key);
+        return value ? `${value} ${unit}` : "";
+    }
+
+    function labelValue(key) {
+        return String(shopConfiguration[key] || "").trim();
+    }
+
+    function cleanObject(object) {
+        return Object.fromEntries(
+            Object.entries(object).filter(([, value]) => (
+                value !== null &&
+                value !== undefined &&
+                String(value).trim() !== ""
+            ))
         );
-
-        if (initiallySelected) {
-            showPreview(initiallySelected);
-        }
-
-        
-
-        const preloadImages = () => {
-            previewStates.forEach(state => {
-                const image = new Image();
-                image.src = state.image.src;
-            });
-        };
-
-        if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(preloadImages);
-        } else {
-            window.setTimeout(preloadImages, 800);
-        }
     }
 
+    function generateProjectReference(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        const randomCode = String(Math.floor(1000 + Math.random() * 9000));
 
-    document.querySelectorAll(
-        '#productGalleryExpand, .product-gallery__expand'
-    ).forEach(button => {
-        button.setAttribute('type', 'button');
-    });
-
-
-    /*
-     * Re-run state-dependent controls after every listener has been
-     * attached. The values themselves were restored at the top.
-     */
-    if (
-        document.getElementById('productConfigForm')
-            ?.dataset.configurationRestored === 'true'
-    ) {
-        window.requestAnimationFrame(() => {
-            document
-                .querySelectorAll(
-                    '#productConfigForm input:checked'
-                )
-                .forEach(input => {
-                    input.dispatchEvent(
-                        new Event('change', { bubbles: true })
-                    );
-                });
-
-            [
-                'quantity',
-                'boxLength',
-                'boxBreadth',
-                'boxHeight',
-                'customColour',
-                'secondaryColour',
-                'accentColour',
-                'pantoneReference',
-                'comments'
-            ].forEach(id => {
-                const input = document.getElementById(id);
-                if (!input) return;
-
-                input.dispatchEvent(
-                    new Event('input', { bubbles: true })
-                );
-            });
-        });
+        return `LX-${year}${month}${day}-${randomCode}`;
     }
 
+    function getOrCreateProjectReference() {
+        const existing = projectReferenceInput?.value.trim();
+        if (existing) return existing;
+
+        const reference = generateProjectReference();
+
+        if (projectReferenceInput) {
+            projectReferenceInput.value = reference;
+        }
+
+        return reference;
+    }
+
+    function appendReferenceToProjectSummary(projectReference) {
+        if (!projectSummaryInput) return;
+
+        const currentSummary = projectSummaryInput.value.trim();
+        const referenceLine = `Project reference: ${projectReference}`;
+
+        if (currentSummary.includes(referenceLine)) return;
+
+        projectSummaryInput.value = [
+            referenceLine,
+            currentSummary
+        ].filter(Boolean).join("\n");
+    }
+
+    function valueOf(id) {
+        return document.getElementById(id)?.value.trim() || "";
+    }
+
+    function escapeHTML(value) {
+        return String(value).replace(
+            /[&<>'"]/g,
+            character => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "'": "&#39;",
+                '"': "&quot;"
+            })[character]
+        );
+    }
+
+    function showStatus(message, type = "") {
+        if (!formStatus) return;
+
+        formStatus.textContent = message;
+        formStatus.className =
+            `form-status${type ? ` is-${type}` : ""}`;
+    }
+
+    function clearStatus() {
+        showStatus("");
+
+        form
+            .querySelectorAll('[aria-invalid="true"]')
+            .forEach(element => element.removeAttribute("aria-invalid"));
+    }
+
+    function prefersReducedMotion() {
+        return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
 });

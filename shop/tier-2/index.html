@@ -8,7 +8,7 @@
         >
 
         <title>
-            Tier 2 The Signature System | Luxsome Packaging
+            Tier 2 The Signature | Luxsome Packaging
         </title>
 
         <meta
@@ -25,7 +25,7 @@
         <meta property="og:site_name" content="Luxsome Packaging">
         <meta
             property="og:title"
-            content="Tier 2 The Signature System | Luxsome Packaging"
+            content="Tier 2 The Signature | Luxsome Packaging"
         >
         <meta
             property="og:description"
@@ -37,7 +37,7 @@
         >
         <meta
             property="og:image:alt"
-            content="Tier 2 The Signature System packaging system by Luxsome"
+            content="Tier 2 The Signature packaging system by Luxsome"
         >
         <meta
             property="og:url"
@@ -48,7 +48,7 @@
         <meta name="twitter:card" content="summary_large_image">
         <meta
             name="twitter:title"
-            content="Tier 2 The Signature System | Luxsome Packaging"
+            content="Tier 2 The Signature | Luxsome Packaging"
         >
         <meta
             name="twitter:description"
@@ -113,7 +113,7 @@
                     "@type": "WebPage",
                     "@id": "https://www.luxsomepackaging.com/shop/tier-2/#webpage",
                     "url": "https://www.luxsomepackaging.com/shop/tier-2/",
-                    "name": "Tier 2 The Signature System | Luxsome Packaging",
+                    "name": "Tier 2 The Signature | Luxsome Packaging",
                     "description": "A more complete packaging experience for established brands ready to strengthen consistency and presentation.",
                     "isPartOf": {
                         "@id": "https://www.luxsomepackaging.com/#website"
@@ -126,7 +126,7 @@
                 {
                     "@type": "Service",
                     "@id": "https://www.luxsomepackaging.com/shop/tier-2/#service",
-                    "name": "Tier 2 - The Signature System",
+                    "name": "Tier 2 - The Signature",
                     "description": "A more complete packaging experience for established brands ready to strengthen consistency and presentation.",
                     "provider": {
                         "@id": "https://www.luxsomepackaging.com/#organization"
@@ -165,6 +165,64 @@
         }
         </script>
     
+    
+        <style id="mobileGalleryReleaseStyles">
+            /*
+             * Mobile gallery remains sticky only while the first structure
+             * choice is visible. It releases before the following option
+             * reaches the gallery, giving every option enough reading space.
+             */
+            .mobile-buy-bar {
+                display: none !important;
+            }
+
+            @media (max-width: 980px) {
+                .product-gallery {
+                    position: sticky !important;
+                    top: 108px !important;
+                    z-index: 12;
+                }
+
+                .product-gallery.product-gallery--mobile-released {
+                    position: static !important;
+                    top: auto !important;
+                    z-index: 1 !important;
+                    margin-inline: 0 !important;
+                    padding-inline: 0 !important;
+                    border: 0 !important;
+                    background: transparent !important;
+                    box-shadow: none !important;
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                }
+
+                .product-gallery.product-gallery--mobile-released
+                    .product-gallery__sticky {
+                    position: static !important;
+                    top: auto !important;
+                }
+
+                .buy-now-button {
+                    margin-bottom: 0 !important;
+                }
+
+                .product-detail {
+                    padding-bottom: 28px !important;
+                }
+            }
+
+            @media (max-width: 620px) {
+                .product-gallery {
+                    top: 102px !important;
+                }
+
+                .configuration-group,
+                .configuration-section {
+                    scroll-margin-top: 118px;
+                }
+            }
+        </style>
+
     </head>
 
     <body class="shop-page">
@@ -239,7 +297,7 @@
         <a href="/shop/">Shop</a><span>/</span><span>Tier 2</span>
     </nav>
 
-    <section class="product-detail" data-product="tier-2" data-product-name="The Signature System">
+    <section class="product-detail" data-product="tier-2" data-product-name="The Signature">
         <div class="shop-container product-detail__grid">
             
         <div class="product-gallery" data-synchronised-gallery>
@@ -252,7 +310,7 @@
                         >
                             <img
                                 src="/assets/images/catalogue-preview/packaging-system-02.webp"
-                                alt="The Signature System packaging system"
+                                alt="The Signature packaging system"
                                 width="1200"
                                 height="1400"
                             >
@@ -286,327 +344,329 @@
             <div class="product-panel">
                 <div class="product-panel__heading">
                     <p class="shop-eyebrow">Tier 2</p>
-                    <h1>The Signature System</h1>
-                    <p class="product-count">6 items</p>
+                    <h1>The Signature</h1>
                     <p class="product-summary">A fuller unboxing system with coordinated inner packaging.</p>
                 </div>
 
-                <details class="product-accordion" open>
+                <details class="product-accordion">
                     <summary>Included</summary>
                     <ul class="included-list"><li>Custom rigid box</li><li>Branded tissue</li><li>One- or two-piece hang tag</li><li>Flat or folded thank-you card</li><li>Envelope</li><li>Sticker seal</li></ul>
                 </details>
-<form class="product-config" id="productConfigForm">
-    <section class="configuration-section" aria-labelledby="tierTwoIncludedHeading">
-        <div class="configuration-section__heading">
-            <div>
-                <p class="configuration-section__eyebrow">Included in Tier 2</p>
-                <h2 id="tierTwoIncludedHeading">Choose your preferred styles</h2>
+            <form class="product-config" id="productConfigForm">
+                <section class="configuration-section" aria-labelledby="tierTwoIncludedHeading">
+                    <div class="configuration-section__heading">
+                        <div>
+                            <p class="configuration-section__eyebrow">Included in Tier 2</p>
+                            <h2 id="tierTwoIncludedHeading">Choose your preferred styles</h2>
+                        </div>
+                        <p>Select one option for each packaging item.</p>
+                    </div>
+
+                    <fieldset
+                        class="configuration-group"
+                        id="boxStyleConfiguration"
+                    >
+                        <legend>
+                            Box style
+                            <span class="option-status option-status--included">Included</span>
+                        </legend>
+                        <p class="configuration-help">Choose the box construction that best suits your product.</p>
+                        <div class="option-grid option-grid--box-styles">
+                            <label><input type="radio" name="boxStyle" value="Magnetic flap" checked><span>Collapsible Box</span></label>
+                            <label><input type="radio" name="boxStyle" value="Shoulder box"><span>Shoulder box</span></label>
+                            <label><input type="radio" name="boxStyle" value="Tray-in-bed"><span>Tray-in-bed</span></label>
+                            <label><input type="radio" name="boxStyle" value="Door style"><span>Door style</span></label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="configuration-group">
+                        <legend>Hang tag <span class="option-status option-status--included">Included</span></legend>
+                        <p class="configuration-help">Tier 2 includes either a one-piece or two-piece hang tag.</p>
+                        <div class="option-grid option-grid--three">
+                            <label><input type="radio" name="tagStyle" value="One-piece tag"><span>One-piece<small>Included</small></span></label>
+                            <label><input type="radio" name="tagStyle" value="Two-piece tag" checked><span>Two-piece<small>Included</small></span></label>
+                            <label class="option-disabled"><input type="radio" name="tagStyle" value="Three-piece tag" disabled><span>Three-piece<small>Available in Tier 3</small></span></label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="configuration-group">
+                        <legend>Thank-you card <span class="option-status option-status--included">Included</span></legend>
+                        <p class="configuration-help">Choose a flat card or a folded card.</p>
+                        <div class="option-grid">
+                            <label><input type="radio" name="thankYouCard" value="Flat thank-you card" checked><span>Flat card<small>Included</small></span></label>
+                            <label><input type="radio" name="thankYouCard" value="Folded thank-you card"><span>Folded card<small>Included</small></span></label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="configuration-group">
+                        <legend>Sticker seal <span class="option-status option-status--included">Included</span></legend>
+                        <p class="configuration-help">Choose a standard branded seal or a custom die-cut sticker.</p>
+                        <div class="option-grid">
+                            <label><input type="radio" name="stickerStyle" value="Standard sticker seal" checked><span>Standard Sticker<small>Included</small></span></label>
+                            <label class="option-disabled"><input type="radio" name="stickerStyle" value="Custom die-cut sticker"><span>Branded Sticker<small>Available in higher tier</small></span></label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="configuration-group">
+                        <legend>Branded tissue <span class="option-status option-status--included">Included</span></legend>
+                        <p class="configuration-help">Choose how your logo should be arranged on the tissue.</p>
+                        <div class="option-grid">
+                            <label><input type="radio" name="tissueStyle" value="Single logo placement" checked><span>Single logo<small>Included</small></span></label>
+                            <label><input type="radio" name="tissueStyle" value="Repeating logo pattern"><span>Repeat pattern<small>Included</small></span></label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="configuration-group">
+                        <legend>Envelope <span class="option-status option-status--included">Included</span></legend>
+                        <p class="configuration-help">Choose the envelope presentation for the thank-you card.</p>
+                        <div class="option-grid">
+                            <label><input type="radio" name="envelopeStyle" value="Classic envelope" checked><span>Classic envelope<small>Included</small></span></label>
+                            <label><input type="radio" name="envelopeStyle" value="Wallet envelope"><span>Wallet envelope<small>Included</small></span></label>
+                        </div>
+                    </fieldset>
+                </section>
+
+                <section class="configuration-section configuration-section--finishing" aria-labelledby="tierTwoFinishingHeading">
+                    <div class="finishing-price-alert" role="note">
+                        <div class="finishing-price-alert__icon" aria-hidden="true">i</div>
+                        <div>
+                            <strong>Some finishing options are priced separately.</strong>
+                            <p>Standard print, matte vinyl and metallic vinyl are included. Embossing, debossing, foiling and UV printing attract an additional fee.</p>
+                        </div>
+                        <button type="button" class="pricing-guide-button" data-pricing-open>View pricing guide</button>
+                    </div>
+
+                    <div class="configuration-section__heading">
+                        <div>
+                            <p class="configuration-section__eyebrow">Finishing</p>
+                            <h2 id="tierTwoFinishingHeading">Choose your logo finish</h2>
+                        </div>
+                        <p>Included finishes and premium upgrades are shown separately.</p>
+                    </div>
+
+                    <fieldset class="configuration-group">
+                        <legend>Logo finish</legend>
+
+                        <div class="finish-option-group">
+                            <div class="finish-option-group__heading">
+                                <span>Included finishes</span>
+                                <small>No extra cost</small>
+                            </div>
+                            <div class="option-grid option-grid--three">
+                                <label><input type="radio" name="logoFinish" value="Matte vinyl" checked><span>Matte vinyl<small>Included</small></span></label>
+                                <label><input type="radio" name="logoFinish" value="Metallic vinyl"><span>Metallic vinyl<small>Included</small></span></label>
+                            </div>
+                        </div>
+
+                        <div class="finish-option-group finish-option-group--paid">
+                            <div class="finish-option-group__heading">
+                                <span>Premium finishes</span>
+                                <small>Available soon</small>
+                            </div>
+                            <div class="option-grid option-grid--four">
+                                <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed"><span>Embossed<small>Additional fee</small></span></label>
+                                <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed"><span>Debossed<small>Additional fee</small></span></label>
+                                <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
+                                <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed"><span>UV printed<small>Additional fee</small></span></label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="configuration-group">
+                        <legend>Accessories <span class="option-status option-status--paid">Additional fee</span></legend>
+                        <p class="configuration-help">Select only the optional extras you want added.</p>
+                        <div class="check-grid accessory-grid">
+                            <label><input type="checkbox" name="accessories" value="Ribbon handle"><span>Ribbon handle</span></label>
+                            <label><input type="checkbox" name="accessories" value="Pull tab"><span>Pull tab</span></label>
+                            <label><input type="checkbox" name="accessories" value="Product description card"><span>Product description card</span></label>
+                            <label class="option-disabled"><input type="checkbox" name="accessories" value="Insert"><span>Insert<small>Available soon</small></span></label>
+                        </div>
+                    </fieldset>
+                </section>
+
+                <section class="configuration-section configuration-section--order" aria-labelledby="tierTwoOrderHeading">
+                <div class="configuration-section__heading">
+                    <div>
+                        <p class="configuration-section__eyebrow">Order details</p>
+                        <h2 id="tierTwoOrderHeading">Tell us what you need</h2>
+                    </div>
+                </div>
+
+                <label class="product-field">
+                    <span>Quantity</span>
+                    <input type="number" name="quantity" id="quantity" min="25" step="25" value="25" inputmode="numeric" required>
+                    <small>Minimum order is 25 pieces. Quantities must be in multiples of 25.</small>
+                </label>
+
+
+            <div class="product-dimensions">
+                <div class="product-dimensions__heading">
+                    <div>
+                        <span>Finished box dimensions</span>
+                        <small>Enter the approximate product size.</small>
+                    </div>
+                    <span class="product-dimensions__unit">Centimetres</span>
+                </div>
+
+                <div class="dimension-grid">
+                    <label class="product-field">
+                        <span>Length</span>
+                        <div class="measurement-input">
+                            <input type="number" name="boxLength" id="boxLength" min="0.1" step="0.1" inputmode="decimal" placeholder="30" required>
+                            <span>cm</span>
+                        </div>
+                    </label>
+
+                    <label class="product-field">
+                        <span>Breadth</span>
+                        <div class="measurement-input">
+                            <input type="number" name="boxBreadth" id="boxBreadth" min="0.1" step="0.1" inputmode="decimal" placeholder="22" required>
+                            <span>cm</span>
+                        </div>
+                    </label>
+
+                    <label class="product-field">
+                        <span>Height</span>
+                        <div class="measurement-input">
+                            <input type="number" name="boxHeight" id="boxHeight" min="0.1" step="0.1" inputmode="decimal" placeholder="8" required>
+                            <span>cm</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="weight-calculator" id="weightCalculator" aria-live="polite">
+                    <div>
+                        <span>Estimated volumetric weight</span>
+                        <strong id="volumetricWeight">Enter dimensions</strong>
+                    </div>
+                    <p id="weightStatus">Pricing covers a finished box of up to 1 kg volumetric weight.</p>
+                </div>
             </div>
-            <p>Select one option for each packaging item.</p>
+
+
+
+            <fieldset class="configuration-group colour-selection">
+                <legend>
+                    Box colour
+                    <span class="option-status option-status--included">Standard colours</span>
+                </legend>
+                <p class="configuration-help">
+                    Choose a standard colour. Custom colour matching may attract an additional fee.
+                </p>
+
+                <div class="colour-option-grid">
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Burgundy"><span><i style="--swatch:#673629"></i>Burgundy</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
+                </div>
+
+                <label class="product-field custom-colour-field" id="customColourField" hidden>
+                    <span>Preferred colour or HEX code</span>
+                    <input type="text" name="customColour" id="customColour" placeholder="e.g. #673629 or wine red">
+                    <small>Custom colour matching may attract an additional fee and is subject to material availability.</small>
+                </label>
+
+                <p class="colour-disclaimer">
+                    Screen colours are references only. Final colours may vary across materials and printing methods.
+                </p>
+            </fieldset>
+            <fieldset class="configuration-group artwork-status-group">
+                <legend>
+                    Logo and artwork status
+                    <span class="option-status option-status--included">Project preparation</span>
+                </legend>
+
+                <p class="configuration-help">
+                    Tell us what is ready so we can plan the correct design support after your order request.
+                </p>
+
+                <div class="option-grid option-grid--artwork-status">
+                    <label>
+                        <input
+                            type="radio"
+                            name="artworkStatus"
+                            value="Logo and packaging artwork ready"
+                            required
+                        >
+                        <span>
+                            Everything is ready
+                            <small>I can supply my logo and final packaging artwork.</small>
+                        </span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="artworkStatus"
+                            value="Logo ready, packaging artwork required"
+                            required
+                        >
+                        <span>
+                            Logo ready
+                            <small>I need Luxsome to prepare the packaging artwork.</small>
+                        </span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="artworkStatus"
+                            value="Some brand assets available"
+                            required
+                        >
+                        <span>
+                            Some assets available
+                            <small>I have some files, but they still need to be reviewed.</small>
+                        </span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="artworkStatus"
+                            value="Full logo and packaging design support required"
+                            required
+                        >
+                        <span>
+                            Full design support
+                            <small>I need help with both my logo and packaging artwork.</small>
+                        </span>
+                    </label>
+                </div>
+            </fieldset>
+
+
+                <label class="product-field">
+                    <span>Additional comments</span>
+                    <textarea
+                        name="comments"
+                        rows="4"
+                        placeholder="Add product details, brand direction, deadline or any other requirement."
+
+                    ></textarea>
+                </label>
+
+                <div class="order-summary-note">
+                    <strong>What happens next?</strong>
+                    <span>Your selections will be added to the project form, where you can provide your brand, artwork and delivery details.</span>
+                </div>
+
+                <button type="submit" class="buy-now-button">Order Tier 2</button>
+                <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
+            </section>
+            </form>
+            </div>
         </div>
-
-        <fieldset class="configuration-group">
-            <legend>Box style <span class="option-status option-status--included">Included</span></legend>
-            <p class="configuration-help">Choose the box construction that best suits your product.</p>
-            <div class="option-grid option-grid--box-styles">
-                <label><input type="radio" name="boxStyle" value="Magnetic flap" checked><span>Magnetic flap</span></label>
-                <label><input type="radio" name="boxStyle" value="Shoulder box"><span>Shoulder box</span></label>
-                <label><input type="radio" name="boxStyle" value="Tray-in-bed"><span>Tray-in-bed</span></label>
-                <label><input type="radio" name="boxStyle" value="Door style"><span>Door style</span></label>
-                <label><input type="radio" name="boxStyle" value="Collapsible magnetic flap"><span>Collapsible magnetic</span></label>
-            </div>
-        </fieldset>
-
-        <fieldset class="configuration-group">
-            <legend>Hang tag <span class="option-status option-status--included">Included</span></legend>
-            <p class="configuration-help">Tier 2 includes either a one-piece or two-piece hang tag.</p>
-            <div class="option-grid option-grid--three">
-                <label><input type="radio" name="tagStyle" value="One-piece tag"><span>One-piece<small>Included</small></span></label>
-                <label><input type="radio" name="tagStyle" value="Two-piece tag" checked><span>Two-piece<small>Included</small></span></label>
-                <label class="option-disabled"><input type="radio" name="tagStyle" value="Three-piece tag" disabled><span>Three-piece<small>Available in Tier 3</small></span></label>
-            </div>
-        </fieldset>
-
-        <fieldset class="configuration-group">
-            <legend>Thank-you card <span class="option-status option-status--included">Included</span></legend>
-            <p class="configuration-help">Choose a flat card or a folded card.</p>
-            <div class="option-grid">
-                <label><input type="radio" name="thankYouCard" value="Flat thank-you card" checked><span>Flat card<small>Included</small></span></label>
-                <label><input type="radio" name="thankYouCard" value="Folded thank-you card"><span>Folded card<small>Included</small></span></label>
-            </div>
-        </fieldset>
-
-        <fieldset class="configuration-group">
-            <legend>Sticker seal <span class="option-status option-status--included">Included</span></legend>
-            <p class="configuration-help">Choose a standard branded seal or a custom die-cut sticker.</p>
-            <div class="option-grid">
-                <label><input type="radio" name="stickerStyle" value="Standard sticker seal" checked><span>Standard Sticker<small>Included</small></span></label>
-                <label class="option-disabled"><input type="radio" name="stickerStyle" value="Custom die-cut sticker"><span>Branded Sticker<small>Available in higher tier</small></span></label>
-            </div>
-        </fieldset>
-
-        <fieldset class="configuration-group">
-            <legend>Branded tissue <span class="option-status option-status--included">Included</span></legend>
-            <p class="configuration-help">Choose how your logo should be arranged on the tissue.</p>
-            <div class="option-grid">
-                <label><input type="radio" name="tissueStyle" value="Single logo placement" checked><span>Single logo<small>Included</small></span></label>
-                <label><input type="radio" name="tissueStyle" value="Repeating logo pattern"><span>Repeat pattern<small>Included</small></span></label>
-            </div>
-        </fieldset>
-
-        <fieldset class="configuration-group">
-            <legend>Envelope <span class="option-status option-status--included">Included</span></legend>
-            <p class="configuration-help">Choose the envelope presentation for the thank-you card.</p>
-            <div class="option-grid">
-                <label><input type="radio" name="envelopeStyle" value="Classic envelope" checked><span>Classic envelope<small>Included</small></span></label>
-                <label><input type="radio" name="envelopeStyle" value="Wallet envelope"><span>Wallet envelope<small>Included</small></span></label>
-            </div>
-        </fieldset>
     </section>
-
-    <section class="configuration-section configuration-section--finishing" aria-labelledby="tierTwoFinishingHeading">
-        <div class="finishing-price-alert" role="note">
-            <div class="finishing-price-alert__icon" aria-hidden="true">i</div>
-            <div>
-                <strong>Some finishing options are priced separately.</strong>
-                <p>Standard print, matte vinyl and metallic vinyl are included. Embossing, debossing, foiling and UV printing attract an additional fee.</p>
-            </div>
-            <button type="button" class="pricing-guide-button" data-pricing-open>View pricing guide</button>
-        </div>
-
-        <div class="configuration-section__heading">
-            <div>
-                <p class="configuration-section__eyebrow">Finishing</p>
-                <h2 id="tierTwoFinishingHeading">Choose your logo finish</h2>
-            </div>
-            <p>Included finishes and premium upgrades are shown separately.</p>
-        </div>
-
-        <fieldset class="configuration-group">
-            <legend>Logo finish</legend>
-
-            <div class="finish-option-group">
-                <div class="finish-option-group__heading">
-                    <span>Included finishes</span>
-                    <small>No extra cost</small>
-                </div>
-                <div class="option-grid option-grid--three">
-                    <label><input type="radio" name="logoFinish" value="Matte vinyl" checked><span>Matte vinyl<small>Included</small></span></label>
-                    <label><input type="radio" name="logoFinish" value="Metallic vinyl"><span>Metallic vinyl<small>Included</small></span></label>
-                </div>
-            </div>
-
-            <div class="finish-option-group finish-option-group--paid">
-                <div class="finish-option-group__heading">
-                    <span>Premium finishes</span>
-                    <small>Available soon</small>
-                </div>
-                <div class="option-grid option-grid--four">
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed"><span>Embossed<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed"><span>Debossed<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed"><span>UV printed<small>Additional fee</small></span></label>
-                </div>
-            </div>
-        </fieldset>
-
-        <fieldset class="configuration-group">
-            <legend>Accessories <span class="option-status option-status--paid">Additional fee</span></legend>
-            <p class="configuration-help">Select only the optional extras you want added.</p>
-            <div class="check-grid accessory-grid">
-                <label><input type="checkbox" name="accessories" value="Ribbon handle"><span>Ribbon handle</span></label>
-                <label><input type="checkbox" name="accessories" value="Pull tab"><span>Pull tab</span></label>
-                <label><input type="checkbox" name="accessories" value="Product description card"><span>Product description card</span></label>
-                <label class="option-disabled"><input type="checkbox" name="accessories" value="Insert"><span>Insert<small>Available soon</small></span></label>
-            </div>
-        </fieldset>
-    </section>
-
-    <section class="configuration-section configuration-section--order" aria-labelledby="tierTwoOrderHeading">
-    <div class="configuration-section__heading">
-        <div>
-            <p class="configuration-section__eyebrow">Order details</p>
-            <h2 id="tierTwoOrderHeading">Tell us what you need</h2>
-        </div>
-    </div>
-
-    <label class="product-field">
-        <span>Quantity</span>
-        <input type="number" name="quantity" id="quantity" min="25" step="25" value="25" inputmode="numeric" required>
-        <small>Minimum order is 25 pieces. Quantities must be in multiples of 25.</small>
-    </label>
-
-
-<div class="product-dimensions">
-    <div class="product-dimensions__heading">
-        <div>
-            <span>Finished box dimensions</span>
-            <small>Enter the approximate product size.</small>
-        </div>
-        <span class="product-dimensions__unit">Centimetres</span>
-    </div>
-
-    <div class="dimension-grid">
-        <label class="product-field">
-            <span>Length</span>
-            <div class="measurement-input">
-                <input type="number" name="boxLength" id="boxLength" min="0.1" step="0.1" inputmode="decimal" placeholder="30" required>
-                <span>cm</span>
-            </div>
-        </label>
-
-        <label class="product-field">
-            <span>Breadth</span>
-            <div class="measurement-input">
-                <input type="number" name="boxBreadth" id="boxBreadth" min="0.1" step="0.1" inputmode="decimal" placeholder="22" required>
-                <span>cm</span>
-            </div>
-        </label>
-
-        <label class="product-field">
-            <span>Height</span>
-            <div class="measurement-input">
-                <input type="number" name="boxHeight" id="boxHeight" min="0.1" step="0.1" inputmode="decimal" placeholder="8" required>
-                <span>cm</span>
-            </div>
-        </label>
-    </div>
-
-    <div class="weight-calculator" id="weightCalculator" aria-live="polite">
-        <div>
-            <span>Estimated volumetric weight</span>
-            <strong id="volumetricWeight">Enter dimensions</strong>
-        </div>
-        <p id="weightStatus">Pricing covers a finished box of up to 1 kg volumetric weight.</p>
-    </div>
-</div>
-
-
-
-<fieldset class="configuration-group colour-selection">
-    <legend>
-        Box colour
-        <span class="option-status option-status--included">Standard colours</span>
-    </legend>
-    <p class="configuration-help">
-        Choose a standard colour. Custom colour matching may attract an additional fee.
-    </p>
-
-    <div class="colour-option-grid">
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Burgundy"><span><i style="--swatch:#673629"></i>Burgundy</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
-    </div>
-
-    <label class="product-field custom-colour-field" id="customColourField" hidden>
-        <span>Preferred colour or HEX code</span>
-        <input type="text" name="customColour" id="customColour" placeholder="e.g. #673629 or wine red">
-        <small>Custom colour matching may attract an additional fee and is subject to material availability.</small>
-    </label>
-
-    <p class="colour-disclaimer">
-        Screen colours are references only. Final colours may vary across materials and printing methods.
-    </p>
-</fieldset>
-<fieldset class="configuration-group artwork-status-group">
-    <legend>
-        Logo and artwork status
-        <span class="option-status option-status--included">Project preparation</span>
-    </legend>
-
-    <p class="configuration-help">
-        Tell us what is ready so we can plan the correct design support after your order request.
-    </p>
-
-    <div class="option-grid option-grid--artwork-status">
-        <label>
-            <input
-                type="radio"
-                name="artworkStatus"
-                value="Logo and packaging artwork ready"
-                required
-            >
-            <span>
-                Everything is ready
-                <small>I can supply my logo and final packaging artwork.</small>
-            </span>
-        </label>
-
-        <label>
-            <input
-                type="radio"
-                name="artworkStatus"
-                value="Logo ready, packaging artwork required"
-                required
-            >
-            <span>
-                Logo ready
-                <small>I need Luxsome to prepare the packaging artwork.</small>
-            </span>
-        </label>
-
-        <label>
-            <input
-                type="radio"
-                name="artworkStatus"
-                value="Some brand assets available"
-                required
-            >
-            <span>
-                Some assets available
-                <small>I have some files, but they still need to be reviewed.</small>
-            </span>
-        </label>
-
-        <label>
-            <input
-                type="radio"
-                name="artworkStatus"
-                value="Full logo and packaging design support required"
-                required
-            >
-            <span>
-                Full design support
-                <small>I need help with both my logo and packaging artwork.</small>
-            </span>
-        </label>
-    </div>
-</fieldset>
-
-
-    <label class="product-field">
-        <span>Additional comments</span>
-        <textarea
-            name="comments"
-            rows="4"
-            placeholder="Add product details, brand direction, deadline or any other requirement."
-
-        ></textarea>
-    </label>
-
-    <div class="order-summary-note">
-        <strong>What happens next?</strong>
-        <span>Your selections will be added to the project form, where you can provide your brand, artwork and delivery details.</span>
-    </div>
-
-    <button type="submit" class="buy-now-button">Order Tier 2</button>
-    <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
-</section>
-</form>
-            </div>
-        </div>
-    </section>
-
-    <div class="mobile-buy-bar"><button type="button" id="mobileBuyButton">Order Tier 2</button></div>
 </main>
 
         <footer class="site-footer">
@@ -1016,5 +1076,99 @@
     </section>
 </div>
 
-</body>
+    
+        <script id="mobileGalleryReleaseScript">
+            document.addEventListener("DOMContentLoaded", () => {
+                const gallery = document.querySelector(".product-gallery");
+                const boxStyleSection = document.getElementById(
+                    "boxStyleConfiguration"
+                );
+                const mobileBreakpoint = window.matchMedia(
+                    "(max-width: 980px)"
+                );
+
+                if (!gallery || !boxStyleSection) return;
+
+                const getReleaseTarget = () => {
+                    /*
+                     * For Tier pages this is the Hang Tag fieldset.
+                     * For Bespoke it is the first section after Box Style.
+                     */
+                    const nextFieldset =
+                        boxStyleSection.nextElementSibling?.matches("fieldset")
+                            ? boxStyleSection.nextElementSibling
+                            : null;
+
+                    if (nextFieldset) return nextFieldset;
+
+                    const currentSection =
+                        boxStyleSection.closest(".configuration-section");
+
+                    return currentSection?.nextElementSibling || null;
+                };
+
+                const updateGalleryState = () => {
+                    if (!mobileBreakpoint.matches) {
+                        gallery.classList.remove(
+                            "product-gallery--mobile-released"
+                        );
+                        return;
+                    }
+
+                    const releaseTarget = getReleaseTarget();
+                    if (!releaseTarget) return;
+
+                    const stickyTop = window.innerWidth <= 620 ? 102 : 108;
+                    const galleryHeight = Math.min(
+                        gallery.getBoundingClientRect().height,
+                        window.innerHeight * 0.62
+                    );
+
+                    /*
+                     * Release early enough for the image to begin scrolling
+                     * away before the next option heading reaches it.
+                     */
+                    const releaseLine =
+                        stickyTop + galleryHeight + 28;
+
+                    const shouldRelease =
+                        releaseTarget.getBoundingClientRect().top <=
+                        releaseLine;
+
+                    gallery.classList.toggle(
+                        "product-gallery--mobile-released",
+                        shouldRelease
+                    );
+                };
+
+                let frameRequested = false;
+
+                const requestUpdate = () => {
+                    if (frameRequested) return;
+
+                    frameRequested = true;
+
+                    window.requestAnimationFrame(() => {
+                        updateGalleryState();
+                        frameRequested = false;
+                    });
+                };
+
+                updateGalleryState();
+
+                window.addEventListener("scroll", requestUpdate, {
+                    passive: true
+                });
+
+                window.addEventListener("resize", requestUpdate);
+                window.addEventListener("load", requestUpdate);
+
+                mobileBreakpoint.addEventListener?.(
+                    "change",
+                    updateGalleryState
+                );
+            });
+        </script>
+
+    </body>
 </html>

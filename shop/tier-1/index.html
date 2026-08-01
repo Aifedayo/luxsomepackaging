@@ -8,7 +8,7 @@
         >
 
         <title>
-            Tier 1 The Foundation | Luxsome Packaging
+            Tier 1 The Essential | Luxsome Packaging
         </title>
 
         <meta
@@ -25,7 +25,7 @@
         <meta property="og:site_name" content="Luxsome Packaging">
         <meta
             property="og:title"
-            content="Tier 1 The Foundation | Luxsome Packaging"
+            content="Tier 1 The Essential | Luxsome Packaging"
         >
         <meta
             property="og:description"
@@ -37,7 +37,7 @@
         >
         <meta
             property="og:image:alt"
-            content="Tier 1 The Foundation packaging system by Luxsome"
+            content="Tier 1 The Essential packaging system by Luxsome"
         >
         <meta
             property="og:url"
@@ -48,7 +48,7 @@
         <meta name="twitter:card" content="summary_large_image">
         <meta
             name="twitter:title"
-            content="Tier 1 The Foundation | Luxsome Packaging"
+            content="Tier 1 The Essential | Luxsome Packaging"
         >
         <meta
             name="twitter:description"
@@ -113,7 +113,7 @@
                     "@type": "WebPage",
                     "@id": "https://www.luxsomepackaging.com/shop/tier-1/#webpage",
                     "url": "https://www.luxsomepackaging.com/shop/tier-1/",
-                    "name": "Tier 1 The Foundation | Luxsome Packaging",
+                    "name": "Tier 1 The Essential | Luxsome Packaging",
                     "description": "A focused packaging system for growing brands ready to move beyond generic presentation.",
                     "isPartOf": {
                         "@id": "https://www.luxsomepackaging.com/#website"
@@ -126,7 +126,7 @@
                 {
                     "@type": "Service",
                     "@id": "https://www.luxsomepackaging.com/shop/tier-1/#service",
-                    "name": "Tier 1 - The Foundation",
+                    "name": "Tier 1 - The Essential",
                     "description": "A focused packaging system for growing brands ready to move beyond generic presentation.",
                     "provider": {
                         "@id": "https://www.luxsomepackaging.com/#organization"
@@ -165,6 +165,64 @@
         }
         </script>
     
+    
+        <style id="mobileGalleryReleaseStyles">
+            /*
+             * Mobile gallery remains sticky only while the first structure
+             * choice is visible. It releases before the following option
+             * reaches the gallery, giving every option enough reading space.
+             */
+            .mobile-buy-bar {
+                display: none !important;
+            }
+
+            @media (max-width: 980px) {
+                .product-gallery {
+                    position: sticky !important;
+                    top: 108px !important;
+                    z-index: 12;
+                }
+
+                .product-gallery.product-gallery--mobile-released {
+                    position: static !important;
+                    top: auto !important;
+                    z-index: 1 !important;
+                    margin-inline: 0 !important;
+                    padding-inline: 0 !important;
+                    border: 0 !important;
+                    background: transparent !important;
+                    box-shadow: none !important;
+                    backdrop-filter: none !important;
+                    -webkit-backdrop-filter: none !important;
+                }
+
+                .product-gallery.product-gallery--mobile-released
+                    .product-gallery__sticky {
+                    position: static !important;
+                    top: auto !important;
+                }
+
+                .buy-now-button {
+                    margin-bottom: 0 !important;
+                }
+
+                .product-detail {
+                    padding-bottom: 28px !important;
+                }
+            }
+
+            @media (max-width: 620px) {
+                .product-gallery {
+                    top: 102px !important;
+                }
+
+                .configuration-group,
+                .configuration-section {
+                    scroll-margin-top: 118px;
+                }
+            }
+        </style>
+
     </head>
 
     <body class="shop-page">
@@ -239,7 +297,7 @@
         <a href="/shop/">Shop</a><span>/</span><span>Tier 1</span>
     </nav>
 
-    <section class="product-detail" data-product="tier-1" data-product-name="The Foundation">
+    <section class="product-detail" data-product="tier-1" data-product-name="The Essential">
         <div class="shop-container product-detail__grid">
             
 <div class="product-gallery" data-synchronised-gallery>
@@ -252,7 +310,7 @@
                 >
                     <img
                         src="/assets/images/gallery/packaging-system-01.webp"
-                        alt="The Foundation packaging system"
+                        alt="The Essential packaging system"
                         width="1200"
                         height="1400"
                     >
@@ -286,7 +344,7 @@
             <div class="product-panel">
                 <div class="product-panel__heading">
                     <p class="shop-eyebrow">Tier 1</p>
-                    <h1>The Foundation</h1>
+                    <h1>The Essential</h1>
                     <p class="product-summary">A simple branded packaging system for growing brands.</p>
                 </div>
 
@@ -304,7 +362,9 @@
             <p>Select one option for each packaging item.</p>
         </div>
 
-        <fieldset class="configuration-group">
+        <fieldset class="configuration-group"
+            id="boxStyleConfiguration"
+        >
             <legend>
                 Box style
                 <span class="option-status option-status--included">Included</span>
@@ -471,10 +531,10 @@
                     <small>Available soon</small>
                 </div>
                 <div class="option-grid option-grid--four">
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed"><span>Embossed<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed"><span>Debossed<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed"><span>UV printed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed" disabled><span>Embossed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed" disabled><span>Debossed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled" disabled><span>Foiled<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed" disabled><span>UV printed<small>Additional fee</small></span></label>
                 </div>
             </div>
         </fieldset>
@@ -505,7 +565,7 @@
                 </label>
 
                 <label class="option-disabled">
-                    <input type="checkbox" name="accessories" value="Insert">
+                    <input type="checkbox" name="accessories" value="Insert" disabled>
                     <span>Insert<small>Available soon</small></span>
                 </label>
             </div>
@@ -695,8 +755,6 @@
             </div>
         </div>
     </section>
-
-    <div class="mobile-buy-bar"><button type="button" id="mobileBuyButton">Order Tier 1</button></div>
 </main>
 
         <footer class="site-footer">
@@ -1106,5 +1164,99 @@
     </section>
 </div>
 
-</body>
+
+        <script id="mobileGalleryReleaseScript">
+            document.addEventListener("DOMContentLoaded", () => {
+                const gallery = document.querySelector(".product-gallery");
+                const boxStyleSection = document.getElementById(
+                    "boxStyleConfiguration"
+                );
+                const mobileBreakpoint = window.matchMedia(
+                    "(max-width: 980px)"
+                );
+
+                if (!gallery || !boxStyleSection) return;
+
+                const getReleaseTarget = () => {
+                    /*
+                     * For Tier pages this is the Hang Tag fieldset.
+                     * For Bespoke it is the first section after Box Style.
+                     */
+                    const nextFieldset =
+                        boxStyleSection.nextElementSibling?.matches("fieldset")
+                            ? boxStyleSection.nextElementSibling
+                            : null;
+
+                    if (nextFieldset) return nextFieldset;
+
+                    const currentSection =
+                        boxStyleSection.closest(".configuration-section");
+
+                    return currentSection?.nextElementSibling || null;
+                };
+
+                const updateGalleryState = () => {
+                    if (!mobileBreakpoint.matches) {
+                        gallery.classList.remove(
+                            "product-gallery--mobile-released"
+                        );
+                        return;
+                    }
+
+                    const releaseTarget = getReleaseTarget();
+                    if (!releaseTarget) return;
+
+                    const stickyTop = window.innerWidth <= 620 ? 102 : 108;
+                    const galleryHeight = Math.min(
+                        gallery.getBoundingClientRect().height,
+                        window.innerHeight * 0.62
+                    );
+
+                    /*
+                     * Release early enough for the image to begin scrolling
+                     * away before the next option heading reaches it.
+                     */
+                    const releaseLine =
+                        stickyTop + galleryHeight + 28;
+
+                    const shouldRelease =
+                        releaseTarget.getBoundingClientRect().top <=
+                        releaseLine;
+
+                    gallery.classList.toggle(
+                        "product-gallery--mobile-released",
+                        shouldRelease
+                    );
+                };
+
+                let frameRequested = false;
+
+                const requestUpdate = () => {
+                    if (frameRequested) return;
+
+                    frameRequested = true;
+
+                    window.requestAnimationFrame(() => {
+                        updateGalleryState();
+                        frameRequested = false;
+                    });
+                };
+
+                updateGalleryState();
+
+                window.addEventListener("scroll", requestUpdate, {
+                    passive: true
+                });
+
+                window.addEventListener("resize", requestUpdate);
+                window.addEventListener("load", requestUpdate);
+
+                mobileBreakpoint.addEventListener?.(
+                    "change",
+                    updateGalleryState
+                );
+            });
+        </script>
+
+    </body>
 </html>
