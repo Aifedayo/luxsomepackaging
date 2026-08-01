@@ -23,10 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     const totalSteps = 2;
+    const START_PROJECT_DRAFT_KEY =
+        "luxsomeStartProjectDraft";
+
     let currentStep = 1;
     const shopConfiguration = readShopConfiguration();
 
     addConfigurationFields(shopConfiguration);
+    restoreStartProjectDraft();
     configureProductSelectionReturnLink(shopConfiguration);
     updateStepUI(false);
 
@@ -58,6 +62,19 @@ document.addEventListener("DOMContentLoaded", () => {
             target instanceof HTMLTextAreaElement
         ) {
             target.removeAttribute("aria-invalid");
+            saveStartProjectDraft();
+        }
+    });
+
+    form.addEventListener("input", event => {
+        const target = event.target;
+
+        if (
+            target instanceof HTMLInputElement ||
+            target instanceof HTMLSelectElement ||
+            target instanceof HTMLTextAreaElement
+        ) {
+            saveStartProjectDraft();
         }
     });
 
@@ -114,6 +131,10 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem(
                 "luxsomeProjectConfirmation",
                 JSON.stringify(createConfirmationData(confirmedReference))
+            );
+
+            localStorage.removeItem(
+                START_PROJECT_DRAFT_KEY
             );
 
             window.location.href =
@@ -264,14 +285,137 @@ document.addEventListener("DOMContentLoaded", () => {
             `${productPath}?${params.toString()}`;
 
         changeProductSelections.addEventListener("click", () => {
+            saveStartProjectDraft();
+
             localStorage.setItem(
                 "luxsomeShopConfiguration",
                 JSON.stringify({
                     ...configuration,
+                    additional_projects:
+                        preserveAdditionalProjects(
+                            configuration.additional_projects
+                        ),
                     restore_configuration: "1"
                 })
             );
         });
+    }
+
+    function saveStartProjectDraft() {
+        const draft = {
+            version: 1,
+            saved_at: new Date().toISOString(),
+            customer: {
+                fullName: valueOf("fullName"),
+                brandName: valueOf("brandName"),
+                email: valueOf("email"),
+                phone: valueOf("phone"),
+                preferredContactMethod:
+                    valueOf("preferredContactMethod"),
+                instagram: valueOf("instagram"),
+                location: valueOf("location")
+            }
+        };
+
+        try {
+            localStorage.setItem(
+                START_PROJECT_DRAFT_KEY,
+                JSON.stringify(draft)
+            );
+        } catch (error) {
+            console.warn(
+                "The customer details could not be saved.",
+                error
+            );
+        }
+    }
+
+    function restoreStartProjectDraft() {
+        let draft = null;
+
+        try {
+            draft = JSON.parse(
+                localStorage.getItem(
+                    START_PROJECT_DRAFT_KEY
+                ) || "null"
+            );
+        } catch (error) {
+            console.warn(
+                "The saved customer details could not be restored.",
+                error
+            );
+
+            return;
+        }
+
+        if (
+            !draft ||
+            typeof draft !== "object" ||
+            !draft.customer
+        ) {
+            return;
+        }
+
+        const savedFields = {
+            fullName: draft.customer.fullName,
+            brandName: draft.customer.brandName,
+            email: draft.customer.email,
+            phone: draft.customer.phone,
+            preferredContactMethod:
+                draft.customer.preferredContactMethod,
+            instagram: draft.customer.instagram,
+            location: draft.customer.location
+        };
+
+        Object.entries(savedFields).forEach(
+            ([fieldId, savedValue]) => {
+                const field =
+                    document.getElementById(fieldId);
+
+                if (
+                    field &&
+                    String(savedValue || "").trim()
+                ) {
+                    field.value = String(savedValue);
+                }
+            }
+        );
+    }
+
+    function preserveAdditionalProjects(value) {
+        if (Array.isArray(value)) {
+            return JSON.stringify(value);
+        }
+
+        if (
+            value &&
+            typeof value === "object"
+        ) {
+            return JSON.stringify(value);
+        }
+
+        const rawValue = String(value || "").trim();
+
+        if (!rawValue) {
+            return "[]";
+        }
+
+        try {
+            const projects = JSON.parse(rawValue);
+
+            return JSON.stringify(
+                Array.isArray(projects)
+                    ? projects
+                    : []
+            );
+        } catch (error) {
+            console.warn(
+                "The additional Bespoke projects could not be preserved.",
+                error
+            );
+
+            return "[]";
+        }
     }
 
     function getProductDetailPath(configuration) {

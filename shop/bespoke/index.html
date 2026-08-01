@@ -1943,7 +1943,10 @@
                     projectInput.value = JSON.stringify(projects);
                 };
 
-                const addProject = () => {
+                const addProject = (
+                    initialProject = null,
+                    shouldFocus = true
+                ) => {
                     projectCounter += 1;
 
                     const card = document.createElement("article");
@@ -2068,6 +2071,91 @@
 
                     projectList.appendChild(card);
 
+                    /*
+                     * Restore a previously saved additional project when
+                     * returning from the Start Project review page.
+                     */
+                    if (
+                        initialProject &&
+                        typeof initialProject === "object"
+                    ) {
+                        const brandInput = card.querySelector(
+                            "[data-additional-brand]"
+                        );
+
+                        const selectedPieces = Array.isArray(
+                            initialProject.packaging_pieces
+                        )
+                            ? initialProject.packaging_pieces
+                            : String(
+                                initialProject.packaging_pieces || ""
+                            )
+                                .split(",")
+                                .map(piece => piece.trim())
+                                .filter(Boolean);
+
+                        if (brandInput) {
+                            brandInput.value =
+                                initialProject.brand_name || "";
+                        }
+
+                        card
+                            .querySelectorAll(
+                                "[data-additional-piece]"
+                            )
+                            .forEach(input => {
+                                input.checked =
+                                    selectedPieces.includes(
+                                        input.value
+                                    );
+                            });
+
+                        const boxStyle = card.querySelector(
+                            "[data-additional-box-style]"
+                        );
+
+                        if (
+                            boxStyle &&
+                            initialProject.box_style
+                        ) {
+                            boxStyle.value =
+                                initialProject.box_style;
+                        }
+
+                        const boxQuantity = card.querySelector(
+                            "[data-additional-box-quantity]"
+                        );
+
+                        if (
+                            boxQuantity &&
+                            initialProject.box_quantity
+                        ) {
+                            boxQuantity.value =
+                                initialProject.box_quantity;
+                        }
+
+                        const otherQuantity = card.querySelector(
+                            "[data-additional-other-quantity]"
+                        );
+
+                        if (
+                            otherQuantity &&
+                            initialProject.other_pieces_quantity
+                        ) {
+                            otherQuantity.value =
+                                initialProject.other_pieces_quantity;
+                        }
+
+                        const notes = card.querySelector(
+                            "[data-additional-notes]"
+                        );
+
+                        if (notes) {
+                            notes.value =
+                                initialProject.notes || "";
+                        }
+                    }
+
                     card.addEventListener("input", () => {
                         updateAdditionalCardState(card);
                         updateAdditionalProjects();
@@ -2090,10 +2178,96 @@
                     updateAdditionalCardState(card);
                     updateAdditionalProjects();
 
-                    card.querySelector("[data-additional-brand]")?.focus();
+                    if (shouldFocus) {
+                        card
+                            .querySelector(
+                                "[data-additional-brand]"
+                            )
+                            ?.focus();
+                    }
+
+                    return card;
                 };
 
-                addButton?.addEventListener("click", addProject);
+                const readSavedAdditionalProjects = () => {
+                    const params = new URLSearchParams(
+                        window.location.search
+                    );
+
+                    let storedConfiguration = {};
+
+                    try {
+                        storedConfiguration = JSON.parse(
+                            localStorage.getItem(
+                                "luxsomeShopConfiguration"
+                            ) || "{}"
+                        );
+                    } catch (error) {
+                        console.warn(
+                            "The saved Bespoke configuration could not be read.",
+                            error
+                        );
+                    }
+
+                    const rawProjects =
+                        params.get("additional_projects") ??
+                        storedConfiguration.additional_projects ??
+                        "[]";
+
+                    if (Array.isArray(rawProjects)) {
+                        return rawProjects;
+                    }
+
+                    if (
+                        rawProjects &&
+                        typeof rawProjects === "object"
+                    ) {
+                        return [rawProjects];
+                    }
+
+                    try {
+                        const parsed = JSON.parse(
+                            String(rawProjects || "[]")
+                        );
+
+                        return Array.isArray(parsed)
+                            ? parsed
+                            : [];
+                    } catch (error) {
+                        console.warn(
+                            "The saved additional projects could not be restored.",
+                            error
+                        );
+
+                        return [];
+                    }
+                };
+
+                const restoreAdditionalProjects = () => {
+                    const savedProjects =
+                        readSavedAdditionalProjects();
+
+                    if (!savedProjects.length) {
+                        updateAdditionalProjects();
+                        return;
+                    }
+
+                    projectList.replaceChildren();
+                    projectCounter = 0;
+
+                    savedProjects.forEach(project => {
+                        addProject(project, false);
+                    });
+
+                    updateAdditionalProjects();
+                };
+
+                addButton?.addEventListener(
+                    "click",
+                    () => addProject()
+                );
+
+                restoreAdditionalProjects();
 
                 form.addEventListener("submit", event => {
                     const selectedMainPieces = pieceInputs.filter(
