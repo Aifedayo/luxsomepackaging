@@ -1,5 +1,5 @@
 /* =========================================================
-   LUXSOME PACKAGING BUILDER → START A PROJECT HANDOFF
+   LUXSOME PACKAGING BUILDER → Guide Me HANDOFF
    Load this file on the Packaging Builder page.
 ========================================================= */
 
@@ -8,7 +8,7 @@
 
     const STORAGE_KEY = "luxsomePackagingBuilderResult";
     const ANSWERS_KEY = "luxsomePackagingBuilderAnswers";
-    const START_PROJECT_URL = "/start-project/?source=builder";
+    const START_PROJECT_URL = "/packaging-builder/?source=builder";
 
     function cleanText(value) {
         return typeof value === "string" ? value.trim() : "";
