@@ -1,0 +1,129 @@
+
+.client-portal-admin {
+    margin-top: 24px;
+    padding: 22px;
+    border: 1px solid rgba(103, 54, 41, 0.18);
+    background:
+        radial-gradient(
+            circle at 92% 12%,
+            rgba(198, 145, 94, 0.13),
+            transparent 34%
+        ),
+        #f8f4ef;
+}
+
+.client-portal-admin__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.client-portal-admin__heading p {
+    margin: 0 0 4px;
+    color: #7a4d3d;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+}
+
+.client-portal-admin__heading h3 {
+    margin: 0;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 1.65rem;
+    font-weight: 400;
+}
+
+.client-portal-admin__help {
+    max-width: 640px;
+    margin: 10px 0 18px;
+    color: #756159;
+    font-size: 0.7rem;
+    line-height: 1.55;
+}
+
+.client-portal-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.client-portal-switch input {
+    position: absolute;
+    opacity: 0;
+}
+
+.client-portal-switch span {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border: 1px solid #cdbdb4;
+    border-radius: 999px;
+    background: #e7ddd7;
+    transition: 180ms ease;
+}
+
+.client-portal-switch span::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 2px 7px rgba(33, 23, 19, 0.2);
+    transition: transform 180ms ease;
+}
+
+.client-portal-switch input:checked + span {
+    border-color: #211713;
+    background: #211713;
+}
+
+.client-portal-switch input:checked + span::after {
+    transform: translateX(20px);
+}
+
+.client-portal-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px;
+    margin-top: 14px;
+}
+
+.client-portal-link input {
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    border: 1px solid #d8cdc6;
+    background: #fff;
+}
+
+.client-portal-link button {
+    min-height: 44px;
+    padding: 10px 15px;
+    border: 1px solid #211713;
+    background: #211713;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@media (max-width: 700px) {
+    .client-portal-admin {
+        padding: 18px 14px;
+    }
+
+    .client-portal-admin__heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .client-portal-link {
+        grid-template-columns: 1fr;
+    }
+}

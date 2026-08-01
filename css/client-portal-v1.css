@@ -1,0 +1,328 @@
+
+:root {
+    color-scheme: light;
+    --ink: #211713;
+    --brown: #673629;
+    --muted: #756159;
+    --ivory: #f8f4ef;
+    --line: #e5d9d1;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(
+            circle at 86% 8%,
+            rgba(103, 54, 41, 0.12),
+            transparent 31%
+        ),
+        linear-gradient(145deg, #f8f4ef, #eee7df);
+    color: var(--ink);
+    font-family: "Montserrat", Arial, sans-serif;
+}
+
+.portal-shell {
+    width: min(1050px, calc(100% - 32px));
+    min-height: 100vh;
+    margin: auto;
+    padding: 30px 0 70px;
+}
+
+.portal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(33, 23, 19, 0.12);
+}
+
+.portal-header img {
+    width: 126px;
+    display: block;
+}
+
+.portal-header > span,
+.portal-eyebrow,
+.portal-section-heading p {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+}
+
+.portal-loading,
+.portal-error {
+    min-height: 65vh;
+    display: grid;
+    place-content: center;
+    text-align: center;
+}
+
+.portal-loading span {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto 15px;
+    border: 2px solid rgba(33, 23, 19, 0.16);
+    border-top-color: var(--brown);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.portal-error h1 {
+    max-width: 600px;
+    margin: 8px auto 14px;
+    font: 500 clamp(2.5rem, 7vw, 5rem) / 0.95
+        "Cormorant Garamond", Georgia, serif;
+}
+
+.portal-order {
+    padding-top: 60px;
+}
+
+.portal-order__intro {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.portal-order__intro h1 {
+    margin: 7px 0 0;
+    font: 500 clamp(3.2rem, 8vw, 7rem) / 0.88
+        "Cormorant Garamond", Georgia, serif;
+    letter-spacing: -0.035em;
+}
+
+.portal-reference {
+    padding-bottom: 10px;
+    text-align: right;
+}
+
+.portal-reference span,
+.portal-current span,
+.portal-card span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.portal-current {
+    display: grid;
+    grid-template-columns: minmax(250px, 0.75fr) 1.25fr;
+    gap: 30px;
+    align-items: center;
+    margin-top: 40px;
+    padding: 28px;
+    background: var(--ink);
+    color: #fff;
+}
+
+.portal-current h2 {
+    margin: 0;
+    font: 500 clamp(2rem, 5vw, 3.8rem) / 1
+        "Cormorant Garamond", Georgia, serif;
+}
+
+.portal-current p {
+    margin: 0;
+    color: rgba(255,255,255,0.76);
+    line-height: 1.7;
+}
+
+.portal-progress {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    margin: 42px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.portal-progress li {
+    position: relative;
+    padding-top: 28px;
+    color: #8b7770;
+    font-size: 0.62rem;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: center;
+}
+
+.portal-progress li::before {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #bbaaa1;
+    border-radius: 50%;
+    background: var(--ivory);
+    transform: translateX(-50%);
+}
+
+.portal-progress li::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 50%;
+    width: 100%;
+    height: 1px;
+    background: #cdbfb7;
+}
+
+.portal-progress li:first-child::after {
+    display: none;
+}
+
+.portal-progress li.is-complete,
+.portal-progress li.is-current {
+    color: var(--ink);
+}
+
+.portal-progress li.is-complete::before,
+.portal-progress li.is-current::before {
+    border-color: var(--brown);
+    background: var(--brown);
+}
+
+.portal-progress li.is-current::before {
+    box-shadow: 0 0 0 7px rgba(103, 54, 41, 0.12);
+}
+
+.portal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.portal-card {
+    min-height: 125px;
+    padding: 22px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.52);
+}
+
+.portal-card strong {
+    font: 500 1.5rem / 1.1
+        "Cormorant Garamond", Georgia, serif;
+}
+
+.portal-items {
+    margin-top: 48px;
+    padding-top: 34px;
+    border-top: 1px solid var(--line);
+}
+
+.portal-section-heading h2 {
+    margin: 4px 0 20px;
+    font: 500 clamp(2rem, 4vw, 3rem) / 1
+        "Cormorant Garamond", Georgia, serif;
+}
+
+.portal-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    padding: 17px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.portal-item strong,
+.portal-item p {
+    margin: 0;
+}
+
+.portal-item p {
+    margin-top: 5px;
+    color: var(--muted);
+    font-size: 0.7rem;
+}
+
+.portal-item span {
+    color: var(--muted);
+    font-size: 0.68rem;
+}
+
+.portal-footnote {
+    margin: 38px 0 0;
+    color: var(--muted);
+    font-size: 0.64rem;
+    text-align: center;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 720px) {
+    .portal-shell {
+        width: min(100% - 20px, 1050px);
+        padding-top: 20px;
+    }
+
+    .portal-header img {
+        width: 105px;
+    }
+
+    .portal-order {
+        padding-top: 38px;
+    }
+
+    .portal-order__intro,
+    .portal-current {
+        display: block;
+    }
+
+    .portal-reference {
+        margin-top: 20px;
+        text-align: left;
+    }
+
+    .portal-current {
+        padding: 22px 18px;
+    }
+
+    .portal-current p {
+        margin-top: 18px;
+        font-size: 0.75rem;
+    }
+
+    .portal-progress {
+        grid-template-columns: 1fr;
+        gap: 0;
+        margin: 28px 0;
+    }
+
+    .portal-progress li {
+        min-height: 54px;
+        padding: 0 0 0 35px;
+        text-align: left;
+    }
+
+    .portal-progress li::before {
+        top: 0;
+        left: 7px;
+        transform: none;
+    }
+
+    .portal-progress li::after {
+        top: -42px;
+        right: auto;
+        left: 13px;
+        width: 1px;
+        height: 42px;
+    }
+
+    .portal-grid {
+        grid-template-columns: 1fr;
+    }
+}

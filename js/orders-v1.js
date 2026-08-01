@@ -106,6 +106,48 @@
         element("backdrop").hidden = true;
     }
 
+    function mapOrderStatusToClientStage(status) {
+        const map = {
+            new: "payment_confirmed",
+            design_pending: "artwork_specification",
+            awaiting_approval: "artwork_specification",
+            materials_sourcing: "production",
+            in_production: "production",
+            quality_check: "quality_check",
+            ready_for_delivery: "ready_for_delivery",
+            completed: "delivered"
+        };
+
+        return map[status] || "payment_confirmed";
+    }
+
+    function buildPortalLink(tokenValue) {
+        const url = new URL(
+            "/track-order/",
+            window.location.origin
+        );
+
+        url.searchParams.set("token", tokenValue);
+        return url.toString();
+    }
+
+    async function copyPortalLink() {
+        const link = element("clientPortalLink").value;
+
+        if (!link) return;
+
+        try {
+            await navigator.clipboard.writeText(link);
+            element("formMessage").textContent =
+                "Client tracking link copied.";
+        } catch (_) {
+            element("clientPortalLink").select();
+            document.execCommand("copy");
+            element("formMessage").textContent =
+                "Client tracking link copied.";
+        }
+    }
+
     async function loadOrders() {
         try {
             element("statusMessage").textContent = "Loading orders…";
@@ -339,6 +381,28 @@
             order.customer_instructions || "";
         element("internalNotes").value =
             order.internal_notes || "";
+
+        const portalEnabled = Boolean(
+            Number(order.portal_enabled || 0)
+        );
+
+        element("portalEnabled").checked = portalEnabled;
+        element("clientProgressStage").value =
+            order.client_progress_stage ||
+            mapOrderStatusToClientStage(order.status);
+        element("clientProgressNote").value =
+            order.client_progress_note || "";
+        element("portalExpiry").value =
+            order.portal_expires_at
+                ? formatDateTime(order.portal_expires_at)
+                : "Available until 20 days after completion";
+
+        const portalLink = order.portal_token
+            ? buildPortalLink(order.portal_token)
+            : "";
+
+        element("clientPortalLink").value = portalLink;
+        element("clientPortalLinkArea").hidden = !portalLink;
         element("formMessage").textContent = "";
 
         element("orderItems").innerHTML =
@@ -429,6 +493,13 @@
                                 .value.trim(),
                         internalNotes:
                             element("internalNotes").value.trim(),
+                        portalEnabled:
+                            element("portalEnabled").checked,
+                        clientProgressStage:
+                            element("clientProgressStage").value,
+                        clientProgressNote:
+                            element("clientProgressNote")
+                                .value.trim(),
                         items
                     })
                 }
@@ -526,6 +597,21 @@
     element("activityButton").addEventListener(
         "click",
         showActivity
+    );
+
+    element("copyClientPortalLink").addEventListener(
+        "click",
+        copyPortalLink
+    );
+
+    element("orderStatus").addEventListener(
+        "change",
+        () => {
+            element("clientProgressStage").value =
+                mapOrderStatusToClientStage(
+                    element("orderStatus").value
+                );
+        }
     );
 
     let searchTimer;

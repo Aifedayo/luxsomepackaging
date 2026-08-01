@@ -33,6 +33,10 @@
         rel="stylesheet"
         href="/css/orders-v1.css"
     >
+    <link
+        rel="stylesheet"
+        href="/css/orders-client-portal-v1.css"
+    >
 </head>
 
 <body>
@@ -269,6 +273,93 @@
                 Internal production notes
                 <textarea id="internalNotes"></textarea>
             </label>
+
+            <section class="client-portal-admin">
+                <div class="client-portal-admin__heading">
+                    <div>
+                        <p>CLIENT TRACKING</p>
+                        <h3>Client portal</h3>
+                    </div>
+
+                    <label class="client-portal-switch">
+                        <input
+                            type="checkbox"
+                            id="portalEnabled"
+                        >
+                        <span aria-hidden="true"></span>
+                        Enable portal
+                    </label>
+                </div>
+
+                <p class="client-portal-admin__help">
+                    The portal can only be enabled after the invoice
+                    has been fully paid. Access expires 20 days after
+                    the order is marked completed.
+                </p>
+
+                <div class="form-grid">
+                    <label>
+                        Client-facing stage
+                        <select id="clientProgressStage">
+                            <option value="payment_confirmed">
+                                Payment confirmed
+                            </option>
+                            <option value="artwork_specification">
+                                Artwork and specification
+                            </option>
+                            <option value="production">
+                                Production
+                            </option>
+                            <option value="quality_check">
+                                Quality check
+                            </option>
+                            <option value="ready_for_delivery">
+                                Ready for delivery
+                            </option>
+                            <option value="delivered">
+                                Delivered
+                            </option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Portal expiry
+                        <input
+                            id="portalExpiry"
+                            readonly
+                            placeholder="Set after completion"
+                        >
+                    </label>
+                </div>
+
+                <label>
+                    Client-facing progress update
+                    <textarea
+                        id="clientProgressNote"
+                        placeholder="Example: Your boxes are currently being wrapped and assembled."
+                    ></textarea>
+                </label>
+
+                <div
+                    class="client-portal-link"
+                    id="clientPortalLinkArea"
+                    hidden
+                >
+                    <input
+                        id="clientPortalLink"
+                        readonly
+                        aria-label="Client tracking link"
+                    >
+
+                    <button
+                        type="button"
+                        id="copyClientPortalLink"
+                    >
+                        Copy tracking link
+                    </button>
+                </div>
+            </section>
+
 
             <p id="formMessage"></p>
 

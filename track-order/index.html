@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+    <meta name="robots" content="noindex, nofollow">
+
+    <title>Track Your Order | Luxsome Packaging</title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Montserrat:wght@400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="/css/client-portal-v1.css">
+</head>
+
+<body>
+    <main class="portal-shell">
+        <header class="portal-header">
+            <a href="/" aria-label="Luxsome homepage">
+                <img
+                    src="/assets/images/luxsome-logo.png"
+                    alt="Luxsome Packaging"
+                >
+            </a>
+
+            <span>Client order tracker</span>
+        </header>
+
+        <section class="portal-loading" id="portalLoading">
+            <span></span>
+            Loading your order progress…
+        </section>
+
+        <section
+            class="portal-error"
+            id="portalError"
+            hidden
+        >
+            <p>TRACKING UNAVAILABLE</p>
+            <h1>We could not open this order.</h1>
+            <span id="portalErrorMessage">
+                The tracking link may be invalid or expired.
+            </span>
+        </section>
+
+        <section
+            class="portal-order"
+            id="portalOrder"
+            hidden
+        >
+            <div class="portal-order__intro">
+                <div>
+                    <p class="portal-eyebrow">YOUR LUXSOME ORDER</p>
+                    <h1 id="brandName">—</h1>
+                </div>
+
+                <div class="portal-reference">
+                    <span>Order reference</span>
+                    <strong id="orderReference">—</strong>
+                </div>
+            </div>
+
+            <section class="portal-current">
+                <div>
+                    <span>Current stage</span>
+                    <h2 id="currentStage">—</h2>
+                </div>
+
+                <p id="progressNote">
+                    Your order is progressing.
+                </p>
+            </section>
+
+            <ol class="portal-progress" id="progressTracker"></ol>
+
+            <div class="portal-grid">
+                <section class="portal-card">
+                    <span>Expected delivery</span>
+                    <strong id="expectedDelivery">To be confirmed</strong>
+                </section>
+
+                <section class="portal-card">
+                    <span>Delivery method</span>
+                    <strong id="deliveryMethod">To be confirmed</strong>
+                </section>
+
+                <section class="portal-card">
+                    <span>Last updated</span>
+                    <strong id="lastUpdated">—</strong>
+                </section>
+            </div>
+
+            <section class="portal-items">
+                <div class="portal-section-heading">
+                    <p>ORDER CONTENTS</p>
+                    <h2>Your packaging pieces</h2>
+                </div>
+
+                <div id="orderItems"></div>
+            </section>
+
+            <p class="portal-footnote">
+                This private tracking link remains available for 20 days
+                after project completion.
+            </p>
+        </section>
+    </main>
+
+    <script src="/js/client-portal-v1.js"></script>
+</body>
+</html>
