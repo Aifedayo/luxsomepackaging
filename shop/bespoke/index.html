@@ -1843,8 +1843,16 @@
                         "[data-additional-box-quantity]"
                     );
 
+                    const boxQtyField = card.querySelector(
+                        "[data-additional-box-quantity-field]"
+                    );
+
                     const otherQty = card.querySelector(
                         "[data-additional-other-quantity]"
+                    );
+
+                    const otherQtyField = card.querySelector(
+                        "[data-additional-other-quantity-field]"
                     );
 
                     if (boxDetails) {
@@ -1858,16 +1866,34 @@
                         }
                     );
 
+                    if (boxQtyField) {
+                        boxQtyField.hidden = !hasBox;
+                    }
+
                     if (boxQty) {
                         boxQty.disabled = !hasBox;
                         boxQty.required = hasBox;
-                        normaliseQuantity(boxQty, 25);
+
+                        if (hasBox) {
+                            normaliseQuantity(boxQty, 25);
+                        } else {
+                            boxQty.setCustomValidity("");
+                        }
+                    }
+
+                    if (otherQtyField) {
+                        otherQtyField.hidden = !hasOtherPieces;
                     }
 
                     if (otherQty) {
                         otherQty.disabled = !hasOtherPieces;
                         otherQty.required = hasOtherPieces;
-                        normaliseQuantity(otherQty, 100);
+
+                        if (hasOtherPieces) {
+                            normaliseQuantity(otherQty, 100);
+                        } else {
+                            otherQty.setCustomValidity("");
+                        }
                     }
                 };
 
@@ -1888,17 +1914,25 @@
                                 )?.value.trim() || "",
                             packaging_pieces: pieces,
                             box_style:
-                                card.querySelector(
-                                    "[data-additional-box-style]"
-                                )?.value || "",
+                                pieces.includes("Rigid box")
+                                    ? card.querySelector(
+                                        "[data-additional-box-style]"
+                                    )?.value || ""
+                                    : "",
                             box_quantity:
-                                card.querySelector(
-                                    "[data-additional-box-quantity]"
-                                )?.value || "",
+                                pieces.includes("Rigid box")
+                                    ? card.querySelector(
+                                        "[data-additional-box-quantity]"
+                                    )?.value || ""
+                                    : "",
                             other_pieces_quantity:
-                                card.querySelector(
-                                    "[data-additional-other-quantity]"
-                                )?.value || "",
+                                pieces.some(
+                                    piece => piece !== "Rigid box"
+                                )
+                                    ? card.querySelector(
+                                        "[data-additional-other-quantity]"
+                                    )?.value || ""
+                                    : "",
                             notes:
                                 card.querySelector(
                                     "[data-additional-notes]"
@@ -1975,7 +2009,11 @@
                             </div>
 
                             <div class="additional-project__quantity-grid">
-                                <label class="product-field">
+                                <label
+                                    class="product-field"
+                                    data-additional-box-quantity-field
+                                    hidden
+                                >
                                     <span>Box quantity</span>
 
                                     <input
@@ -1993,7 +2031,11 @@
                                     </small>
                                 </label>
 
-                                <label class="product-field">
+                                <label
+                                    class="product-field"
+                                    data-additional-other-quantity-field
+                                    hidden
+                                >
                                     <span>Other packaging quantity</span>
 
                                     <input
