@@ -499,49 +499,138 @@
                 </label>
 
 
-            <div class="product-dimensions">
-                <div class="product-dimensions__heading">
-                    <div>
-                        <span>Finished box dimensions</span>
-                        <small>Enter the approximate product size.</small>
-                    </div>
-                    <span class="product-dimensions__unit">Centimetres</span>
-                </div>
+            <div class="product-dimensions" id="boxDimensionsSection">
+    <div class="product-dimensions__heading">
+        <div>
+            <span>Finished box dimensions</span>
+            <small>Enter the approximate product size.</small>
+        </div>
 
-                <div class="dimension-grid">
-                    <label class="product-field">
-                        <span>Length</span>
-                        <div class="measurement-input">
-                            <input type="number" name="boxLength" id="boxLength" min="0.1" step="0.1" inputmode="decimal" placeholder="30" required>
-                            <span>cm</span>
-                        </div>
-                    </label>
+        <div
+            class="dimension-unit-toggle"
+            id="dimensionUnitToggle"
+            role="group"
+            aria-label="Choose dimension unit"
+            data-unit="cm"
+        >
+            <span
+                class="dimension-unit-toggle__glass"
+                aria-hidden="true"
+            ></span>
 
-                    <label class="product-field">
-                        <span>Breadth</span>
-                        <div class="measurement-input">
-                            <input type="number" name="boxBreadth" id="boxBreadth" min="0.1" step="0.1" inputmode="decimal" placeholder="22" required>
-                            <span>cm</span>
-                        </div>
-                    </label>
+            <button
+                type="button"
+                class="dimension-unit-toggle__option is-active"
+                data-dimension-unit="cm"
+                aria-pressed="true"
+            >
+                cm
+            </button>
 
-                    <label class="product-field">
-                        <span>Height</span>
-                        <div class="measurement-input">
-                            <input type="number" name="boxHeight" id="boxHeight" min="0.1" step="0.1" inputmode="decimal" placeholder="8" required>
-                            <span>cm</span>
-                        </div>
-                    </label>
-                </div>
+            <button
+                type="button"
+                class="dimension-unit-toggle__option"
+                data-dimension-unit="in"
+                aria-pressed="false"
+            >
+                inches
+            </button>
+        </div>
+    </div>
 
-                <div class="weight-calculator" id="weightCalculator" aria-live="polite">
-                    <div>
-                        <span>Estimated volumetric weight</span>
-                        <strong id="volumetricWeight">Enter dimensions</strong>
-                    </div>
-                    <p id="weightStatus">Pricing covers a finished box of up to 1 kg volumetric weight.</p>
-                </div>
+    <div class="dimension-grid">
+        <label class="product-field">
+            <span>Length</span>
+
+            <div class="measurement-input">
+                <input
+                    type="number"
+                    id="boxLengthDisplay"
+                    min="0.1"
+                    step="0.1"
+                    inputmode="decimal"
+                    placeholder="30"
+                    data-dimension-display="boxLength"
+                    required
+                >
+                <span data-dimension-suffix>cm</span>
             </div>
+
+            <input
+                type="hidden"
+                name="boxLength"
+                id="boxLength"
+            >
+        </label>
+
+        <label class="product-field">
+            <span>Breadth</span>
+
+            <div class="measurement-input">
+                <input
+                    type="number"
+                    id="boxBreadthDisplay"
+                    min="0.1"
+                    step="0.1"
+                    inputmode="decimal"
+                    placeholder="22"
+                    data-dimension-display="boxBreadth"
+                    required
+                >
+                <span data-dimension-suffix>cm</span>
+            </div>
+
+            <input
+                type="hidden"
+                name="boxBreadth"
+                id="boxBreadth"
+            >
+        </label>
+
+        <label class="product-field">
+            <span>Height</span>
+
+            <div class="measurement-input">
+                <input
+                    type="number"
+                    id="boxHeightDisplay"
+                    min="0.1"
+                    step="0.1"
+                    inputmode="decimal"
+                    placeholder="8"
+                    data-dimension-display="boxHeight"
+                    required
+                >
+                <span data-dimension-suffix>cm</span>
+            </div>
+
+            <input
+                type="hidden"
+                name="boxHeight"
+                id="boxHeight"
+            >
+        </label>
+    </div>
+
+    <p class="dimension-unit-note" id="dimensionUnitNote">
+        Measurements are saved in centimetres for quotation accuracy.
+    </p>
+
+    <div
+        class="weight-calculator"
+        id="weightCalculator"
+        aria-live="polite"
+    >
+        <div>
+            <span>Estimated volumetric weight</span>
+            <strong id="volumetricWeight">Enter dimensions</strong>
+        </div>
+
+        <p id="weightStatus">
+            Pricing covers a finished box of up to 1 kg volumetric weight.
+        </p>
+    </div>
+</div>
 
 
 
@@ -1167,6 +1256,174 @@
                     "change",
                     updateGalleryState
                 );
+            });
+        </script>
+
+    
+
+        <script id="dimensionUnitToggleScript">
+            document.addEventListener("DOMContentLoaded", () => {
+                const toggle = document.getElementById(
+                    "dimensionUnitToggle"
+                );
+
+                if (!toggle) return;
+
+                const buttons = Array.from(
+                    toggle.querySelectorAll("[data-dimension-unit]")
+                );
+
+                const displayInputs = Array.from(
+                    document.querySelectorAll("[data-dimension-display]")
+                );
+
+                const suffixes = Array.from(
+                    document.querySelectorAll("[data-dimension-suffix]")
+                );
+
+                const unitNote = document.getElementById(
+                    "dimensionUnitNote"
+                );
+
+                const centimetresPerInch = 2.54;
+                let activeUnit = "cm";
+
+                const roundMeasurement = value => (
+                    Math.round((value + Number.EPSILON) * 100) / 100
+                );
+
+                const getCanonicalInput = displayInput => (
+                    document.getElementById(
+                        displayInput.dataset.dimensionDisplay
+                    )
+                );
+
+                const syncCanonicalValue = displayInput => {
+                    const canonicalInput = getCanonicalInput(displayInput);
+                    if (!canonicalInput) return;
+
+                    const displayValue = Number(displayInput.value);
+
+                    if (
+                        !displayInput.value ||
+                        !Number.isFinite(displayValue) ||
+                        displayValue <= 0
+                    ) {
+                        canonicalInput.value = "";
+                    } else {
+                        const centimetres = activeUnit === "in"
+                            ? displayValue * centimetresPerInch
+                            : displayValue;
+
+                        canonicalInput.value = String(
+                            roundMeasurement(centimetres)
+                        );
+                    }
+
+                    canonicalInput.dispatchEvent(
+                        new Event("input", { bubbles: true })
+                    );
+                };
+
+                const syncDisplayFromCanonical = displayInput => {
+                    const canonicalInput = getCanonicalInput(displayInput);
+                    if (!canonicalInput) return;
+
+                    const centimetres = Number(canonicalInput.value);
+
+                    if (
+                        !canonicalInput.value ||
+                        !Number.isFinite(centimetres) ||
+                        centimetres <= 0
+                    ) {
+                        displayInput.value = "";
+                        return;
+                    }
+
+                    const displayedValue = activeUnit === "in"
+                        ? centimetres / centimetresPerInch
+                        : centimetres;
+
+                    displayInput.value = String(
+                        roundMeasurement(displayedValue)
+                    );
+                };
+
+                const updateToggle = nextUnit => {
+                    if (!["cm", "in"].includes(nextUnit)) return;
+
+                    /*
+                     * Canonical hidden inputs always remain in centimetres.
+                     * Only the customer-facing values are converted.
+                     */
+                    activeUnit = nextUnit;
+                    toggle.dataset.unit = nextUnit;
+
+                    buttons.forEach(button => {
+                        const isActive =
+                            button.dataset.dimensionUnit === nextUnit;
+
+                        button.classList.toggle("is-active", isActive);
+                        button.setAttribute(
+                            "aria-pressed",
+                            String(isActive)
+                        );
+                    });
+
+                    suffixes.forEach(suffix => {
+                        suffix.textContent =
+                            nextUnit === "in" ? "in" : "cm";
+                    });
+
+                    displayInputs.forEach(input => {
+                        input.step = nextUnit === "in" ? "0.01" : "0.1";
+                        syncDisplayFromCanonical(input);
+                    });
+
+                    if (unitNote) {
+                        unitNote.textContent = nextUnit === "in"
+                            ? "Inches are converted to centimetres automatically for quotation and volumetric-weight calculations."
+                            : "Measurements are saved in centimetres for quotation accuracy.";
+                    }
+                };
+
+                displayInputs.forEach(input => {
+                    input.addEventListener("input", () => {
+                        syncCanonicalValue(input);
+                    });
+
+                    input.addEventListener("blur", () => {
+                        if (!input.value) return;
+
+                        const value = Number(input.value);
+
+                        if (Number.isFinite(value) && value > 0) {
+                            input.value = String(
+                                roundMeasurement(value)
+                            );
+                        }
+                    });
+                });
+
+                buttons.forEach(button => {
+                    button.addEventListener("click", () => {
+                        updateToggle(
+                            button.dataset.dimensionUnit
+                        );
+                    });
+                });
+
+                /*
+                 * shop.js may restore saved centimetre values before this
+                 * listener runs. Mirror those values into the visible fields.
+                 */
+                updateToggle("cm");
+
+                window.requestAnimationFrame(() => {
+                    displayInputs.forEach(
+                        syncDisplayFromCanonical
+                    );
+                });
             });
         </script>
 

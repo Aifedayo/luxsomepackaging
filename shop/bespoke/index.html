@@ -223,6 +223,238 @@
             }
         </style>
 
+            <style id="bespokeFlexibleOrderStyles">
+            [hidden] {
+                display: none !important;
+            }
+
+            .additional-projects {
+                margin: 28px 0;
+                padding: 22px;
+                border: 1px solid #e2d7d0;
+                background: #f8f4ef;
+            }
+
+            .additional-projects__heading {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 24px;
+            }
+
+            .additional-projects__heading h3 {
+                margin: 2px 0 6px;
+                color: #2e1c15;
+                font-family: "Cormorant Garamond", Georgia, serif;
+                font-size: 1.65rem;
+                font-weight: 500;
+                line-height: 1;
+            }
+
+            .additional-projects__heading p {
+                max-width: 470px;
+                margin: 0;
+                color: #756159;
+                font-size: 0.68rem;
+                line-height: 1.55;
+            }
+
+            .additional-projects__add,
+            .additional-project__remove {
+                min-height: 40px;
+                border: 1px solid #673629;
+                background: #673629;
+                color: #fff;
+                font-family: "Montserrat", Arial, sans-serif;
+                font-size: 0.58rem;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                cursor: pointer;
+            }
+
+            .additional-projects__add {
+                flex: 0 0 auto;
+                padding: 10px 14px;
+            }
+
+            .additional-projects__list {
+                display: grid;
+                gap: 14px;
+                margin-top: 18px;
+            }
+
+            .additional-project {
+                padding: 18px;
+                border: 1px solid #ded1ca;
+                background: #fffdf9;
+            }
+
+            .additional-project__topline {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                margin-bottom: 15px;
+            }
+
+            .additional-project__topline strong {
+                color: #2e1c15;
+                font-size: 0.68rem;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            .additional-project__remove {
+                min-height: 32px;
+                padding: 7px 10px;
+                border-color: #d8c7be;
+                background: transparent;
+                color: #673629;
+            }
+
+            .additional-project__grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 13px;
+            }
+
+            .additional-project__pieces {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 7px;
+                padding: 0;
+                border: 0;
+            }
+
+            .additional-project__pieces legend {
+                grid-column: 1 / -1;
+                margin-bottom: 3px;
+                font-size: 0.64rem;
+                font-weight: 600;
+                letter-spacing: 0.07em;
+                text-transform: uppercase;
+            }
+
+            .additional-project__pieces label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                min-height: 38px;
+                padding: 8px;
+                border: 1px solid #ded1ca;
+                font-size: 0.63rem;
+            }
+
+            .additional-project__notes {
+                grid-column: 1 / -1;
+            }
+
+            @media (max-width: 620px) {
+                .additional-projects {
+                    padding: 17px 14px;
+                }
+
+                .additional-projects__heading {
+                    flex-direction: column;
+                    gap: 14px;
+                }
+
+                .additional-projects__add {
+                    width: 100%;
+                }
+
+                .additional-project__grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .additional-project__pieces {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+        
+            .bespoke-box-specification,
+            .other-pieces-order {
+                margin: 24px 0;
+                padding: 22px;
+                border: 1px solid #e2d7d0;
+                background: #fffdf9;
+            }
+
+            .bespoke-box-specification {
+                border-left: 4px solid #673629;
+            }
+
+            .other-pieces-order {
+                border-left: 4px solid #c6915e;
+                background: #f8f4ef;
+            }
+
+            .other-pieces-order__heading {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 22px;
+                margin-bottom: 18px;
+            }
+
+            .other-pieces-order__heading h3 {
+                margin: 3px 0 0;
+                color: #2e1c15;
+                font-family: "Cormorant Garamond", Georgia, serif;
+                font-size: 1.55rem;
+                font-weight: 500;
+                line-height: 1;
+            }
+
+            .other-pieces-order__heading p {
+                max-width: 330px;
+                margin: 0;
+                color: #756159;
+                font-size: 0.66rem;
+                line-height: 1.55;
+                text-align: right;
+            }
+
+            .bespoke-quantity-field {
+                max-width: 390px;
+                margin-top: 20px;
+            }
+
+            .additional-project__quantity-grid {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 13px;
+            }
+
+            .additional-project__box-style {
+                grid-column: 1 / -1;
+            }
+
+            @media (max-width: 620px) {
+                .bespoke-box-specification,
+                .other-pieces-order {
+                    padding: 18px 14px;
+                }
+
+                .other-pieces-order__heading {
+                    display: block;
+                }
+
+                .other-pieces-order__heading p {
+                    margin-top: 8px;
+                    text-align: left;
+                }
+
+                .additional-project__quantity-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+        </style>
+
     </head>
 
     <body class="shop-page">
@@ -349,7 +581,7 @@
                     <p class="product-summary">Choose the pieces you need and tell us what you want to create.</p>
                 </div>
 
-                <details class="product-accordion" open>
+                <details class="product-accordion">
                     <summary>Included</summary>
                     <ul class="included-list"><li>Custom packaging direction</li><li>Selected brand pieces</li><li>Structure recommendation</li><li>Finishing specification</li></ul>
                 </details>
@@ -374,7 +606,7 @@
 
             <div class="check-grid accessory-grid bespoke-piece-grid">
                 <label>
-                    <input type="checkbox" name="packagingPieces" value="Rigid box" checked>
+                    <input type="checkbox" name="packagingPieces" value="Rigid box">
                     <span>Rigid box</span>
                 </label>
 
@@ -408,9 +640,9 @@
                     <span>Branded ribbon</span>
                 </label>
 
-                <label>
-                    <input type="checkbox" name="packagingPieces" value="Product insert">
-                    <span>Product insert</span>
+                <label class="option-disabled">
+                    <input type="checkbox" name="packagingPieces" value="Product insert" disabled>
+                    <span>Product insert<small>Available soon</small></span>
                 </label>
 
                 <label>
@@ -425,51 +657,240 @@
             </div>
         </fieldset>
 
-        <fieldset class="configuration-group"
-            id="boxStyleConfiguration"
+        <section
+            class="bespoke-box-specification"
+            id="boxSpecificationSection"
+            hidden
+            aria-labelledby="boxSpecificationHeading"
         >
-            <legend>Box style</legend>
-            <p class="configuration-help">
-                Choose a preferred structure, or leave us to recommend one after reviewing your product.
-            </p>
+            <div class="configuration-section__heading">
+                <div>
+                    <p class="configuration-section__eyebrow">Rigid box</p>
+                    <h2 id="boxSpecificationHeading">
+                        Box style and quantity
+                    </h2>
+                </div>
 
-            <div class="option-grid option-grid--box-styles">
-                <label>
-                    <input type="radio" name="boxStyle" value="Recommend a structure" checked>
-                    <span>Recommend for me</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="boxStyle" value="Magnetic flap">
-                    <span>Magnetic flap</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="boxStyle" value="Shoulder box">
-                    <span>Shoulder box</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="boxStyle" value="Tray-in-bed">
-                    <span>Tray-in-bed</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="boxStyle" value="Door style">
-                    <span>Door style</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="boxStyle" value="Collapsible magnetic flap">
-                    <span>Collapsible magnetic</span>
-                </label>
-
-                <label>
-                    <input type="radio" name="boxStyle" value="Custom structure">
-                    <span>Custom structure</span>
-                </label>
+                <p>
+                    Complete these details only for the rigid boxes in this
+                    project.
+                </p>
             </div>
-        </fieldset>
+
+            <fieldset
+                class="configuration-group"
+                id="boxStyleConfiguration"
+            >
+                <legend>Box style</legend>
+
+                <p class="configuration-help">
+                    Choose a preferred structure, or leave us to recommend one
+                    after reviewing your product.
+                </p>
+
+                <div class="option-grid option-grid--box-styles">
+                    <label>
+                        <input
+                            type="radio"
+                            name="boxStyle"
+                            value="Recommend a structure"
+                            checked
+                        >
+                        <span>Recommend for me</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="boxStyle"
+                            value="Magnetic flap"
+                        >
+                        <span>Collapsible box</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="boxStyle"
+                            value="Shoulder box"
+                        >
+                        <span>Shoulder box</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="boxStyle"
+                            value="Tray-in-bed"
+                        >
+                        <span>Tray-in-bed</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="boxStyle"
+                            value="Door style"
+                        >
+                        <span>Door style</span>
+                    </label>
+
+                    <label>
+                        <input
+                            type="radio"
+                            name="boxStyle"
+                            value="Custom structure"
+                        >
+                        <span>Custom structure</span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <label class="product-field bespoke-quantity-field">
+                <span>Box quantity</span>
+
+                <input
+                    type="number"
+                    name="boxQuantity"
+                    id="boxQuantity"
+                    min="25"
+                    step="25"
+                    value="25"
+                    inputmode="numeric"
+                >
+
+                <small>
+                    Minimum 25 boxes. Enter quantities in multiples of 25.
+                </small>
+            </label>
+        
+
+<div class="product-dimensions" id="boxDimensionsSection">
+    <div class="product-dimensions__heading">
+        <div>
+            <span>Finished box dimensions</span>
+            <small>Enter the approximate product size.</small>
+        </div>
+
+        <div
+            class="dimension-unit-toggle"
+            id="dimensionUnitToggle"
+            role="group"
+            aria-label="Choose dimension unit"
+            data-unit="cm"
+        >
+            <span
+                class="dimension-unit-toggle__glass"
+                aria-hidden="true"
+            ></span>
+
+            <button
+                type="button"
+                class="dimension-unit-toggle__option is-active"
+                data-dimension-unit="cm"
+                aria-pressed="true"
+            >
+                cm
+            </button>
+
+            <button
+                type="button"
+                class="dimension-unit-toggle__option"
+                data-dimension-unit="in"
+                aria-pressed="false"
+            >
+                inches
+            </button>
+        </div>
+    </div>
+
+    <div class="dimension-grid">
+        <label class="product-field">
+            <span>Length</span>
+
+            <div class="measurement-input">
+                <input
+                    type="number"
+                    id="boxLengthDisplay"
+                    min="0.1"
+                    step="0.1"
+                    inputmode="decimal"
+                    placeholder="30"
+                    data-dimension-display="boxLength"
+                    required
+                >
+                <span data-dimension-suffix>cm</span>
+            </div>
+
+            <input
+                type="hidden"
+                name="boxLength"
+                id="boxLength"
+            >
+        </label>
+
+        <label class="product-field">
+            <span>Breadth</span>
+
+            <div class="measurement-input">
+                <input
+                    type="number"
+                    id="boxBreadthDisplay"
+                    min="0.1"
+                    step="0.1"
+                    inputmode="decimal"
+                    placeholder="22"
+                    data-dimension-display="boxBreadth"
+                    required
+                >
+                <span data-dimension-suffix>cm</span>
+            </div>
+
+            <input
+                type="hidden"
+                name="boxBreadth"
+                id="boxBreadth"
+            >
+        </label>
+
+        <label class="product-field">
+            <span>Height</span>
+
+            <div class="measurement-input">
+                <input
+                    type="number"
+                    id="boxHeightDisplay"
+                    min="0.1"
+                    step="0.1"
+                    inputmode="decimal"
+                    placeholder="8"
+                    data-dimension-display="boxHeight"
+                    required
+                >
+                <span data-dimension-suffix>cm</span>
+            </div>
+
+            <input
+                type="hidden"
+                name="boxHeight"
+                id="boxHeight"
+            >
+        </label>
+    </div>
+
+    <p class="dimension-unit-note" id="dimensionUnitNote">
+        Measurements are saved in centimetres for quotation accuracy.
+    </p>
+
+    <div class="weight-calculator" id="weightCalculator" aria-live="polite">
+        <div>
+            <span>Estimated volumetric weight</span>
+            <strong id="volumetricWeight">Enter dimensions</strong>
+        </div>
+        <p id="weightStatus">Pricing covers a finished box of up to 1 kg volumetric weight.</p>
+    </div>
+</div>
+</section>
     </section>
 
     <section class="configuration-section configuration-section--finishing" aria-labelledby="bespokeFinishingHeading">
@@ -519,29 +940,14 @@
             <div class="finish-option-group finish-option-group--paid">
                 <div class="finish-option-group__heading">
                     <span>Premium finishes</span>
-                    <small>Quoted separately</small>
+                    <small>Available soon</small>
                 </div>
 
                 <div class="option-grid option-grid--four">
-                    <label>
-                        <input type="radio" name="logoFinish" value="Embossed">
-                        <span>Embossed</span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="logoFinish" value="Debossed">
-                        <span>Debossed</span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="logoFinish" value="Foiled">
-                        <span>Foiled</span>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="logoFinish" value="UV printed">
-                        <span>UV printed</span>
-                    </label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed" disabled><span>Embossed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed" disabled><span>Debossed<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled" disabled><span>Foiled<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed" disabled><span>UV printed<small>Additional fee</small></span></label>
                 </div>
             </div>
         </fieldset>
@@ -604,56 +1010,50 @@
         </div>
     </div>
 
-    <label class="product-field">
-        <span>Quantity</span>
-        <input type="number" name="quantity" id="quantity" min="25" step="25" value="25" inputmode="numeric" required>
-        <small>Minimum order is 25 pieces. Quantities must be in multiples of 25.</small>
-    </label>
+    <section
+        class="other-pieces-order"
+        id="otherPiecesOrderSection"
+        hidden
+        aria-labelledby="otherPiecesOrderHeading"
+    >
+        <div class="other-pieces-order__heading">
+            <div>
+                <span class="configuration-section__eyebrow">
+                    Other packaging pieces
+                </span>
 
+                <h3 id="otherPiecesOrderHeading">
+                    Quantity for non-box pieces
+                </h3>
+            </div>
 
-<div class="product-dimensions">
-    <div class="product-dimensions__heading">
-        <div>
-            <span>Finished box dimensions</span>
-            <small>Enter the approximate finished box size, not only the product size.</small>
+            <p id="selectedOtherPiecesSummary">
+                Applies to the selected non-box packaging pieces.
+            </p>
         </div>
-        <span class="product-dimensions__unit">Centimetres</span>
-    </div>
 
-    <div class="dimension-grid">
-        <label class="product-field">
-            <span>Length</span>
-            <div class="measurement-input">
-                <input type="number" name="boxLength" id="boxLength" min="0.1" step="0.1" inputmode="decimal" placeholder="30" required>
-                <span>cm</span>
-            </div>
+        <label class="product-field bespoke-quantity-field">
+            <span>Other packaging quantity</span>
+
+            <input
+                type="number"
+                name="otherPiecesQuantity"
+                id="otherPiecesQuantity"
+                min="100"
+                step="25"
+                value="100"
+                inputmode="numeric"
+            >
+
+            <small>
+                Minimum 100 pieces. This quantity applies to every selected
+                non-box packaging item. Use “Add another project” when different
+                items need different quantities.
+            </small>
         </label>
+    </section>
 
-        <label class="product-field">
-            <span>Breadth</span>
-            <div class="measurement-input">
-                <input type="number" name="boxBreadth" id="boxBreadth" min="0.1" step="0.1" inputmode="decimal" placeholder="22" required>
-                <span>cm</span>
-            </div>
-        </label>
 
-        <label class="product-field">
-            <span>Height</span>
-            <div class="measurement-input">
-                <input type="number" name="boxHeight" id="boxHeight" min="0.1" step="0.1" inputmode="decimal" placeholder="8" required>
-                <span>cm</span>
-            </div>
-        </label>
-    </div>
-
-    <div class="weight-calculator" id="weightCalculator" aria-live="polite">
-        <div>
-            <span>Estimated volumetric weight</span>
-            <strong id="volumetricWeight">Enter dimensions</strong>
-        </div>
-        <p id="weightStatus">Pricing covers a finished box of up to 1 kg volumetric weight.</p>
-    </div>
-</div>
 
 
 
@@ -710,6 +1110,48 @@
     </p>
 </fieldset>
 
+
+    <section
+        class="additional-projects"
+        aria-labelledby="additionalProjectsHeading"
+    >
+        <div class="additional-projects__heading">
+            <div>
+                <span class="configuration-section__eyebrow">
+                    Multiple brands
+                </span>
+                <h3 id="additionalProjectsHeading">
+                    Ordering for another brand?
+                </h3>
+                <p>
+                    Add another project when the brand, packaging pieces or
+                    quantities are different. Each project will be reviewed
+                    and quoted separately.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="additional-projects__add"
+                id="addAnotherProject"
+            >
+                + Add another project
+            </button>
+        </div>
+
+        <div
+            class="additional-projects__list"
+            id="additionalProjectsList"
+            aria-live="polite"
+        ></div>
+
+        <input
+            type="hidden"
+            name="additionalProjects"
+            id="additionalProjectsInput"
+            value="[]"
+        >
+    </section>
 
     <label class="product-field">
         <span>Project description</span>
@@ -1233,6 +1675,608 @@
                     "change",
                     updateGalleryState
                 );
+            });
+        </script>
+
+            <script id="bespokeFlexibleOrderScript">
+            document.addEventListener("DOMContentLoaded", () => {
+                const form = document.getElementById("productConfigForm");
+                if (!form) return;
+
+                const pieceInputs = Array.from(
+                    form.querySelectorAll('input[name="packagingPieces"]')
+                );
+
+                const rigidBoxInput = pieceInputs.find(
+                    input => input.value === "Rigid box"
+                );
+
+                const boxSection = document.getElementById(
+                    "boxSpecificationSection"
+                );
+
+                const otherSection = document.getElementById(
+                    "otherPiecesOrderSection"
+                );
+
+                const boxQuantity = document.getElementById("boxQuantity");
+                const otherQuantity = document.getElementById(
+                    "otherPiecesQuantity"
+                );
+
+                const otherSummary = document.getElementById(
+                    "selectedOtherPiecesSummary"
+                );
+
+                const boxControlledInputs = Array.from(
+                    boxSection?.querySelectorAll("input") || []
+                );
+
+                const otherPieceInputs = pieceInputs.filter(
+                    input => input.value !== "Rigid box"
+                );
+
+                const normaliseQuantity = (input, minimum) => {
+                    if (!input) return;
+
+                    input.min = String(minimum);
+                    input.step = "25";
+
+                    if (
+                        !input.value ||
+                        Number(input.value) < minimum
+                    ) {
+                        input.value = String(minimum);
+                    }
+                };
+
+                const updateMainProjectSections = () => {
+                    const hasBox = Boolean(rigidBoxInput?.checked);
+
+                    const selectedOtherPieces = otherPieceInputs
+                        .filter(input => input.checked)
+                        .map(input => input.value);
+
+                    const hasOtherPieces = selectedOtherPieces.length > 0;
+
+                    if (boxSection) {
+                        boxSection.hidden = !hasBox;
+                    }
+
+                    boxControlledInputs.forEach(input => {
+                        input.disabled = !hasBox;
+
+                        if (
+                            ["boxQuantity", "boxLength", "boxBreadth", "boxHeight"]
+                                .includes(input.name)
+                        ) {
+                            input.required = hasBox;
+                        }
+
+                        if (!hasBox) {
+                            input.setCustomValidity("");
+                        }
+                    });
+
+                    if (otherSection) {
+                        otherSection.hidden = !hasOtherPieces;
+                    }
+
+                    if (otherQuantity) {
+                        otherQuantity.disabled = !hasOtherPieces;
+                        otherQuantity.required = hasOtherPieces;
+
+                        if (!hasOtherPieces) {
+                            otherQuantity.setCustomValidity("");
+                        }
+                    }
+
+                    normaliseQuantity(boxQuantity, 25);
+                    normaliseQuantity(otherQuantity, 100);
+
+                    if (otherSummary) {
+                        otherSummary.textContent = hasOtherPieces
+                            ? `Applies to: ${selectedOtherPieces.join(", ")}.`
+                            : "Applies to the selected non-box packaging pieces.";
+                    }
+                };
+
+                pieceInputs.forEach(input => {
+                    input.addEventListener("change", updateMainProjectSections);
+                });
+
+                updateMainProjectSections();
+
+                const addButton = document.getElementById(
+                    "addAnotherProject"
+                );
+
+                const projectList = document.getElementById(
+                    "additionalProjectsList"
+                );
+
+                const projectInput = document.getElementById(
+                    "additionalProjectsInput"
+                );
+
+                let projectCounter = 0;
+
+                const projectPieces = [
+                    "Rigid box",
+                    "Hang tag",
+                    "Thank-you card",
+                    "Envelope",
+                    "Branded tissue",
+                    "Sticker seal",
+                    "Branded ribbon",
+                    "Description card",
+                    "Other custom item"
+                ];
+
+                const boxStyles = [
+                    "Recommend a structure",
+                    "Magnetic flap",
+                    "Shoulder box",
+                    "Tray-in-bed",
+                    "Door style",
+                    "Custom structure"
+                ];
+
+                const escapeHtml = value => String(value)
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;")
+                    .replaceAll("'", "&#039;");
+
+                const updateAdditionalCardState = card => {
+                    const checkedPieces = Array.from(
+                        card.querySelectorAll(
+                            '[data-additional-piece]:checked'
+                        )
+                    ).map(input => input.value);
+
+                    const hasBox = checkedPieces.includes("Rigid box");
+                    const hasOtherPieces = checkedPieces.some(
+                        piece => piece !== "Rigid box"
+                    );
+
+                    const boxDetails = card.querySelector(
+                        "[data-additional-box-details]"
+                    );
+
+                    const boxQty = card.querySelector(
+                        "[data-additional-box-quantity]"
+                    );
+
+                    const otherQty = card.querySelector(
+                        "[data-additional-other-quantity]"
+                    );
+
+                    if (boxDetails) {
+                        boxDetails.hidden = !hasBox;
+                    }
+
+                    boxDetails?.querySelectorAll("input, select").forEach(
+                        input => {
+                            input.disabled = !hasBox;
+                            input.required = hasBox;
+                        }
+                    );
+
+                    if (boxQty) {
+                        boxQty.disabled = !hasBox;
+                        boxQty.required = hasBox;
+                        normaliseQuantity(boxQty, 25);
+                    }
+
+                    if (otherQty) {
+                        otherQty.disabled = !hasOtherPieces;
+                        otherQty.required = hasOtherPieces;
+                        normaliseQuantity(otherQty, 100);
+                    }
+                };
+
+                const updateAdditionalProjects = () => {
+                    const projects = Array.from(
+                        projectList.querySelectorAll(".additional-project")
+                    ).map(card => {
+                        const pieces = Array.from(
+                            card.querySelectorAll(
+                                '[data-additional-piece]:checked'
+                            )
+                        ).map(input => input.value);
+
+                        return {
+                            brand_name:
+                                card.querySelector(
+                                    "[data-additional-brand]"
+                                )?.value.trim() || "",
+                            packaging_pieces: pieces,
+                            box_style:
+                                card.querySelector(
+                                    "[data-additional-box-style]"
+                                )?.value || "",
+                            box_quantity:
+                                card.querySelector(
+                                    "[data-additional-box-quantity]"
+                                )?.value || "",
+                            other_pieces_quantity:
+                                card.querySelector(
+                                    "[data-additional-other-quantity]"
+                                )?.value || "",
+                            notes:
+                                card.querySelector(
+                                    "[data-additional-notes]"
+                                )?.value.trim() || ""
+                        };
+                    });
+
+                    projectInput.value = JSON.stringify(projects);
+                };
+
+                const addProject = () => {
+                    projectCounter += 1;
+
+                    const card = document.createElement("article");
+                    card.className = "additional-project";
+                    card.dataset.projectIndex = String(projectCounter);
+
+                    card.innerHTML = `
+                        <div class="additional-project__topline">
+                            <strong>Additional project ${projectCounter}</strong>
+
+                            <button
+                                type="button"
+                                class="additional-project__remove"
+                                data-remove-additional-project
+                            >
+                                Remove
+                            </button>
+                        </div>
+
+                        <div class="additional-project__grid">
+                            <label class="product-field">
+                                <span>Brand or project name</span>
+
+                                <input
+                                    type="text"
+                                    data-additional-brand
+                                    placeholder="e.g. Brand Two"
+                                    required
+                                >
+                            </label>
+
+                            <fieldset class="additional-project__pieces">
+                                <legend>Packaging pieces</legend>
+
+                                ${projectPieces.map(piece => `
+                                    <label>
+                                        <input
+                                            type="checkbox"
+                                            value="${escapeHtml(piece)}"
+                                            data-additional-piece
+                                        >
+                                        <span>${escapeHtml(piece)}</span>
+                                    </label>
+                                `).join("")}
+                            </fieldset>
+
+                            <div
+                                class="additional-project__box-style"
+                                data-additional-box-details
+                                hidden
+                            >
+                                <label class="product-field">
+                                    <span>Box style</span>
+
+                                    <select data-additional-box-style>
+                                        ${boxStyles.map(style => `
+                                            <option value="${escapeHtml(style)}">
+                                                ${escapeHtml(style)}
+                                            </option>
+                                        `).join("")}
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div class="additional-project__quantity-grid">
+                                <label class="product-field">
+                                    <span>Box quantity</span>
+
+                                    <input
+                                        type="number"
+                                        data-additional-box-quantity
+                                        min="25"
+                                        step="25"
+                                        value="25"
+                                        inputmode="numeric"
+                                        disabled
+                                    >
+
+                                    <small>
+                                        Minimum 25 boxes.
+                                    </small>
+                                </label>
+
+                                <label class="product-field">
+                                    <span>Other packaging quantity</span>
+
+                                    <input
+                                        type="number"
+                                        data-additional-other-quantity
+                                        min="100"
+                                        step="25"
+                                        value="100"
+                                        inputmode="numeric"
+                                        disabled
+                                    >
+
+                                    <small>
+                                        Minimum 100 non-box pieces.
+                                    </small>
+                                </label>
+                            </div>
+
+                            <label class="product-field additional-project__notes">
+                                <span>Notes for this brand</span>
+
+                                <textarea
+                                    rows="3"
+                                    data-additional-notes
+                                    placeholder="Mention sizes, colours, finishes or anything that differs from the main project."
+                                ></textarea>
+                            </label>
+                        </div>
+                    `;
+
+                    projectList.appendChild(card);
+
+                    card.addEventListener("input", () => {
+                        updateAdditionalCardState(card);
+                        updateAdditionalProjects();
+                    });
+
+                    card.addEventListener("change", () => {
+                        updateAdditionalCardState(card);
+                        updateAdditionalProjects();
+                    });
+
+                    card
+                        .querySelector(
+                            "[data-remove-additional-project]"
+                        )
+                        .addEventListener("click", () => {
+                            card.remove();
+                            updateAdditionalProjects();
+                        });
+
+                    updateAdditionalCardState(card);
+                    updateAdditionalProjects();
+
+                    card.querySelector("[data-additional-brand]")?.focus();
+                };
+
+                addButton?.addEventListener("click", addProject);
+
+                form.addEventListener("submit", event => {
+                    const selectedMainPieces = pieceInputs.filter(
+                        input => input.checked
+                    );
+
+                    if (!selectedMainPieces.length) {
+                        event.preventDefault();
+
+                        pieceInputs[0]?.setCustomValidity(
+                            "Select at least one packaging piece."
+                        );
+
+                        pieceInputs[0]?.reportValidity();
+                        return;
+                    }
+
+                    pieceInputs[0]?.setCustomValidity("");
+
+                    let additionalProjectsValid = true;
+
+                    projectList
+                        .querySelectorAll(".additional-project")
+                        .forEach(card => {
+                            const checked = card.querySelectorAll(
+                                "[data-additional-piece]:checked"
+                            );
+
+                            const firstPiece = card.querySelector(
+                                "[data-additional-piece]"
+                            );
+
+                            if (!checked.length) {
+                                additionalProjectsValid = false;
+
+                                firstPiece?.setCustomValidity(
+                                    "Select at least one packaging piece for this project."
+                                );
+                            } else {
+                                firstPiece?.setCustomValidity("");
+                            }
+
+                            updateAdditionalCardState(card);
+                        });
+
+                    updateAdditionalProjects();
+
+                    if (!additionalProjectsValid) {
+                        event.preventDefault();
+                        form.reportValidity();
+                    }
+                }, true);
+            });
+        </script>
+
+    
+        <script id="dimensionUnitToggleScript">
+            document.addEventListener("DOMContentLoaded", () => {
+                const toggle = document.getElementById(
+                    "dimensionUnitToggle"
+                );
+
+                if (!toggle) return;
+
+                const buttons = Array.from(
+                    toggle.querySelectorAll("[data-dimension-unit]")
+                );
+
+                const displayInputs = Array.from(
+                    document.querySelectorAll("[data-dimension-display]")
+                );
+
+                const suffixes = Array.from(
+                    document.querySelectorAll("[data-dimension-suffix]")
+                );
+
+                const unitNote = document.getElementById(
+                    "dimensionUnitNote"
+                );
+
+                const centimetresPerInch = 2.54;
+                let activeUnit = "cm";
+
+                const roundMeasurement = value => (
+                    Math.round((value + Number.EPSILON) * 100) / 100
+                );
+
+                const getCanonicalInput = displayInput => (
+                    document.getElementById(
+                        displayInput.dataset.dimensionDisplay
+                    )
+                );
+
+                const syncCanonicalValue = displayInput => {
+                    const canonicalInput = getCanonicalInput(displayInput);
+                    if (!canonicalInput) return;
+
+                    const displayValue = Number(displayInput.value);
+
+                    if (
+                        !displayInput.value ||
+                        !Number.isFinite(displayValue) ||
+                        displayValue <= 0
+                    ) {
+                        canonicalInput.value = "";
+                    } else {
+                        const centimetres = activeUnit === "in"
+                            ? displayValue * centimetresPerInch
+                            : displayValue;
+
+                        canonicalInput.value = String(
+                            roundMeasurement(centimetres)
+                        );
+                    }
+
+                    canonicalInput.dispatchEvent(
+                        new Event("input", { bubbles: true })
+                    );
+                };
+
+                const syncDisplayFromCanonical = displayInput => {
+                    const canonicalInput = getCanonicalInput(displayInput);
+                    if (!canonicalInput) return;
+
+                    const centimetres = Number(canonicalInput.value);
+
+                    if (
+                        !canonicalInput.value ||
+                        !Number.isFinite(centimetres) ||
+                        centimetres <= 0
+                    ) {
+                        displayInput.value = "";
+                        return;
+                    }
+
+                    const displayedValue = activeUnit === "in"
+                        ? centimetres / centimetresPerInch
+                        : centimetres;
+
+                    displayInput.value = String(
+                        roundMeasurement(displayedValue)
+                    );
+                };
+
+                const updateToggle = nextUnit => {
+                    if (!["cm", "in"].includes(nextUnit)) return;
+
+                    /*
+                     * Canonical hidden inputs always remain in centimetres.
+                     * Only the customer-facing values are converted.
+                     */
+                    activeUnit = nextUnit;
+                    toggle.dataset.unit = nextUnit;
+
+                    buttons.forEach(button => {
+                        const isActive =
+                            button.dataset.dimensionUnit === nextUnit;
+
+                        button.classList.toggle("is-active", isActive);
+                        button.setAttribute(
+                            "aria-pressed",
+                            String(isActive)
+                        );
+                    });
+
+                    suffixes.forEach(suffix => {
+                        suffix.textContent =
+                            nextUnit === "in" ? "in" : "cm";
+                    });
+
+                    displayInputs.forEach(input => {
+                        input.step = nextUnit === "in" ? "0.01" : "0.1";
+                        syncDisplayFromCanonical(input);
+                    });
+
+                    if (unitNote) {
+                        unitNote.textContent = nextUnit === "in"
+                            ? "Inches are converted to centimetres automatically for quotation and volumetric-weight calculations."
+                            : "Measurements are saved in centimetres for quotation accuracy.";
+                    }
+                };
+
+                displayInputs.forEach(input => {
+                    input.addEventListener("input", () => {
+                        syncCanonicalValue(input);
+                    });
+
+                    input.addEventListener("blur", () => {
+                        if (!input.value) return;
+
+                        const value = Number(input.value);
+
+                        if (Number.isFinite(value) && value > 0) {
+                            input.value = String(
+                                roundMeasurement(value)
+                            );
+                        }
+                    });
+                });
+
+                buttons.forEach(button => {
+                    button.addEventListener("click", () => {
+                        updateToggle(
+                            button.dataset.dimensionUnit
+                        );
+                    });
+                });
+
+                /*
+                 * shop.js may restore saved centimetre values before this
+                 * listener runs. Mirror those values into the visible fields.
+                 */
+                updateToggle("cm");
+
+                window.requestAnimationFrame(() => {
+                    displayInputs.forEach(
+                        syncDisplayFromCanonical
+                    );
+                });
             });
         </script>
 

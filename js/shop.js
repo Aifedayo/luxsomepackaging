@@ -49,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             logo_finish: 'logoFinish',
             artwork_status: 'artworkStatus',
             quantity: 'quantity',
+            box_quantity: 'boxQuantity',
+            other_pieces_quantity: 'otherPiecesQuantity',
             box_length_cm: 'boxLength',
             box_breadth_cm: 'boxBreadth',
             box_height_cm: 'boxHeight',
@@ -179,24 +181,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const quantityInput = document.getElementById('quantity');
+    const boxQuantityInput = document.getElementById('boxQuantity');
+    const otherPiecesQuantityInput = document.getElementById(
+        'otherPiecesQuantity'
+    );
 
-    const getSelectedQuantity = () => {
-        if (!quantityInput) return '';
+    const validateQuantityInput = (input, fallbackMinimum = 25) => {
+        if (!input || input.disabled) return '';
 
-        const quantity = Number(quantityInput.value);
+        const quantity = Number(input.value);
+        const minimum = Number(input.min || fallbackMinimum);
 
-        if (!Number.isInteger(quantity) || quantity < 25 || quantity % 25 !== 0) {
-            quantityInput.setCustomValidity('Enter at least 25 pieces in multiples of 25.');
-            quantityInput.reportValidity();
+        if (
+            !Number.isInteger(quantity) ||
+            quantity < minimum ||
+            quantity % 25 !== 0
+        ) {
+            input.setCustomValidity(
+                `Enter at least ${minimum} pieces in multiples of 25.`
+            );
+            input.reportValidity();
             return null;
         }
 
-        quantityInput.setCustomValidity('');
+        input.setCustomValidity('');
         return String(quantity);
     };
 
-    quantityInput?.addEventListener('input', () => {
-        quantityInput.setCustomValidity('');
+    const getSelectedQuantity = () => (
+        validateQuantityInput(quantityInput, 25)
+    );
+
+    [
+        quantityInput,
+        boxQuantityInput,
+        otherPiecesQuantityInput
+    ].forEach(input => {
+        input?.addEventListener('input', () => {
+            input.setCustomValidity('');
+        });
     });
 
     const lengthInput = document.getElementById('boxLength');
@@ -276,20 +299,51 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const selectedQuantity = getSelectedQuantity();
-        if (selectedQuantity === null) return;
+        const data = new FormData(form);
+        const selectedPieces = data.getAll('packagingPieces');
+        const isBespoke = product.dataset.product === 'bespoke';
+        const hasRigidBox =
+            !isBespoke || selectedPieces.includes('Rigid box');
+        const hasOtherPieces =
+            isBespoke &&
+            selectedPieces.some(piece => piece !== 'Rigid box');
 
-        const calculatedWeight = calculateVolumetricWeight();
+        const selectedQuantity = isBespoke
+            ? ''
+            : getSelectedQuantity();
 
-        if (calculatedWeight === null) {
-            lengthInput?.setCustomValidity('Enter the finished box dimensions.');
+        if (!isBespoke && selectedQuantity === null) return;
+
+        const selectedBoxQuantity = hasRigidBox
+            ? validateQuantityInput(boxQuantityInput, 25)
+            : '';
+
+        if (hasRigidBox && isBespoke && selectedBoxQuantity === null) {
+            return;
+        }
+
+        const selectedOtherQuantity = hasOtherPieces
+            ? validateQuantityInput(otherPiecesQuantityInput, 100)
+            : '';
+
+        if (hasOtherPieces && selectedOtherQuantity === null) {
+            return;
+        }
+
+        const calculatedWeight = hasRigidBox
+            ? calculateVolumetricWeight()
+            : null;
+
+        if (hasRigidBox && calculatedWeight === null) {
+            lengthInput?.setCustomValidity(
+                'Enter the finished box dimensions.'
+            );
             lengthInput?.reportValidity();
             return;
         }
 
         lengthInput?.setCustomValidity('');
 
-        const data = new FormData(form);
         const params = new URLSearchParams();
 
         params.set('source', 'shop');
@@ -307,11 +361,39 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('ribbon_colour', data.get('ribbonColour') || '');
         params.set('logo_finish', data.get('logoFinish') || '');
         params.set('artwork_status', data.get('artworkStatus') || '');
-        params.set('quantity', selectedQuantity);
-        params.set('box_length_cm', data.get('boxLength') || '');
-        params.set('box_breadth_cm', data.get('boxBreadth') || '');
-        params.set('box_height_cm', data.get('boxHeight') || '');
-        params.set('volumetric_weight_kg', calculatedWeight.toFixed(2));
+        const quantitySummary = isBespoke
+            ? [
+                selectedBoxQuantity
+                    ? `Boxes: ${selectedBoxQuantity}`
+                    : '',
+                selectedOtherQuantity
+                    ? `Other pieces: ${selectedOtherQuantity}`
+                    : ''
+            ].filter(Boolean).join('; ')
+            : selectedQuantity;
+
+        params.set('quantity', quantitySummary);
+        params.set('box_quantity', selectedBoxQuantity || '');
+        params.set(
+            'other_pieces_quantity',
+            selectedOtherQuantity || ''
+        );
+        params.set(
+            'box_length_cm',
+            hasRigidBox ? (data.get('boxLength') || '') : ''
+        );
+        params.set(
+            'box_breadth_cm',
+            hasRigidBox ? (data.get('boxBreadth') || '') : ''
+        );
+        params.set(
+            'box_height_cm',
+            hasRigidBox ? (data.get('boxHeight') || '') : ''
+        );
+        params.set(
+            'volumetric_weight_kg',
+            calculatedWeight === null ? '' : calculatedWeight.toFixed(2)
+        );
         params.set('primary_colour', data.get('primaryColour') || '');
         params.set('custom_colour', data.get('customColour') || '');
         params.set('secondary_colour', data.get('secondaryColour') || '');
@@ -319,6 +401,10 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('pantone_reference', data.get('pantoneReference') || '');
         params.set('comments', data.get('comments') || '');
         params.set('accessories', data.getAll('accessories').join(', '));
+        params.set(
+            'additional_projects',
+            data.get('additionalProjects') || '[]'
+        );
 
         localStorage.setItem(
             'luxsomeShopConfiguration',
@@ -991,6 +1077,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             [
                 'quantity',
+                'boxQuantity',
+                'otherPiecesQuantity',
                 'boxLength',
                 'boxBreadth',
                 'boxHeight',

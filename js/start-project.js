@@ -245,19 +245,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const productPath = getProductDetailPath(configuration);
         const params = new URLSearchParams();
 
-        Object.entries(configuration).forEach(([key, value]) => {
-            if (
-                value === null ||
-                value === undefined ||
-                String(value).trim() === "" ||
-                ["version", "saved_at"].includes(key)
-            ) {
-                return;
-            }
-
-            params.set(key, String(value));
-        });
-
+        params.set("source", "shop");
+        params.set(
+            "product",
+            String(configuration.product || "")
+        );
+        params.set(
+            "system",
+            String(configuration.system || "")
+        );
         params.set("restore_configuration", "1");
 
         changeProductSelections.href =
@@ -273,7 +269,6 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         });
     }
-
     function getProductDetailPath(configuration) {
         const product = String(
             configuration.product ||
@@ -283,6 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const system = String(
             configuration.system ||
+            configuration.product_name ||
             ""
         ).trim().toLowerCase();
 
@@ -310,6 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (
             product === "bespoke" ||
             system.includes("bespoke") ||
+            system.includes("created for your brand") ||
             system.includes("made for your brand")
         ) {
             return "/shop/bespoke/";
@@ -317,13 +314,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return "/shop/";
     }
-
     function hasShopConfiguration(configuration) {
         return Boolean(
             configuration.product ||
             configuration.system ||
             configuration.box_style ||
-            configuration.quantity
+            configuration.quantity ||
+            configuration.box_quantity ||
+            configuration.other_pieces_quantity ||
+            configuration.additional_projects
         );
     }
 
@@ -351,8 +350,28 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Ribbon colour", labelValue("ribbon_colour")]
         ];
 
+        const boxQuantity = labelValue("box_quantity");
+        const otherPiecesQuantity = labelValue(
+            "other_pieces_quantity"
+        );
+
         const specificationRows = [
-            ["Quantity", unitValue("quantity", "pieces")],
+            [
+                "Box quantity",
+                boxQuantity ? `${boxQuantity} pieces` : ""
+            ],
+            [
+                "Other packaging quantity",
+                otherPiecesQuantity
+                    ? `${otherPiecesQuantity} pieces`
+                    : ""
+            ],
+            [
+                "Quantity",
+                !boxQuantity && !otherPiecesQuantity
+                    ? labelValue("quantity")
+                    : ""
+            ],
             ["Finished dimensions", dimensionsValue()],
             ["Volumetric weight", unitValue("volumetric_weight_kg", "kg")],
             ["Primary colour", colourValue()],
@@ -365,15 +384,54 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Additional comments", labelValue("comments")]
         ];
 
+        const additionalProjects = readAdditionalProjects();
+
+        const additionalProjectSections = additionalProjects.map(
+            (project, index) => {
+                const projectName =
+                    project.brand_name ||
+                    `Additional project ${index + 1}`;
+
+                const rows = [
+                    [
+                        "Packaging pieces",
+                        formatProjectPieces(project.packaging_pieces)
+                    ],
+                    ["Box style", project.box_style || ""],
+                    [
+                        "Box quantity",
+                        project.box_quantity
+                            ? `${project.box_quantity} pieces`
+                            : ""
+                    ],
+                    [
+                        "Other packaging quantity",
+                        project.other_pieces_quantity
+                            ? `${project.other_pieces_quantity} pieces`
+                            : ""
+                    ],
+                    ["Notes", project.notes || ""]
+                ];
+
+                return reviewSection(
+                    `Additional project ${index + 1}: ${projectName}`,
+                    rows
+                );
+            }
+        );
+
         reviewCard.innerHTML = [
             reviewSection("Customer", customerRows),
-            reviewSection("Packaging system", packagingRows),
-            reviewSection("Order specifications", specificationRows)
+            reviewSection("Main packaging project", packagingRows),
+            reviewSection("Main order specifications", specificationRows),
+            ...additionalProjectSections
         ].join("");
 
         const summaryLines = [
             `Brand: ${valueOf("brandName")}`,
             `Contact: ${valueOf("fullName")} (${valueOf("email")} · ${valueOf("phone")})`,
+            "",
+            "MAIN PACKAGING PROJECT",
             ...packagingRows
                 .filter(([, value]) => value)
                 .map(([label, value]) => `${label}: ${value}`),
@@ -382,13 +440,97 @@ document.addEventListener("DOMContentLoaded", () => {
                 .map(([label, value]) => `${label}: ${value}`)
         ];
 
+        additionalProjects.forEach((project, index) => {
+            summaryLines.push(
+                "",
+                `ADDITIONAL PROJECT ${index + 1}: ${
+                    project.brand_name || "Unnamed project"
+                }`,
+                `Packaging pieces: ${
+                    formatProjectPieces(project.packaging_pieces) ||
+                    "Not supplied"
+                }`
+            );
+
+            if (project.box_style) {
+                summaryLines.push(
+                    `Box style: ${project.box_style}`
+                );
+            }
+
+            if (project.box_quantity) {
+                summaryLines.push(
+                    `Box quantity: ${project.box_quantity} pieces`
+                );
+            }
+
+            if (project.other_pieces_quantity) {
+                summaryLines.push(
+                    `Other packaging quantity: ${
+                        project.other_pieces_quantity
+                    } pieces`
+                );
+            }
+
+            if (project.notes) {
+                summaryLines.push(`Notes: ${project.notes}`);
+            }
+        });
+
         if (projectSummaryInput) {
             projectSummaryInput.value = summaryLines.join("\n");
         }
 
         if (shopConfigurationInput) {
-            shopConfigurationInput.value = JSON.stringify(shopConfiguration);
+            shopConfigurationInput.value = JSON.stringify(
+                shopConfiguration
+            );
         }
+    }
+
+    function readAdditionalProjects() {
+        const rawValue = labelValue("additional_projects");
+
+        if (!rawValue) return [];
+
+        try {
+            const parsed = JSON.parse(rawValue);
+
+            if (!Array.isArray(parsed)) return [];
+
+            return parsed.filter(project => (
+                project &&
+                typeof project === "object" &&
+                (
+                    project.brand_name ||
+                    project.box_style ||
+                    project.box_quantity ||
+                    project.other_pieces_quantity ||
+                    project.notes ||
+                    (
+                        Array.isArray(project.packaging_pieces) &&
+                        project.packaging_pieces.length
+                    )
+                )
+            ));
+        } catch (error) {
+            console.warn(
+                "Additional projects could not be displayed.",
+                error
+            );
+            return [];
+        }
+    }
+
+    function formatProjectPieces(pieces) {
+        if (Array.isArray(pieces)) {
+            return pieces
+                .map(piece => String(piece).trim())
+                .filter(Boolean)
+                .join(", ");
+        }
+
+        return String(pieces || "").trim();
     }
 
     function reviewSection(title, rows) {
@@ -460,8 +602,24 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (submittedComponents) {
-            submittedComponents.value =
-                labelValue("packaging_pieces") || "According to selected tier";
+            const additionalProjects = readAdditionalProjects();
+
+            const additionalSummary = additionalProjects
+                .map((project, index) => (
+                    `Project ${index + 1}: ${
+                        project.brand_name || "Unnamed project"
+                    } — ${
+                        formatProjectPieces(project.packaging_pieces) ||
+                        "Pieces not supplied"
+                    }`
+                ))
+                .join(" | ");
+
+            submittedComponents.value = [
+                labelValue("packaging_pieces") ||
+                    "According to selected tier",
+                additionalSummary
+            ].filter(Boolean).join(" | ");
         }
 
         if (submittedDate) {
