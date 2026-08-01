@@ -431,7 +431,7 @@
                         </label>
 
                         <label>
-                            Tax
+                            VAT
                             <input id="quoteTax" type="number" min="0" step="1" value="0">
                         </label>
                     </div>
@@ -548,6 +548,13 @@
                 </select>
             </section>
 
+            <p
+                id="quotationLockNotice"
+                class="crm-status-message"
+                role="status"
+                hidden
+            ></p>
+
             <section class="crm-detail-actions">
                 <button id="previewQuotationButton" class="crm-button crm-button--primary" type="button">
                     Preview quotation
@@ -565,8 +572,8 @@
                     Send quotation
                 </button>
 
-                <button id="createInvoiceFromQuoteButton" class="crm-button crm-button--secondary" type="button">
-                    Create invoice
+                <button id="createInvoiceFromQuoteButton" class="crm-button crm-button--secondary" type="button" hidden>
+                    View automatic invoice
                 </button>
             </section>
 

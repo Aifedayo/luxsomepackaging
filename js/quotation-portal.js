@@ -46,18 +46,32 @@
     };
 
     async function api(path, options = {}) {
-        const response = await fetch(`${API}${path}`, {
-            ...options,
-            headers: {
-                "Content-Type": "application/json",
-                ...(options.headers || {})
-            }
-        });
+        let response;
+
+        try {
+            response = await fetch(`${API}${path}`, {
+                ...options,
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                    ...(options.headers || {})
+                }
+            });
+        } catch (error) {
+            throw new Error(
+                "The quotation service could not be reached. Please check your connection and try again."
+            );
+        }
 
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            throw new Error(data.message || "Request failed.");
+            const message =
+                data.error ||
+                data.message ||
+                `Request failed with status ${response.status}.`;
+
+            throw new Error(message);
         }
 
         return data;
@@ -162,7 +176,7 @@
             </div>
 
             <div>
-                <span>Tax</span>
+                <span>VAT</span>
                 <strong>${esc(money(quote.tax))}</strong>
             </div>
 
@@ -377,7 +391,9 @@
             $("responseStatus").textContent = e.message;
         } finally {
             button.disabled = false;
-            button.textContent = "Confirm";
+            button.textContent =
+                button.dataset.defaultText ||
+                "Confirm";
         }
     }
 

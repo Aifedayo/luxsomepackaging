@@ -219,7 +219,12 @@ document.addEventListener("DOMContentLoaded", function () {
     elements.quoteDetailStatus.addEventListener("change", updateQuotationStatus);
 
     elements.editQuotationButton.addEventListener("click", function () {
-        if (!state.selectedQuotation) return;
+        if (
+            !state.selectedQuotation ||
+            elements.editQuotationButton.disabled
+        ) {
+            return;
+        }
 
         const quotation = state.selectedQuotation;
         closeQuotationDetail();
@@ -248,21 +253,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.previewPrintButton.addEventListener("click", printQuotation);
 
-    elements.sendQuotationButton.addEventListener("click", openSendQuotationModal);
-    elements.createInvoiceFromQuoteButton.addEventListener("click", async function () {
-        if (!state.selectedQuotation) return;
-        if (state.selectedQuotation.status !== "accepted") {
-            window.alert("Only accepted quotations can be converted to invoices.");
+    elements.sendQuotationButton.addEventListener("click", function () {
+        if (elements.sendQuotationButton.disabled) return;
+        openSendQuotationModal();
+    });
+    elements.createInvoiceFromQuoteButton.addEventListener("click", function () {
+        const quotation = state.selectedQuotation;
+
+        if (!quotation?.invoiceReference) {
+            window.alert(
+                "The automatic invoice is not available yet. Refresh the quotation and try again."
+            );
             return;
         }
-        const button = elements.createInvoiceFromQuoteButton;
-        button.disabled = true;
-        try {
-            const data = await apiRequest(`/admin/invoices/from-quotation/${encodeURIComponent(state.selectedQuotation.quote_reference)}`, { method: "POST" });
-            window.location.href = `/admin/invoices/?invoice=${encodeURIComponent(data.invoice.invoiceReference)}`;
-        } catch (error) {
-            window.alert(error.message || "The invoice could not be created.");
-        } finally { button.disabled = false; }
+
+        window.location.href =
+            `/admin/invoices/?invoice=${encodeURIComponent(
+                quotation.invoiceReference
+            )}`;
     });
     elements.closeSendQuotationButton.addEventListener("click", closeSendQuotationModal);
     elements.cancelSendQuotationButton.addEventListener("click", closeSendQuotationModal);
@@ -1653,6 +1661,62 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.classList.remove("crm-lock-scroll");
     }
 
+
+    function updateQuotationActionState(quotation) {
+        const status = quotation?.status || "";
+        const isAccepted = status === "accepted";
+        const isFinal = [
+            "accepted",
+            "declined",
+            "expired",
+            "cancelled"
+        ].includes(status);
+
+        elements.editQuotationButton.disabled = isFinal;
+        elements.sendQuotationButton.disabled = isFinal;
+        elements.quoteDetailStatus.disabled = isFinal;
+
+        elements.editQuotationButton.title = isFinal
+            ? "Final quotations are locked and cannot be edited."
+            : "";
+
+        elements.sendQuotationButton.title = isFinal
+            ? "Final quotations are locked and cannot be resent."
+            : "";
+
+        if (status === "needs_revision") {
+            elements.sendQuotationButton.textContent =
+                "Send revised quotation";
+        } else {
+            elements.sendQuotationButton.textContent =
+                quotation?.send_count > 0
+                    ? "Resend quotation"
+                    : "Send quotation";
+        }
+
+        elements.createInvoiceFromQuoteButton.hidden = !isAccepted;
+        elements.createInvoiceFromQuoteButton.disabled =
+            isAccepted && !quotation?.invoiceReference;
+
+        elements.createInvoiceFromQuoteButton.textContent =
+            quotation?.invoiceReference
+                ? "View automatic invoice"
+                : "Preparing invoice…";
+
+        const lockNotice = document.getElementById(
+            "quotationLockNotice"
+        );
+
+        if (lockNotice) {
+            lockNotice.hidden = !isFinal;
+            lockNotice.textContent = isAccepted
+                ? quotation?.invoiceReference
+                    ? `Accepted and locked. Invoice ${quotation.invoiceReference} was created automatically.`
+                    : "Accepted and locked. The automatic invoice is being prepared."
+                : "This quotation is final and locked against editing or resending.";
+        }
+    }
+
     async function openQuotationDetail(reference) {
         setStatus("Opening quotation...");
 
@@ -1687,6 +1751,7 @@ document.addEventListener("DOMContentLoaded", function () {
             renderQuotationDetailItems(quotation);
             renderQuotationDetailTerms(quotation);
             renderQuotationActivity(quotation.activity || []);
+            updateQuotationActionState(quotation);
 
             elements.quotationBackdrop.hidden = false;
             elements.quotationDetailPanel.classList.add("is-open");
@@ -1808,7 +1873,15 @@ document.addEventListener("DOMContentLoaded", function () {
     async function updateQuotationStatus() {
         const quotation = state.selectedQuotation;
 
-        if (!quotation) return;
+        if (
+            !quotation ||
+            ["accepted", "declined", "expired", "cancelled"].includes(
+                quotation.status
+            )
+        ) {
+            updateQuotationActionState(quotation);
+            return;
+        }
 
         try {
             elements.quoteDetailStatus.disabled = true;
