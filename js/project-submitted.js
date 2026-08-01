@@ -43,23 +43,16 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("currentYear");
 
 
-    /*
-     * Read the project that was saved by start-project.js.
-     */
-    const confirmationData =
-        readConfirmationData();
-
-
-    /*
-     * Use saved data when available.
-     *
-     * A fallback reference is generated when someone opens
-     * the confirmation URL directly.
-     */
     const referenceFromUrl =
         new URLSearchParams(
             window.location.search
         ).get("reference");
+
+    /*
+     * Recover the exact submitted brief using its project reference.
+     */
+    const confirmationData =
+        readConfirmationData(referenceFromUrl);
 
     const reference =
         confirmationData?.reference ||
@@ -86,34 +79,55 @@ document.addEventListener("DOMContentLoaded", () => {
        STORAGE
     ====================================================== */
 
-    function readConfirmationData() {
-        try {
-            const stored = localStorage.getItem(
-                STORAGE_KEY
-            );
+    function readConfirmationData(referenceNumber) {
+        const reference = String(
+            referenceNumber || ""
+        ).trim();
 
-            if (!stored) {
-                return null;
+        const keys = [
+            reference
+                ? `luxsomeProjectConfirmation:${reference}`
+                : "",
+            "luxsomeProjectConfirmation"
+        ].filter(Boolean);
+
+        for (const store of [
+            window.sessionStorage,
+            window.localStorage
+        ]) {
+            for (const key of keys) {
+                try {
+                    const stored = store.getItem(key);
+                    if (!stored) continue;
+
+                    const parsed = JSON.parse(stored);
+
+                    if (
+                        !parsed ||
+                        typeof parsed !== "object"
+                    ) {
+                        continue;
+                    }
+
+                    if (
+                        reference &&
+                        parsed.reference &&
+                        String(parsed.reference) !== reference
+                    ) {
+                        continue;
+                    }
+
+                    return parsed;
+                } catch (error) {
+                    console.warn(
+                        "Unable to read the submitted project.",
+                        error
+                    );
+                }
             }
-
-            const parsed = JSON.parse(stored);
-
-            if (
-                !parsed ||
-                typeof parsed !== "object"
-            ) {
-                return null;
-            }
-
-            return parsed;
-        } catch (error) {
-            console.warn(
-                "Unable to read the submitted project.",
-                error
-            );
-
-            return null;
         }
+
+        return null;
     }
 
 

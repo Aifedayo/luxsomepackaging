@@ -18,16 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const submittedPackagingSystem = document.getElementById("submittedPackagingSystem");
     const submittedComponents = document.getElementById("submittedComponents");
     const submittedDate = document.getElementById("submittedDate");
-    const changeProductSelections = document.getElementById(
-        "changeProductSelections"
-    );
 
     const totalSteps = 2;
     let currentStep = 1;
     const shopConfiguration = readShopConfiguration();
 
     addConfigurationFields(shopConfiguration);
-    configureProductSelectionReturnLink(shopConfiguration);
     updateStepUI(false);
 
     nextButton?.addEventListener("click", () => {
@@ -111,10 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const confirmedReference = responseData.reference || projectReference;
 
-            localStorage.setItem(
-                "luxsomeProjectConfirmation",
-                JSON.stringify(createConfirmationData(confirmedReference))
-            );
+            const confirmationData =
+                createConfirmationData(confirmedReference);
+
+            saveProjectConfirmation(confirmationData);
 
             window.location.href =
                 `/start-project/project-submitted/?reference=${encodeURIComponent(
@@ -239,90 +235,12 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    function configureProductSelectionReturnLink(configuration) {
-        if (!changeProductSelections) return;
-
-        const productPath = getProductDetailPath(configuration);
-        const params = new URLSearchParams();
-
-        params.set("source", "shop");
-        params.set(
-            "product",
-            String(configuration.product || "")
-        );
-        params.set(
-            "system",
-            String(configuration.system || "")
-        );
-        params.set("restore_configuration", "1");
-
-        changeProductSelections.href =
-            `${productPath}?${params.toString()}`;
-
-        changeProductSelections.addEventListener("click", () => {
-            localStorage.setItem(
-                "luxsomeShopConfiguration",
-                JSON.stringify({
-                    ...configuration,
-                    restore_configuration: "1"
-                })
-            );
-        });
-    }
-    function getProductDetailPath(configuration) {
-        const product = String(
-            configuration.product ||
-            configuration.source_product ||
-            ""
-        ).trim().toLowerCase();
-
-        const system = String(
-            configuration.system ||
-            configuration.product_name ||
-            ""
-        ).trim().toLowerCase();
-
-        if (
-            product === "tier-1" ||
-            system.includes("foundation")
-        ) {
-            return "/shop/tier-1/";
-        }
-
-        if (
-            product === "tier-2" ||
-            system.includes("signature")
-        ) {
-            return "/shop/tier-2/";
-        }
-
-        if (
-            product === "tier-3" ||
-            system.includes("prestige")
-        ) {
-            return "/shop/tier-3/";
-        }
-
-        if (
-            product === "bespoke" ||
-            system.includes("bespoke") ||
-            system.includes("created for your brand") ||
-            system.includes("made for your brand")
-        ) {
-            return "/shop/bespoke/";
-        }
-
-        return "/shop/";
-    }
     function hasShopConfiguration(configuration) {
         return Boolean(
             configuration.product ||
             configuration.system ||
             configuration.box_style ||
-            configuration.quantity ||
-            configuration.box_quantity ||
-            configuration.other_pieces_quantity ||
-            configuration.additional_projects
+            configuration.quantity
         );
     }
 
@@ -333,8 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Email", valueOf("email")],
             ["Phone or WhatsApp", valueOf("phone")],
             ["Instagram", valueOf("instagram")],
-            ["Location", valueOf("location")],
-            ["Preferred Contact", valueOf("preferredContactMethod")]
+            ["Location", valueOf("location")]
         ];
 
         const packagingRows = [
@@ -347,32 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Sticker seal", labelValue("sticker_style")],
             ["Tissue", labelValue("tissue_style")],
             ["Envelope", labelValue("envelope_style")],
-            ["Ribbon", labelValue("ribbon_style")],
-            ["Ribbon colour", labelValue("ribbon_colour")]
+            ["Ribbon", labelValue("ribbon_style")]
         ];
 
-        const boxQuantity = labelValue("box_quantity");
-        const otherPiecesQuantity = labelValue(
-            "other_pieces_quantity"
-        );
-
         const specificationRows = [
-            [
-                "Box quantity",
-                boxQuantity ? `${boxQuantity} pieces` : ""
-            ],
-            [
-                "Other packaging quantity",
-                otherPiecesQuantity
-                    ? `${otherPiecesQuantity} pieces`
-                    : ""
-            ],
-            [
-                "Quantity",
-                !boxQuantity && !otherPiecesQuantity
-                    ? labelValue("quantity")
-                    : ""
-            ],
+            ["Quantity", unitValue("quantity", "pieces")],
             ["Finished dimensions", dimensionsValue()],
             ["Volumetric weight", unitValue("volumetric_weight_kg", "kg")],
             ["Primary colour", colourValue()],
@@ -385,54 +281,15 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Additional comments", labelValue("comments")]
         ];
 
-        const additionalProjects = readAdditionalProjects();
-
-        const additionalProjectSections = additionalProjects.map(
-            (project, index) => {
-                const projectName =
-                    project.brand_name ||
-                    `Additional project ${index + 1}`;
-
-                const rows = [
-                    [
-                        "Packaging pieces",
-                        formatProjectPieces(project.packaging_pieces)
-                    ],
-                    ["Box style", project.box_style || ""],
-                    [
-                        "Box quantity",
-                        project.box_quantity
-                            ? `${project.box_quantity} pieces`
-                            : ""
-                    ],
-                    [
-                        "Other packaging quantity",
-                        project.other_pieces_quantity
-                            ? `${project.other_pieces_quantity} pieces`
-                            : ""
-                    ],
-                    ["Notes", project.notes || ""]
-                ];
-
-                return reviewSection(
-                    `Additional project ${index + 1}: ${projectName}`,
-                    rows
-                );
-            }
-        );
-
         reviewCard.innerHTML = [
             reviewSection("Customer", customerRows),
-            reviewSection("Main packaging project", packagingRows),
-            reviewSection("Main order specifications", specificationRows),
-            ...additionalProjectSections
+            reviewSection("Packaging system", packagingRows),
+            reviewSection("Order specifications", specificationRows)
         ].join("");
 
         const summaryLines = [
             `Brand: ${valueOf("brandName")}`,
             `Contact: ${valueOf("fullName")} (${valueOf("email")} · ${valueOf("phone")})`,
-            "",
-            "MAIN PACKAGING PROJECT",
             ...packagingRows
                 .filter(([, value]) => value)
                 .map(([label, value]) => `${label}: ${value}`),
@@ -441,97 +298,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 .map(([label, value]) => `${label}: ${value}`)
         ];
 
-        additionalProjects.forEach((project, index) => {
-            summaryLines.push(
-                "",
-                `ADDITIONAL PROJECT ${index + 1}: ${
-                    project.brand_name || "Unnamed project"
-                }`,
-                `Packaging pieces: ${
-                    formatProjectPieces(project.packaging_pieces) ||
-                    "Not supplied"
-                }`
-            );
-
-            if (project.box_style) {
-                summaryLines.push(
-                    `Box style: ${project.box_style}`
-                );
-            }
-
-            if (project.box_quantity) {
-                summaryLines.push(
-                    `Box quantity: ${project.box_quantity} pieces`
-                );
-            }
-
-            if (project.other_pieces_quantity) {
-                summaryLines.push(
-                    `Other packaging quantity: ${
-                        project.other_pieces_quantity
-                    } pieces`
-                );
-            }
-
-            if (project.notes) {
-                summaryLines.push(`Notes: ${project.notes}`);
-            }
-        });
-
         if (projectSummaryInput) {
             projectSummaryInput.value = summaryLines.join("\n");
         }
 
         if (shopConfigurationInput) {
-            shopConfigurationInput.value = JSON.stringify(
-                shopConfiguration
-            );
+            shopConfigurationInput.value = JSON.stringify(shopConfiguration);
         }
-    }
-
-    function readAdditionalProjects() {
-        const rawValue = labelValue("additional_projects");
-
-        if (!rawValue) return [];
-
-        try {
-            const parsed = JSON.parse(rawValue);
-
-            if (!Array.isArray(parsed)) return [];
-
-            return parsed.filter(project => (
-                project &&
-                typeof project === "object" &&
-                (
-                    project.brand_name ||
-                    project.box_style ||
-                    project.box_quantity ||
-                    project.other_pieces_quantity ||
-                    project.notes ||
-                    (
-                        Array.isArray(project.packaging_pieces) &&
-                        project.packaging_pieces.length
-                    )
-                )
-            ));
-        } catch (error) {
-            console.warn(
-                "Additional projects could not be displayed.",
-                error
-            );
-            return [];
-        }
-    }
-
-    function formatProjectPieces(pieces) {
-        if (Array.isArray(pieces)) {
-            return pieces
-                .map(piece => String(piece).trim())
-                .filter(Boolean)
-                .join(", ");
-        }
-
-        return String(pieces || "").trim();
     }
 
     function reviewSection(title, rows) {
@@ -603,24 +376,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (submittedComponents) {
-            const additionalProjects = readAdditionalProjects();
-
-            const additionalSummary = additionalProjects
-                .map((project, index) => (
-                    `Project ${index + 1}: ${
-                        project.brand_name || "Unnamed project"
-                    } — ${
-                        formatProjectPieces(project.packaging_pieces) ||
-                        "Pieces not supplied"
-                    }`
-                ))
-                .join(" | ");
-
-            submittedComponents.value = [
-                labelValue("packaging_pieces") ||
-                    "According to selected tier",
-                additionalSummary
-            ].filter(Boolean).join(" | ");
+            submittedComponents.value =
+                labelValue("packaging_pieces") || "According to selected tier";
         }
 
         if (submittedDate) {
@@ -640,6 +397,34 @@ document.addEventListener("DOMContentLoaded", () => {
         appendReferenceToProjectSummary(projectReference);
     }
 
+    function saveProjectConfirmation(data) {
+        if (!data || typeof data !== "object") return;
+
+        const serialized = JSON.stringify(data);
+        const reference = String(data.reference || "").trim();
+
+        for (const store of [localStorage, sessionStorage]) {
+            try {
+                store.setItem(
+                    "luxsomeProjectConfirmation",
+                    serialized
+                );
+
+                if (reference) {
+                    store.setItem(
+                        `luxsomeProjectConfirmation:${reference}`,
+                        serialized
+                    );
+                }
+            } catch (error) {
+                console.warn(
+                    "Unable to save project confirmation.",
+                    error
+                );
+            }
+        }
+    }
+
     function createConfirmationData(projectReference) {
         return {
             version: 2,
@@ -650,9 +435,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 brandName: valueOf("brandName"),
                 email: valueOf("email"),
                 phone: valueOf("phone"),
+                preferredContact:
+                    valueOf("preferredContactMethod") ||
+                    valueOf("preferred_contact_method"),
                 instagram: valueOf("instagram"),
-                location: valueOf("location"),
-                preferredContactMethod: valueOf("preferredContactMethod")
+                location: valueOf("location")
             },
             project: {
                 source: "Luxsome shop",
