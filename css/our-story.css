@@ -169,7 +169,7 @@
     right: -32px;
     bottom: 90px;
 
-    display: flex;
+    display: none;
     align-items: center;
     gap: 16px;
 

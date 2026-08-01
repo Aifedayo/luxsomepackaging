@@ -1562,10 +1562,8 @@ You can adjust individual image positions like this:
 
 .catalogue-heading h2 {
     margin: 0;
-
+    font-size: clamp(2.4rem, 5vw, 2.4rem);
     color: #282828;
-
-    font-size: clamp(2.5rem, 4.5vw, 4rem);
     font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -2926,5 +2924,345 @@ html.reveal-ready .reveal-group > .reveal {
     .story-scroll-indicator__line {
         width: 48px;
         flex-basis: 48px;
+    }
+}
+
+/* =========================================================
+   HOME SEO + SHOP DISCOVERY IMPROVEMENTS
+========================================================= */
+
+.nav-shop-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 9px 16px;
+    border: 1px solid rgba(46, 28, 21, 0.28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.38);
+}
+
+.nav-shop-link::after {
+    display: none;
+}
+
+.nav-shop-link:hover,
+.nav-shop-link:focus-visible {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.home-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.home-hero-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 50px;
+    padding: 14px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition:
+        transform 180ms ease,
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease;
+}
+
+.home-hero-button:hover,
+.home-hero-button:focus-visible {
+    transform: translateY(-2px);
+}
+
+.home-hero-button--primary {
+    border-color: #fffaf5;
+    background: #fffaf5;
+    color: #211713;
+}
+
+.home-hero-button--primary:hover,
+.home-hero-button--primary:focus-visible {
+    background: #f1ddd0;
+    border-color: #f1ddd0;
+}
+
+.home-hero-button--secondary {
+    background: rgba(33, 23, 19, 0.18);
+    color: #ffffff;
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+}
+
+.home-hero-button--secondary:hover,
+.home-hero-button--secondary:focus-visible {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.system-value-action--multiple {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px 28px;
+}
+
+.system-value-link--primary {
+    padding: 12px 18px;
+    border: 1px solid #2e1c15;
+    background: #2e1c15;
+    color: #ffffff;
+}
+
+.system-value-link--primary:hover,
+.system-value-link--primary:focus-visible {
+    background: #673629;
+    border-color: #673629;
+}
+
+.home-shop-pathways {
+    padding: clamp(76px, 10vw, 138px) 0;
+    background: #efe7df;
+    color: #2e1c15;
+}
+
+.home-shop-pathways__heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.7fr);
+    gap: 28px 70px;
+    align-items: end;
+    margin-bottom: clamp(36px, 6vw, 64px);
+}
+
+.home-shop-pathways__heading .section-eyebrow {
+    grid-column: 1 / -1;
+    margin-bottom: -8px;
+}
+
+.home-shop-pathways__heading h2 {
+    max-width: 760px;
+    margin: 0;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(2.4rem, 5vw, 4.4rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+}
+
+.home-shop-pathways__heading > p:last-child {
+    max-width: 530px;
+    margin: 0;
+    color: #756159;
+    font-size: 0.88rem;
+    line-height: 1.8;
+}
+
+.home-shop-pathways__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid rgba(46, 28, 21, 0.18);
+    border-left: 1px solid rgba(46, 28, 21, 0.18);
+}
+
+.home-shop-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 330px;
+    padding: 28px 24px;
+    border-right: 1px solid rgba(46, 28, 21, 0.18);
+    border-bottom: 1px solid rgba(46, 28, 21, 0.18);
+    background: rgba(255, 253, 249, 0.48);
+    transition:
+        background-color 220ms ease,
+        color 220ms ease,
+        transform 220ms ease;
+}
+
+.home-shop-card:hover,
+.home-shop-card:focus-visible {
+    z-index: 2;
+    background: #2e1c15;
+    color: #ffffff;
+    transform: translateY(-4px);
+}
+
+.home-shop-card--bespoke {
+    background: #673629;
+    color: #ffffff;
+}
+
+.home-shop-card__number {
+    color: #9b7763;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+
+.home-shop-card:hover .home-shop-card__number,
+.home-shop-card:focus-visible .home-shop-card__number,
+.home-shop-card--bespoke .home-shop-card__number {
+    color: rgba(255, 255, 255, 0.58);
+}
+
+.home-shop-card strong {
+    margin-top: auto;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(1.75rem, 2.5vw, 2.45rem);
+    font-weight: 500;
+    line-height: 1;
+}
+
+.home-shop-card p {
+    min-height: 82px;
+    margin: 18px 0 25px;
+    color: #756159;
+    font-size: 0.7rem;
+    line-height: 1.7;
+}
+
+.home-shop-card:hover p,
+.home-shop-card:focus-visible p,
+.home-shop-card--bespoke p {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.home-shop-card__link {
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.home-shop-pathways__all {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 28px;
+}
+
+.home-shop-pathways__all a {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid currentColor;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.gallery-cta-text-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.gallery-cta-text-link:hover,
+.gallery-cta-text-link:focus-visible {
+    color: #ffffff;
+    text-decoration: underline;
+    text-underline-offset: 5px;
+}
+
+@media (max-width: 1000px) {
+    .home-shop-pathways__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .home-shop-pathways__heading {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 850px) {
+    .nav-shop-link {
+        justify-content: flex-start;
+        min-height: auto;
+        padding: 17px 0 !important;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .nav-shop-link:hover,
+    .nav-shop-link:focus-visible {
+        background: transparent;
+        color: var(--accent);
+    }
+}
+
+@media (max-width: 640px) {
+    .home-hero-actions {
+        display: grid;
+        width: 100%;
+        gap: 9px;
+        margin-top: 22px;
+    }
+
+    .home-hero-button {
+        width: 100%;
+        min-height: 47px;
+        padding: 12px 16px;
+        font-size: 0.62rem;
+        display: none;
+    }
+
+    .home-shop-pathways {
+        padding: 72px 0;
+    }
+
+    .home-shop-pathways__heading {
+        margin-bottom: 34px;
+    }
+
+    .home-shop-pathways__heading h2 {
+        font-size: clamp(2.25rem, 11vw, 3.25rem);
+    }
+
+    .home-shop-pathways__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .home-shop-card {
+        min-height: 270px;
+    }
+
+    .home-shop-card p {
+        min-height: auto;
+    }
+
+    .home-shop-pathways__all {
+        justify-content: flex-start;
+    }
+
+    .system-value-action--multiple {
+        align-items: stretch;
+    }
+
+    .system-value-action--multiple .system-value-link {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .gallery-cta-actions {
+        align-items: stretch;
+    }
+
+    .gallery-cta-text-link {
+        justify-content: center;
     }
 }
