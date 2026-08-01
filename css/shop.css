@@ -119,7 +119,7 @@
 
 .product-card__image {
     display: block;
-    aspect-ratio: 4 / 4;
+    aspect-ratio: 5 / 3.5;
     overflow: hidden;
     background: #eee5de;
 }
@@ -470,7 +470,7 @@ body.quick-view-open {
     }
 
     .product-card__image {
-        aspect-ratio: 4 / 4.8;
+        aspect-ratio: 5 / 3.5;
     }
 
     .product-card__body {
@@ -589,7 +589,7 @@ body.quick-view-open {
     .product-listing__heading h2 { font-size: 2.35rem; }
     .product-listing__heading > p { font-size: .65rem; }
     .product-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 18px 12px; }
-    .product-card__image { aspect-ratio: 4 / 5.1; }
+    .product-card__image { aspect-ratio: 4 / 3; }
     .product-card__body { padding-top: 10px; }
     .product-card__topline { font-size: .45rem; letter-spacing: .07em; }
     .product-card h3 { margin-top: 5px; font-size: 1.08rem; }
