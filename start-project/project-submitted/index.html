@@ -72,6 +72,41 @@
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     >
+
+    <style>
+        .project-submitted-additional-project {
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(46, 28, 21, 0.12);
+        }
+
+        .project-submitted-additional-project:last-child {
+            border-bottom: 0;
+        }
+
+        .project-submitted-additional-project strong {
+            display: block;
+            margin-bottom: 9px;
+            color: #2e1c15;
+            font-family: "DM Serif Display", Georgia, serif;
+            font-size: 1.15rem;
+            font-weight: 400;
+        }
+
+        .project-submitted-additional-project ul {
+            display: grid;
+            gap: 6px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .project-submitted-additional-project li {
+            color: #756159;
+            font-size: 0.7rem;
+            line-height: 1.55;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -283,9 +318,9 @@
                                     <small>WITHIN 24 HOURS</small>
                                     <h3>Review and assessment</h3>
                                     <p>
-                                        We assess your product,
-                                        requirements, timeline and
-                                        selected packaging system.
+                                        We assess your selected pieces,
+                                        specifications and complete
+                                        packaging system.
                                     </p>
                                 </div>
                             </li>
@@ -371,7 +406,6 @@
                         </div>
 
                         <dl class="project-summary-list">
-
                             <div class="project-summary-row">
                                 <dt>Brand</dt>
                                 <dd id="summaryBrand">—</dd>
@@ -383,28 +417,13 @@
                             </div>
 
                             <div class="project-summary-row">
-                                <dt>Packaging system</dt>
-                                <dd id="summarySystem">—</dd>
+                                <dt>Email</dt>
+                                <dd id="summaryEmail">—</dd>
                             </div>
 
                             <div class="project-summary-row">
-                                <dt>Quantity</dt>
-                                <dd id="summaryQuantity">—</dd>
-                            </div>
-
-                            <div class="project-summary-row">
-                                <dt>Required date</dt>
-                                <dd id="summaryDate">—</dd>
-                            </div>
-
-                            <div class="project-summary-row">
-                                <dt>Product</dt>
-                                <dd id="summaryProduct">—</dd>
-                            </div>
-
-                            <div class="project-summary-row">
-                                <dt>Investment level</dt>
-                                <dd id="summaryInvestment">—</dd>
+                                <dt>Phone or WhatsApp</dt>
+                                <dd id="summaryPhone">—</dd>
                             </div>
 
                             <div class="project-summary-row">
@@ -412,23 +431,154 @@
                                 <dd id="summaryContact">—</dd>
                             </div>
 
+                            <div class="project-summary-row">
+                                <dt>Business location</dt>
+                                <dd id="summaryLocation">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryInstagramRow"
+                            >
+                                <dt>Instagram</dt>
+                                <dd id="summaryInstagram">—</dd>
+                            </div>
+
+                            <div class="project-summary-row">
+                                <dt>Packaging system</dt>
+                                <dd id="summarySystem">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryProjectTypeRow"
+                            >
+                                <dt>Project type</dt>
+                                <dd id="summaryProjectType">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryPiecesRow"
+                            >
+                                <dt>Packaging pieces</dt>
+                                <dd id="summaryPieces">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryBoxStyleRow"
+                            >
+                                <dt>Box style</dt>
+                                <dd id="summaryBoxStyle">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryQuantityRow"
+                            >
+                                <dt>Quantity</dt>
+                                <dd id="summaryQuantity">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryBoxQuantityRow"
+                            >
+                                <dt>Box quantity</dt>
+                                <dd id="summaryBoxQuantity">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryOtherQuantityRow"
+                            >
+                                <dt>Other packaging quantity</dt>
+                                <dd id="summaryOtherQuantity">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryDimensionsRow"
+                            >
+                                <dt>Finished dimensions</dt>
+                                <dd id="summaryDimensions">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryWeightRow"
+                            >
+                                <dt>Volumetric weight</dt>
+                                <dd id="summaryWeight">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryColoursRow"
+                            >
+                                <dt>Preferred colours</dt>
+                                <dd id="summaryColours">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryLogoFinishRow"
+                            >
+                                <dt>Logo finish</dt>
+                                <dd id="summaryLogoFinish">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryArtworkRow"
+                            >
+                                <dt>Logo and artwork</dt>
+                                <dd id="summaryArtwork">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryAccessoriesRow"
+                            >
+                                <dt>Accessories</dt>
+                                <dd id="summaryAccessories">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryCommentsRow"
+                            >
+                                <dt>Additional comments</dt>
+                                <dd id="summaryComments">—</dd>
+                            </div>
                         </dl>
-
-
-                        <!-- Components -->
 
                         <section
                             class="recommended-components"
                             id="recommendedComponents"
+                            hidden
                         >
                             <p class="recommended-components__label">
-                                Selected or recommended pieces
+                                Selected packaging details
                             </p>
 
                             <ul
                                 class="recommended-components__list"
                                 id="componentsList"
                             ></ul>
+                        </section>
+
+                        <section
+                            class="recommended-components"
+                            id="additionalProjectsSection"
+                            hidden
+                        >
+                            <p class="recommended-components__label">
+                                Additional brand projects
+                            </p>
+
+                            <div id="additionalProjectsList"></div>
                         </section>
 
 
@@ -491,8 +641,8 @@
                         <h3>We review</h3>
 
                         <p>
-                            We assess your brand, product,
-                            requirements and preferred timeline.
+                            We assess your brand, selected packaging
+                            pieces and submitted specifications.
                         </p>
                     </article>
 

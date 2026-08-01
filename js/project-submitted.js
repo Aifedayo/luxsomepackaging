@@ -158,56 +158,261 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderProjectSummary(data) {
         const customer = data?.customer || {};
         const project = data?.project || {};
-
-        setText(
-            "summaryBrand",
-            customer.brandName
+        const configuration = normaliseConfiguration(
+            project.configuration ||
+            data?.shopConfiguration ||
+            {}
         );
 
+        setText("summaryBrand", customer.brandName);
+        setText("summaryName", customer.fullName);
+        setText("summaryEmail", customer.email);
+        setText("summaryPhone", customer.phone);
         setText(
-            "summaryName",
-            customer.fullName
+            "summaryContact",
+            contactMethodLabel(
+                customer.preferredContact ||
+                project.preferredContact ||
+                configuration.preferred_contact_method
+            )
+        );
+        setText("summaryLocation", customer.location);
+
+        setOptionalText(
+            "summaryInstagramRow",
+            "summaryInstagram",
+            customer.instagram
         );
 
         setText(
             "summarySystem",
-            project.packagingSystem
+            project.packagingSystem ||
+            configuration.system
         );
 
-        setText(
+        setOptionalText(
+            "summaryProjectTypeRow",
+            "summaryProjectType",
+            configuration.project_type
+        );
+
+        const packagingPieces = splitList(
+            configuration.packaging_pieces
+        );
+
+        setOptionalText(
+            "summaryPiecesRow",
+            "summaryPieces",
+            packagingPieces.join(", ")
+        );
+
+        setOptionalText(
+            "summaryBoxStyleRow",
+            "summaryBoxStyle",
+            configuration.box_style
+        );
+
+        const hasSplitQuantities = Boolean(
+            clean(configuration.box_quantity) ||
+            clean(configuration.other_pieces_quantity)
+        );
+
+        setOptionalText(
+            "summaryQuantityRow",
             "summaryQuantity",
-            project.quantity
+            hasSplitQuantities
+                ? ""
+                : formatQuantity(configuration.quantity)
         );
 
-        setText(
-            "summaryDate",
-            project.requiredDate
+        setOptionalText(
+            "summaryBoxQuantityRow",
+            "summaryBoxQuantity",
+            formatQuantity(configuration.box_quantity)
         );
 
-        setText(
-            "summaryProduct",
-            project.productType
+        setOptionalText(
+            "summaryOtherQuantityRow",
+            "summaryOtherQuantity",
+            formatQuantity(
+                configuration.other_pieces_quantity
+            )
         );
 
-        setText(
-            "summaryInvestment",
-            project.investmentLevel
+        setOptionalText(
+            "summaryDimensionsRow",
+            "summaryDimensions",
+            dimensionsValue(configuration)
         );
 
-        setText(
-            "summaryContact",
-            project.preferredContact
+        setOptionalText(
+            "summaryWeightRow",
+            "summaryWeight",
+            unitValue(
+                configuration.volumetric_weight_kg,
+                "kg"
+            )
         );
 
-        const components =
-            Array.isArray(project.components)
-                ? project.components.filter(Boolean)
-                : [];
+        setOptionalText(
+            "summaryColoursRow",
+            "summaryColours",
+            coloursValue(configuration)
+        );
 
-        renderComponents(components);
+        setOptionalText(
+            "summaryLogoFinishRow",
+            "summaryLogoFinish",
+            configuration.logo_finish
+        );
+
+        setOptionalText(
+            "summaryArtworkRow",
+            "summaryArtwork",
+            configuration.artwork_status
+        );
+
+        setOptionalText(
+            "summaryAccessoriesRow",
+            "summaryAccessories",
+            configuration.accessories
+        );
+
+        setOptionalText(
+            "summaryCommentsRow",
+            "summaryComments",
+            configuration.comments
+        );
+
+        renderSelectedDetails(configuration);
+        renderAdditionalProjects(
+            parseAdditionalProjects(
+                configuration.additional_projects
+            )
+        );
     }
 
-    function renderComponents(components) {
+    function normaliseConfiguration(value) {
+        if (!value) return {};
+
+        if (typeof value === "object") {
+            return value;
+        }
+
+        try {
+            const parsed = JSON.parse(value);
+
+            return parsed && typeof parsed === "object"
+                ? parsed
+                : {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    function clean(value) {
+        return String(value ?? "").trim();
+    }
+
+    function contactMethodLabel(value) {
+        const method = clean(value).toLowerCase();
+
+        if (method === "whatsapp") return "WhatsApp";
+        if (method === "email") return "Email";
+
+        return clean(value);
+    }
+
+    function formatQuantity(value) {
+        const quantity = clean(value);
+
+        if (!quantity) return "";
+
+        if (
+            /pieces|boxes|other/i.test(quantity)
+        ) {
+            return quantity;
+        }
+
+        return `${quantity} pieces`;
+    }
+
+    function unitValue(value, unit) {
+        const rawValue = clean(value);
+
+        if (!rawValue) return "";
+
+        return rawValue.toLowerCase().endsWith(
+            unit.toLowerCase()
+        )
+            ? rawValue
+            : `${rawValue} ${unit}`;
+    }
+
+    function dimensionsValue(configuration) {
+        const length = clean(
+            configuration.box_length_cm
+        );
+        const breadth = clean(
+            configuration.box_breadth_cm
+        );
+        const height = clean(
+            configuration.box_height_cm
+        );
+
+        if (!length || !breadth || !height) {
+            return "";
+        }
+
+        return `${length} × ${breadth} × ${height} cm`;
+    }
+
+    function coloursValue(configuration) {
+        const colours = [
+            configuration.primary_colour,
+            configuration.custom_colour,
+            configuration.secondary_colour,
+            configuration.accent_colour,
+            configuration.pantone_reference
+        ]
+            .map(clean)
+            .filter(Boolean);
+
+        return [...new Set(colours)].join(", ");
+    }
+
+    function splitList(value) {
+        if (Array.isArray(value)) {
+            return value.map(clean).filter(Boolean);
+        }
+
+        return clean(value)
+            .split(",")
+            .map(clean)
+            .filter(Boolean);
+    }
+
+    function setOptionalText(
+        rowId,
+        elementId,
+        value
+    ) {
+        const row = document.getElementById(rowId);
+        const element = document.getElementById(
+            elementId
+        );
+        const displayValue = clean(value);
+
+        if (!row || !element) return;
+
+        row.hidden = !displayValue;
+
+        if (displayValue) {
+            element.textContent = displayValue;
+        }
+    }
+
+    function renderSelectedDetails(configuration) {
         if (
             !componentsSection ||
             !componentsList
@@ -215,39 +420,125 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const rows = [
+            ["Hang tag", configuration.tag_style],
+            [
+                "Thank-you card",
+                configuration.thank_you_card
+            ],
+            [
+                "Sticker seal",
+                configuration.sticker_style
+            ],
+            ["Tissue", configuration.tissue_style],
+            ["Envelope", configuration.envelope_style],
+            ["Ribbon", configuration.ribbon_style],
+            [
+                "Ribbon colour",
+                configuration.ribbon_colour
+            ]
+        ].filter(([, value]) => clean(value));
+
         componentsList.replaceChildren();
 
-        if (components.length === 0) {
+        if (!rows.length) {
             componentsSection.hidden = true;
             return;
         }
 
         componentsSection.hidden = false;
 
-        components.forEach((component) => {
-            const listItem =
-                document.createElement("li");
-
-            listItem.textContent = component;
-
-            componentsList.appendChild(listItem);
+        rows.forEach(([label, value]) => {
+            const item = document.createElement("li");
+            item.textContent = `${label}: ${clean(value)}`;
+            componentsList.appendChild(item);
         });
     }
 
-    function setText(elementId, value) {
-        const element =
-            document.getElementById(elementId);
+    function parseAdditionalProjects(value) {
+        if (Array.isArray(value)) return value;
 
-        if (!element) {
+        const rawValue = clean(value);
+
+        if (!rawValue) return [];
+
+        try {
+            const parsed = JSON.parse(rawValue);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function renderAdditionalProjects(projects) {
+        const section = document.getElementById(
+            "additionalProjectsSection"
+        );
+        const list = document.getElementById(
+            "additionalProjectsList"
+        );
+
+        if (!section || !list) return;
+
+        list.replaceChildren();
+
+        const validProjects = projects.filter(
+            project =>
+                project &&
+                typeof project === "object"
+        );
+
+        if (!validProjects.length) {
+            section.hidden = true;
             return;
         }
 
-        element.textContent =
-            value && String(value).trim()
-                ? String(value).trim()
-                : "To be confirmed";
-    }
+        section.hidden = false;
 
+        validProjects.forEach((project, index) => {
+            const card = document.createElement("article");
+            card.className =
+                "project-submitted-additional-project";
+
+            const heading = document.createElement("strong");
+            heading.textContent =
+                project.brand_name ||
+                `Additional project ${index + 1}`;
+
+            const detailList = document.createElement("ul");
+
+            const details = [
+                [
+                    "Packaging pieces",
+                    Array.isArray(project.packaging_pieces)
+                        ? project.packaging_pieces.join(", ")
+                        : project.packaging_pieces
+                ],
+                ["Box style", project.box_style],
+                [
+                    "Box quantity",
+                    formatQuantity(project.box_quantity)
+                ],
+                [
+                    "Other packaging quantity",
+                    formatQuantity(
+                        project.other_pieces_quantity
+                    )
+                ],
+                ["Notes", project.notes]
+            ].filter(([, value]) => clean(value));
+
+            details.forEach(([label, value]) => {
+                const item = document.createElement("li");
+                item.textContent =
+                    `${label}: ${clean(value)}`;
+                detailList.appendChild(item);
+            });
+
+            card.append(heading, detailList);
+            list.appendChild(card);
+        });
+    }
 
     /* =====================================================
        COPY PROJECT REFERENCE
