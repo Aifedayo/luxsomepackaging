@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const API = fetch(`${window.LUXSOME.apiBase}/api/projects`);
+    const API_BASE = window.LUXSOME.apiBase;
 
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token") || "";
