@@ -51,7 +51,8 @@
         }
     };
 
-    const fallback = environments["develop.luxsomepackaging.com"];
+    const fallback =
+        environments["develop.luxsomepackaging.com"];
 
     window.LUXSOME = Object.freeze(
         environments[hostname] || fallback
@@ -62,29 +63,29 @@
             `[Luxsome] Environment: ${window.LUXSOME.name}`,
             window.LUXSOME
         );
+    }
 
-        function addEnvironmentBadge() {
-            if (window.LUXSOME.isProduction) return;
-        
-            const badge = document.createElement("div");
-        
-            badge.className = "environment-badge";
-            badge.textContent = window.LUXSOME.label;
-            badge.setAttribute(
-                "aria-label",
-                `${window.LUXSOME.label} environment`
-            );
-        
-            document.body.appendChild(badge);
-        }
-        
-        if (document.readyState === "loading") {
-            document.addEventListener(
-                "DOMContentLoaded",
-                addEnvironmentBadge
-            );
-        } else {
-            addEnvironmentBadge();
-        }
+    function addEnvironmentBadge() {
+        if (window.LUXSOME.isProduction) return;
+
+        const badge = document.createElement("div");
+
+        badge.className = "environment-badge";
+        badge.textContent = window.LUXSOME.label;
+        badge.setAttribute(
+            "aria-label",
+            `${window.LUXSOME.label} environment`
+        );
+
+        document.body.appendChild(badge);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            addEnvironmentBadge
+        );
+    } else {
+        addEnvironmentBadge();
     }
 })();
