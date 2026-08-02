@@ -1,0 +1,18 @@
+# Node
+node_modules/
+**/node_modules/
+
+# Wrangler
+.worker/
+.wrangler/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+worker/luxsome-project-api/.wrangler/
+worker/luxsome-project-api/.dev.vars

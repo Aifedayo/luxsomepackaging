@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const API = "https://api.luxsomepackaging.com";
+    const API = fetch(`${window.LUXSOME.apiBase}/api/projects`);
     const MAX_SLIP_SIZE = 5 * 1024 * 1024;
     const ALLOWED_SLIP_TYPES = new Set([
         "image/jpeg",
