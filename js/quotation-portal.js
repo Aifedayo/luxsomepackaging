@@ -1,7 +1,13 @@
 (function () {
     "use strict";
 
-    const API_BASE = window.LUXSOME.apiBase;
+    const API_BASE = window.LUXSOME?.apiBase;
+
+    if (!API_BASE) {
+        throw new Error(
+            "Luxsome environment configuration was not loaded."
+        );
+    }
 
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token") || "";
@@ -49,7 +55,7 @@
         let response;
 
         try {
-            response = await fetch(`${API}${path}`, {
+            response = await fetch(`${API_BASE}${path}`, {
                 ...options,
                 headers: {
                     Accept: "application/json",
