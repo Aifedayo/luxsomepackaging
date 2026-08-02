@@ -1,0 +1,17 @@
+# Node
+node_modules/
+**/node_modules/
+**/.dev.vars
+**/.wrangler
+
+# Wrangler
+.worker/
+.wrangler/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

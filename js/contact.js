@@ -6,6 +6,15 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    const API_BASE = window.LUXSOME?.apiBase;
+
+    if (!API_BASE) {
+        console.error(
+            "Luxsome environment configuration was not loaded."
+        );
+        return;
+    }
+
     const brandName = document.getElementById("brandName");
     const phoneNumber = document.getElementById("phoneNumber");
     const emailAddress = document.getElementById("emailAddress");
@@ -100,7 +109,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setLoadingState(true);
 
         try {
-            const response = await fetch(form.action, {
+            const response = await fetch(`${API_BASE}/contact`, {
                 method: "POST",
                 body: new FormData(form),
                 headers: {

@@ -5,10 +5,6 @@
   "main": "src/worker.js",
   "compatibility_date": "2026-07-28",
 
-  /*
-   * Prevent an accidental plain `wrangler deploy` from publishing
-   * an unintended default environment.
-   */
   "workers_dev": false,
   "preview_urls": false,
 
@@ -124,9 +120,6 @@
       },
 
       "production": {
-          /*
-           * This preserves your existing production Worker name.
-           */
           "name": "luxsome-project-api",
           "workers_dev": true,
           "preview_urls": false,

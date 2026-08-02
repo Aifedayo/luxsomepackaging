@@ -1,8 +1,8 @@
 (() => {
     "use strict";
 
-    const API_BASE = "https://api.luxsomepackaging.com";
-
+    const API_BASE = window.LUXSOME.apiBase;
+    
     const stages = [
         ["payment_confirmed", "Payment confirmed"],
         ["artwork_specification", "Artwork and specification"],

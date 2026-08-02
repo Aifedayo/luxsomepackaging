@@ -1,5 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const API = "https://api.luxsomepackaging.com";
+    const API_BASE = window.LUXSOME?.apiBase;
+
+    if (!API_BASE) {
+        throw new Error(
+            "Luxsome environment configuration was not loaded."
+        );
+    }
     const MAX_SLIP_SIZE = 5 * 1024 * 1024;
     const ALLOWED_SLIP_TYPES = new Set([
         "image/jpeg",
@@ -43,16 +49,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }).format(new Date(`${value}T00:00:00`))
         : "—";
 
-    async function api(path, options = {}) {
-        const response = await fetch(API + path, options);
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            throw new Error(data.message || "Request failed");
+        async function api(path, options = {}) {
+            const response = await fetch(`${API_BASE}${path}`, options);
+            const data = await response.json().catch(() => ({}));
+        
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                    data.error ||
+                    `Request failed with status ${response.status}`
+                );
+            }
+        
+            return data;
         }
-
-        return data;
-    }
 
     function render() {
         const current = invoice;

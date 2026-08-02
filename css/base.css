@@ -3266,3 +3266,37 @@ html.reveal-ready .reveal-group > .reveal {
         justify-content: center;
     }
 }
+
+
+.environment-badge {
+    position: fixed;
+    z-index: 99999;
+    right: 14px;
+    bottom: 14px;
+    min-width: 92px;
+    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    background: rgba(46, 28, 21, 0.92);
+    color: #ffffff;
+    font-family: "Montserrat", Arial, sans-serif;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-align: center;
+    text-transform: uppercase;
+    box-shadow: 0 8px 26px rgba(46, 28, 21, 0.2);
+    backdrop-filter: blur(8px);
+    pointer-events: none;
+}
+
+@media (max-width: 620px) {
+    .environment-badge {
+        right: 9px;
+        bottom: 9px;
+        min-width: 78px;
+        padding: 7px 9px;
+        font-size: 0.5rem;
+    }
+}

@@ -1,6 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("projectForm");
     if (!form) return;
+    const API_BASE = window.LUXSOME?.apiBase;
+
+    if (!API_BASE) {
+        console.error(
+            "Luxsome environment configuration was not loaded."
+        );
+
+        return;
+    }
 
     const steps = Array.from(form.querySelectorAll(".project-step"));
     const progressItems = Array.from(document.querySelectorAll("[data-progress-step]"));
@@ -98,10 +107,12 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         try {
-            const response = await fetch(form.action, {
+            const response = await fetch(`${API_BASE}/project`, {
                 method: "POST",
                 body: new FormData(form),
-                headers: { Accept: "application/json" }
+                headers: {
+                    Accept: "application/json"
+                }
             });
 
             let responseData = {};
