@@ -1,0 +1,23 @@
+{
+  "name": "luxsome-project-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+      "dev": "wrangler dev --env develop",
+
+      "check:develop": "wrangler deploy --env develop --dry-run",
+      "check:staging": "wrangler deploy --env staging --dry-run",
+      "check:production": "wrangler deploy --env production --dry-run",
+
+      "deploy:develop": "wrangler deploy --env develop",
+      "deploy:staging": "wrangler deploy --env staging",
+      "deploy:production": "wrangler deploy --env production",
+
+      "db:develop": "wrangler d1 execute DB --env develop --remote",
+      "db:staging": "wrangler d1 execute DB --env staging --remote",
+      "db:production": "wrangler d1 execute DB --env production --remote"
+  },
+  "devDependencies": {
+      "wrangler": "^4.118.0"
+  }
+}
