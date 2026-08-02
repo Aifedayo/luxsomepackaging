@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const API_BASE = fetch(`${window.LUXSOME.apiBase}/api/projects`);
+    const API_BASE = window.LUXSOME.apiBase;
     const PAGE_SIZE = 20;
 
     const state = {
