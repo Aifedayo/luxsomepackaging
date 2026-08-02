@@ -1,7 +1,7 @@
 (() => {
     "use strict";
 
-    const API_BASE = "https://api.luxsomepackaging.com";
+    const API_BASE = fetch(`${window.LUXSOME.apiBase}/api/projects`);
 
     const stages = [
         ["payment_confirmed", "Payment confirmed"],

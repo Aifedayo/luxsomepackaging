@@ -502,57 +502,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const visualOptionGroups = {
         boxStyle: {
             label: 'Box styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=5',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=5',
             fallback: ''
         },
         tagStyle: {
             label: 'Tag styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=9',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=9',
             fallback: ''
         },
         thankYouCard: {
             label: 'Thank-you card styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=10',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=10',
             fallback: ''
         },
         stickerStyle: {
             label: 'Sticker styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=11',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=11',
             fallback: ''
         },
         tissueStyle: {
             label: 'Tissue styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=12',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=12',
             fallback: ''
         },
         envelopeStyle: {
             label: 'Envelope styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=12',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=12',
             fallback: ''
         },
         ribbonStyle: {
             label: 'Ribbon styles',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=13',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=13',
             fallback: ''
         },
         logoFinish: {
             label: 'Finishing options',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=13',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=13',
             fallback: ''
         },
         accessories: {
             label: 'Accessories',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=17',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=17',
             fallback: ''
         },
         packagingPieces: {
             label: 'Packaging pieces',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf#page=4',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf#page=4',
             fallback: ''
         },
         projectType: {
             label: 'Project types',
-            catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf',
+            catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf',
             fallback: ''
         }
     };
@@ -640,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a
                         class="option-visual-modal__catalogue"
                         id="optionVisualCatalogue"
-                        href="/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf"
+                        href="https://assets.luxsomepackaging.com/catalogues/catalogue.pdf"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
@@ -779,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         optionVisualCatalogue.href =
             catalogueLink?.href ||
-            '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf';
+            'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf';
 
         optionVisualModal.hidden = false;
         document.body.classList.add('option-visual-open');
@@ -866,7 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const getGroup = input => (
             visualOptionGroups[input.name] || {
                 label: 'Packaging option',
-                catalogue: '/assets/pdf/catalogues/PRODUCT-CATALOGUE.pdf'
+                catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf'
             }
         );
 

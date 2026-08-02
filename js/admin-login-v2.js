@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const API_BASE = "https://api.luxsomepackaging.com";
+    const API_BASE = fetch(`${window.LUXSOME.apiBase}/api/projects`);
 
     const form = document.getElementById("adminLoginForm");
     const tokenInput = document.getElementById("adminToken");
