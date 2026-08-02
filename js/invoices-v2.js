@@ -1,7 +1,7 @@
 (() => {
     "use strict";
 
-    const API_BASE = fetch(`${window.LUXSOME.apiBase}/api/projects`);
+    const API_BASE = window.LUXSOME.apiBase;
     const token = sessionStorage.getItem("luxsomeAdminToken");
 
     if (!token) {
