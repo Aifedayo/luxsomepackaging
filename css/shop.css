@@ -3696,3 +3696,25 @@ body.option-visual-open {
         transition: none;
     }
 }
+
+.ribbon-colour-selection[hidden] {
+    display: none;
+}
+
+.ribbon-colour-selection {
+    margin-top: 28px;
+
+    animation: fadeRibbonSection .25s ease;
+}
+
+@keyframes fadeRibbonSection {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

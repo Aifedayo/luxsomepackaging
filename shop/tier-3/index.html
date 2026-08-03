@@ -679,7 +679,11 @@
                 </label>
             </div>
 
-            <div class="ribbon-colour-selection">
+            <div
+                class="ribbon-colour-selection"
+                id="ribbonColourSelection"
+                hidden
+            >
                 <p class="configuration-subheading">Ribbon colour</p>
 
                 <p class="configuration-help">
@@ -993,7 +997,7 @@
         <span>Your selections will be added to the project form, where you can provide your brand, artwork and delivery details.</span>
     </div>
 
-    <button type="submit" class="buy-now-button">Order Tier 3</button>
+    <button type="submit" class="buy-now-button">Order Now</button>
     <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
 </section>
 </form>
@@ -1409,6 +1413,7 @@
     </section>
 </div>
         <script src="/js/environment.js"></script>
+        <script src="/js/shop.js"></script>
 
         <script id="mobileGalleryReleaseScript">
             document.addEventListener("DOMContentLoaded", () => {
@@ -1503,7 +1508,67 @@
             });
         </script>
 
-    
+        <script id="ribbonColourSelectionScript">
+            document.addEventListener("DOMContentLoaded", function () {
+                const ribbonColourSection =
+                    document.getElementById("ribbonColourSelection");
+
+                const ribbonStyleInputs = Array.from(
+                    document.querySelectorAll(
+                        'input[name="ribbonStyle"]'
+                    )
+                );
+
+                const ribbonColourInputs = Array.from(
+                    document.querySelectorAll(
+                        'input[name="ribbonColour"]'
+                    )
+                );
+
+                if (
+                    !ribbonColourSection ||
+                    ribbonStyleInputs.length === 0
+                ) {
+                    return;
+                }
+
+                function updateRibbonColourVisibility() {
+                    const selectedRibbonStyle =
+                        document.querySelector(
+                            'input[name="ribbonStyle"]:checked'
+                        );
+
+                    const shouldShowColourOptions =
+                        selectedRibbonStyle !== null;
+
+                    ribbonColourSection.hidden =
+                        !shouldShowColourOptions;
+
+                    ribbonColourSection.setAttribute(
+                        "aria-hidden",
+                        String(!shouldShowColourOptions)
+                    );
+
+                    ribbonColourInputs.forEach(function (input) {
+                        input.disabled =
+                            !shouldShowColourOptions;
+
+                        if (!shouldShowColourOptions) {
+                            input.checked = false;
+                        }
+                    });
+                }
+
+                ribbonStyleInputs.forEach(function (input) {
+                    input.addEventListener(
+                        "change",
+                        updateRibbonColourVisibility
+                    );
+                });
+
+                updateRibbonColourVisibility();
+            });
+        </script>
 
         <script id="dimensionUnitToggleScript">
             document.addEventListener("DOMContentLoaded", () => {
