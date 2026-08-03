@@ -2080,14 +2080,14 @@ body.option-visual-open {
     }
 
     .product-gallery__caption {
-        right: 10px;
-        bottom: 10px;
-        left: 10px;
-        padding: 10px 12px;
+        right: 14em;
+        bottom: 0px;
+        left: 0px;
+        padding: 4px 4px;
     }
 
     .product-gallery__caption strong {
-        font-size: 1.25rem;
+        font-size: 0.85rem;
     }
 
     .product-gallery__expand {
