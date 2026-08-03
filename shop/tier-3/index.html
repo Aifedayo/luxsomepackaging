@@ -368,7 +368,7 @@
 
                 <details class="product-accordion" open>
                     <summary>Included</summary>
-                    <ul class="included-list"><li>Premium rigid box</li><li>Branded tissue</li><li>Up to three-piece hang tag</li><li>Flat or folded thank-you card</li><li>Envelope</li><li>Sticker seal</li><li>Branded ribbon</li></ul>
+                    <ul class="included-list"><li>Premium rigid box</li><li>Branded tissue</li><li>Up to three-piece hang tag</li><li>Flat or folded thank-you card</li><li>Envelope</li><li>Sticker seal</li></ul>
                 </details>
 <form class="product-config" id="productConfigForm">
     <section class="configuration-section" aria-labelledby="tierThreeIncludedHeading">
@@ -479,34 +479,114 @@
             </div>
         </fieldset>
 
-        <fieldset class="configuration-group">
+        <fieldset
+            class="configuration-group"
+            id="thankYouInsertConfiguration"
+        >
             <legend>
-                Thank-you card
-                <span class="option-status option-status--included">Included</span>
+                Thank-you insert
+
+                <span class="option-status option-status--included">
+                    Included
+                </span>
             </legend>
+
             <p class="configuration-help">
-                Choose a flat card or a folded card.
+                Choose a flat card, folded card or a thank-you note.
+                An envelope is included only when the thank-you note is selected.
+            </p>
+
+            <div class="option-grid option-grid--three">
+                <label>
+                    <input
+                        type="radio"
+                        name="thankYouCard"
+                        value="Flat thank-you card"
+                    >
+
+                    <span>
+                        Flat card
+                        <small>Envelope not included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="thankYouCard"
+                        value="Folded thank-you card"
+                        checked
+                    >
+
+                    <span>
+                        Folded card
+                        <small>Envelope not included</small>
+                    </span>
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="thankYouCard"
+                        value="Thank-you note"
+                    >
+
+                    <span>
+                        Thank-you note
+                        <small>Includes an envelope</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+        <fieldset
+            class="configuration-group envelope-configuration"
+            id="envelopeConfiguration"
+            hidden
+            aria-hidden="true"
+        >
+            <legend>
+                Envelope
+
+                <span class="option-status option-status--included">
+                    Included with thank-you note
+                </span>
+            </legend>
+
+            <p class="configuration-help">
+                Choose the envelope presentation for your thank-you note.
             </p>
 
             <div class="option-grid">
                 <label>
-                    <input type="radio" name="thankYouCard" value="Flat thank-you card">
+                    <input
+                        type="radio"
+                        name="envelopeStyle"
+                        value="Classic envelope"
+                        disabled
+                    >
+
                     <span>
-                        Flat card
+                        Classic envelope
                         <small>Included</small>
                     </span>
                 </label>
 
                 <label>
-                    <input type="radio" name="thankYouCard" value="Folded thank-you card" checked>
+                    <input
+                        type="radio"
+                        name="envelopeStyle"
+                        value="Wallet envelope"
+                        checked
+                        
+                    >
+
                     <span>
-                        Folded card
+                        Wallet envelope
                         <small>Included</small>
                     </span>
                 </label>
             </div>
         </fieldset>
-
         <fieldset class="configuration-group">
             <legend>
                 Sticker seal
@@ -563,33 +643,7 @@
             </div>
         </fieldset>
 
-        <fieldset class="configuration-group">
-            <legend>
-                Envelope
-                <span class="option-status option-status--included">Included</span>
-            </legend>
-            <p class="configuration-help">
-                Choose the envelope presentation for the thank-you card.
-            </p>
-
-            <div class="option-grid">
-                <label>
-                    <input type="radio" name="envelopeStyle" value="Classic envelope">
-                    <span>
-                        Classic envelope
-                        <small>Included</small>
-                    </span>
-                </label>
-
-                <label>
-                    <input type="radio" name="envelopeStyle" value="Wallet envelope" checked>
-                    <span>
-                        Wallet envelope
-                        <small>Included</small>
-                    </span>
-                </label>
-            </div>
-        </fieldset>
+        
     </section>
 
     <section class="configuration-section configuration-section--finishing" aria-labelledby="tierThreeFinishingHeading">

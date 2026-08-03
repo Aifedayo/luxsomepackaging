@@ -147,6 +147,118 @@ document.addEventListener('DOMContentLoaded', () => {
 
     restoreProductConfiguration();
 
+    /*
+    * Tier 3 thank-you insert and envelope relationship.
+    *
+    * The envelope is available only when the customer chooses
+    * the Thank-you note option.
+    */
+    const setupThankYouEnvelopeSelection = () => {
+        const form = document.getElementById(
+            "productConfigForm"
+        );
+
+        const envelopeSection = document.getElementById(
+            "envelopeConfiguration"
+        );
+
+        if (!form || !envelopeSection) {
+            return;
+        }
+
+        const thankYouInputs = Array.from(
+            form.querySelectorAll(
+                'input[name="thankYouCard"]'
+            )
+        );
+
+        const envelopeInputs = Array.from(
+            envelopeSection.querySelectorAll(
+                'input[name="envelopeStyle"]'
+            )
+        );
+
+        if (!thankYouInputs.length) {
+            return;
+        }
+
+        const updateEnvelopeVisibility = () => {
+            const selectedThankYouOption =
+                form.querySelector(
+                    'input[name="thankYouCard"]:checked'
+                );
+
+            const shouldShowEnvelope =
+                selectedThankYouOption?.value ===
+                "Thank-you note";
+
+            envelopeSection.hidden =
+                !shouldShowEnvelope;
+
+            envelopeSection.setAttribute(
+                "aria-hidden",
+                String(!shouldShowEnvelope)
+            );
+
+            envelopeInputs.forEach((input) => {
+                input.disabled =
+                    !shouldShowEnvelope;
+            });
+
+            /*
+            * Ensure one envelope style is selected whenever
+            * the envelope section becomes available.
+            */
+            if (
+                shouldShowEnvelope &&
+                !envelopeInputs.some(
+                    (input) => input.checked
+                )
+            ) {
+                const defaultEnvelope =
+                    envelopeInputs.find(
+                        (input) =>
+                            input.value ===
+                            "Wallet envelope"
+                    ) ||
+                    envelopeInputs[0];
+
+                if (defaultEnvelope) {
+                    defaultEnvelope.checked = true;
+                }
+            }
+
+            /*
+            * Notify the rest of shop.js that the configuration
+            * has changed. This keeps image previews and saved
+            * configuration in sync where applicable.
+            */
+            envelopeSection.dispatchEvent(
+                new CustomEvent(
+                    "luxsome:envelope-visibility-change",
+                    {
+                        bubbles: true,
+                        detail: {
+                            visible:
+                                shouldShowEnvelope
+                        }
+                    }
+                )
+            );
+        };
+
+        thankYouInputs.forEach((input) => {
+            input.addEventListener(
+                "change",
+                updateEnvelopeVisibility
+            );
+        });
+
+        updateEnvelopeVisibility();
+    };
+
+    setupThankYouEnvelopeSelection();
+
     const sort = document.getElementById('shopSort');
     const grid = document.getElementById('productGrid');
 
@@ -353,14 +465,29 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('packaging_pieces', data.getAll('packagingPieces').join(', '));
         params.set('box_style', data.get('boxStyle') || '');
         params.set('tag_style', data.get('tagStyle') || '');
-        params.set('thank_you_card', data.get('thankYouCard') || '');
         params.set('sticker_style', data.get('stickerStyle') || '');
         params.set('tissue_style', data.get('tissueStyle') || '');
-        params.set('envelope_style', data.get('envelopeStyle') || '');
         params.set('ribbon_style', data.get('ribbonStyle') || '');
         params.set('ribbon_colour', data.get('ribbonColour') || '');
         params.set('logo_finish', data.get('logoFinish') || '');
         params.set('artwork_status', data.get('artworkStatus') || '');
+        const selectedThankYouInsert =
+            data.get("thankYouCard") || "";
+
+        const selectedEnvelope =
+            selectedThankYouInsert === "Thank-you note"
+                ? data.get("envelopeStyle") || ""
+                : "";
+
+        params.set(
+            "thank_you_card",
+            selectedThankYouInsert
+        );
+
+        params.set(
+            "envelope_style",
+            selectedEnvelope
+        );
         const quantitySummary = isBespoke
             ? [
                 selectedBoxQuantity
@@ -847,9 +974,19 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(name => `input[name="${name}"]`)
             .join(', ');
 
+        /*
+        * Include conditional inputs even when they begin disabled.
+        *
+        * Examples:
+        * - Envelope styles
+        * - Ribbon colours
+        *
+        * Their listeners must exist before another selection
+        * enables them.
+        */
         const visualInputs = [
             ...document.querySelectorAll(visualInputSelector)
-        ].filter(input => !input.disabled);
+        ];
 
         const previewStates = new Map();
         const previewHistory = [];
