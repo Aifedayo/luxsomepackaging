@@ -19,6 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const mobileStepText = document.getElementById("mobileStepText");
     const mobileProgressFill = document.getElementById("mobileProgressFill");
     const formStatus = document.getElementById("formStatus");
+    const emailField = document.getElementById("email");
+    const phoneField = document.getElementById("phone");
     const reviewCard = document.getElementById("reviewCard");
     const projectSummaryInput = document.getElementById("projectSummaryInput");
     const projectReferenceInput = document.getElementById("projectReferenceInput");
@@ -42,6 +44,31 @@ document.addEventListener("DOMContentLoaded", () => {
     restoreStartProjectDraft();
     configureProductSelectionReturnLink(shopConfiguration);
     updateStepUI(false);
+
+    emailField?.addEventListener("input", () => {
+        validateEmailField(false);
+    });
+    
+    emailField?.addEventListener("blur", () => {
+        validateEmailField(true);
+    });
+    
+    phoneField?.addEventListener("input", () => {
+        /*
+         * Remove letters immediately while retaining characters
+         * commonly used when writing telephone numbers.
+         */
+        phoneField.value = phoneField.value.replace(
+            /[^0-9+\-()\s]/g,
+            ""
+        );
+    
+        validatePhoneField(false);
+    });
+    
+    phoneField?.addEventListener("blur", () => {
+        validatePhoneField(true);
+    });
 
     nextButton?.addEventListener("click", () => {
         clearStatus();
@@ -70,7 +97,14 @@ document.addEventListener("DOMContentLoaded", () => {
             target instanceof HTMLSelectElement ||
             target instanceof HTMLTextAreaElement
         ) {
-            target.removeAttribute("aria-invalid");
+            if (target === emailField) {
+                validateEmailField(false);
+            } else if (target === phoneField) {
+                validatePhoneField(false);
+            } else if (target.checkValidity()) {
+                target.removeAttribute("aria-invalid");
+            }
+            
             saveStartProjectDraft();
         }
     });
@@ -219,32 +253,218 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function validateStep(stepNumber) {
         const step = steps[stepNumber - 1];
-        if (!step) return false;
-
-        const requiredFields = Array.from(step.querySelectorAll("[required]"));
-
-        for (const field of requiredFields) {
-            if (!field.checkValidity()) {
-                field.setAttribute("aria-invalid", "true");
+    
+        if (!step) {
+            return false;
+        }
+    
+        /*
+         * Run the custom contact validation before relying on
+         * the browser's standard required-field validation.
+         */
+        if (stepNumber === 1) {
+            const emailIsValid = validateEmailField(true);
+            const phoneIsValid = validatePhoneField(true);
+    
+            if (!emailIsValid) {
                 showStatus(
-                    "Please complete the highlighted required field before continuing.",
+                    "Please enter a valid email address before continuing.",
                     "error"
                 );
-                field.reportValidity();
-                field.focus();
+    
+                emailField?.reportValidity();
+                emailField?.focus();
+    
+                return false;
+            }
+    
+            if (!phoneIsValid) {
+                showStatus(
+                    "Please enter a valid phone or WhatsApp number before continuing.",
+                    "error"
+                );
+    
+                phoneField?.reportValidity();
+                phoneField?.focus();
+    
                 return false;
             }
         }
-
-        if (stepNumber === 2 && !hasShopConfiguration(shopConfiguration)) {
+    
+        const requiredFields = Array.from(
+            step.querySelectorAll("[required]")
+        );
+    
+        for (const field of requiredFields) {
+            if (!field.checkValidity()) {
+                field.setAttribute(
+                    "aria-invalid",
+                    "true"
+                );
+    
+                showStatus(
+                    getValidationMessage(field),
+                    "error"
+                );
+    
+                field.reportValidity();
+                field.focus();
+    
+                return false;
+            }
+    
+            field.removeAttribute("aria-invalid");
+        }
+    
+        if (
+            stepNumber === 2 &&
+            !hasShopConfiguration(shopConfiguration)
+        ) {
             showStatus(
                 "Your product selections could not be found. Please return to the shop and configure a packaging system first.",
                 "error"
             );
+    
             return false;
         }
-
+    
         return true;
+    }
+
+    function validateEmailField(showError = false) {
+        if (!emailField) {
+            return true;
+        }
+    
+        const value = emailField.value.trim();
+    
+        emailField.value = value;
+        emailField.setCustomValidity("");
+    
+        if (!value) {
+            emailField.setCustomValidity(
+                "Please enter your email address."
+            );
+        } else {
+            /*
+             * This requires:
+             * - content before @
+             * - a domain after @
+             * - a visible domain extension
+             * - no spaces
+             */
+            const validEmailPattern =
+                /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    
+            if (!validEmailPattern.test(value)) {
+                emailField.setCustomValidity(
+                    "Enter a complete email address, for example name@company.com."
+                );
+            }
+        }
+    
+        const isValid = emailField.checkValidity();
+    
+        emailField.toggleAttribute(
+            "aria-invalid",
+            !isValid
+        );
+    
+        if (!isValid && showError) {
+            emailField.reportValidity();
+        }
+    
+        return isValid;
+    }
+    
+    function validatePhoneField(showError = false) {
+        if (!phoneField) {
+            return true;
+        }
+    
+        const value = phoneField.value.trim();
+    
+        phoneField.value = value;
+        phoneField.setCustomValidity("");
+    
+        if (!value) {
+            phoneField.setCustomValidity(
+                "Please enter your phone or WhatsApp number."
+            );
+        } else {
+            const allowedCharacters =
+                /^[0-9+\-()\s]+$/;
+    
+            const digitCount =
+                value.replace(/\D/g, "").length;
+    
+            const plusCount =
+                (value.match(/\+/g) || []).length;
+    
+            const plusIsValid =
+                plusCount === 0 ||
+                (
+                    plusCount === 1 &&
+                    value.startsWith("+")
+                );
+    
+            if (!allowedCharacters.test(value)) {
+                phoneField.setCustomValidity(
+                    "The phone number may contain only digits, spaces, +, brackets and hyphens."
+                );
+            } else if (!plusIsValid) {
+                phoneField.setCustomValidity(
+                    "Place the + sign only once, at the beginning of the phone number."
+                );
+            } else if (
+                digitCount < 10 ||
+                digitCount > 15
+            ) {
+                phoneField.setCustomValidity(
+                    "Enter a phone number containing between 10 and 15 digits."
+                );
+            }
+        }
+    
+        const isValid = phoneField.checkValidity();
+    
+        phoneField.toggleAttribute(
+            "aria-invalid",
+            !isValid
+        );
+    
+        if (!isValid && showError) {
+            phoneField.reportValidity();
+        }
+    
+        return isValid;
+    }
+    
+    function getValidationMessage(field) {
+        if (field.validity.valueMissing) {
+            const label = document.querySelector(
+                `label[for="${CSS.escape(field.id)}"]`
+            );
+    
+            const fieldName =
+                label?.textContent
+                    .replace("*", "")
+                    .trim()
+                    .toLowerCase() ||
+                "required field";
+    
+            return `Please complete the ${fieldName}.`;
+        }
+    
+        if (field.validity.typeMismatch) {
+            return "Please enter the information in the correct format.";
+        }
+    
+        if (field.validationMessage) {
+            return field.validationMessage;
+        }
+    
+        return "Please complete the highlighted field before continuing.";
     }
 
     function readShopConfiguration() {

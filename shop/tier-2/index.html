@@ -350,7 +350,7 @@
 
                 <details class="product-accordion">
                     <summary>Included</summary>
-                    <ul class="included-list"><li>Custom rigid box</li><li>Branded tissue</li><li>One- or two-piece hang tag</li><li>Flat or folded thank-you card</li><li>Envelope</li><li>Sticker seal</li></ul>
+                    <ul class="included-list"><li>Custom rigid box</li><li>Plain tissue wrap</li><li>One- or two-piece hang tag</li><li>Flat or folded thank-you card</li><li>Standard Sticker</li></ul>
                 </details>
             <form class="product-config" id="productConfigForm">
                 <section class="configuration-section" aria-labelledby="tierTwoIncludedHeading">
@@ -377,6 +377,34 @@
                             <label><input type="radio" name="boxStyle" value="Tray-in-bed"><span>Tray-in-bed</span></label>
                             <label><input type="radio" name="boxStyle" value="Door style"><span>Door style</span></label>
                         </div>
+                    </fieldset>
+                    <fieldset class="configuration-group colour-selection">
+                        <legend>
+                            Box colour
+                            <span class="option-status option-status--included">Standard colours</span>
+                        </legend>
+                        <p class="configuration-help">
+                            Choose a standard colour. Custom colour matching may attract an additional fee.
+                        </p>
+                
+                        <div class="colour-option-grid">
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Wine"><span><i style="--swatch:#851409"></i>Wine</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
+                            <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
+                        </div>
+                
+                        <p class="colour-disclaimer">
+                            Screen colours are references only. Final colours may vary across materials and printing methods.
+                        </p>
                     </fieldset>
 
                     <fieldset class="configuration-group">
@@ -408,20 +436,11 @@
                     </fieldset>
 
                     <fieldset class="configuration-group">
-                        <legend>Branded tissue <span class="option-status option-status--included">Included</span></legend>
+                        <legend>Tissue Wrap <span class="option-status option-status--included">Included</span></legend>
                         <p class="configuration-help">Choose how your logo should be arranged on the tissue.</p>
                         <div class="option-grid">
-                            <label><input type="radio" name="tissueStyle" value="Single logo placement" checked><span>Single logo<small>Included</small></span></label>
-                            <label><input type="radio" name="tissueStyle" value="Repeating logo pattern"><span>Repeat pattern<small>Included</small></span></label>
-                        </div>
-                    </fieldset>
-
-                    <fieldset class="configuration-group">
-                        <legend>Envelope <span class="option-status option-status--included">Included</span></legend>
-                        <p class="configuration-help">Choose the envelope presentation for the thank-you card.</p>
-                        <div class="option-grid">
-                            <label><input type="radio" name="envelopeStyle" value="Classic envelope" checked><span>Classic envelope<small>Included</small></span></label>
-                            <label><input type="radio" name="envelopeStyle" value="Wallet envelope"><span>Wallet envelope<small>Included</small></span></label>
+                            <label><input type="radio" name="tissueStyle" value="Single logo placement" checked><span>Unbranded<small>Included</small></span></label>
+                            <label class="option-disabled"><input type="radio" name="tissueStyle" value="Repeating logo pattern" disabled><span>Branded<small>Available in Higher Tier</small></span></label>
                         </div>
                     </fieldset>
                 </section>
@@ -461,13 +480,105 @@
                         <div class="finish-option-group finish-option-group--paid">
                             <div class="finish-option-group__heading">
                                 <span>Premium finishes</span>
-                                <small>Available soon</small>
                             </div>
                             <div class="option-grid option-grid--four">
-                                <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed"><span>Embossed<small>Additional fee</small></span></label>
-                                <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed"><span>Debossed<small>Additional fee</small></span></label>
-                                <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
-                                <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed"><span>UV printed<small>Additional fee</small></span></label>
+                                <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed" disabled><span>Embossed<small>Available soon</small></span></label>
+                                <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed" disabled><span>Debossed<small>Available soon</small></span></label>
+                                <label><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
+                                <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed" disabled><span>UV printed<small>Available soon</small></span></label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <fieldset class="configuration-group">
+                        <legend>
+                            Ribbon
+                            <span class="option-status option-status--paid">Additional fee</span>
+                        </legend>
+            
+                        <p class="configuration-help">
+                            Choose between an unprinted premium ribbon or a branded ribbon
+                            printed repeatedly with your logo.
+                        </p>
+            
+                        <div class="option-grid">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="ribbonStyle"
+                                    value="Premium ribbon"
+                                >
+                                <span>
+                                     Plain ribbon
+                                    <small>Plain satin or grosgrain ribbon</small>
+                                </span>
+                            </label>
+            
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="ribbonStyle"
+                                    value="Branded ribbon"
+                                >
+                                <span>
+                                    Branded ribbon
+                                    <small>Your logo repeated along the ribbon</small>
+                                </span>
+                            </label>
+                        </div>
+            
+                        <div
+                            class="ribbon-colour-selection"
+                            id="ribbonColourSelection"
+                            hidden
+                        >
+                            <p class="configuration-subheading">Ribbon colour</p>
+            
+                            <p class="configuration-help">
+                                Select the colour you would like for your ribbon.
+                                Final shades are subject to material availability.
+                            </p>
+            
+                            <div class="colour-option-grid">
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="White">
+                                    <span><i style="--swatch:#ffffff"></i>White</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Off white / Ivory">
+                                    <span><i style="--swatch:#f3eee3"></i>Off white / Ivory</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Brown">
+                                    <span><i style="--swatch:#6b4636"></i>Brown</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Wine">
+                                    <span><i style="--swatch:#851409"></i>Wine</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Forest Green">
+                                    <span><i style="--swatch:#314936"></i>Forest Green</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Blue">
+                                    <span><i style="--swatch:#27456b"></i>Blue</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Gold">
+                                    <span><i style="--swatch:#c6a15b"></i>Gold</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Black">
+                                    <span><i style="--swatch:#111111"></i>Black</span>
+                                </label>
                             </div>
                         </div>
                     </fieldset>
@@ -632,36 +743,6 @@
     </div>
 </div>
 
-
-
-            <fieldset class="configuration-group colour-selection">
-                <legend>
-                    Box colour
-                    <span class="option-status option-status--included">Standard colours</span>
-                </legend>
-                <p class="configuration-help">
-                    Choose a standard colour. Custom colour matching may attract an additional fee.
-                </p>
-
-                <div class="colour-option-grid">
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Burgundy"><span><i style="--swatch:#673629"></i>Burgundy</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
-                    <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
-                </div>
-
-                <p class="colour-disclaimer">
-                    Screen colours are references only. Final colours may vary across materials and printing methods.
-                </p>
-            </fieldset>
             <fieldset class="configuration-group artwork-status-group">
                 <legend>
                     Logo and artwork status
@@ -727,7 +808,6 @@
                 </div>
             </fieldset>
 
-
                 <label class="product-field">
                     <span>Additional comments</span>
                     <textarea
@@ -743,7 +823,7 @@
                     <span>Your selections will be added to the project form, where you can provide your brand, artwork and delivery details.</span>
                 </div>
 
-                <button type="submit" class="buy-now-button">Order Tier 2</button>
+                <button type="submit" class="buy-now-button">Order Now</button>
                 <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
             </section>
             </form>
@@ -1158,7 +1238,8 @@
         </div>
     </section>
 </div>
-
+        <script src="/js/environment.js"></script>
+        <script src="/js/shop.js"></script>
     
         <script id="mobileGalleryReleaseScript">
             document.addEventListener("DOMContentLoaded", () => {
@@ -1418,6 +1499,67 @@
                         syncDisplayFromCanonical
                     );
                 });
+            });
+        </script>
+        <script id="ribbonColourSelectionScript">
+            document.addEventListener("DOMContentLoaded", function () {
+                const ribbonColourSection =
+                    document.getElementById("ribbonColourSelection");
+        
+                const ribbonStyleInputs = Array.from(
+                    document.querySelectorAll(
+                        'input[name="ribbonStyle"]'
+                    )
+                );
+        
+                const ribbonColourInputs = Array.from(
+                    document.querySelectorAll(
+                        'input[name="ribbonColour"]'
+                    )
+                );
+        
+                if (
+                    !ribbonColourSection ||
+                    ribbonStyleInputs.length === 0
+                ) {
+                    return;
+                }
+        
+                function updateRibbonColourVisibility() {
+                    const selectedRibbonStyle =
+                        document.querySelector(
+                            'input[name="ribbonStyle"]:checked'
+                        );
+        
+                    const shouldShowColourOptions =
+                        selectedRibbonStyle !== null;
+        
+                    ribbonColourSection.hidden =
+                        !shouldShowColourOptions;
+        
+                    ribbonColourSection.setAttribute(
+                        "aria-hidden",
+                        String(!shouldShowColourOptions)
+                    );
+        
+                    ribbonColourInputs.forEach(function (input) {
+                        input.disabled =
+                            !shouldShowColourOptions;
+        
+                        if (!shouldShowColourOptions) {
+                            input.checked = false;
+                        }
+                    });
+                }
+        
+                ribbonStyleInputs.forEach(function (input) {
+                    input.addEventListener(
+                        "change",
+                        updateRibbonColourVisibility
+                    );
+                });
+        
+                updateRibbonColourVisibility();
             });
         </script>
 

@@ -392,7 +392,7 @@ body.quick-view-open {
 .product-panel h1{
     margin:0;font:400 clamp(1.5rem,4vw,4.7rem)/.98}.product-count{margin:12px 0 0;font-size:.76rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
 .product-summary{
-    margin:10px 0 0;color:#756159;line-height:1.55;}.product-accordion{padding:17px 0;border-bottom:1px solid #e4dad3}.product-accordion summary{font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.included-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin:14px 0 0;padding:0;list-style:none}.included-list li{position:relative;padding-left:18px;font-size:.8rem}.included-list li:before{content:'✓';position:absolute;left:0;font-weight:600}.product-config{padding-top:18px}.product-config fieldset{margin:0 0 20px;padding:0;border:0}.product-config legend,.product-field>span{display:block;margin-bottom:9px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}.option-grid,.check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.option-grid label,.check-grid label{position:relative}.option-grid input,.check-grid input{position:absolute;opacity:0;pointer-events:none}.option-grid span,.check-grid span{display:flex;min-height:41px;align-items:center;justify-content:center;padding:8px;border:1px solid #d8cdc6;font-size:.75rem;cursor:pointer}.option-grid input:checked+span,.check-grid input:checked+span{border-color:#2e1c15;background:#f8f4ef;font-weight:600}.product-field{display:block;margin-bottom:18px}.product-field select,
+    margin:10px 0 0;color:#756159;line-height:1.55;}.product-accordion{padding:17px 0;border-bottom:1px solid #e4dad3}.product-accordion summary{font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.included-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin:14px 0 0;padding:0;list-style:none}.included-list li{position:relative;padding-left:18px;font-size:.8rem}.included-list li:before{content:'✓';position:absolute;left:0;font-weight:600}.product-config fieldset{margin:0 0 20px;padding:0;border:0}.product-config legend,.product-field>span{display:block;margin-bottom:9px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}.option-grid,.check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.option-grid label,.check-grid label{position:relative}.option-grid input,.check-grid input{position:absolute;opacity:0;pointer-events:none}.option-grid span,.check-grid span{display:flex;min-height:41px;align-items:center;justify-content:center;padding:8px;border:1px solid #d8cdc6;font-size:.75rem;cursor:pointer}.option-grid input:checked+span,.check-grid input:checked+span{border-color:#2e1c15;background:#f8f4ef;font-weight:600}.product-field{display:block;margin-bottom:18px}.product-field select,
 .product-field textarea{width:100%;border:1px solid #d8cdc6;background:#fff;color:#2e1c15;font:inherit;font-size:10px}
 .product-field select{height:44px;padding:0 12px}.product-field textarea{padding:12px;resize:vertical}.buy-now-button{width:100%;min-height:52px;border:0;background:#2e1c15;color:#fff;font:600 .82rem/1 Montserrat,sans-serif;cursor:pointer}.buy-note{margin:9px 0 0;color:#756159;font-size:.7rem;text-align:center}.mobile-buy-bar{display:none}
 
@@ -625,16 +625,15 @@ body.quick-view-open {
 }
 
 .configuration-section__heading h2 {
-    margin: 0;
     font-family: "Cormorant Garamond", Georgia, serif;
     font-size: clamp(1.9rem, 3vw, 2.7rem);
     font-weight: 500;
     line-height: 1;
+    font-size: 1.6em;
 }
 
 .configuration-section__heading > p {
     max-width: 290px;
-    margin: 0;
     color: #7b6961;
     font-size: 0.7rem;
     line-height: 1.5;
@@ -842,21 +841,21 @@ body.quick-view-open {
 }
 
 @media (max-width: 620px) {
-    .configuration-section {
-        padding: 22px 0;
-    }
 
     .configuration-section__heading {
         align-items: flex-start;
         flex-direction: column;
         gap: 8px;
-        margin-bottom: 18px;
+    }
+    .configuration-section__heading h2 {
+        margin-top: -0.15em;
     }
 
     .configuration-section__heading > p {
         max-width: none;
         font-size: 0.66rem;
         text-align: left;
+        margin-top: -1.8em;
     }
 
     .option-grid--three,
@@ -2081,14 +2080,14 @@ body.option-visual-open {
     }
 
     .product-gallery__caption {
-        right: 10px;
-        bottom: 10px;
-        left: 10px;
-        padding: 10px 12px;
+        right: 14em;
+        bottom: 0px;
+        left: 0px;
+        padding: 4px 4px;
     }
 
     .product-gallery__caption strong {
-        font-size: 1.25rem;
+        font-size: 0.85rem;
     }
 
     .product-gallery__expand {
@@ -3695,5 +3694,57 @@ body.option-visual-open {
     .dimension-unit-toggle__glass,
     .dimension-unit-toggle__option {
         transition: none;
+    }
+}
+
+.ribbon-colour-selection[hidden] {
+    display: none;
+}
+
+.ribbon-colour-selection {
+    margin-top: 28px;
+
+    animation: fadeRibbonSection .25s ease;
+}
+
+@keyframes fadeRibbonSection {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================================
+   TIER 3 THANK-YOU NOTE ENVELOPE
+========================================================= */
+
+.envelope-configuration[hidden] {
+    display: none !important;
+}
+
+.envelope-configuration {
+    animation: envelopeConfigurationReveal 0.3s ease both;
+}
+
+@keyframes envelopeConfigurationReveal {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .envelope-configuration {
+        animation: none;
     }
 }
