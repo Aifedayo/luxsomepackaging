@@ -228,13 +228,55 @@
                                 </div>
 
                                 <div class="field">
-                                    <label for="email">Email address *</label>
-                                    <input id="email" name="email" type="email" autocomplete="email" required>
+                                    <label for="email">
+                                        Email address *
+                                    </label>
+                                
+                                    <input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        autocomplete="email"
+                                        inputmode="email"
+                                        autocapitalize="none"
+                                        spellcheck="false"
+                                        maxlength="254"
+                                        placeholder="name@company.com"
+                                        required
+                                        aria-describedby="emailHelp"
+                                    >
+                                
+                                    <small
+                                        class="field-help"
+                                        id="emailHelp"
+                                    >
+                                        Enter a complete email address, for example name@company.com.
+                                    </small>
                                 </div>
-
+                                
                                 <div class="field">
-                                    <label for="phone">Phone or WhatsApp number *</label>
-                                    <input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+234..." required>
+                                    <label for="phone">
+                                        Phone or WhatsApp number *
+                                    </label>
+                                
+                                    <input
+                                        id="phone"
+                                        name="phone"
+                                        type="tel"
+                                        autocomplete="tel"
+                                        inputmode="tel"
+                                        maxlength="22"
+                                        placeholder="+234 806 123 4567"
+                                        required
+                                        aria-describedby="phoneHelp"
+                                    >
+                                
+                                    <small
+                                        class="field-help"
+                                        id="phoneHelp"
+                                    >
+                                        Enter 10 to 15 digits. You may include +, spaces, brackets or hyphens.
+                                    </small>
                                 </div>
 
                                 <div class="field">
