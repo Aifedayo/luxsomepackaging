@@ -350,7 +350,7 @@
 
                 <details class="product-accordion">
                     <summary>Included</summary>
-                    <ul class="included-list"><li>Custom rigid box</li><li>Branded tissue</li><li>One- or two-piece hang tag</li><li>Flat or folded thank-you card</li><li>Envelope</li><li>Sticker seal</li></ul>
+                    <ul class="included-list"><li>Custom rigid box</li><li>Plain tissue wrap</li><li>One- or two-piece hang tag</li><li>Flat or folded thank-you card</li><li>Standard Sticker</li></ul>
                 </details>
             <form class="product-config" id="productConfigForm">
                 <section class="configuration-section" aria-labelledby="tierTwoIncludedHeading">
@@ -436,20 +436,11 @@
                     </fieldset>
 
                     <fieldset class="configuration-group">
-                        <legend>Branded tissue <span class="option-status option-status--included">Included</span></legend>
+                        <legend>Tissue Wrap <span class="option-status option-status--included">Included</span></legend>
                         <p class="configuration-help">Choose how your logo should be arranged on the tissue.</p>
                         <div class="option-grid">
-                            <label><input type="radio" name="tissueStyle" value="Single logo placement" checked><span>Single logo<small>Included</small></span></label>
-                            <label><input type="radio" name="tissueStyle" value="Repeating logo pattern"><span>Repeat pattern<small>Included</small></span></label>
-                        </div>
-                    </fieldset>
-
-                    <fieldset class="configuration-group">
-                        <legend>Envelope <span class="option-status option-status--included">Included</span></legend>
-                        <p class="configuration-help">Choose the envelope presentation for the thank-you card.</p>
-                        <div class="option-grid">
-                            <label><input type="radio" name="envelopeStyle" value="Classic envelope" checked><span>Classic envelope<small>Included</small></span></label>
-                            <label><input type="radio" name="envelopeStyle" value="Wallet envelope"><span>Wallet envelope<small>Included</small></span></label>
+                            <label><input type="radio" name="tissueStyle" value="Single logo placement" checked><span>Unbranded<small>Included</small></span></label>
+                            <label class="option-disabled"><input type="radio" name="tissueStyle" value="Repeating logo pattern" disabled><span>Branded<small>Available in Higher Tier</small></span></label>
                         </div>
                     </fieldset>
                 </section>
@@ -502,7 +493,7 @@
                     <fieldset class="configuration-group">
                         <legend>
                             Ribbon
-                            <span class="option-status option-status--included">Included</span>
+                            <span class="option-status option-status--paid">Additional fee</span>
                         </legend>
             
                         <p class="configuration-help">
