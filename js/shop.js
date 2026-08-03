@@ -779,7 +779,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         optionVisualCatalogue.href =
             catalogueLink?.href ||
-            'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf';
+            '/assets/pdf/product-catalogue.pdf';
 
         optionVisualModal.hidden = false;
         document.body.classList.add('option-visual-open');
@@ -866,7 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const getGroup = input => (
             visualOptionGroups[input.name] || {
                 label: 'Packaging option',
-                catalogue: 'https://assets.luxsomepackaging.com/catalogues/catalogue.pdf'
+                catalogue: '/assets/pdf/product-catalogue.pdf'
             }
         );
 
