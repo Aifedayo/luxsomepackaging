@@ -413,6 +413,35 @@
                 </label>
             </div>
         </fieldset>
+        <fieldset class="configuration-group colour-selection">
+            <legend>
+                Box color
+                <span class="option-status option-status--included">Standard colours</span>
+            </legend>
+            <p class="configuration-help">
+                Choose a standard colour swatch or select Other to provide your exact brand colour.
+            </p>
+    
+    
+            <div class="colour-option-grid">
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Burgundy"><span><i style="--swatch:#673629"></i>Burgundy</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
+                <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
+            </div>
+    
+            <p class="colour-disclaimer">
+                Screen colours are references only. Final production colours may vary across materials and printing methods.
+            </p>
+        </fieldset>
 
         <fieldset class="configuration-group">
             <legend>
@@ -561,6 +590,57 @@
                 </label>
             </div>
         </fieldset>
+    </section>
+
+    <section class="configuration-section configuration-section--finishing" aria-labelledby="tierThreeFinishingHeading">
+        <div class="finishing-price-alert" role="note">
+            <div class="finishing-price-alert__icon" aria-hidden="true">i</div>
+
+            <div>
+                <strong>Some finishing options are priced separately.</strong>
+                <p>
+                    Standard print, matte vinyl and metallic vinyl are included.
+                    Embossing, debossing, foiling and UV printing attract an additional fee.
+                </p>
+            </div>
+
+            <button type="button" class="pricing-guide-button" data-pricing-open>View pricing guide</button>
+        </div>
+
+        <div class="configuration-section__heading">
+            <div>
+                <p class="configuration-section__eyebrow">Finishing</p>
+                <h2 id="tierThreeFinishingHeading">Choose your logo finish</h2>
+            </div>
+            <p>Included finishes and premium upgrades are shown separately.</p>
+        </div>
+
+        <fieldset class="configuration-group">
+            <legend>Logo finish</legend>
+
+            <div class="finish-option-group">
+                <div class="finish-option-group__heading">
+                    <span>Included finishes</span>
+                    <small>No extra cost</small>
+                </div>
+                <div class="option-grid option-grid--three">
+                    <label><input type="radio" name="logoFinish" value="Matte vinyl" checked><span>Matte vinyl<small>Included</small></span></label>
+                    <label><input type="radio" name="logoFinish" value="Metallic vinyl"><span>Metallic vinyl<small>Included</small></span></label>
+                </div>
+            </div>
+
+            <div class="finish-option-group finish-option-group--paid">
+                <div class="finish-option-group__heading">
+                    <span>Premium finishes</span>
+                </div>
+                <div class="option-grid option-grid--four">
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed" disabled><span>Embossed<small>Available soon</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed" disabled><span>Debossed<small>Available soon</small></span></label>
+                    <label><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
+                    <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed" disabled><span>UV printed<small>Available soon</small></span></label>
+                </div>
+            </div>
+        </fieldset>
 
         <fieldset class="configuration-group">
             <legend>
@@ -651,58 +731,6 @@
                 </div>
             </div>
         </fieldset>
-    </section>
-
-    <section class="configuration-section configuration-section--finishing" aria-labelledby="tierThreeFinishingHeading">
-        <div class="finishing-price-alert" role="note">
-            <div class="finishing-price-alert__icon" aria-hidden="true">i</div>
-
-            <div>
-                <strong>Some finishing options are priced separately.</strong>
-                <p>
-                    Standard print, matte vinyl and metallic vinyl are included.
-                    Embossing, debossing, foiling and UV printing attract an additional fee.
-                </p>
-            </div>
-
-            <button type="button" class="pricing-guide-button" data-pricing-open>View pricing guide</button>
-        </div>
-
-        <div class="configuration-section__heading">
-            <div>
-                <p class="configuration-section__eyebrow">Finishing</p>
-                <h2 id="tierThreeFinishingHeading">Choose your logo finish</h2>
-            </div>
-            <p>Included finishes and premium upgrades are shown separately.</p>
-        </div>
-
-        <fieldset class="configuration-group">
-            <legend>Logo finish</legend>
-
-            <div class="finish-option-group">
-                <div class="finish-option-group__heading">
-                    <span>Included finishes</span>
-                    <small>No extra cost</small>
-                </div>
-                <div class="option-grid option-grid--three">
-                    <label><input type="radio" name="logoFinish" value="Matte vinyl" checked><span>Matte vinyl<small>Included</small></span></label>
-                    <label><input type="radio" name="logoFinish" value="Metallic vinyl"><span>Metallic vinyl<small>Included</small></span></label>
-                </div>
-            </div>
-
-            <div class="finish-option-group finish-option-group--paid">
-                <div class="finish-option-group__heading">
-                    <span>Premium finishes</span>
-                    <small>Available soon</small>
-                </div>
-                <div class="option-grid option-grid--four">
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Embossed"><span>Embossed<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Debossed"><span>Debossed<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="Foiled"><span>Foiled<small>Additional fee</small></span></label>
-                    <label class="option-disabled"><input type="radio" name="logoFinish" value="UV printed"><span>UV printed<small>Additional fee</small></span></label>
-                </div>
-            </div>
-        </fieldset>
 
         <fieldset class="configuration-group">
             <legend>
@@ -752,170 +780,203 @@
     </label>
 
 
-<div class="product-dimensions" id="boxDimensionsSection">
-    <div class="product-dimensions__heading">
-        <div>
-            <span>Finished box dimensions</span>
-            <small>Enter the approximate product size.</small>
+    <div class="product-dimensions" id="boxDimensionsSection">
+        <div class="product-dimensions__heading">
+            <div>
+                <span>Finished box dimensions</span>
+                <small>Enter the approximate product size.</small>
+            </div>
+
+            <div
+                class="dimension-unit-toggle"
+                id="dimensionUnitToggle"
+                role="group"
+                aria-label="Choose dimension unit"
+                data-unit="cm"
+            >
+                <span
+                    class="dimension-unit-toggle__glass"
+                    aria-hidden="true"
+                ></span>
+
+                <button
+                    type="button"
+                    class="dimension-unit-toggle__option is-active"
+                    data-dimension-unit="cm"
+                    aria-pressed="true"
+                >
+                    cm
+                </button>
+
+                <button
+                    type="button"
+                    class="dimension-unit-toggle__option"
+                    data-dimension-unit="in"
+                    aria-pressed="false"
+                >
+                    inches
+                </button>
+            </div>
         </div>
+
+        <div class="dimension-grid">
+            <label class="product-field">
+                <span>Length</span>
+
+                <div class="measurement-input">
+                    <input
+                        type="number"
+                        id="boxLengthDisplay"
+                        min="0.1"
+                        step="0.1"
+                        inputmode="decimal"
+                        placeholder="30"
+                        data-dimension-display="boxLength"
+                        required
+                    >
+                    <span data-dimension-suffix>cm</span>
+                </div>
+
+                <input
+                    type="hidden"
+                    name="boxLength"
+                    id="boxLength"
+                >
+            </label>
+
+            <label class="product-field">
+                <span>Breadth</span>
+
+                <div class="measurement-input">
+                    <input
+                        type="number"
+                        id="boxBreadthDisplay"
+                        min="0.1"
+                        step="0.1"
+                        inputmode="decimal"
+                        placeholder="22"
+                        data-dimension-display="boxBreadth"
+                        required
+                    >
+                    <span data-dimension-suffix>cm</span>
+                </div>
+
+                <input
+                    type="hidden"
+                    name="boxBreadth"
+                    id="boxBreadth"
+                >
+            </label>
+
+            <label class="product-field">
+                <span>Height</span>
+
+                <div class="measurement-input">
+                    <input
+                        type="number"
+                        id="boxHeightDisplay"
+                        min="0.1"
+                        step="0.1"
+                        inputmode="decimal"
+                        placeholder="8"
+                        data-dimension-display="boxHeight"
+                        required
+                    >
+                    <span data-dimension-suffix>cm</span>
+                </div>
+
+                <input
+                    type="hidden"
+                    name="boxHeight"
+                    id="boxHeight"
+                >
+            </label>
+        </div>
+
+        <p class="dimension-unit-note" id="dimensionUnitNote">
+            Measurements are saved in centimetres for quotation accuracy.
+        </p>
 
         <div
-            class="dimension-unit-toggle"
-            id="dimensionUnitToggle"
-            role="group"
-            aria-label="Choose dimension unit"
-            data-unit="cm"
+            class="weight-calculator"
+            id="weightCalculator"
+            aria-live="polite"
         >
-            <span
-                class="dimension-unit-toggle__glass"
-                aria-hidden="true"
-            ></span>
+            <div>
+                <span>Estimated volumetric weight</span>
+                <strong id="volumetricWeight">Enter dimensions</strong>
+            </div>
 
-            <button
-                type="button"
-                class="dimension-unit-toggle__option is-active"
-                data-dimension-unit="cm"
-                aria-pressed="true"
-            >
-                cm
-            </button>
-
-            <button
-                type="button"
-                class="dimension-unit-toggle__option"
-                data-dimension-unit="in"
-                aria-pressed="false"
-            >
-                inches
-            </button>
+            <p id="weightStatus">
+                Pricing covers a finished box of up to 1 kg volumetric weight.
+            </p>
         </div>
     </div>
 
-    <div class="dimension-grid">
-        <label class="product-field">
-            <span>Length</span>
+    <fieldset class="configuration-group artwork-status-group">
+        <legend>
+            Logo and artwork status
+            <span class="option-status option-status--included">Project preparation</span>
+        </legend>
 
-            <div class="measurement-input">
-                <input
-                    type="number"
-                    id="boxLengthDisplay"
-                    min="0.1"
-                    step="0.1"
-                    inputmode="decimal"
-                    placeholder="30"
-                    data-dimension-display="boxLength"
-                    required
-                >
-                <span data-dimension-suffix>cm</span>
-            </div>
-
-            <input
-                type="hidden"
-                name="boxLength"
-                id="boxLength"
-            >
-        </label>
-
-        <label class="product-field">
-            <span>Breadth</span>
-
-            <div class="measurement-input">
-                <input
-                    type="number"
-                    id="boxBreadthDisplay"
-                    min="0.1"
-                    step="0.1"
-                    inputmode="decimal"
-                    placeholder="22"
-                    data-dimension-display="boxBreadth"
-                    required
-                >
-                <span data-dimension-suffix>cm</span>
-            </div>
-
-            <input
-                type="hidden"
-                name="boxBreadth"
-                id="boxBreadth"
-            >
-        </label>
-
-        <label class="product-field">
-            <span>Height</span>
-
-            <div class="measurement-input">
-                <input
-                    type="number"
-                    id="boxHeightDisplay"
-                    min="0.1"
-                    step="0.1"
-                    inputmode="decimal"
-                    placeholder="8"
-                    data-dimension-display="boxHeight"
-                    required
-                >
-                <span data-dimension-suffix>cm</span>
-            </div>
-
-            <input
-                type="hidden"
-                name="boxHeight"
-                id="boxHeight"
-            >
-        </label>
-    </div>
-
-    <p class="dimension-unit-note" id="dimensionUnitNote">
-        Measurements are saved in centimetres for quotation accuracy.
-    </p>
-
-    <div
-        class="weight-calculator"
-        id="weightCalculator"
-        aria-live="polite"
-    >
-        <div>
-            <span>Estimated volumetric weight</span>
-            <strong id="volumetricWeight">Enter dimensions</strong>
-        </div>
-
-        <p id="weightStatus">
-            Pricing covers a finished box of up to 1 kg volumetric weight.
+        <p class="configuration-help">
+            Tell us what is ready so we can plan the correct design support after your order request.
         </p>
-    </div>
-</div>
 
+        <div class="option-grid option-grid--artwork-status">
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Logo and packaging artwork ready"
+                    required
+                >
+                <span>
+                    Everything is ready
+                    <small>I can supply my logo and final packaging artwork.</small>
+                </span>
+            </label>
 
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Logo ready, packaging artwork required"
+                    required
+                >
+                <span>
+                    Logo ready
+                    <small>I need Luxsome to prepare the packaging artwork.</small>
+                </span>
+            </label>
 
-<fieldset class="configuration-group colour-selection">
-    <legend>
-        Packaging colour
-        <span class="option-status option-status--included">Custom colour available</span>
-    </legend>
-    <p class="configuration-help">
-        Choose a standard colour swatch or select Other to provide your exact brand colour.
-    </p>
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Some brand assets available"
+                    required
+                >
+                <span>
+                    Some assets available
+                    <small>I have some files, but they still need to be reviewed.</small>
+                </span>
+            </label>
 
-
-    <div class="colour-option-grid">
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Burgundy"><span><i style="--swatch:#673629"></i>Burgundy</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
-    </div>
-
-    <p class="colour-disclaimer">
-        Screen colours are references only. Final production colours may vary across materials and printing methods.
-    </p>
-</fieldset>
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Full logo and packaging design support required"
+                    required
+                >
+                <span>
+                    Full design support
+                    <small>I need help with both my logo and packaging artwork.</small>
+                </span>
+            </label>
+        </div>
+    </fieldset>
 
 
     <label class="product-field">

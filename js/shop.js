@@ -558,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const visualOptionImageOverrides = {
-        'Magnetic flap': '/assets/images/catalogue-preview/magnetic-flap-box.webp',
+        'Magnetic flap': '/assets/images/catalogue-preview/collapsible-magnetic-flap-box.webp',
         'Shoulder box': '/assets/images/catalogue-preview/shoulder-box.webp',
         'Tray-in-bed': '/assets/images/catalogue-preview/tray-in-bed-box.webp',
         'Door style': '/assets/images/catalogue-preview/door-style-box.webp',
@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'Two-piece tag': '/assets/images/catalogue-preview/two-piece-tag.webp',
         'Three-piece tag': '/assets/images/catalogue-preview/three-piece-tag.webp',
 
-        'Standard print': '/assets/images/catalogue-preview/standard-print.webp',
+        'Folded Thank you card': '/assets/images/catalogue-preview/folded-thank-you-card.png',
         'Matte vinyl': '/assets/images/catalogue-preview/matte-vinyl.webp',
         'Metallic vinyl': '/assets/images/catalogue-preview/metallic-vinyl.webp',
         'Embossed': '/assets/images/catalogue-preview/embossed-finish.webp',
