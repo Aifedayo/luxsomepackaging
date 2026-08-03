@@ -640,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <a
                         class="option-visual-modal__catalogue"
                         id="optionVisualCatalogue"
-                        href="https://assets.luxsomepackaging.com/catalogues/catalogue.pdf"
+                        href="/assets/pdf/product-catalogue.pdf"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
