@@ -250,7 +250,7 @@
     .builder-handoff { grid-template-columns: 1fr; }
     .builder-handoff__dismiss { justify-self: start; }
     .review-section, .review-row { grid-template-columns: 1fr; gap: .55rem; }
-    .project-actions { position: sticky; bottom: 0; z-index: 5; margin: 2rem -1.15rem -2rem; padding: .85rem 1.15rem; background: rgba(255,253,249,.97); backdrop-filter: blur(10px); }
+    .project-actions { bottom: 0; z-index: 5; margin: 2rem -1.15rem -2rem; padding: .85rem 1.15rem; background: rgba(255,253,249,.97); backdrop-filter: blur(10px); }
     .project-button { min-width: 0; padding: 0 1rem; }
     .project-button--next, .project-button--submit { flex: 1; }
     .form-status { text-align: left; }
@@ -368,4 +368,25 @@
     .project-button--back {
         grid-row: 2;
     }
+}
+
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+    border-color: #9c2f24;
+    box-shadow:
+        0 0 0 3px
+        rgba(156, 47, 36, 0.1);
+}
+
+.field-help {
+    display: block;
+    margin-top: 7px;
+    color: #827168;
+    font-size: 0.68rem;
+    line-height: 1.5;
+}
+
+.field input[aria-invalid="true"] + .field-help {
+    color: #9c2f24;
 }
