@@ -1359,6 +1359,7 @@ summary::after {
     width: min(100%, 760px);
     max-height: 720px;
     object-fit: contain;
+    border-radius: 24px;
 }
 
 /* Editorial introduction */
@@ -1472,6 +1473,7 @@ summary::after {
     .tiers-page--single-hero .tiers-hero__visual img {
         width: min(100%, 660px);
         margin-inline: auto;
+        border-radius: 24px;
     }
 
     .tiers-page--single-hero .tier-feature__copy {
@@ -1524,6 +1526,7 @@ summary::after {
 
     .tiers-page--single-hero .tiers-hero__visual img {
         width: 100%;
+        border-radius: 24px;
     }
 
     .tiers-page--single-hero .tier-feature {
