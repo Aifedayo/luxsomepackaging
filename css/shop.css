@@ -4570,3 +4570,292 @@ body.option-visual-open {
         animation: none;
     }
 }
+
+/* =========================================================
+   ARTWORK UPLOAD — CLOUDFLARE R2
+========================================================= */
+
+.artwork-upload[hidden] {
+    display: none !important;
+}
+
+.artwork-upload {
+    margin: 26px 0;
+    padding: clamp(22px, 4vw, 34px);
+    border: 1px solid rgba(46, 28, 21, 0.13);
+    background: #fffaf4;
+}
+
+.artwork-upload__heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.artwork-upload__heading h2 {
+    margin: 4px 0 0;
+    color: #2e1c15;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+}
+
+.artwork-upload__secure-note {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 11px;
+    border: 1px solid rgba(103, 54, 41, 0.14);
+    border-radius: 999px;
+    background: rgba(103, 54, 41, 0.07);
+    color: #673629;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.artwork-dropzone {
+    display: flex;
+    min-height: 230px;
+    margin-top: 20px;
+    padding: 28px;
+    border: 1px dashed rgba(103, 54, 41, 0.38);
+    background: #fffdf9;
+    color: #2e1c15;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition:
+        border-color 220ms ease,
+        background-color 220ms ease,
+        transform 220ms ease;
+}
+
+.artwork-dropzone:hover,
+.artwork-dropzone:focus-visible,
+.artwork-dropzone.is-dragging {
+    border-color: #673629;
+    background: #f8f4ef;
+    transform: translateY(-2px);
+}
+
+.artwork-dropzone:focus-visible {
+    outline: 3px solid rgba(103, 54, 41, 0.22);
+    outline-offset: 3px;
+}
+
+.artwork-dropzone__icon {
+    display: grid;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 16px;
+    border-radius: 50%;
+    background: #eadfce;
+    color: #673629;
+    place-items: center;
+    font-size: 1.1rem;
+}
+
+.artwork-dropzone strong {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 1.55rem;
+    font-weight: 600;
+}
+
+.artwork-dropzone > span:not(.artwork-dropzone__icon) {
+    margin-top: 5px;
+    color: #725f56;
+    font-size: 0.78rem;
+}
+
+.artwork-dropzone small {
+    max-width: 520px;
+    margin-top: 14px;
+    color: #847168;
+    font-size: 0.68rem;
+    line-height: 1.6;
+}
+
+.artwork-file-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.artwork-file-list:empty {
+    display: none;
+}
+
+.artwork-file {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(46, 28, 21, 0.1);
+    background: #ffffff;
+}
+
+.artwork-file__icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #f1e6dc;
+    color: #673629;
+    place-items: center;
+}
+
+.artwork-file__details {
+    min-width: 0;
+}
+
+.artwork-file__details strong,
+.artwork-file__details span {
+    display: block;
+}
+
+.artwork-file__details strong {
+    overflow: hidden;
+    color: #2e1c15;
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.artwork-file__details span {
+    margin-top: 3px;
+    color: #826f66;
+    font-size: 0.65rem;
+}
+
+.artwork-file__remove {
+    display: inline-flex;
+    padding: 7px;
+    border: 0;
+    background: transparent;
+    color: #673629;
+    cursor: pointer;
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.artwork-upload__verification {
+    margin-top: 20px;
+}
+
+.artwork-confirmation {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 11px;
+    margin-top: 20px;
+    color: #55433b;
+    cursor: pointer;
+    font-size: 0.76rem;
+    line-height: 1.65;
+}
+
+.artwork-confirmation input {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: #673629;
+}
+
+.artwork-upload__status {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid rgba(103, 54, 41, 0.13);
+    background: #f2e7dd;
+}
+
+.artwork-upload__status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: #4f3a31;
+    font-size: 0.72rem;
+}
+
+.artwork-upload__progress {
+    height: 5px;
+    margin-top: 11px;
+    overflow: hidden;
+    background: rgba(103, 54, 41, 0.13);
+}
+
+.artwork-upload__progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #673629;
+    transition: width 220ms ease;
+}
+
+.artwork-upload__privacy {
+    margin: 16px 0 0;
+    color: #837068;
+    font-size: 0.65rem;
+    line-height: 1.65;
+}
+
+.artwork-upload.is-uploading {
+    pointer-events: none;
+}
+
+.artwork-upload.is-uploading .artwork-dropzone,
+.artwork-upload.is-uploading .artwork-file__remove {
+    opacity: 0.55;
+}
+
+.artwork-upload.has-error .artwork-upload__status {
+    border-color: rgba(143, 37, 31, 0.22);
+    background: #fff1ef;
+}
+
+.artwork-upload.has-error .artwork-upload__status-row {
+    color: #8f251f;
+}
+
+@media (max-width: 620px) {
+    .artwork-upload {
+        padding: 20px 16px;
+    }
+
+    .artwork-upload__heading {
+        flex-direction: column;
+    }
+
+    .artwork-dropzone {
+        min-height: 205px;
+        padding: 22px 16px;
+    }
+
+    .artwork-file {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .artwork-file__remove {
+        grid-column: 2;
+        justify-self: start;
+        padding-left: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .artwork-dropzone,
+    .artwork-upload__progress span {
+        transition: none;
+    }
+}

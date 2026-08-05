@@ -1,169 +1,152 @@
 {
-  "$schema": "./node_modules/wrangler/config-schema.json",
-
-  "name": "luxsome-project-api",
-  "main": "src/worker.js",
-  "compatibility_date": "2026-07-28",
-
-  "workers_dev": false,
-  "preview_urls": false,
-
-  "observability": {
-      "enabled": true,
-      "head_sampling_rate": 1,
-      "logs": {
-          "enabled": true,
-          "head_sampling_rate": 1,
-          "persist": true,
-          "invocation_logs": true
-      },
-      "traces": {
-          "enabled": false,
-          "persist": true,
-          "head_sampling_rate": 1
-      }
-  },
-
-  "env": {
-      "develop": {
-          "name": "luxsome-project-api-develop",
-          "workers_dev": false,
-          "preview_urls": false,
-
-          "routes": [
-              {
-                  "pattern": "api-develop.luxsomepackaging.com",
-                  "custom_domain": true
-              }
-          ],
-
-          "triggers": {
-              "crons": [
-                  "0 2 * * *"
-              ]
-          },
-
-          "vars": {
-              "ENVIRONMENT": "develop",
-              "ALLOWED_ORIGIN": "https://develop.luxsomepackaging.com",
-              "CLIENT_PORTAL_URL": "https://develop.luxsomepackaging.com/track-order/",
-              "FROM_EMAIL": "Luxsome Packaging Develop <projects@updates.luxsomepackaging.com>",
-              "INTERNAL_EMAIL": "hello@luxsomepackaging.com",
-              "INVOICE_PAYMENT_INSTRUCTIONS": "TEST ENVIRONMENT — DO NOT MAKE PAYMENT",
-              "LUXSOME_WHATSAPP": "2349068804133",
-              "LUXSOME_WHATSAPP_NUMBER": "2349068804133",
-              "PUBLIC_SITE_URL": "https://develop.luxsomepackaging.com",
-              "REPLY_TO_EMAIL": "hello@luxsomepackaging.com"
-          },
-
-          "d1_databases": [
-              {
-                  "binding": "DB",
-                  "database_name": "luxsome-develop-db",
-                  "database_id": "7b0dabea-8fac-43cd-8267-1bb98b0e3894"
-              }
-          ],
-
-          "r2_buckets": [
-              {
-                  "binding": "PAYMENT_SLIPS",
-                  "bucket_name": "luxsome-payment-slips-develop"
-              }
-          ]
-      },
-
-      "staging": {
-          "name": "luxsome-project-api-staging",
-          "workers_dev": false,
-          "preview_urls": false,
-
-          "routes": [
-              {
-                  "pattern": "api-staging.luxsomepackaging.com",
-                  "custom_domain": true
-              }
-          ],
-
-          "triggers": {
-              "crons": [
-                  "0 2 * * *"
-              ]
-          },
-
-          "vars": {
-              "ENVIRONMENT": "staging",
-              "ALLOWED_ORIGIN": "https://staging.luxsomepackaging.com",
-              "CLIENT_PORTAL_URL": "https://staging.luxsomepackaging.com/track-order/",
-              "FROM_EMAIL": "Luxsome Packaging Staging <projects@updates.luxsomepackaging.com>",
-              "INTERNAL_EMAIL": "hello@luxsomepackaging.com",
-              "INVOICE_PAYMENT_INSTRUCTIONS": "TEST ENVIRONMENT — DO NOT MAKE PAYMENT",
-              "LUXSOME_WHATSAPP": "2349068804133",
-              "LUXSOME_WHATSAPP_NUMBER": "2349068804133",
-              "PUBLIC_SITE_URL": "https://staging.luxsomepackaging.com",
-              "REPLY_TO_EMAIL": "hello@luxsomepackaging.com"
-          },
-
-          "d1_databases": [
-              {
-                  "binding": "DB",
-                  "database_name": "luxsome-staging-db",
-                  "database_id": "1cad1e10-eb3d-4e1b-bbd4-16af123e9611"
-              }
-          ],
-
-          "r2_buckets": [
-              {
-                  "binding": "PAYMENT_SLIPS",
-                  "bucket_name": "luxsome-payment-slips-staging"
-              }
-          ]
-      },
-
-      "production": {
-        "name": "luxsome-project-api",
-        "workers_dev": false,
-        "preview_urls": false,
-
-          "routes": [
-              {
-                  "pattern": "api.luxsomepackaging.com",
-                  "custom_domain": true
-              }
-          ],
-
-          "triggers": {
-              "crons": [
-                  "0 2 * * *"
-              ]
-          },
-
-          "vars": {
-              "ENVIRONMENT": "production",
-              "ALLOWED_ORIGIN": "https://www.luxsomepackaging.com",
-              "CLIENT_PORTAL_URL": "https://www.luxsomepackaging.com/track-order/",
-              "FROM_EMAIL": "Luxsome Packaging <projects@updates.luxsomepackaging.com>",
-              "INTERNAL_EMAIL": "hello@luxsomepackaging.com",
-              "INVOICE_PAYMENT_INSTRUCTIONS": "Bank name: Moniepoint\nAccount name: Lagundoye Akeem ifedayo\nAccount no: 6557362942",
-              "LUXSOME_WHATSAPP": "2349068804133",
-              "LUXSOME_WHATSAPP_NUMBER": "2349068804133",
-              "PUBLIC_SITE_URL": "https://www.luxsomepackaging.com",
-              "REPLY_TO_EMAIL": "hello@luxsomepackaging.com"
-          },
-
-          "d1_databases": [
-              {
-                  "binding": "DB",
-                  "database_name": "luxsome-crm",
-                  "database_id": "f47456df-d85a-4909-95be-a4dbf57177d0"
-              }
-          ],
-
-          "r2_buckets": [
-              {
-                  "binding": "PAYMENT_SLIPS",
-                  "bucket_name": "luxsome-payment-slips"
-              }
-          ]
-      }
-  }
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "luxsome-project-api",
+	"main": "src/worker.js",
+	"compatibility_date": "2026-07-28",
+	"workers_dev": false,
+	"preview_urls": false,
+	"observability": {
+		"enabled": true,
+		"head_sampling_rate": 1,
+		"logs": {
+			"enabled": true,
+			"head_sampling_rate": 1,
+			"persist": true,
+			"invocation_logs": true
+		},
+		"traces": {
+			"enabled": false,
+			"persist": true,
+			"head_sampling_rate": 1
+		}
+	},
+	"env": {
+		"develop": {
+			"name": "luxsome-project-api-develop",
+			"workers_dev": false,
+			"preview_urls": false,
+			"routes": [
+				{
+					"pattern": "api-develop.luxsomepackaging.com",
+					"custom_domain": true
+				}
+			],
+			"triggers": {
+				"crons": [
+					"0 2 * * *"
+				]
+			},
+			"vars": {
+				"ENVIRONMENT": "develop",
+				"ALLOWED_ORIGIN": "https://develop.luxsomepackaging.com",
+				"CLIENT_PORTAL_URL": "https://develop.luxsomepackaging.com/track-order/",
+				"FROM_EMAIL": "Luxsome Packaging Develop <projects@updates.luxsomepackaging.com>",
+				"INTERNAL_EMAIL": "hello@luxsomepackaging.com",
+				"INVOICE_PAYMENT_INSTRUCTIONS": "TEST ENVIRONMENT — DO NOT MAKE PAYMENT",
+				"LUXSOME_WHATSAPP": "2349068804133",
+				"LUXSOME_WHATSAPP_NUMBER": "2349068804133",
+				"PUBLIC_SITE_URL": "https://develop.luxsomepackaging.com",
+				"REPLY_TO_EMAIL": "hello@luxsomepackaging.com"
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "luxsome-develop-db",
+					"database_id": "7b0dabea-8fac-43cd-8267-1bb98b0e3894"
+				}
+			],
+			"r2_buckets": [
+				{
+					"binding": "PAYMENT_SLIPS",
+					"bucket_name": "luxsome-payment-slips-develop"
+				}
+			]
+		},
+		"staging": {
+			"name": "luxsome-project-api-staging",
+			"workers_dev": false,
+			"preview_urls": false,
+			"routes": [
+				{
+					"pattern": "api-staging.luxsomepackaging.com",
+					"custom_domain": true
+				}
+			],
+			"triggers": {
+				"crons": [
+					"0 2 * * *"
+				]
+			},
+			"vars": {
+				"ENVIRONMENT": "staging",
+				"ALLOWED_ORIGIN": "https://staging.luxsomepackaging.com",
+				"CLIENT_PORTAL_URL": "https://staging.luxsomepackaging.com/track-order/",
+				"FROM_EMAIL": "Luxsome Packaging Staging <projects@updates.luxsomepackaging.com>",
+				"INTERNAL_EMAIL": "hello@luxsomepackaging.com",
+				"INVOICE_PAYMENT_INSTRUCTIONS": "TEST ENVIRONMENT — DO NOT MAKE PAYMENT",
+				"LUXSOME_WHATSAPP": "2349068804133",
+				"LUXSOME_WHATSAPP_NUMBER": "2349068804133",
+				"PUBLIC_SITE_URL": "https://staging.luxsomepackaging.com",
+				"REPLY_TO_EMAIL": "hello@luxsomepackaging.com"
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "luxsome-staging-db",
+					"database_id": "1cad1e10-eb3d-4e1b-bbd4-16af123e9611"
+				}
+			],
+			"r2_buckets": [
+				{
+					"binding": "PAYMENT_SLIPS",
+					"bucket_name": "luxsome-payment-slips-staging"
+				}
+			]
+		},
+		"production": {
+			"name": "luxsome-project-api",
+			"workers_dev": false,
+			"preview_urls": false,
+			"routes": [
+				{
+					"pattern": "api.luxsomepackaging.com",
+					"custom_domain": true
+				}
+			],
+			"triggers": {
+				"crons": [
+					"0 2 * * *"
+				]
+			},
+			"vars": {
+				"ENVIRONMENT": "production",
+				"ALLOWED_ORIGIN": "https://www.luxsomepackaging.com",
+				"CLIENT_PORTAL_URL": "https://www.luxsomepackaging.com/track-order/",
+				"FROM_EMAIL": "Luxsome Packaging <projects@updates.luxsomepackaging.com>",
+				"INTERNAL_EMAIL": "hello@luxsomepackaging.com",
+				"INVOICE_PAYMENT_INSTRUCTIONS": "Bank name: Moniepoint\nAccount name: Lagundoye Akeem ifedayo\nAccount no: 6557362942",
+				"LUXSOME_WHATSAPP": "2349068804133",
+				"LUXSOME_WHATSAPP_NUMBER": "2349068804133",
+				"PUBLIC_SITE_URL": "https://www.luxsomepackaging.com",
+				"REPLY_TO_EMAIL": "hello@luxsomepackaging.com"
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "luxsome-crm",
+					"database_id": "f47456df-d85a-4909-95be-a4dbf57177d0"
+				}
+			],
+			"r2_buckets": [
+				{
+					"binding": "PAYMENT_SLIPS",
+					"bucket_name": "luxsome-payment-slips"
+				},
+				{
+					"binding": "ARTWORK_BUCKET",
+					"bucket_name": "luxsome-artwork"
+				}
+			]
+		}
+	},
 }

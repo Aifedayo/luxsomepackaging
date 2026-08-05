@@ -4,6 +4,9 @@ const PROJECT_PATH = "/project";
 const CONTACT_PATH = "/contact";
 const HEALTH_PATH = "/health";
 const ADMIN_PATH = "/admin";
+const ARTWORK_PATH = "/artwork";
+const ARTWORK_SESSION_PATH = "/artwork/session";
+const ARTWORK_UPLOAD_PREFIX = "/artwork/upload/incoming/";
 
 export default {
     async fetch(request, env) {
@@ -25,6 +28,23 @@ export default {
                     request,
                     env
                 );
+            }
+
+            if (url.pathname === ARTWORK_SESSION_PATH ||
+                url.pathname.startsWith(ARTWORK_UPLOAD_PREFIX)) {
+                if (!isAllowedOrigin(request.headers.get("Origin"), env)) {
+                    return jsonResponse(
+                        {
+                            success: false,
+                            message: "This website is not allowed to upload artwork."
+                        },
+                        403,
+                        request,
+                        env
+                    );
+                }
+
+                return await handleArtworkRequest(request, env, url);
             }
 
             if (url.pathname.startsWith("/public/quotations/")) {
@@ -7356,6 +7376,395 @@ function safeProjectReference(value) {
     return `LX-${date}-${random}`;
 }
 
+
+/* =========================================================
+   ARTWORK UPLOAD — TURNSTILE + PRIVATE R2
+========================================================= */
+
+const ARTWORK_ALLOWED_EXTENSIONS = new Set([
+    "pdf", "ai", "eps", "svg", "psd",
+    "tif", "tiff", "png", "jpg", "jpeg", "zip"
+]);
+
+const ARTWORK_MAX_FILE_BYTES = 95 * 1024 * 1024;
+const ARTWORK_SESSION_TTL_SECONDS = 20 * 60;
+
+async function handleArtworkRequest(request, env, url) {
+    if (!env.ARTWORK_BUCKET) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Artwork storage is not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    if (!env.TURNSTILE_SECRET_KEY || !env.UPLOAD_SESSION_SECRET) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Secure artwork uploads are not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    if (
+        request.method === "POST" &&
+        url.pathname === ARTWORK_SESSION_PATH
+    ) {
+        return handleArtworkSessionCreate(request, env);
+    }
+
+    if (
+        request.method === "PUT" &&
+        url.pathname.startsWith(ARTWORK_UPLOAD_PREFIX)
+    ) {
+        return handleArtworkFileUpload(request, env, url);
+    }
+
+    return jsonResponse(
+        {
+            success: false,
+            message: "Artwork endpoint not found."
+        },
+        404,
+        request,
+        env
+    );
+}
+
+async function handleArtworkSessionCreate(request, env) {
+    const body = await request.json().catch(() => ({}));
+    const uploadId = normaliseArtworkUploadId(body.uploadId);
+
+    if (!uploadId) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "The artwork upload reference is invalid."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const validChallenge = await verifyArtworkTurnstile(
+        text(body.turnstileToken),
+        request,
+        env
+    );
+
+    if (!validChallenge) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Security verification failed. Please try again."
+            },
+            403,
+            request,
+            env
+        );
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const sessionToken = await createArtworkSessionToken(
+        {
+            uploadId,
+            product: text(body.product).slice(0, 50) || "tier-1",
+            iat: now,
+            exp: now + ARTWORK_SESSION_TTL_SECONDS
+        },
+        env.UPLOAD_SESSION_SECRET
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            sessionToken,
+            expiresIn: ARTWORK_SESSION_TTL_SECONDS
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleArtworkFileUpload(request, env, url) {
+    const authorization = request.headers.get("Authorization") || "";
+    const token = authorization.startsWith("Bearer ")
+        ? authorization.slice(7)
+        : "";
+
+    const session = await verifyArtworkSessionToken(
+        token,
+        env.UPLOAD_SESSION_SECRET
+    );
+
+    if (!session) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "The upload session is invalid or has expired."
+            },
+            401,
+            request,
+            env
+        );
+    }
+
+    const encodedSuffix = url.pathname.slice(ARTWORK_UPLOAD_PREFIX.length);
+    let suffix = "";
+
+    try {
+        suffix = decodeURIComponent(encodedSuffix);
+    } catch (_) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "The artwork filename is invalid."
+            },
+            400,
+            request,
+            env
+        );
+    }
+
+    const expectedUploadPrefix = `${session.uploadId}/`;
+
+    if (
+        !suffix.startsWith(expectedUploadPrefix) ||
+        suffix.includes("..") ||
+        suffix.includes("\\") ||
+        suffix.startsWith("/")
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "The artwork storage path is invalid."
+            },
+            400,
+            request,
+            env
+        );
+    }
+
+    const objectKey = `incoming/${suffix}`;
+    const storedFilename = objectKey.split("/").pop() || "";
+    const extension = getArtworkExtension(storedFilename);
+
+    if (!ARTWORK_ALLOWED_EXTENSIONS.has(extension)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "This artwork file type is not supported."
+            },
+            415,
+            request,
+            env
+        );
+    }
+
+    const contentLength = Number(
+        request.headers.get("Content-Length") || "0"
+    );
+
+    if (!Number.isFinite(contentLength) || contentLength <= 0) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "The uploaded artwork file is empty."
+            },
+            400,
+            request,
+            env
+        );
+    }
+
+    if (contentLength > ARTWORK_MAX_FILE_BYTES) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "The artwork file exceeds the 95 MB limit."
+            },
+            413,
+            request,
+            env
+        );
+    }
+
+    const encodedOriginalName =
+        request.headers.get("X-Luxsome-Original-Name") || "";
+    let originalName = storedFilename;
+
+    try {
+        originalName = decodeURIComponent(encodedOriginalName) || storedFilename;
+    } catch (_) {
+        originalName = storedFilename;
+    }
+
+    await env.ARTWORK_BUCKET.put(objectKey, request.body, {
+        httpMetadata: {
+            contentType:
+                request.headers.get("Content-Type") ||
+                "application/octet-stream"
+        },
+        customMetadata: {
+            originalName: originalName.slice(0, 255),
+            uploadId: session.uploadId,
+            product: text(session.product).slice(0, 50),
+            uploadedAt: new Date().toISOString()
+        }
+    });
+
+    return jsonResponse(
+        {
+            success: true,
+            key: objectKey
+        },
+        201,
+        request,
+        env
+    );
+}
+
+async function verifyArtworkTurnstile(token, request, env) {
+    if (!token) return false;
+
+    const form = new FormData();
+    form.set("secret", env.TURNSTILE_SECRET_KEY);
+    form.set("response", token);
+
+    const remoteIp = request.headers.get("CF-Connecting-IP");
+    if (remoteIp) form.set("remoteip", remoteIp);
+
+    const response = await fetch(
+        "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+        {
+            method: "POST",
+            body: form
+        }
+    );
+
+    if (!response.ok) return false;
+
+    const result = await response.json().catch(() => ({}));
+
+    return Boolean(
+        result.success &&
+        (!result.action || result.action === "artwork-upload")
+    );
+}
+
+function normaliseArtworkUploadId(value) {
+    const candidate = text(value);
+
+    return /^[a-z0-9][a-z0-9-]{15,100}$/i.test(candidate)
+        ? candidate
+        : "";
+}
+
+function getArtworkExtension(filename) {
+    const parts = String(filename || "").split(".");
+
+    return parts.length > 1
+        ? parts.pop().toLowerCase()
+        : "";
+}
+
+function artworkBase64UrlEncode(bytes) {
+    let binary = "";
+
+    bytes.forEach(byte => {
+        binary += String.fromCharCode(byte);
+    });
+
+    return btoa(binary)
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+}
+
+function artworkBase64UrlDecode(value) {
+    const padded = String(value || "")
+        .replace(/-/g, "+")
+        .replace(/_/g, "/")
+        .padEnd(Math.ceil(String(value || "").length / 4) * 4, "=");
+
+    const binary = atob(padded);
+
+    return Uint8Array.from(
+        binary,
+        character => character.charCodeAt(0)
+    );
+}
+
+async function importArtworkHmacKey(secret) {
+    return crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(secret),
+        {
+            name: "HMAC",
+            hash: "SHA-256"
+        },
+        false,
+        ["sign", "verify"]
+    );
+}
+
+async function createArtworkSessionToken(payload, secret) {
+    const encodedPayload = artworkBase64UrlEncode(
+        new TextEncoder().encode(JSON.stringify(payload))
+    );
+    const key = await importArtworkHmacKey(secret);
+    const signature = await crypto.subtle.sign(
+        "HMAC",
+        key,
+        new TextEncoder().encode(encodedPayload)
+    );
+
+    return `${encodedPayload}.${artworkBase64UrlEncode(
+        new Uint8Array(signature)
+    )}`;
+}
+
+async function verifyArtworkSessionToken(token, secret) {
+    try {
+        if (!token || !token.includes(".")) return null;
+
+        const [encodedPayload, encodedSignature] = token.split(".", 2);
+        const key = await importArtworkHmacKey(secret);
+        const valid = await crypto.subtle.verify(
+            "HMAC",
+            key,
+            artworkBase64UrlDecode(encodedSignature),
+            new TextEncoder().encode(encodedPayload)
+        );
+
+        if (!valid) return null;
+
+        const payload = JSON.parse(
+            new TextDecoder().decode(
+                artworkBase64UrlDecode(encodedPayload)
+            )
+        );
+
+        if (!payload.exp || Date.now() >= Number(payload.exp) * 1000) {
+            return null;
+        }
+
+        return payload;
+    } catch (_) {
+        return null;
+    }
+}
+
 function handlePreflight(request, env) {
     const origin = normaliseOrigin(
         request.headers.get("Origin")
@@ -7408,9 +7817,9 @@ function corsHeaders(origin) {
 
     return {
         "Access-Control-Allow-Origin": normalisedOrigin,
-        "Access-Control-Allow-Methods": "GET, POST, PATCH, OPTIONS",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, OPTIONS",
         "Access-Control-Allow-Headers":
-            "Content-Type, Accept, Authorization",
+            "Content-Type, Accept, Authorization, X-Luxsome-Original-Name",
         "Access-Control-Max-Age": "86400",
         Vary: "Origin"
     };

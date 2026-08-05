@@ -403,11 +403,538 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('productConfigForm');
     const product = document.querySelector('.product-detail');
 
-    const submitConfiguration = () => {
+
+    /*
+     * Artwork upload
+     *
+     * The upload UI is revealed only when the customer selects
+     * "Logo and packaging artwork ready" ("Everything is ready").
+     *
+     * Files are uploaded to a private Cloudflare R2 bucket through a
+     * Cloudflare Worker. No R2 credential is ever exposed in this page.
+     */
+    const artworkUpload = (() => {
+        const section = document.getElementById('artworkUploadSection');
+        const fileInput = document.getElementById('artworkFiles');
+        const dropzone = document.getElementById('artworkDropzone');
+        const fileList = document.getElementById('artworkFileList');
+        const confirmation = document.getElementById(
+            'artworkFinalConfirmation'
+        );
+        const status = document.getElementById('artworkUploadStatus');
+        const statusText = document.getElementById(
+            'artworkUploadStatusText'
+        );
+        const percentage = document.getElementById(
+            'artworkUploadPercentage'
+        );
+        const progressBar = document.getElementById(
+            'artworkUploadProgressBar'
+        );
+        const uploadIdInput = document.getElementById('artworkUploadId');
+        const objectKeysInput = document.getElementById(
+            'artworkObjectKeys'
+        );
+        const artworkStatusInputs = Array.from(
+            document.querySelectorAll('input[name="artworkStatus"]')
+        );
+
+        const READY_VALUE = 'Logo and packaging artwork ready';
+        const MAX_FILES = 10;
+        const MAX_FILE_BYTES = 95 * 1024 * 1024;
+        const ALLOWED_EXTENSIONS = new Set([
+            'pdf',
+            'ai',
+            'eps',
+            'svg',
+            'psd',
+            'tif',
+            'tiff',
+            'png',
+            'jpg',
+            'jpeg',
+            'zip'
+        ]);
+
+        let files = [];
+        let uploadedKeys = [];
+        let uploadId = '';
+
+        const endpoint = section?.dataset.uploadEndpoint
+            ?.replace(/\/+$/, '');
+
+        const isReadySelected = () => (
+            form?.querySelector(
+                'input[name="artworkStatus"]:checked'
+            )?.value === READY_VALUE
+        );
+
+        const formatBytes = value => {
+            if (value < 1024) return `${value} B`;
+            if (value < 1024 ** 2) {
+                return `${(value / 1024).toFixed(1)} KB`;
+            }
+
+            return `${(value / (1024 ** 2)).toFixed(1)} MB`;
+        };
+
+        const getExtension = filename => (
+            filename.split('.').pop()?.toLowerCase() || ''
+        );
+
+        const setStatus = (
+            message,
+            progress = 0,
+            isError = false
+        ) => {
+            if (!section || !status || !statusText || !percentage ||
+                !progressBar) {
+                return;
+            }
+
+            status.hidden = false;
+            statusText.textContent = message;
+            percentage.textContent = `${Math.round(progress)}%`;
+            progressBar.style.width = `${Math.max(
+                0,
+                Math.min(progress, 100)
+            )}%`;
+
+            section.classList.toggle('has-error', isError);
+        };
+
+        const clearUploadResult = () => {
+            uploadedKeys = [];
+            uploadId = '';
+
+            if (uploadIdInput) uploadIdInput.value = '';
+            if (objectKeysInput) objectKeysInput.value = '';
+        };
+
+        const renderFiles = () => {
+            if (!fileList) return;
+
+            fileList.replaceChildren();
+
+            files.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'artwork-file';
+
+                const icon = document.createElement('span');
+                icon.className = 'artwork-file__icon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.innerHTML = '<i class="fa-regular fa-file"></i>';
+
+                const details = document.createElement('div');
+                details.className = 'artwork-file__details';
+
+                const name = document.createElement('strong');
+                name.textContent = file.name;
+
+                const meta = document.createElement('span');
+                meta.textContent = formatBytes(file.size);
+
+                details.append(name, meta);
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'artwork-file__remove';
+                remove.textContent = 'Remove';
+                remove.setAttribute(
+                    'aria-label',
+                    `Remove ${file.name}`
+                );
+
+                remove.addEventListener('click', () => {
+                    files.splice(index, 1);
+                    clearUploadResult();
+                    renderFiles();
+                });
+
+                item.append(icon, details, remove);
+                fileList.append(item);
+            });
+        };
+
+        const validateFiles = selectedFiles => {
+            const nextFiles = [...selectedFiles];
+
+            if (nextFiles.length > MAX_FILES) {
+                throw new Error(
+                    `Choose no more than ${MAX_FILES} files.`
+                );
+            }
+
+            nextFiles.forEach(file => {
+                const extension = getExtension(file.name);
+
+                if (!ALLOWED_EXTENSIONS.has(extension)) {
+                    throw new Error(
+                        `${file.name} is not an accepted artwork format.`
+                    );
+                }
+
+                if (file.size <= 0) {
+                    throw new Error(`${file.name} is empty.`);
+                }
+
+                if (file.size > MAX_FILE_BYTES) {
+                    throw new Error(
+                        `${file.name} is larger than 95 MB.`
+                    );
+                }
+            });
+
+            return nextFiles;
+        };
+
+        const chooseFiles = selectedFiles => {
+            try {
+                files = validateFiles(selectedFiles);
+                clearUploadResult();
+                renderFiles();
+
+                if (status) status.hidden = true;
+                section?.classList.remove('has-error');
+            } catch (error) {
+                setStatus(error.message, 0, true);
+            }
+        };
+
+        const updateVisibility = () => {
+            if (!section) return;
+
+            const visible = isReadySelected();
+
+            section.hidden = !visible;
+            section.setAttribute(
+                'aria-hidden',
+                String(!visible)
+            );
+
+            if (fileInput) fileInput.disabled = !visible;
+
+            if (confirmation) {
+                confirmation.disabled = !visible;
+                confirmation.required = visible;
+            }
+
+            if (!visible) {
+                files = [];
+                clearUploadResult();
+                renderFiles();
+
+                if (status) status.hidden = true;
+            }
+        };
+
+        const getTurnstileToken = () => {
+            const tokenInput = section?.querySelector(
+                'input[name="cf-turnstile-response"]'
+            );
+
+            return tokenInput?.value?.trim() || '';
+        };
+
+        const resetTurnstile = () => {
+            if (
+                window.turnstile &&
+                typeof window.turnstile.reset === 'function'
+            ) {
+                const widget = section?.querySelector('.cf-turnstile');
+
+                if (widget) {
+                    window.turnstile.reset(widget);
+                }
+            }
+        };
+
+        const createUploadId = () => {
+            const random = crypto.randomUUID
+                ? crypto.randomUUID()
+                : `${Date.now()}-${Math.random()
+                    .toString(16)
+                    .slice(2)}`;
+
+            return `tier-1-${random}`;
+        };
+
+        const createSession = async currentUploadId => {
+            if (!endpoint || endpoint.includes('REPLACE-WITH')) {
+                throw new Error(
+                    'Artwork storage is not connected yet. Add the deployed Worker URL to data-upload-endpoint.'
+                );
+            }
+
+            const turnstileToken = getTurnstileToken();
+
+            if (!turnstileToken) {
+                throw new Error(
+                    'Complete the security verification before uploading.'
+                );
+            }
+
+            const response = await fetch(`${endpoint}/session`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    turnstileToken,
+                    uploadId: currentUploadId,
+                    product: product?.dataset.product || 'tier-1'
+                })
+            });
+
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok || !payload.sessionToken) {
+                throw new Error(
+                    payload.error ||
+                    'The secure upload session could not be created.'
+                );
+            }
+
+            return payload.sessionToken;
+        };
+
+        const uploadFile = (
+            file,
+            index,
+            currentUploadId,
+            sessionToken
+        ) => new Promise((resolve, reject) => {
+            const request = new XMLHttpRequest();
+
+            const keyPath = [
+                'incoming',
+                encodeURIComponent(currentUploadId),
+                `${String(index + 1).padStart(2, '0')}-${encodeURIComponent(file.name)}`
+            ].join('/');
+
+            request.open(
+                'PUT',
+                `${endpoint}/upload/${keyPath}`
+            );
+
+            request.setRequestHeader(
+                'Authorization',
+                `Bearer ${sessionToken}`
+            );
+
+            request.setRequestHeader(
+                'Content-Type',
+                file.type || 'application/octet-stream'
+            );
+
+            request.setRequestHeader(
+                'X-Luxsome-Original-Name',
+                encodeURIComponent(file.name)
+            );
+
+            request.upload.addEventListener('progress', event => {
+                if (!event.lengthComputable) return;
+
+                const fileProgress =
+                    event.loaded / event.total;
+
+                const overallProgress =
+                    ((index + fileProgress) / files.length) * 100;
+
+                setStatus(
+                    `Uploading ${file.name}`,
+                    overallProgress
+                );
+            });
+
+            request.addEventListener('load', () => {
+                let payload = {};
+
+                try {
+                    payload = JSON.parse(request.responseText || '{}');
+                } catch (error) {
+                    payload = {};
+                }
+
+                if (
+                    request.status >= 200 &&
+                    request.status < 300 &&
+                    payload.key
+                ) {
+                    resolve(payload.key);
+                    return;
+                }
+
+                reject(
+                    new Error(
+                        payload.error ||
+                        `Upload failed for ${file.name}.`
+                    )
+                );
+            });
+
+            request.addEventListener('error', () => {
+                reject(
+                    new Error(
+                        `Network error while uploading ${file.name}.`
+                    )
+                );
+            });
+
+            request.addEventListener('abort', () => {
+                reject(
+                    new Error(
+                        `Upload cancelled for ${file.name}.`
+                    )
+                );
+            });
+
+            request.send(file);
+        });
+
+        const upload = async () => {
+            if (!section || !isReadySelected()) {
+                return {
+                    uploadId: '',
+                    keys: []
+                };
+            }
+
+            if (!files.length) {
+                throw new Error(
+                    'Upload at least one final artwork file.'
+                );
+            }
+
+            if (!confirmation?.checked) {
+                throw new Error(
+                    'Confirm that the selected artwork files are the latest versions.'
+                );
+            }
+
+            section.classList.add('is-uploading');
+            section.classList.remove('has-error');
+
+            try {
+                clearUploadResult();
+                uploadId = createUploadId();
+
+                setStatus(
+                    'Creating a secure upload session…',
+                    0
+                );
+
+                const sessionToken =
+                    await createSession(uploadId);
+
+                for (const [index, file] of files.entries()) {
+                    const key = await uploadFile(
+                        file,
+                        index,
+                        uploadId,
+                        sessionToken
+                    );
+
+                    uploadedKeys.push(key);
+                }
+
+                if (uploadIdInput) {
+                    uploadIdInput.value = uploadId;
+                }
+
+                if (objectKeysInput) {
+                    objectKeysInput.value =
+                        JSON.stringify(uploadedKeys);
+                }
+
+                setStatus(
+                    `${files.length} file${files.length === 1 ? '' : 's'} uploaded securely.`,
+                    100
+                );
+
+                return {
+                    uploadId,
+                    keys: [...uploadedKeys]
+                };
+            } catch (error) {
+                setStatus(error.message, 0, true);
+                resetTurnstile();
+                throw error;
+            } finally {
+                section.classList.remove('is-uploading');
+            }
+        };
+
+        artworkStatusInputs.forEach(input => {
+            input.addEventListener('change', updateVisibility);
+        });
+
+        dropzone?.addEventListener('click', () => {
+            fileInput?.click();
+        });
+
+        dropzone?.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+
+            event.preventDefault();
+            fileInput?.click();
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone?.addEventListener(eventName, event => {
+                event.preventDefault();
+                dropzone.classList.add('is-dragging');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone?.addEventListener(eventName, event => {
+                event.preventDefault();
+                dropzone.classList.remove('is-dragging');
+            });
+        });
+
+        dropzone?.addEventListener('drop', event => {
+            chooseFiles(event.dataTransfer?.files || []);
+        });
+
+        fileInput?.addEventListener('change', () => {
+            chooseFiles(fileInput.files || []);
+            fileInput.value = '';
+        });
+
+        updateVisibility();
+
+        return {
+            isRequired: isReadySelected,
+            upload
+        };
+    })();
+
+
+    const submitConfiguration = async () => {
         if (!form || !product) return;
 
         if (!form.checkValidity()) {
             form.reportValidity();
+            return;
+        }
+
+        let artworkUploadResult = {
+            uploadId: '',
+            keys: []
+        };
+
+        try {
+            artworkUploadResult = await artworkUpload.upload();
+        } catch (error) {
+            document
+                .getElementById('artworkUploadSection')
+                ?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+
             return;
         }
 
@@ -471,6 +998,18 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('ribbon_colour', data.get('ribbonColour') || '');
         params.set('logo_finish', data.get('logoFinish') || '');
         params.set('artwork_status', data.get('artworkStatus') || '');
+        params.set(
+            'artwork_upload_id',
+            artworkUploadResult.uploadId || ''
+        );
+        params.set(
+            'artwork_object_keys',
+            artworkUploadResult.keys.join(', ')
+        );
+        params.set(
+            'artwork_uploaded',
+            artworkUploadResult.keys.length ? 'yes' : 'no'
+        );
         const selectedThankYouInsert =
             data.get("thankYouCard") || "";
 
