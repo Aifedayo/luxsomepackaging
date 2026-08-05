@@ -99,6 +99,7 @@
 
         <link rel="stylesheet" href="/css/base.css">
         <link rel="stylesheet" href="/css/shop.css">
+        <link rel="stylesheet" href="/css/shop-artwork-support.css">
         <script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js"
             async
@@ -632,7 +633,7 @@
             id="dimensionUnitToggle"
             role="group"
             aria-label="Choose dimension unit"
-            data-unit="cm"
+            data-unit="in"
         >
             <span
                 class="dimension-unit-toggle__glass"
@@ -641,18 +642,18 @@
 
             <button
                 type="button"
-                class="dimension-unit-toggle__option is-active"
+                class="dimension-unit-toggle__option"
                 data-dimension-unit="cm"
-                aria-pressed="true"
+                aria-pressed="false"
             >
                 cm
             </button>
 
             <button
                 type="button"
-                class="dimension-unit-toggle__option"
+                class="dimension-unit-toggle__option is-active"
                 data-dimension-unit="in"
-                aria-pressed="false"
+                aria-pressed="true"
             >
                 inches
             </button>
@@ -670,7 +671,7 @@
                     min="0.1"
                     step="0.1"
                     inputmode="decimal"
-                    placeholder="30"
+                    placeholder="12"
                     data-dimension-display="boxLength"
                     required
                 >
@@ -694,7 +695,7 @@
                     min="0.1"
                     step="0.1"
                     inputmode="decimal"
-                    placeholder="22"
+                    placeholder="9"
                     data-dimension-display="boxBreadth"
                     required
                 >
@@ -718,7 +719,7 @@
                     min="0.1"
                     step="0.1"
                     inputmode="decimal"
-                    placeholder="8"
+                    placeholder="3"
                     data-dimension-display="boxHeight"
                     required
                 >
@@ -734,7 +735,7 @@
     </div>
 
     <p class="dimension-unit-note" id="dimensionUnitNote">
-        Measurements are saved in centimetres for quotation accuracy.
+        Enter your measurements in inches. Volumetric weight is calculated internally in centimetres.
     </p>
 
     <div
@@ -754,69 +755,148 @@
 </div>
 
             <fieldset class="configuration-group artwork-status-group">
-                <legend>
-                    Logo and artwork status
-                    <span class="option-status option-status--included">Project preparation</span>
-                </legend>
+    <legend>
+        Logo and artwork status
+        <span class="option-status option-status--included">
+            Project preparation
+        </span>
+    </legend>
 
-                <p class="configuration-help">
-                    Tell us what is ready so we can plan the correct design support after your order request.
-                </p>
+    <p class="configuration-help">
+        Tell us how prepared your files are. You can upload final artwork,
+        incomplete assets, existing brand materials or visual references.
+    </p>
 
-                <div class="option-grid option-grid--artwork-status">
-                    <label>
-                        <input
-                            type="radio"
-                            name="artworkStatus"
-                            value="Logo and packaging artwork ready"
-                            required
-                        >
-                        <span>
-                            Everything is ready
-                            <small>I can supply my logo and final packaging artwork.</small>
-                        </span>
-                    </label>
+    <div class="option-grid option-grid--artwork-status">
+        <label>
+            <input
+                type="radio"
+                name="artworkStatus"
+                value="Everything is ready"
+                required
+            >
+            <span>
+                Everything is ready
+                <small>
+                    My logo and packaging artwork are ready for production review.
+                </small>
+            </span>
+        </label>
 
-                    <label>
-                        <input
-                            type="radio"
-                            name="artworkStatus"
-                            value="Logo ready, packaging artwork required"
-                            required
-                        >
-                        <span>
-                            Logo ready
-                            <small>I need Luxsome to prepare the packaging artwork.</small>
-                        </span>
-                    </label>
+        <label>
+            <input
+                type="radio"
+                name="artworkStatus"
+                value="Some files are ready"
+                required
+            >
+            <span>
+                Some files are ready
+                <small>
+                    I can upload what I have, but I need support with other pieces.
+                </small>
+            </span>
+        </label>
 
-                    <label>
-                        <input
-                            type="radio"
-                            name="artworkStatus"
-                            value="Some brand assets available"
-                            required
-                        >
-                        <span>
-                            Some assets available
-                            <small>I have some files, but they still need to be reviewed.</small>
-                        </span>
-                    </label>
+        <label>
+            <input
+                type="radio"
+                name="artworkStatus"
+                value="Full design support required"
+                required
+            >
+            <span>
+                Full design support
+                <small>
+                    I need Luxsome to create or refine the required artwork.
+                </small>
+            </span>
+        </label>
+    </div>
+</fieldset>
 
-                    <label>
-                        <input
-                            type="radio"
-                            name="artworkStatus"
-                            value="Full logo and packaging design support required"
-                            required
-                        >
-                        <span>
-                            Full design support
-                            <small>I need help with both my logo and packaging artwork.</small>
-                        </span>
-                    </label>
-                </div>
-            </fieldset>
+<section
+    class="artwork-support"
+    id="artworkSupportSection"
+    aria-labelledby="artworkSupportHeading"
+    aria-hidden="true"
+    hidden
+>
+    <div class="artwork-support__heading">
+        <p class="configuration-section__eyebrow">
+            Design assistance
+        </p>
+
+        <h3 id="artworkSupportHeading">
+            What would you like Luxsome to help with?
+        </h3>
+
+        <p id="artworkSupportDescription">
+            Select every item that still needs design, refinement or artwork preparation.
+        </p>
+    </div>
+
+    <div class="check-grid artwork-support__grid">
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Logo design or refinement">
+            <span>Logo design or refinement</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Box artwork">
+            <span>Box artwork</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Hang tag artwork">
+            <span>Hang tag artwork</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Thank-you card artwork">
+            <span>Thank-you card artwork</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Envelope artwork">
+            <span>Envelope artwork</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Tissue pattern">
+            <span>Tissue pattern</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Sticker artwork">
+            <span>Sticker artwork</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Ribbon artwork">
+            <span>Ribbon artwork</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Complete visual direction">
+            <span>Complete visual direction</span>
+        </label>
+
+        <label>
+            <input type="checkbox" name="designSupportNeeded" value="Other design support">
+            <span>Other design support</span>
+        </label>
+    </div>
+
+    <p
+        class="artwork-support__error"
+        id="artworkSupportError"
+        role="alert"
+        hidden
+    >
+        Select at least one item that needs design support.
+    </p>
+</section>
             <!-- =====================================================
          ARTWORK UPLOAD
          Visible only when "Everything is ready" is selected.
@@ -1819,7 +1899,7 @@ hidden
                 );
 
                 const centimetresPerInch = 2.54;
-                let activeUnit = "cm";
+                let activeUnit = "in";
 
                 const roundMeasurement = value => (
                     Math.round((value + Number.EPSILON) * 100) / 100
@@ -1916,7 +1996,7 @@ hidden
                     if (unitNote) {
                         unitNote.textContent = nextUnit === "in"
                             ? "Inches are converted to centimetres automatically for quotation and volumetric-weight calculations."
-                            : "Measurements are saved in centimetres for quotation accuracy.";
+                            : "Enter your measurements in inches. Volumetric weight is calculated internally in centimetres.";
                     }
                 };
 
@@ -1950,7 +2030,7 @@ hidden
                  * shop.js may restore saved centimetre values before this
                  * listener runs. Mirror those values into the visible fields.
                  */
-                updateToggle("cm");
+                updateToggle("in");
 
                 window.requestAnimationFrame(() => {
                     displayInputs.forEach(

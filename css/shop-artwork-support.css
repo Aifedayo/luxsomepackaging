@@ -1,0 +1,52 @@
+/* =========================================================
+   ARTWORK READINESS + DESIGN SUPPORT
+========================================================= */
+
+.artwork-support[hidden] {
+    display: none !important;
+}
+
+.artwork-support {
+    margin: 24px 0;
+    padding: clamp(20px, 4vw, 30px);
+    border: 1px solid rgba(46, 28, 21, 0.13);
+    background: #f8f4ef;
+}
+
+.artwork-support__heading h3 {
+    margin: 4px 0 8px;
+    color: #2e1c15;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(1.55rem, 3vw, 2.1rem);
+    font-weight: 500;
+    line-height: 1;
+}
+
+.artwork-support__heading > p:last-child {
+    max-width: 620px;
+    margin: 0 0 18px;
+    color: #756159;
+    font-size: 0.72rem;
+    line-height: 1.65;
+}
+
+.artwork-support__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.artwork-support__error {
+    margin: 13px 0 0;
+    color: #8f251f;
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+@media (max-width: 620px) {
+    .artwork-support {
+        padding: 18px 14px;
+    }
+
+    .artwork-support__grid {
+        grid-template-columns: 1fr;
+    }
+}

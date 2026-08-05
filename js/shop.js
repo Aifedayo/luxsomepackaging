@@ -51,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
             quantity: 'quantity',
             box_quantity: 'boxQuantity',
             other_pieces_quantity: 'otherPiecesQuantity',
+            box_length: 'boxLengthDisplay',
+            box_breadth: 'boxBreadthDisplay',
+            box_height: 'boxHeightDisplay',
             box_length_cm: 'boxLength',
             box_breadth_cm: 'boxBreadth',
             box_height_cm: 'boxHeight',
@@ -439,7 +442,24 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input[name="artworkStatus"]')
         );
 
-        const READY_VALUE = 'Logo and packaging artwork ready';
+        const READY_VALUE = 'Everything is ready';
+        const PARTIAL_VALUE = 'Some files are ready';
+        const FULL_SUPPORT_VALUE = 'Full design support required';
+
+        const supportSection = document.getElementById(
+            'artworkSupportSection'
+        );
+        const supportDescription = document.getElementById(
+            'artworkSupportDescription'
+        );
+        const supportError = document.getElementById(
+            'artworkSupportError'
+        );
+        const supportInputs = Array.from(
+            document.querySelectorAll(
+                'input[name="designSupportNeeded"]'
+            )
+        );
         const MAX_FILES = 10;
         const MAX_FILE_BYTES = 95 * 1024 * 1024;
         const MAX_TOTAL_BYTES = 250 * 1024 * 1024;
@@ -531,10 +551,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const endpoint = section?.dataset.uploadEndpoint
             ?.replace(/\/+$/, '');
 
-        const isReadySelected = () => (
+        const getSelectedArtworkStatus = () => (
             form?.querySelector(
                 'input[name="artworkStatus"]:checked'
-            )?.value === READY_VALUE
+            )?.value || ''
+        );
+
+        const isReadySelected = () => (
+            getSelectedArtworkStatus() === READY_VALUE
+        );
+
+        const needsSupportChecklist = () => (
+            [PARTIAL_VALUE, FULL_SUPPORT_VALUE].includes(
+                getSelectedArtworkStatus()
+            )
         );
 
         const formatBytes = value => {
@@ -789,7 +819,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateVisibility = () => {
             if (!section) return;
 
-            const visible = isReadySelected();
+            const selectedStatus = getSelectedArtworkStatus();
+            const visible = Boolean(selectedStatus);
+            const supportVisible = needsSupportChecklist();
+            const ready = selectedStatus === READY_VALUE;
+            const partial = selectedStatus === PARTIAL_VALUE;
 
             section.hidden = !visible;
             section.setAttribute(
@@ -797,11 +831,76 @@ document.addEventListener('DOMContentLoaded', () => {
                 String(!visible)
             );
 
-            if (fileInput) fileInput.disabled = !visible;
+            if (supportSection) {
+                supportSection.hidden = !supportVisible;
+                supportSection.setAttribute(
+                    'aria-hidden',
+                    String(!supportVisible)
+                );
+            }
+
+            supportInputs.forEach(input => {
+                input.disabled = !supportVisible;
+            });
+
+            if (!supportVisible) {
+                supportInputs.forEach(input => {
+                    input.checked = false;
+                });
+            }
+
+            if (supportDescription) {
+                supportDescription.textContent = partial
+                    ? 'Select the pieces that still need design, refinement or artwork preparation.'
+                    : 'Select everything Luxsome should create or develop for this project.';
+            }
+
+            if (supportError) {
+                supportError.hidden = true;
+            }
+
+            if (fileInput) {
+                fileInput.disabled = !visible;
+            }
 
             if (confirmation) {
                 confirmation.disabled = !visible;
-                confirmation.required = visible;
+                confirmation.required = ready;
+
+                const confirmationText =
+                    confirmation.closest('label')
+                        ?.querySelector('span');
+
+                if (confirmationText) {
+                    confirmationText.textContent = ready
+                        ? 'I confirm that these are the latest files for production review.'
+                        : partial
+                            ? 'I confirm that these are the latest files currently available.'
+                            : 'These files are references or existing brand materials for Luxsome to review.';
+                }
+            }
+
+            const heading = document.getElementById(
+                'artworkUploadHeading'
+            );
+            const helper = section.querySelector(
+                '.configuration-help'
+            );
+
+            if (heading) {
+                heading.textContent = ready
+                    ? 'Upload your final artwork'
+                    : partial
+                        ? 'Upload the files you already have'
+                        : 'Upload optional references';
+            }
+
+            if (helper) {
+                helper.textContent = ready
+                    ? 'Upload the final files Luxsome should review for production.'
+                    : partial
+                        ? 'Upload any completed or incomplete files currently available.'
+                        : 'You may upload an old logo, sketch, moodboard or visual references. This is optional.';
             }
 
             if (!visible) {
@@ -809,8 +908,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearUploadResult();
                 renderFiles();
 
-                if (status) status.hidden = true;
+                if (status) {
+                    status.hidden = true;
+                }
             }
+        };
+
+        const validateSupportSelection = () => {
+            if (!needsSupportChecklist()) {
+                return true;
+            }
+
+            const hasSelection = supportInputs.some(
+                input => input.checked
+            );
+
+            if (supportError) {
+                supportError.hidden = hasSelection;
+            }
+
+            if (!hasSelection) {
+                supportSection?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+
+            return hasSelection;
         };
 
         const getTurnstileToken = () => {
@@ -841,7 +965,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     .toString(16)
                     .slice(2)}`;
 
-            return `tier-1-${random}`;
+            const productSlug = String(
+                product?.dataset.product || 'project'
+            )
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9-]+/g, '-')
+                .replace(/^-+|-+$/g, '') || 'project';
+
+            return `${productSlug}-${random}`;
         };
 
         const createSession = async currentUploadId => {
@@ -978,22 +1110,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const upload = async () => {
-            if (!section || !isReadySelected()) {
+            if (!section || !getSelectedArtworkStatus()) {
                 return {
                     uploadId: '',
                     keys: []
                 };
             }
 
-            if (!files.length) {
+            if (isReadySelected() && !files.length) {
                 throw new Error(
                     'Upload at least one final artwork file.'
                 );
             }
 
+            if (!files.length) {
+                return {
+                    uploadId: '',
+                    keys: []
+                };
+            }
+
             if (!confirmation?.checked) {
                 throw new Error(
-                    'Confirm that the selected artwork files are the latest versions.'
+                    'Confirm the purpose and status of the selected files.'
                 );
             }
 
@@ -1115,6 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return {
             isRequired: isReadySelected,
+            validateSupportSelection,
             upload
         };
     })();
@@ -1125,6 +1265,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!form.checkValidity()) {
             form.reportValidity();
+            return;
+        }
+
+        if (!artworkUpload.validateSupportSelection()) {
             return;
         }
 
@@ -1207,6 +1351,10 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('logo_finish', data.get('logoFinish') || '');
         params.set('artwork_status', data.get('artworkStatus') || '');
         params.set(
+            'design_support_needed',
+            data.getAll('designSupportNeeded').join(', ')
+        );
+        params.set(
             'artwork_upload_id',
             artworkUploadResult.uploadId || ''
         );
@@ -1252,17 +1400,40 @@ document.addEventListener('DOMContentLoaded', () => {
             'other_pieces_quantity',
             selectedOtherQuantity || ''
         );
+        const dimensionUnit =
+            document.getElementById('dimensionUnitToggle')
+                ?.dataset.unit || 'in';
+
         params.set(
-            'box_length_cm',
-            hasRigidBox ? (data.get('boxLength') || '') : ''
+            'dimension_unit',
+            hasRigidBox ? dimensionUnit : ''
         );
         params.set(
-            'box_breadth_cm',
-            hasRigidBox ? (data.get('boxBreadth') || '') : ''
+            'box_length',
+            hasRigidBox
+                ? (
+                    document.getElementById('boxLengthDisplay')
+                        ?.value || ''
+                )
+                : ''
         );
         params.set(
-            'box_height_cm',
-            hasRigidBox ? (data.get('boxHeight') || '') : ''
+            'box_breadth',
+            hasRigidBox
+                ? (
+                    document.getElementById('boxBreadthDisplay')
+                        ?.value || ''
+                )
+                : ''
+        );
+        params.set(
+            'box_height',
+            hasRigidBox
+                ? (
+                    document.getElementById('boxHeightDisplay')
+                        ?.value || ''
+                )
+                : ''
         );
         params.set(
             'volumetric_weight_kg',
