@@ -6621,3 +6621,44 @@ button:focus-visible {
         max-width: 300px;
     }
 }
+
+.external-arrow {
+    display: inline-block;
+    width: auto;
+    height: auto;
+
+    margin-left: 0.3em;
+    padding: 0;
+
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+
+    color: inherit;
+    font: inherit;
+    font-family: Arial, Helvetica, sans-serif;
+
+    line-height: 1;
+    text-align: center;
+
+    transform: none;
+    box-shadow: none;
+}
+
+@media (max-width: 620px) {
+    .external-arrow {
+        display: inline-block;
+        width: auto !important;
+        height: auto !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+
+        font-size: 1em;
+        line-height: 1;
+    }
+}
