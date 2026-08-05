@@ -3850,7 +3850,7 @@ ${optionalMessage ? `<div style="margin:22px 0;padding:16px 18px;background:#f8f
 <td align="right" style="padding:5px;font-weight:700;">${escapeHtml(formatInvoiceMoney(invoice.delivery_fee, invoice.currency))}</td>
 </tr>
 <tr>
-<td align="right" style="padding:5px;">Tax</td>
+<td align="right" style="padding:5px;">VAT</td>
 <td align="right" style="padding:5px;font-weight:700;">${escapeHtml(formatInvoiceMoney(invoice.tax, invoice.currency))}</td>
 </tr>
 <tr>
@@ -6965,7 +6965,7 @@ function buildCustomerEmail(data, reference) {
             <p style="max-width:520px;margin:0 auto;color:#6d574b;font:400 15px/1.8 Arial,sans-serif;">
                 Your packaging request is now with the Luxsome team.
                 We will review the submitted selections and contact you
-                through your preferred communication method.
+                within the next 24 hours through your preferred communication method.
             </p>
         </div>
 
@@ -7018,7 +7018,7 @@ function buildCustomerEmail(data, reference) {
 
             <p style="margin:0 0 10px;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;">
                 <strong>2.</strong>
-                We contact you to confirm any details needed
+                We contact you within 24 hours to confirm any details needed
                 before preparing your quotation.
             </p>
 
