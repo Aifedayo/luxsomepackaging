@@ -937,3 +937,223 @@ header {
         width: 100%;
     }
 }
+
+/* =========================================================
+   OPTIONAL PACKAGING UPGRADES
+========================================================= */
+
+.optional-upgrades {
+    padding: clamp(4.5rem, 8vw, 7rem) 0;
+    border-top: 1px solid rgba(42, 33, 28, 0.08);
+    border-bottom: 1px solid rgba(42, 33, 28, 0.08);
+    background: #fffaf3;
+}
+
+.optional-upgrades__heading {
+    max-width: 760px;
+    margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+    text-align: center;
+}
+
+.optional-upgrades__heading h2 {
+    margin: 0 0 1rem;
+    color: #2f221c;
+    font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+    line-height: 1.08;
+}
+
+.optional-upgrades__heading > p:last-child {
+    max-width: 690px;
+    margin: 0 auto;
+    color: #67574d;
+    line-height: 1.8;
+}
+
+.optional-upgrades__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.upgrade-card {
+    display: flex;
+    min-height: 100%;
+    padding: clamp(1.5rem, 3vw, 2rem);
+    border: 1px solid rgba(42, 33, 28, 0.11);
+    border-radius: 20px;
+    background: #fffdf9;
+    flex-direction: column;
+    box-shadow: 0 12px 34px rgba(47, 34, 28, 0.045);
+    transition: transform 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+}
+
+.upgrade-card:hover {
+    border-color: rgba(103, 54, 41, 0.28);
+    box-shadow: 0 20px 44px rgba(47, 34, 28, 0.09);
+    transform: translateY(-5px);
+}
+
+.upgrade-card__top {
+    display: flex;
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.upgrade-card__number {
+    color: #673629;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.upgrade-card__top i {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #eadfce;
+    color: #673629;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+
+.upgrade-card h3 {
+    margin: 0 0 0.75rem;
+    color: #2f221c;
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
+    line-height: 1.2;
+}
+
+.upgrade-card > p {
+    margin: 0 0 1.2rem;
+    color: #67574d;
+    font-size: 0.88rem;
+    line-height: 1.72;
+}
+
+.upgrade-card ul {
+    display: grid;
+    margin: 0 0 1.6rem;
+    padding: 0;
+    gap: 0.65rem;
+    list-style: none;
+}
+
+.upgrade-card li {
+    position: relative;
+    padding-left: 1.25rem;
+    color: #67574d;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.upgrade-card li::before {
+    position: absolute;
+    top: 0.65em;
+    left: 0;
+    width: 7px;
+    height: 1px;
+    background: #673629;
+    content: "";
+}
+
+.upgrade-card__price {
+    display: inline-flex;
+    width: fit-content;
+    margin-top: auto;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(103, 54, 41, 0.08);
+    color: #673629;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.optional-upgrades__notice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    max-width: 940px;
+    margin: clamp(2rem, 4vw, 3rem) auto 0;
+    padding: 1.4rem 1.5rem;
+    border: 1px solid rgba(103, 54, 41, 0.13);
+    border-radius: 16px;
+    background: #eadfce;
+}
+
+.optional-upgrades__notice > i {
+    margin-top: 0.25rem;
+    color: #673629;
+}
+
+.optional-upgrades__notice h3 {
+    margin: 0 0 0.35rem;
+    color: #2f221c;
+    font-size: 1rem;
+}
+
+.optional-upgrades__notice p {
+    margin: 0;
+    color: #67574d;
+    font-size: 0.84rem;
+    line-height: 1.7;
+}
+
+.optional-upgrades__action {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.75rem;
+}
+
+.optional-upgrades__action .button {
+    margin-top: 0;
+}
+
+@media (max-width: 1000px) {
+    .optional-upgrades__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .optional-upgrades {
+        padding: 4rem 0;
+    }
+
+    .optional-upgrades__heading {
+        margin-bottom: 2rem;
+    }
+
+    .optional-upgrades__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .upgrade-card {
+        padding: 1.4rem;
+        border-radius: 18px;
+    }
+
+    .upgrade-card__top {
+        margin-bottom: 2.5rem;
+    }
+
+    .optional-upgrades__notice {
+        grid-template-columns: 1fr;
+        padding: 1.25rem;
+    }
+
+    .optional-upgrades__action .button {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .upgrade-card {
+        transition: none;
+    }
+}

@@ -1307,167 +1307,473 @@
             gtag("config", "G-V60ML76E25");
         </script>
 
-    <div class="pricing-modal" id="pricingModal" hidden>
-    <div class="pricing-modal__backdrop" data-pricing-close></div>
-
-    <section
-        class="pricing-modal__dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pricingModalTitle"
-        aria-describedby="pricingModalDescription"
-    >
-        <button
-            type="button"
-            class="pricing-modal__close"
-            data-pricing-close
-            aria-label="Close pricing guide"
+        <div
+        class="pricing-modal"
+        id="pricingModal"
+        hidden
         >
-            ×
-        </button>
+        <div
+            class="pricing-modal__backdrop"
+            data-pricing-close
+        ></div>
 
-        <div class="pricing-modal__header">
-            <p class="pricing-modal__eyebrow">Pricing guide</p>
-
-            <h2 id="pricingModalTitle">
-                Packaging prices at a glance
-            </h2>
-
-            <p id="pricingModalDescription">
-                Prices are per complete packaging system. Minimum order:
-                25 systems.
-            </p>
-        </div>
-
-        <div class="pricing-modal__body">
-            <section class="pricing-modal__section">
-                <div class="pricing-modal__section-heading">
-                    <h3>Packaging tiers</h3>
-                    <span>Per system</span>
-                </div>
-
-                <div class="pricing-summary-grid">
-                    <article class="pricing-summary-card">
-                        <span>Tier 1</span>
-                        <strong>₦8,000</strong>
-                        <p>Foundation packaging system</p>
-                    </article>
-
-                    <article class="pricing-summary-card">
-                        <span>Tier 2</span>
-                        <strong>₦10,000</strong>
-                        <p>Signature packaging system</p>
-                    </article>
-
-                    <article class="pricing-summary-card">
-                        <span>Tier 3</span>
-                        <strong>₦15,000</strong>
-                        <p>Prestige packaging system</p>
-                    </article>
-
-                    <article class="pricing-summary-card">
-                        <span>Bespoke</span>
-                        <strong>Custom quote</strong>
-                        <p>Priced from your specification</p>
-                    </article>
-                </div>
-            </section>
-
-            <section class="pricing-modal__section">
-                <div class="pricing-modal__section-heading">
-                    <h3>Optional features</h3>
-                    <span>Starting prices</span>
-                </div>
-
-                <div class="pricing-addon-list">
-                    <div class="pricing-addon">
-                        <div>
-                            <strong>Premium finish upgrade</strong>
-                            <span>Foil, embossing, debossing or UV</span>
-                        </div>
-                        <b>From ₦1,000</b>
-                    </div>
-
-                    <div class="pricing-addon">
-                        <div>
-                            <strong>Extra branded ribbon</strong>
-                            <span>Additional ribbon beyond the tier inclusion</span>
-                        </div>
-                        <b>₦500</b>
-                    </div>
-
-                    <div class="pricing-addon">
-                        <div>
-                            <strong>Extra card or insert</strong>
-                            <span>Care card, description card or simple insert</span>
-                        </div>
-                        <b>₦300</b>
-                    </div>
-
-                    <div class="pricing-addon">
-                        <div>
-                            <strong>Custom poly mailer</strong>
-                            <span>Added to the packaging system</span>
-                        </div>
-                        <b>₦1,500</b>
-                    </div>
-
-                    <div class="pricing-addon">
-                        <div>
-                            <strong>Larger or custom-size box</strong>
-                            <span>For sizes above the standard 1 kg allowance</span>
-                        </div>
-                        <b>From ₦2,000</b>
-                    </div>
-
-                    <div class="pricing-addon">
-                        <div>
-                            <strong>Structural accessories</strong>
-                            <span>Pull tabs, handles, custom inserts and special closures</span>
-                        </div>
-                        <b>Quoted to specification</b>
-                    </div>
-                </div>
-            </section>
-
-            <aside class="pricing-modal__notice">
-                <strong>Standard logo finishes</strong>
-
-                <p>
-                    Standard print, matte vinyl and metallic vinyl do not
-                    attract an additional finishing fee.
-                </p>
-            </aside>
-
-            <div class="pricing-modal__notes">
-                <p>
-                    Tier prices cover a finished box of up to 1 kg volumetric
-                    weight. Dimensions, specialty materials and complex
-                    construction may change the final quotation.
-                </p>
-
-                <p>
-                    All figures are introductory guide prices and are confirmed
-                    after your complete specification is reviewed.
-                </p>
-            </div>
-        </div>
-
-        <div class="pricing-modal__footer">
+        <section
+            class="pricing-modal__dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pricingModalTitle"
+            aria-describedby="pricingModalDescription"
+            tabindex="-1"
+        >
             <button
                 type="button"
-                class="pricing-modal__dismiss"
+                class="pricing-modal__close"
                 data-pricing-close
+                aria-label="Close pricing guide"
             >
-                Continue customising
+                <span aria-hidden="true">×</span>
             </button>
 
-            <a href="/pricing/" class="pricing-modal__full-link">
-                Open full pricing page
-            </a>
+            <!-- Header -->
+            <header class="pricing-modal__header">
+
+                <p class="pricing-modal__eyebrow">
+                    Pricing guide
+                </p>
+
+                <h2 id="pricingModalTitle">
+                    Packaging prices at a glance
+                </h2>
+
+                <p id="pricingModalDescription">
+                    Prices shown are per complete packaging system.
+                    The minimum order quantity is 25 systems.
+                </p>
+
+            </header>
+
+            <!-- Scrollable content -->
+            <div class="pricing-modal__body">
+
+                <!-- Pricing tiers -->
+                <section
+                    class="pricing-modal__section"
+                    aria-labelledby="modalTiersHeading"
+                >
+                    <div class="pricing-modal__section-heading">
+
+                        <h3 id="modalTiersHeading">
+                            Packaging tiers
+                        </h3>
+
+                        <span>
+                            Launch price per system
+                        </span>
+
+                    </div>
+
+                    <div class="pricing-summary-grid">
+
+                        <!-- Essential -->
+                        <article class="pricing-summary-card">
+
+                            <div class="pricing-summary-card__top">
+
+                                <span class="pricing-summary-card__tier">
+                                    Tier One
+                                </span>
+
+                                <span class="pricing-summary-card__badge">
+                                    Launch price
+                                </span>
+
+                            </div>
+
+                            <h4>
+                                Essential
+                            </h4>
+
+                            <span class="pricing-summary-card__regular">
+                                ₦10,000
+                            </span>
+
+                            <strong>
+                                ₦8,000
+                            </strong>
+
+                            <p>
+                                Packaging box, brand tags and a thank-you card.
+                            </p>
+
+                            <a href="/pricing/#essential">
+                                View Essential
+                                <span aria-hidden="true">→</span>
+                            </a>
+
+                        </article>
+
+                        <!-- Signature -->
+                        <article
+                            class="
+                                pricing-summary-card
+                                pricing-summary-card--featured
+                            "
+                        >
+
+                            <div class="pricing-summary-card__top">
+
+                                <span class="pricing-summary-card__tier">
+                                    Most popular
+                                </span>
+
+                                <span class="pricing-summary-card__badge">
+                                    Launch price
+                                </span>
+
+                            </div>
+
+                            <h4>
+                                Signature
+                            </h4>
+
+                            <span class="pricing-summary-card__regular">
+                                ₦12,000
+                            </span>
+
+                            <strong>
+                                ₦10,000
+                            </strong>
+
+                            <p>
+                                Box, brand tags, thank-you note and envelope,
+                                ribbon and thank-you sticker.
+                            </p>
+
+                            <a href="/pricing/#signature">
+                                View Signature
+                                <span aria-hidden="true">→</span>
+                            </a>
+
+                        </article>
+
+                        <!-- Complete -->
+                        <article class="pricing-summary-card">
+
+                            <div class="pricing-summary-card__top">
+
+                                <span class="pricing-summary-card__tier">
+                                    Tier Three
+                                </span>
+
+                                <span class="pricing-summary-card__badge">
+                                    Launch price
+                                </span>
+
+                            </div>
+
+                            <h4>
+                                Prestige
+                            </h4>
+
+                            <span class="pricing-summary-card__regular">
+                                ₦18,000
+                            </span>
+
+                            <strong>
+                                ₦15,000
+                            </strong>
+
+                            <p>
+                                A complete system with branded ribbon, tissue
+                                wrapping and sticker seal.
+                            </p>
+
+                            <a href="/pricing/#complete">
+                                View Complete
+                                <span aria-hidden="true">→</span>
+                            </a>
+
+                        </article>
+
+                        <!-- Bespoke -->
+                        <article class="pricing-summary-card">
+
+                            <div class="pricing-summary-card__top">
+
+                                <span class="pricing-summary-card__tier">
+                                    Custom system
+                                </span>
+
+                                <span class="pricing-summary-card__badge">
+                                    Flexible
+                                </span>
+
+                            </div>
+
+                            <h4>
+                                Bespoke
+                            </h4>
+
+                            <strong class="pricing-summary-card__custom-price">
+                                Custom quote
+                            </strong>
+
+                            <p>
+                                Select the exact boxes, tags, cards, tissue,
+                                ribbons and finishing details your brand needs.
+                            </p>
+
+                            <a href="/shop/bespoke/">
+                                Create Bespoke
+                                <span aria-hidden="true">→</span>
+                            </a>
+
+                        </article>
+
+                    </div>
+                </section>
+
+
+                <!-- Optional upgrades -->
+                <section
+                    class="pricing-modal__section"
+                    aria-labelledby="modalUpgradesHeading"
+                >
+                    <div class="pricing-modal__section-heading">
+
+                        <h3 id="modalUpgradesHeading">
+                            Optional packaging upgrades
+                        </h3>
+
+                        <span>
+                            Quoted separately
+                        </span>
+
+                    </div>
+
+                    <div class="pricing-addon-list">
+
+                        <article class="pricing-addon">
+                            <div class="pricing-addon__icon">
+                                <i
+                                    class="fa-solid fa-stamp"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+
+                            <div class="pricing-addon__content">
+                                <strong>
+                                    Premium print finishes
+                                </strong>
+
+                                <span>
+                                    Foil stamping, embossing, debossing,
+                                    spot UV or raised print.
+                                </span>
+                            </div>
+
+                            <b>
+                                Quoted separately
+                            </b>
+                        </article>
+
+
+                        <article class="pricing-addon">
+                            <div class="pricing-addon__icon">
+                                <i
+                                    class="fa-solid fa-ribbon"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+
+                            <div class="pricing-addon__content">
+                                <strong>
+                                    Branded ribbon
+                                </strong>
+
+                                <span>
+                                    Custom-printed satin or grosgrain ribbon
+                                    in selected colours.
+                                </span>
+                            </div>
+
+                            <b>
+                                Quoted separately
+                            </b>
+                        </article>
+
+
+                        <article class="pricing-addon">
+                            <div class="pricing-addon__icon">
+                                <i
+                                    class="fa-solid fa-layer-group"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+
+                            <div class="pricing-addon__content">
+                                <strong>
+                                    Expanded tag system
+                                </strong>
+
+                                <span>
+                                    Upgrade to a two-piece or three-piece
+                                    branded tag system.
+                                </span>
+                            </div>
+
+                            <b>
+                                Quoted separately
+                            </b>
+                        </article>
+
+
+                        <article class="pricing-addon">
+                            <div class="pricing-addon__icon">
+                                <i
+                                    class="fa-regular fa-envelope"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+
+                            <div class="pricing-addon__content">
+                                <strong>
+                                    Envelope upgrade
+                                </strong>
+
+                                <span>
+                                    Add a coordinated envelope for a
+                                    thank-you note or brand message.
+                                </span>
+                            </div>
+
+                            <b>
+                                Quoted separately
+                            </b>
+                        </article>
+
+
+                        <article class="pricing-addon">
+                            <div class="pricing-addon__icon">
+                                <i
+                                    class="fa-solid fa-scroll"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+
+                            <div class="pricing-addon__content">
+                                <strong>
+                                    Branded tissue wrap
+                                </strong>
+
+                                <span>
+                                    Printed tissue wrapping with an optional
+                                    coordinated sticker seal.
+                                </span>
+                            </div>
+
+                            <b>
+                                Quoted separately
+                            </b>
+                        </article>
+
+
+                        <article class="pricing-addon">
+                            <div class="pricing-addon__icon">
+                                <i
+                                    class="fa-solid fa-box-open"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+
+                            <div class="pricing-addon__content">
+                                <strong>
+                                    Box structure or size upgrade
+                                </strong>
+
+                                <span>
+                                    Larger dimensions, alternative rigid-box
+                                    structures, inserts or special closures.
+                                </span>
+                            </div>
+
+                            <b>
+                                Custom quotation
+                            </b>
+                        </article>
+
+                    </div>
+                </section>
+
+
+                <!-- Included finishes -->
+                <aside class="pricing-modal__notice">
+
+                    <div class="pricing-modal__notice-icon">
+                        <i
+                            class="fa-solid fa-circle-check"
+                            aria-hidden="true"
+                        ></i>
+                    </div>
+
+                    <div>
+                        <strong>
+                            Standard logo finishes
+                        </strong>
+
+                        <p>
+                            Standard print, matte vinyl and metallic vinyl do
+                            not attract an additional finishing fee where
+                            suitable for the selected material and design.
+                        </p>
+                    </div>
+
+                </aside>
+
+
+                <!-- Pricing notes -->
+                <div class="pricing-modal__notes">
+
+                    <p>
+                        Tier prices cover a finished packaging system based
+                        on the standard specification. Larger dimensions,
+                        speciality materials and complex construction may
+                        affect the final quotation.
+                    </p>
+
+                    <p>
+                        All figures are introductory guide prices. Your final
+                        quotation will be confirmed after the full
+                        specification has been reviewed.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="pricing-modal__footer">
+
+                <button
+                    type="button"
+                    class="pricing-modal__dismiss"
+                    data-pricing-close
+                >
+                    Continue customising
+                </button>
+
+                <a
+                    href="/pricing/"
+                    class="pricing-modal__full-link"
+                >
+                    Open full pricing page
+                    <span aria-hidden="true">→</span>
+                </a>
+
+            </footer>
+
+        </section>
         </div>
-    </section>
-</div>
         <script src="/js/environment.js"></script>
         <script src="/js/shop.js"></script>
 

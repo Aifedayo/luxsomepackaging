@@ -1,0 +1,1036 @@
+/* =========================================================
+   LUXSOME HOMEPAGE — LUXURY ART DIRECTION
+========================================================= */
+
+:root {
+    --lux-ink: #211713;
+    --lux-brown: #673629;
+    --lux-cream: #f7f4ef;
+    --lux-paper: #fffdf9;
+    --lux-muted: #71645d;
+    --lux-white: #ffffff;
+    --lux-line: rgba(33, 23, 19, 0.14);
+    --lux-serif: "Cormorant Garamond", Georgia, serif;
+    --lux-sans: "Montserrat", Arial, sans-serif;
+    --lux-radius: 34px;
+    --lux-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-luxury {
+    background: var(--lux-cream);
+    color: var(--lux-ink);
+}
+
+.home-luxury main {
+    overflow: clip;
+}
+
+.lux-eyebrow {
+    margin: 0 0 20px;
+    color: var(--lux-brown);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    line-height: 1.5;
+    text-transform: uppercase;
+}
+
+.lux-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-top: 34px;
+}
+
+.lux-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-height: 52px;
+    padding: 14px 25px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+        transform 280ms ease,
+        background-color 280ms ease,
+        border-color 280ms ease,
+        color 280ms ease;
+}
+
+.lux-button:hover {
+    transform: translateY(-2px);
+}
+
+.lux-button--dark {
+    background: var(--lux-ink);
+    color: var(--lux-white);
+}
+
+.lux-button--dark:hover {
+    background: var(--lux-brown);
+}
+
+.lux-button--light {
+    background: var(--lux-paper);
+    color: var(--lux-ink);
+}
+
+.lux-button--light:hover {
+    background: var(--lux-white);
+}
+
+.lux-button--glass {
+    border-color: rgba(255, 255, 255, 0.44);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--lux-white);
+    backdrop-filter: blur(12px);
+}
+
+.lux-button--glass:hover {
+    border-color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.lux-text-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 0;
+    border-bottom: 1px solid currentColor;
+    color: inherit;
+    font-size: 0.69rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.lux-hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: calc(100svh - var(--header-height, 78px));
+    overflow: hidden;
+    background: #17100d;
+}
+
+.lux-hero__media,
+.lux-hero__shade {
+    position: absolute;
+    inset: 0;
+}
+
+.lux-hero__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    animation: luxHeroDrift 18s ease-in-out infinite alternate;
+}
+
+.lux-hero__shade {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(18, 12, 10, 0.92) 0%,
+            rgba(18, 12, 10, 0.68) 45%,
+            rgba(18, 12, 10, 0.16) 78%,
+            rgba(18, 12, 10, 0.08) 100%
+        ),
+        linear-gradient(
+            0deg,
+            rgba(18, 12, 10, 0.48) 0%,
+            transparent 38%
+        );
+}
+
+.lux-hero__content {
+    position: relative;
+    z-index: 2;
+    padding-top: clamp(130px, 16vw, 220px);
+    padding-bottom: clamp(75px, 8vw, 120px);
+    color: var(--lux-white);
+}
+
+.lux-hero__eyebrow {
+    color: #e2c5a3;
+}
+
+.lux-hero h1 {
+    max-width: 920px;
+    margin: 0;
+    font-family: var(--lux-serif);
+    font-size: clamp(4rem, 8.8vw, 9rem);
+    font-weight: 400;
+    letter-spacing: -0.058em;
+    line-height: 0.83;
+    text-wrap: balance;
+}
+
+.lux-hero__description {
+    max-width: 610px;
+    margin: clamp(28px, 4vw, 50px) 0 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: clamp(0.92rem, 1.2vw, 1.05rem);
+    line-height: 1.85;
+}
+
+.lux-hero__scroll {
+    position: absolute;
+    right: max(24px, 5vw);
+    bottom: 42px;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: rgba(255, 255, 255, 0.74);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+.lux-hero__scroll i {
+    display: block;
+    width: 76px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.58);
+}
+
+/* =========================================================
+   MANIFESTO
+========================================================= */
+
+.lux-manifesto {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    overflow: hidden;
+    background:
+        linear-gradient(145deg, #f7f3ed 0%, #eee3da 100%);
+}
+
+.lux-manifesto__orb {
+    position: absolute;
+    top: 14%;
+    right: -10%;
+    width: min(58vw, 820px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle at 36% 36%,
+            rgba(255, 255, 255, 0.94),
+            rgba(180, 150, 205, 0.38) 42%,
+            rgba(123, 164, 207, 0.14) 72%,
+            transparent 74%
+        );
+    filter: blur(2px);
+    opacity: 0.9;
+}
+
+.lux-manifesto__inner {
+    position: relative;
+    z-index: 1;
+    padding-block: clamp(100px, 13vw, 190px);
+}
+
+.lux-manifesto__title {
+    max-width: 1220px;
+    margin: 0;
+    font-family: var(--lux-serif);
+    font-size: clamp(4.5rem, 11.6vw, 12.5rem);
+    font-weight: 400;
+    letter-spacing: -0.07em;
+    line-height: 0.73;
+}
+
+.lux-manifesto__title em {
+    color: var(--lux-brown);
+    font-weight: 400;
+}
+
+/* =========================================================
+   FULL PRODUCT STAGES
+========================================================= */
+
+.lux-stage {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    overflow: hidden;
+}
+
+.lux-stage--tier-two {
+    background:
+        radial-gradient(
+            circle at 73% 35%,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(255, 255, 255, 0.3) 22%,
+            transparent 49%
+        ),
+        linear-gradient(
+            132deg,
+            #d9e4f8 0%,
+            #e1d8f0 44%,
+            #f5eee8 100%
+        );
+}
+
+.lux-stage__noise {
+    position: absolute;
+    inset: 0;
+    opacity: 0.035;
+    pointer-events: none;
+    background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E");
+}
+
+.lux-stage__grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(460px, 1.22fr);
+    align-items: center;
+    gap: clamp(45px, 7vw, 120px);
+    min-height: 100svh;
+    padding-block: clamp(90px, 10vw, 150px);
+}
+
+.lux-stage__copy h2,
+.lux-product__copy h2,
+.lux-builder__copy h2 {
+    margin: 0;
+    color: var(--lux-ink);
+    font-family: var(--lux-serif);
+    font-size: clamp(4.2rem, 8.8vw, 9.2rem);
+    font-weight: 400;
+    letter-spacing: -0.06em;
+    line-height: 0.78;
+}
+
+.lux-stage__copy > p:not(.lux-eyebrow),
+.lux-product__copy > p:not(.lux-eyebrow),
+.lux-builder__copy > p:not(.lux-eyebrow) {
+    max-width: 520px;
+    margin: clamp(28px, 4vw, 48px) 0 0;
+    color: var(--lux-muted);
+    font-size: 0.95rem;
+    line-height: 1.85;
+}
+
+.lux-stage__visual,
+.lux-product__visual,
+.lux-builder__visual {
+    position: relative;
+    display: grid;
+    place-items: center;
+    isolation: isolate;
+}
+
+.lux-stage__visual {
+    min-height: min(790px, 78svh);
+}
+
+.lux-stage__visual img {
+    position: relative;
+    z-index: 2;
+    width: min(100%, 840px);
+    max-height: 78svh;
+    object-fit: contain;
+    filter: drop-shadow(0 50px 60px rgba(63, 48, 74, 0.2));
+}
+
+.lux-stage__halo {
+    position: absolute;
+    z-index: 0;
+    width: 72%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.9),
+            rgba(167, 189, 230, 0.34) 42%,
+            transparent 70%
+        );
+    filter: blur(18px);
+}
+
+/* =========================================================
+   MOVING RUNWAY
+========================================================= */
+
+.lux-runway {
+    padding-block: clamp(100px, 12vw, 180px);
+    background: #fbfaf8;
+}
+
+.lux-runway__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: clamp(55px, 7vw, 90px);
+}
+
+.lux-runway__header h2,
+.lux-discover__header h2 {
+    margin: 0;
+    font-family: var(--lux-serif);
+    font-size: clamp(4rem, 8vw, 8.8rem);
+    font-weight: 400;
+    letter-spacing: -0.065em;
+    line-height: 0.78;
+}
+
+.lux-runway__viewport {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    cursor: grab;
+    scrollbar-width: none;
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+}
+
+.lux-runway__viewport::-webkit-scrollbar {
+    display: none;
+}
+
+.lux-runway__viewport.is-dragging {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.lux-runway__track {
+    display: flex;
+    gap: clamp(14px, 1.8vw, 28px);
+    width: max-content;
+    padding-inline: max(18px, calc((100vw - 1380px) / 2));
+}
+
+.lux-runway__item {
+    flex: 0 0 clamp(270px, 31vw, 470px);
+}
+
+.lux-runway__item img {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    background: #ece6e0;
+}
+
+.lux-runway__item span {
+    display: block;
+    padding-top: 16px;
+    color: var(--lux-brown);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.lux-runway__hint {
+    width: min(1380px, calc(100% - 48px));
+    margin: 30px auto 0;
+    color: var(--lux-muted);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-align: right;
+    text-transform: uppercase;
+}
+
+/* =========================================================
+   DARK CHAPTER
+========================================================= */
+
+.lux-chapter {
+    display: grid;
+    align-items: center;
+    min-height: 90svh;
+}
+
+.lux-chapter--dark {
+    background:
+        radial-gradient(
+            circle at 83% 18%,
+            rgba(198, 145, 94, 0.2),
+            transparent 30%
+        ),
+        #17100d;
+    color: var(--lux-white);
+}
+
+.lux-chapter--dark .lux-eyebrow {
+    color: #cda77e;
+}
+
+.lux-chapter__title {
+    margin: 0;
+    font-family: var(--lux-serif);
+    font-size: clamp(5rem, 13vw, 14rem);
+    font-weight: 400;
+    letter-spacing: -0.075em;
+    line-height: 0.68;
+}
+
+/* =========================================================
+   PRODUCT MOMENTS
+========================================================= */
+
+.lux-product {
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    overflow: hidden;
+}
+
+.lux-product--tag {
+    background:
+        radial-gradient(
+            circle at 28% 45%,
+            rgba(255, 255, 255, 0.85),
+            transparent 28%
+        ),
+        linear-gradient(135deg, #ece4f6 0%, #dbe6f6 100%);
+}
+
+.lux-product--card {
+    background:
+        radial-gradient(
+            circle at 76% 38%,
+            rgba(255, 255, 255, 0.9),
+            transparent 28%
+        ),
+        linear-gradient(135deg, #f3ddd8 0%, #f4ecdf 100%);
+}
+
+.lux-product--envelope {
+    background:
+        radial-gradient(
+            circle at 26% 40%,
+            rgba(255, 255, 255, 0.86),
+            transparent 30%
+        ),
+        linear-gradient(135deg, #d9e8e9 0%, #e1ddf0 100%);
+}
+
+.lux-product__layout {
+    display: grid;
+    grid-template-columns: minmax(420px, 1.1fr) minmax(0, 0.9fr);
+    align-items: center;
+    gap: clamp(45px, 8vw, 140px);
+    min-height: 100svh;
+    padding-block: clamp(90px, 10vw, 150px);
+}
+
+.lux-product__layout--reverse {
+    grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+}
+
+.lux-product__visual {
+    min-height: min(760px, 77svh);
+}
+
+.lux-product__visual img {
+    width: min(100%, 720px);
+    max-height: 77svh;
+    object-fit: contain;
+    filter: drop-shadow(0 50px 60px rgba(44, 35, 52, 0.17));
+}
+
+.lux-product__copy {
+    position: relative;
+    z-index: 2;
+}
+
+.lux-product__copy h2 {
+    font-size: clamp(4rem, 8vw, 8.4rem);
+}
+
+/* =========================================================
+   BUILDER
+========================================================= */
+
+.lux-builder {
+    position: relative;
+    min-height: 100svh;
+    overflow: hidden;
+    background: #211713;
+    color: var(--lux-white);
+}
+
+.lux-builder__light {
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 70vw;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle,
+            rgba(133, 114, 175, 0.52),
+            rgba(87, 126, 171, 0.18) 45%,
+            transparent 70%
+        );
+    filter: blur(22px);
+}
+
+.lux-builder__inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(470px, 1.2fr);
+    align-items: center;
+    gap: clamp(45px, 8vw, 130px);
+    min-height: 100svh;
+    padding-block: clamp(100px, 11vw, 165px);
+}
+
+.lux-builder .lux-eyebrow {
+    color: #cda77e;
+}
+
+.lux-builder__copy h2 {
+    color: var(--lux-white);
+}
+
+.lux-builder__copy > p:not(.lux-eyebrow) {
+    color: rgba(255, 255, 255, 0.68);
+}
+
+.lux-builder__visual {
+    min-height: min(780px, 80svh);
+}
+
+.lux-builder__visual img {
+    width: min(100%, 820px);
+    max-height: 80svh;
+    object-fit: contain;
+    filter: drop-shadow(0 55px 65px rgba(0, 0, 0, 0.4));
+}
+
+/* =========================================================
+   DISCOVER
+========================================================= */
+
+.lux-discover {
+    padding-block: clamp(110px, 14vw, 200px);
+    background: var(--lux-paper);
+}
+
+.lux-discover__header {
+    max-width: 1050px;
+    margin-bottom: clamp(60px, 8vw, 110px);
+}
+
+.lux-discover__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(18px, 3vw, 40px);
+}
+
+.lux-discover__card {
+    position: relative;
+    min-height: 620px;
+    overflow: hidden;
+    background: #ddd;
+    color: var(--lux-white);
+}
+
+.lux-discover__card::after {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(
+            0deg,
+            rgba(22, 14, 11, 0.78),
+            rgba(22, 14, 11, 0.04) 58%
+        );
+    content: "";
+}
+
+.lux-discover__card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1s var(--lux-ease);
+}
+
+.lux-discover__card:hover img {
+    transform: scale(1.035);
+}
+
+.lux-discover__card div {
+    position: absolute;
+    right: 36px;
+    bottom: 38px;
+    left: 36px;
+    z-index: 2;
+}
+
+.lux-discover__card span {
+    display: block;
+    margin-bottom: 12px;
+    color: #e4c8a8;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.lux-discover__card strong {
+    display: block;
+    max-width: 540px;
+    font-family: var(--lux-serif);
+    font-size: clamp(2.4rem, 4vw, 4.2rem);
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+}
+
+/* =========================================================
+   FINAL CTA
+========================================================= */
+
+.lux-final {
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: 100svh;
+    overflow: hidden;
+    background: #130d0b;
+    color: var(--lux-white);
+}
+
+.lux-final__media,
+.lux-final__shade {
+    position: absolute;
+    inset: 0;
+}
+
+.lux-final__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lux-final__shade {
+    background:
+        linear-gradient(
+            90deg,
+            rgba(17, 11, 9, 0.92) 0%,
+            rgba(17, 11, 9, 0.63) 48%,
+            rgba(17, 11, 9, 0.14) 100%
+        );
+}
+
+.lux-final__content {
+    position: relative;
+    z-index: 1;
+    padding-block: clamp(120px, 15vw, 220px);
+}
+
+.lux-final .lux-eyebrow {
+    color: #e2c5a3;
+}
+
+.lux-final h2 {
+    max-width: 1000px;
+    margin: 0;
+    font-family: var(--lux-serif);
+    font-size: clamp(5rem, 11vw, 12rem);
+    font-weight: 400;
+    letter-spacing: -0.07em;
+    line-height: 0.72;
+}
+
+/* =========================================================
+   REVEAL + MOTION
+========================================================= */
+
+.reveal-lux {
+    opacity: 0;
+    transform: translateY(38px);
+    transition:
+        opacity 900ms var(--lux-ease),
+        transform 900ms var(--lux-ease);
+}
+
+.reveal-lux.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.lux-float {
+    animation: luxFloat 8s ease-in-out infinite;
+}
+
+@keyframes luxHeroDrift {
+    from {
+        transform: scale(1.015) translate3d(0, 0, 0);
+    }
+
+    to {
+        transform: scale(1.055) translate3d(-0.8%, -0.5%, 0);
+    }
+}
+
+@keyframes luxFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
+    .lux-stage__grid,
+    .lux-product__layout,
+    .lux-product__layout--reverse,
+    .lux-builder__inner {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .lux-stage__grid,
+    .lux-product__layout,
+    .lux-builder__inner {
+        padding-block: 105px;
+    }
+
+    .lux-stage__visual,
+    .lux-product__visual,
+    .lux-builder__visual {
+        min-height: 580px;
+    }
+
+    .lux-product__layout--reverse .lux-product__copy {
+        order: 2;
+    }
+
+    .lux-product__layout--reverse .lux-product__visual {
+        order: 1;
+    }
+
+    .lux-stage__copy,
+    .lux-product__copy,
+    .lux-builder__copy {
+        max-width: 720px;
+    }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+    .lux-actions {
+        align-items: stretch;
+    }
+
+    .lux-button {
+        min-height: 50px;
+    }
+
+    .lux-hero {
+        min-height: 850px;
+        align-items: flex-end;
+    }
+
+    .lux-hero__media img {
+        object-position: 58% center;
+    }
+
+    .lux-hero__shade {
+        background:
+            linear-gradient(
+                0deg,
+                rgba(18, 12, 10, 0.98) 0%,
+                rgba(18, 12, 10, 0.82) 42%,
+                rgba(18, 12, 10, 0.14) 78%,
+                rgba(18, 12, 10, 0.04) 100%
+            );
+    }
+
+    .lux-hero__content {
+        padding-top: 230px;
+        padding-bottom: 90px;
+    }
+
+    .lux-hero h1 {
+        font-size: clamp(3.5rem, 15vw, 5.6rem);
+        line-height: 0.84;
+    }
+
+    .lux-hero__description {
+        font-size: 0.86rem;
+    }
+
+    .lux-hero__scroll {
+        display: none;
+    }
+
+    .lux-manifesto {
+        min-height: 82svh;
+    }
+
+    .lux-manifesto__orb {
+        top: 4%;
+        right: -45%;
+        width: 110vw;
+    }
+
+    .lux-manifesto__title {
+        font-size: clamp(4rem, 20vw, 7rem);
+        line-height: 0.76;
+    }
+
+    .lux-stage,
+    .lux-product,
+    .lux-builder {
+        min-height: auto;
+    }
+
+    .lux-stage__grid,
+    .lux-product__layout,
+    .lux-builder__inner {
+        gap: 25px;
+        padding-block: 85px;
+    }
+
+    .lux-stage__copy h2,
+    .lux-product__copy h2,
+    .lux-builder__copy h2 {
+        font-size: clamp(4rem, 17vw, 6.3rem);
+        line-height: 0.78;
+    }
+
+    .lux-stage__visual,
+    .lux-product__visual,
+    .lux-builder__visual {
+        min-height: 430px;
+    }
+
+    .lux-stage__visual img,
+    .lux-product__visual img,
+    .lux-builder__visual img {
+        max-height: 490px;
+    }
+
+    .lux-runway {
+        padding-block: 90px;
+    }
+
+    .lux-runway__header {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 45px;
+    }
+
+    .lux-runway__header h2,
+    .lux-discover__header h2 {
+        font-size: clamp(3.7rem, 17vw, 6rem);
+        line-height: 0.79;
+    }
+
+    .lux-runway__item {
+        flex-basis: 78vw;
+    }
+
+    .lux-runway__hint {
+        width: calc(100% - 32px);
+    }
+
+    .lux-chapter {
+        min-height: 72svh;
+    }
+
+    .lux-chapter__title {
+        font-size: clamp(5.5rem, 25vw, 8rem);
+        line-height: 0.67;
+    }
+
+    .lux-discover {
+        padding-block: 95px;
+    }
+
+    .lux-discover__grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lux-discover__card {
+        min-height: 470px;
+    }
+
+    .lux-discover__card div {
+        right: 24px;
+        bottom: 26px;
+        left: 24px;
+    }
+
+    .lux-final {
+        min-height: 830px;
+        align-items: flex-end;
+    }
+
+    .lux-final__media img {
+        object-position: 64% center;
+    }
+
+    .lux-final__shade {
+        background:
+            linear-gradient(
+                0deg,
+                rgba(17, 11, 9, 0.98) 0%,
+                rgba(17, 11, 9, 0.82) 48%,
+                rgba(17, 11, 9, 0.1) 82%
+            );
+    }
+
+    .lux-final__content {
+        padding-block: 100px 85px;
+    }
+
+    .lux-final h2 {
+        font-size: clamp(5rem, 22vw, 8rem);
+        line-height: 0.7;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lux-hero__media img,
+    .lux-float {
+        animation: none;
+    }
+
+    .reveal-lux {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}
