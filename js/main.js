@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", function () {
     initPackagingSystemCarousel();
     initScrollReveal();
     initWhatsAppContact();
+    initTagTierCarousel();
 });
 
 
@@ -1263,3 +1264,277 @@ document.querySelectorAll('.system-image img').forEach((image) => {
         { once: true }
     );
 });
+
+/* =========================================================
+   TAG TIER CAROUSEL
+========================================================= */
+
+function initTagTierCarousel() {
+    const carousels = Array.from(
+        document.querySelectorAll(
+            "[data-tag-carousel]"
+        )
+    );
+
+    carousels.forEach((carousel) => {
+        if (carousel.dataset.initialised === "true") {
+            return;
+        }
+
+        carousel.dataset.initialised = "true";
+
+        const viewport =
+            carousel.querySelector(
+                "[data-tag-viewport]"
+            );
+
+        const track =
+            carousel.querySelector(
+                ".tag-tier-carousel__track"
+            );
+
+        const previousButton =
+            carousel.querySelector(
+                "[data-tag-previous]"
+            );
+
+        const nextButton =
+            carousel.querySelector(
+                "[data-tag-next]"
+            );
+
+        const progressBar =
+            carousel.querySelector(
+                "[data-tag-progress]"
+            );
+
+        if (!viewport || !track) {
+            return;
+        }
+
+        let isDragging = false;
+        let startX = 0;
+        let startingScrollLeft = 0;
+        let frame = null;
+
+        function maximumScroll() {
+            return Math.max(
+                0,
+                viewport.scrollWidth -
+                    viewport.clientWidth
+            );
+        }
+
+        function cardDistance() {
+            const card =
+                track.querySelector(
+                    ".tag-tier-card"
+                );
+
+            if (!card) {
+                return viewport.clientWidth * 0.75;
+            }
+
+            const trackStyle =
+                window.getComputedStyle(track);
+
+            const gap =
+                parseFloat(trackStyle.gap) || 0;
+
+            return card.offsetWidth + gap;
+        }
+
+        function updateCarousel() {
+            const maxScroll = maximumScroll();
+
+            const currentScroll =
+                viewport.scrollLeft;
+
+            const progress =
+                maxScroll > 0
+                    ? currentScroll / maxScroll
+                    : 0;
+
+            previousButton?.toggleAttribute(
+                "disabled",
+                currentScroll <= 2
+            );
+
+            nextButton?.toggleAttribute(
+                "disabled",
+                currentScroll >=
+                    maxScroll - 2
+            );
+
+            if (progressBar) {
+                const barWidth =
+                    progressBar.offsetWidth;
+
+                const parentWidth =
+                    progressBar.parentElement
+                        ?.clientWidth || 0;
+
+                const availableMovement =
+                    Math.max(
+                        0,
+                        parentWidth - barWidth
+                    );
+
+                progressBar.style.transform =
+                    `translateX(${
+                        progress *
+                        availableMovement
+                    }px)`;
+            }
+        }
+
+        function requestUpdate() {
+            if (frame !== null) {
+                cancelAnimationFrame(frame);
+            }
+
+            frame =
+                requestAnimationFrame(
+                    updateCarousel
+                );
+        }
+
+        function scrollByCard(direction) {
+            viewport.scrollBy({
+                left:
+                    cardDistance() *
+                    direction,
+
+                behavior: "smooth"
+            });
+        }
+
+        previousButton?.addEventListener(
+            "click",
+            () => {
+                scrollByCard(-1);
+            }
+        );
+
+        nextButton?.addEventListener(
+            "click",
+            () => {
+                scrollByCard(1);
+            }
+        );
+
+        viewport.addEventListener(
+            "scroll",
+            requestUpdate,
+            {
+                passive: true
+            }
+        );
+
+        viewport.addEventListener(
+            "pointerdown",
+            (event) => {
+                if (
+                    event.pointerType !== "mouse" ||
+                    event.button !== 0
+                ) {
+                    return;
+                }
+
+                isDragging = true;
+
+                startX = event.clientX;
+
+                startingScrollLeft =
+                    viewport.scrollLeft;
+
+                viewport.classList.add(
+                    "is-dragging"
+                );
+
+                viewport.setPointerCapture?.(
+                    event.pointerId
+                );
+            }
+        );
+
+        viewport.addEventListener(
+            "pointermove",
+            (event) => {
+                if (!isDragging) {
+                    return;
+                }
+
+                viewport.scrollLeft =
+                    startingScrollLeft -
+                    (
+                        event.clientX -
+                        startX
+                    );
+            }
+        );
+
+        function endDragging(event) {
+            if (!isDragging) {
+                return;
+            }
+
+            isDragging = false;
+
+            viewport.classList.remove(
+                "is-dragging"
+            );
+
+            if (
+                viewport.hasPointerCapture?.(
+                    event.pointerId
+                )
+            ) {
+                viewport.releasePointerCapture(
+                    event.pointerId
+                );
+            }
+
+            requestUpdate();
+        }
+
+        viewport.addEventListener(
+            "pointerup",
+            endDragging
+        );
+
+        viewport.addEventListener(
+            "pointercancel",
+            endDragging
+        );
+
+        viewport.addEventListener(
+            "keydown",
+            (event) => {
+                if (event.key === "ArrowLeft") {
+                    event.preventDefault();
+
+                    scrollByCard(-1);
+                }
+
+                if (event.key === "ArrowRight") {
+                    event.preventDefault();
+
+                    scrollByCard(1);
+                }
+            }
+        );
+
+        window.addEventListener(
+            "resize",
+            requestUpdate,
+            {
+                passive: true
+            }
+        );
+
+        updateCarousel();
+    });
+}
+
+document.documentElement.classList.add("js-reveal-ready");
