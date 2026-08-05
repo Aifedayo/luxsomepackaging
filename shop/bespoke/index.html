@@ -1156,6 +1156,216 @@
         >
     </section>
 
+    <fieldset class="configuration-group artwork-status-group">
+            <legend>
+                Logo and artwork status
+                <span class="option-status option-status--included">Project preparation</span>
+            </legend>
+    
+            <p class="configuration-help">
+                Tell us what is ready so we can review the correct files and design support for your bespoke project.
+            </p>
+    
+            <div class="option-grid option-grid--artwork-status">
+                <label>
+                    <input
+                        type="radio"
+                        name="artworkStatus"
+                        value="Logo and packaging artwork ready"
+                        required
+                    >
+                    <span>
+                        Everything is ready
+                        <small>I can supply my logo and final packaging artwork.</small>
+                    </span>
+                </label>
+    
+                <label>
+                    <input
+                        type="radio"
+                        name="artworkStatus"
+                        value="Logo ready, packaging artwork required"
+                        required
+                    >
+                    <span>
+                        Logo ready
+                        <small>I need Luxsome to prepare the packaging artwork.</small>
+                    </span>
+                </label>
+    
+                <label>
+                    <input
+                        type="radio"
+                        name="artworkStatus"
+                        value="Some brand assets available"
+                        required
+                    >
+                    <span>
+                        Some assets available
+                        <small>I have some files, but they still need to be reviewed.</small>
+                    </span>
+                </label>
+    
+                <label>
+                    <input
+                        type="radio"
+                        name="artworkStatus"
+                        value="Full logo and packaging design support required"
+                        required
+                    >
+                    <span>
+                        Full design support
+                        <small>I need help with both my logo and packaging artwork.</small>
+                    </span>
+                </label>
+            </div>
+        </fieldset>
+    
+    
+        <!-- =====================================================
+             ARTWORK UPLOAD
+             Visible only when "Everything is ready" is selected.
+        ====================================================== -->
+        <section
+            class="artwork-upload"
+            id="artworkUploadSection"
+            aria-labelledby="artworkUploadHeading"
+            aria-hidden="true"
+            hidden
+            data-upload-endpoint="https://api.luxsomepackaging.com/artwork"
+        >
+            <div class="artwork-upload__heading">
+                <div>
+                    <p class="configuration-section__eyebrow">
+                        Final production files
+                    </p>
+    
+                    <h2 id="artworkUploadHeading">
+                        Upload your artwork
+                    </h2>
+                </div>
+    
+                <span class="artwork-upload__secure-note">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    Private upload
+                </span>
+            </div>
+    
+            <p class="configuration-help">
+                Upload the final logos, artwork, references or production files Luxsome should review for this bespoke project.
+                Files are stored privately and are not added to the public website.
+            </p>
+    
+            <div
+                class="artwork-dropzone"
+                id="artworkDropzone"
+                tabindex="0"
+                role="button"
+                aria-describedby="artworkUploadHelp"
+            >
+                <input
+                    type="file"
+                    id="artworkFiles"
+                    name="artworkFiles"
+                    accept=".pdf,.ai,.eps,.svg,.psd,.tif,.tiff,.png,.jpg,.jpeg,.zip"
+                    multiple
+                    hidden
+                >
+    
+                <span class="artwork-dropzone__icon" aria-hidden="true">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </span>
+    
+                <strong>
+                    Drop your artwork here
+                </strong>
+    
+                <span>
+                    or click to choose files
+                </span>
+    
+                <small id="artworkUploadHelp">
+                    PDF, AI, EPS, SVG, PSD, TIFF, PNG, JPG or ZIP.
+                    Up to 10 files and 95 MB per file.
+                </small>
+            </div>
+    
+            <div
+                class="artwork-file-list"
+                id="artworkFileList"
+                aria-live="polite"
+            ></div>
+    
+            <div class="artwork-upload__verification">
+                <div
+                    class="cf-turnstile"
+                    data-sitekey="0x4AAAAAAEHXVhHvzepUlY8B"
+                    data-theme="light"
+                    data-size="flexible"
+                    data-action="artwork-upload"
+                ></div>
+            </div>
+    
+            <label class="artwork-confirmation">
+                <input
+                    type="checkbox"
+                    id="artworkFinalConfirmation"
+                    name="artworkFinalConfirmation"
+                    value="Confirmed"
+                >
+    
+                <span>
+                    I confirm that these are the latest files available for
+                    Luxsome to review for this project.
+                </span>
+            </label>
+    
+            <div
+                class="artwork-upload__status"
+                id="artworkUploadStatus"
+                role="status"
+                aria-live="polite"
+                hidden
+            >
+                <div class="artwork-upload__status-row">
+                    <span id="artworkUploadStatusText">
+                        Preparing your upload…
+                    </span>
+    
+                    <strong id="artworkUploadPercentage">
+                        0%
+                    </strong>
+                </div>
+    
+                <div
+                    class="artwork-upload__progress"
+                    aria-hidden="true"
+                >
+                    <span id="artworkUploadProgressBar"></span>
+                </div>
+            </div>
+    
+            <p class="artwork-upload__privacy">
+                Luxsome will use these files only for your packaging enquiry and
+                production workflow. In this first version, files expire
+                automatically 90 days after upload.
+            </p>
+    
+            <input
+                type="hidden"
+                name="artworkUploadId"
+                id="artworkUploadId"
+                value=""
+            >
+    
+            <input
+                type="hidden"
+                name="artworkObjectKeys"
+                id="artworkObjectKeys"
+                value=""
+            >
+        </section>
+
     <label class="product-field">
         <span>Project description</span>
         <textarea
