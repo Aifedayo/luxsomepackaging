@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalQuestionSteps = 5;
     const resultStep = 6;
     const whatsappNumber = "2349068804133";
+
     let currentStep = 0;
     let latestRecommendation = null;
 
@@ -37,11 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
         5: "timeline-error"
     };
 
-    /*
-     * The engine scores individual packaging pieces, rather than asking
-     * customers to choose a tier. Product fit has the strongest weight.
-     * Brand maturity and desired experience then add or remove layers.
-     */
     const productProfiles = {
         Womenswear: {
             direction: "A polished fashion system",
@@ -122,20 +118,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Thank-you card and envelope": 1
             }
         },
-        "Jewellery and accessories": {
-            direction: "A compact premium presentation system",
-            box: "Compact shoulder box or tray-in-bed box",
+        "Gift items": {
+            direction: "A gift-ready presentation system",
+            box: "Magnetic flap, shoulder or tray-in-bed gift box",
             base: [
-                "Compact rigid presentation box",
-                "Protective product insert",
-                "Thank-you card",
-                "Sticker seal"
+                "Rigid gift presentation box",
+                "Branded tissue",
+                "Thank-you card and envelope",
+                "Sticker seal",
+                "Protective product insert"
             ],
             boosts: {
-                "Branded ribbon": 2,
+                "Branded ribbon": 3,
                 "Shopping bag": 2,
-                "Product description card": 2,
-                "Branded tissue": 1
+                "Product description card": 1
             }
         }
     };
@@ -233,18 +229,22 @@ document.addEventListener("DOMContentLoaded", () => {
     function validateStep(stepNumber) {
         clearError(stepNumber);
 
-        const rules = {
-            1: ["product", "Please select a supported fashion category."],
-            2: ["stage", "Please select your current brand stage."],
-            3: ["quantity", "Please select an estimated quantity."],
-            5: ["timeline", "Please select your preferred timeline."]
-        };
+        if (stepNumber === 1) {
+            const product = getSelectedValue("product");
 
-        if (stepNumber === 4) {
-            if (!getSelectedValues("experience").length) {
+            if (!product) {
+                showError(1, "Please select a supported fashion category.");
+                return false;
+            }
+
+            if (!productProfiles[product]) {
+                console.error(
+                    `Unsupported product value: "${product}".`,
+                    Object.keys(productProfiles)
+                );
                 showError(
-                    4,
-                    "Please select at least one quality for your customer experience."
+                    1,
+                    "This category is not currently supported. Please choose another option."
                 );
                 return false;
             }
@@ -252,17 +252,72 @@ document.addEventListener("DOMContentLoaded", () => {
             return true;
         }
 
-        const rule = rules[stepNumber];
+        if (stepNumber === 2) {
+            const stage = getSelectedValue("stage");
 
-        if (rule && !getSelectedValue(rule[0])) {
-            showError(stepNumber, rule[1]);
-            return false;
+            if (!stage || !stageRules[stage]) {
+                showError(2, "Please select your current brand stage.");
+                return false;
+            }
+
+            return true;
+        }
+
+        if (stepNumber === 3) {
+            const quantity = getSelectedValue("quantity");
+
+            if (!quantity || !quantityRules[quantity]) {
+                showError(3, "Please select an estimated quantity.");
+                return false;
+            }
+
+            return true;
+        }
+
+        if (stepNumber === 4) {
+            const selected = getSelectedValues("experience");
+
+            if (!selected.length) {
+                showError(
+                    4,
+                    "Please select at least one quality for your customer experience."
+                );
+                return false;
+            }
+
+            if (selected.length > 3) {
+                showError(4, "You can select up to three experience qualities.");
+                return false;
+            }
+
+            return true;
+        }
+
+        if (stepNumber === 5) {
+            const timeline = getSelectedValue("timeline");
+
+            if (!timeline) {
+                showError(5, "Please select your preferred timeline.");
+                return false;
+            }
+
+            return true;
         }
 
         return true;
     }
 
     function updateProgress() {
+        if (
+            !progressContainer ||
+            !progressTrack ||
+            !progressLabel ||
+            !progressPercentage ||
+            !progressValue
+        ) {
+            return;
+        }
+
         if (currentStep < 1 || currentStep > totalQuestionSteps) {
             progressContainer.hidden = true;
             return;
@@ -282,6 +337,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function showStep(stepNumber) {
+        const activeStep = steps.find(
+            step => Number(step.dataset.step) === stepNumber
+        );
+
+        if (!activeStep) {
+            console.error(`Builder step ${stepNumber} was not found.`);
+            return;
+        }
+
         currentStep = stepNumber;
 
         steps.forEach(step => {
@@ -293,10 +357,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const isWelcome = stepNumber === 0;
         const isResult = stepNumber === resultStep;
 
-        navigation.hidden = isWelcome || isResult;
+        if (navigation) {
+            navigation.hidden = isWelcome || isResult;
+        }
 
-        if (!isWelcome && !isResult) {
-            backButton.hidden = false;
+        if (!isWelcome && !isResult && nextButton) {
             nextButton.innerHTML =
                 stepNumber === totalQuestionSteps
                     ? 'See my recommendation <span aria-hidden="true">→</span>'
@@ -305,13 +370,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateProgress();
 
-        const activeStep = steps.find(
-            step => Number(step.dataset.step) === stepNumber
-        );
-        const heading = activeStep?.querySelector("legend, h1, h2");
+        const heading = activeStep.querySelector("legend, h1, h2");
 
         requestAnimationFrame(() => {
-            activeStep?.scrollIntoView({
+            activeStep.scrollIntoView({
                 behavior: prefersReducedMotion() ? "auto" : "smooth",
                 block: "start"
             });
@@ -331,6 +393,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const profile = productProfiles[data.product];
         const stage = stageRules[data.stage];
         const quantity = quantityRules[data.quantity];
+
+        if (!profile) {
+            throw new Error(
+                `No product profile was found for "${data.product}".`
+            );
+        }
+
+        if (!stage) {
+            throw new Error(
+                `No stage rule was found for "${data.stage}".`
+            );
+        }
+
+        if (!quantity) {
+            throw new Error(
+                `No quantity rule was found for "${data.quantity}".`
+            );
+        }
+
         const scores = new Map();
 
         profile.base.forEach((piece, index) => {
@@ -368,10 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const targetCount = Math.min(
             7,
-            Math.max(
-                4,
-                stage.targetCount + quantity.targetAdjustment
-            )
+            Math.max(4, stage.targetCount + quantity.targetAdjustment)
         );
 
         const pieces = [...scores.entries()]
@@ -379,30 +457,42 @@ document.addEventListener("DOMContentLoaded", () => {
             .slice(0, targetCount)
             .map(([piece]) => piece);
 
-        if (!pieces.some(piece => piece.toLowerCase().includes("box"))) {
+        const boxIndex = pieces.findIndex(
+            piece => piece.toLowerCase().includes("box")
+        );
+
+        if (boxIndex === -1) {
             pieces.unshift(profile.box);
         } else {
-            const boxIndex = pieces.findIndex(
-                piece => piece.toLowerCase().includes("box")
-            );
             pieces[boxIndex] = profile.box;
         }
 
         const maturityScore =
             stage.score +
             quantity.score +
-            data.experience.reduce((total, quality) => (
-                total + (
-                    ["Luxurious", "Gift-worthy"].includes(quality) ? 2 :
-                    ["Premium", "Memorable", "Elegant"].includes(quality) ? 1 :
-                    0
-                )
-            ), 0);
+            data.experience.reduce((total, quality) => {
+                if (["Luxurious", "Gift-worthy"].includes(quality)) {
+                    return total + 2;
+                }
+
+                if (["Premium", "Memorable", "Elegant"].includes(quality)) {
+                    return total + 1;
+                }
+
+                return total;
+            }, 0);
 
         const internalSystem =
-            maturityScore >= 7 ? "Prestige" :
-            maturityScore >= 3 ? "Signature" :
-            "Foundation";
+            maturityScore >= 7
+                ? "Prestige"
+                : maturityScore >= 3
+                    ? "Signature"
+                    : "Foundation";
+
+        const confidence = Math.min(
+            96,
+            74 + (data.experience.length * 5) + stage.score
+        );
 
         return {
             direction: profile.direction,
@@ -410,12 +500,15 @@ document.addEventListener("DOMContentLoaded", () => {
             pieces: [...new Set(pieces)].slice(0, targetCount),
             internalSystem,
             shopUrl: systemRoutes[internalSystem],
-            confidence: Math.min(96, 74 + (data.experience.length * 5) + stage.score),
+            confidence,
             explanation:
-                `Your ${data.product.toLowerCase()} category calls for ${profile.box.toLowerCase()}. ` +
-                `Because your brand is ${data.stage.toLowerCase()} and you want the experience to feel ` +
-                `${formatList(data.experience).toLowerCase()}, this combination ${stage.note}. ` +
-                `The recommendation prioritises pieces that work together as one system rather than adding items simply to increase the package size.`
+                `Your ${data.product.toLowerCase()} category calls for ` +
+                `${profile.box.toLowerCase()}. Because your brand is ` +
+                `${data.stage.toLowerCase()} and you want the experience to feel ` +
+                `${formatList(data.experience).toLowerCase()}, this combination ` +
+                `${stage.note}. The recommendation prioritises pieces that work ` +
+                `together as one system rather than adding items simply to increase ` +
+                `the package size.`
         };
     }
 
@@ -448,6 +541,7 @@ document.addEventListener("DOMContentLoaded", () => {
             `Desired experience: ${data.experience.join(", ")}`,
             `Timeline: ${data.timeline}`,
             "",
+            `Match score: ${recommendation.confidence}%`,
             `Recommended direction: ${recommendation.direction}`,
             `Suggested box: ${recommendation.boxRecommendation}`,
             "",
@@ -458,35 +552,73 @@ document.addEventListener("DOMContentLoaded", () => {
         ].join("\n");
     }
 
+    function setText(id, value) {
+        const element = document.getElementById(id);
+
+        if (!element) {
+            console.warn(`Missing result element: #${id}`);
+            return;
+        }
+
+        element.textContent = value;
+    }
+
     function renderResult() {
         const data = collectFormData();
-        const recommendation = calculateRecommendation(data);
-        latestRecommendation = { data, ...recommendation };
 
-        document.getElementById("result-tier").textContent =
-            recommendation.direction;
-        document.getElementById("result-product").textContent = data.product;
-        document.getElementById("result-stage").textContent = data.stage;
-        document.getElementById("result-quantity").textContent = data.quantity;
-        document.getElementById("result-timeline").textContent = data.timeline;
-        document.getElementById("result-introduction").textContent =
-            `${recommendation.confidence}% match based on your answers.`;
-        document.getElementById("result-explanation").textContent =
-            recommendation.explanation;
+        try {
+            const recommendation = calculateRecommendation(data);
 
-        const piecesList = document.getElementById("result-pieces");
-        piecesList.replaceChildren();
+            if (!recommendation || !recommendation.direction) {
+                throw new Error(
+                    "The recommendation engine returned an invalid result."
+                );
+            }
 
-        recommendation.pieces.forEach(piece => {
-            const item = document.createElement("li");
-            item.textContent = piece;
-            piecesList.appendChild(item);
-        });
+            latestRecommendation = { data, ...recommendation };
 
-        whatsappButton.href =
-            `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-                createWhatsAppMessage(data, recommendation)
-            )}`;
+            setText("result-tier", recommendation.direction);
+            setText("result-match-score", `${recommendation.confidence}%`);
+            setText("result-product", data.product);
+            setText("result-stage", data.stage);
+            setText("result-quantity", data.quantity);
+            setText("result-timeline", data.timeline);
+            setText(
+                "result-introduction",
+                `${recommendation.confidence}% match based on your answers.`
+            );
+            setText("result-explanation", recommendation.explanation);
+
+            const piecesList = document.getElementById("result-pieces");
+
+            if (piecesList) {
+                piecesList.replaceChildren();
+
+                recommendation.pieces.forEach(piece => {
+                    const item = document.createElement("li");
+                    item.textContent = piece;
+                    piecesList.appendChild(item);
+                });
+            }
+
+            if (whatsappButton) {
+                whatsappButton.href =
+                    `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+                        createWhatsAppMessage(data, recommendation)
+                    )}`;
+            }
+
+            return true;
+        } catch (error) {
+            console.error("Unable to generate recommendation:", error);
+
+            showError(
+                5,
+                "We could not generate your recommendation. Please review your answers and try again."
+            );
+
+            return false;
+        }
     }
 
     function moveNext() {
@@ -499,8 +631,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (currentStep === totalQuestionSteps) {
-            renderResult();
-            showStep(resultStep);
+            if (renderResult()) {
+                showStep(resultStep);
+            }
             return;
         }
 
@@ -513,7 +646,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function restartBuilder() {
         form.reset();
-        experienceCount.textContent = "0";
+
+        if (experienceCount) {
+            experienceCount.textContent = "0";
+        }
+
         latestRecommendation = null;
 
         Object.values(errorIds).forEach(errorId => {
@@ -535,8 +672,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 clearError(4);
             }
 
-            experienceCount.textContent =
-                String(getSelectedValues("experience").length);
+            if (experienceCount) {
+                experienceCount.textContent =
+                    String(getSelectedValues("experience").length);
+            }
         });
     });
 
@@ -557,10 +696,12 @@ document.addEventListener("DOMContentLoaded", () => {
     restartButton?.addEventListener("click", restartBuilder);
 
     startProjectButton?.addEventListener("click", () => {
-        if (!latestRecommendation) renderResult();
+        if (!latestRecommendation && !renderResult()) {
+            return;
+        }
 
         const recommendation = {
-            version: 2,
+            version: 3,
             source: "Packaging Recommendation Builder",
             savedAt: new Date().toISOString(),
             recommendationDetails: {
@@ -575,10 +716,14 @@ document.addEventListener("DOMContentLoaded", () => {
             answers: latestRecommendation.data
         };
 
-        localStorage.setItem(
-            "luxsomePackagingBuilderResult",
-            JSON.stringify(recommendation)
-        );
+        try {
+            localStorage.setItem(
+                "luxsomePackagingBuilderResult",
+                JSON.stringify(recommendation)
+            );
+        } catch (error) {
+            console.warn("Recommendation could not be saved locally:", error);
+        }
 
         window.location.assign(
             `${latestRecommendation.shopUrl}?source=builder`

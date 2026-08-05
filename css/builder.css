@@ -69,11 +69,6 @@ body {
     transform: translateY(0);
 }
 
-
-
-
-
-
 .builder-shell {
     min-height: calc(100vh - 160px);
     padding: 44px 20px 100px;
@@ -151,7 +146,7 @@ body {
 
 .builder-progress__value {
     display: block;
-    width: 14.28%;
+    width: 20%;
     height: 100%;
     background: var(--brown);
     transition: width 400ms ease;
@@ -340,35 +335,6 @@ body {
     font-size: 0.85rem;
 }
 
-.piece-selector {
-    margin-top: 44px;
-    padding-top: 38px;
-    border-top: 1px solid var(--border);
-}
-
-.piece-selector h3 {
-    margin: 0;
-    color: var(--brown-dark);
-    font-size: 1.8rem;
-    font-weight: 400;
-}
-
-.piece-selector > p {
-    margin: 8px 0 24px;
-    color: var(--muted);
-}
-
-.tier-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-}
-
-.tier-card {
-    min-height: 190px;
-    justify-content: center;
-}
-
 .field-error {
     min-height: 24px;
     margin: 18px 0 0;
@@ -460,12 +426,20 @@ body {
     color: var(--muted);
 }
 
+.result-meta-column {
+    display: flex;
+    min-width: 220px;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.result-match,
 .result-tier {
-    min-width: 190px;
     padding-left: 24px;
     border-left: 1px solid var(--border);
 }
 
+.result-match span,
 .result-tier span {
     display: block;
     margin-bottom: 6px;
@@ -476,10 +450,18 @@ body {
     text-transform: uppercase;
 }
 
+.result-match strong {
+    color: var(--brown-dark);
+    font-size: 2.65rem;
+    font-weight: 400;
+    line-height: 1;
+}
+
 .result-tier strong {
     color: var(--brown);
-    font-size: 2rem;
+    font-size: 1.55rem;
     font-weight: 400;
+    line-height: 1.15;
 }
 
 .result-layout {
@@ -584,9 +566,6 @@ body {
     margin-top: 34px;
 }
 
-
-
-
 [hidden] {
     display: none !important;
 }
@@ -623,7 +602,15 @@ body {
         flex-direction: column;
     }
 
+    .result-meta-column {
+        width: 100%;
+        min-width: 0;
+        flex-direction: row;
+    }
+
+    .result-match,
     .result-tier {
+        flex: 1;
         padding-top: 18px;
         padding-left: 0;
         border-top: 1px solid var(--border);
@@ -648,7 +635,6 @@ body {
 }
 
 @media (max-width: 560px) {
-
     .builder-shell {
         padding: 28px 12px 70px;
     }
@@ -701,6 +687,10 @@ body {
         padding-left: 18px;
     }
 
+    .result-meta-column {
+        flex-direction: column;
+    }
+
     .result-details {
         grid-template-columns: 1fr;
     }
@@ -738,10 +728,6 @@ body {
     }
 }
 
-/* =========================================================
-   WELCOME HEADING — REMOVE DECORATIVE BORDER
-========================================================= */
-
 #welcome-heading,
 .builder-step--welcome #welcome-heading {
     border: 0 !important;
@@ -757,10 +743,6 @@ body {
     display: none !important;
     content: none !important;
 }
-
-/* =========================================================
-   RECOMMENDATION BUILDER — COMING SOON STATES
-========================================================= */
 
 .option-card--coming-soon {
     cursor: not-allowed;
