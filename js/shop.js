@@ -442,6 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const READY_VALUE = 'Logo and packaging artwork ready';
         const MAX_FILES = 10;
         const MAX_FILE_BYTES = 95 * 1024 * 1024;
+        const MAX_TOTAL_BYTES = 250 * 1024 * 1024;
         const ALLOWED_EXTENSIONS = new Set([
             'pdf',
             'ai',
@@ -455,6 +456,73 @@ document.addEventListener('DOMContentLoaded', () => {
             'jpeg',
             'zip'
         ]);
+        const FILE_TYPES = {
+            pdf: {
+                icon: "fa-file-pdf",
+                label: "Adobe PDF",
+                color: "#DC2626"
+            },
+        
+            ai: {
+                icon: "fa-bezier-curve",
+                label: "Adobe Illustrator",
+                color: "#FF9A00"
+            },
+        
+            eps: {
+                icon: "fa-bezier-curve",
+                label: "EPS Artwork",
+                color: "#FF9A00"
+            },
+        
+            svg: {
+                icon: "fa-draw-polygon",
+                label: "SVG Vector",
+                color: "#7C3AED"
+            },
+        
+            psd: {
+                icon: "fa-layer-group",
+                label: "Photoshop Document",
+                color: "#2563EB"
+            },
+        
+            tif: {
+                icon: "fa-image",
+                label: "TIFF Image",
+                color: "#0F766E"
+            },
+        
+            tiff: {
+                icon: "fa-image",
+                label: "TIFF Image",
+                color: "#0F766E"
+            },
+        
+            png: {
+                icon: "fa-image",
+                label: "PNG Image",
+                color: "#059669"
+            },
+        
+            jpg: {
+                icon: "fa-image",
+                label: "JPEG Image",
+                color: "#059669"
+            },
+        
+            jpeg: {
+                icon: "fa-image",
+                label: "JPEG Image",
+                color: "#059669"
+            },
+        
+            zip: {
+                icon: "fa-file-zipper",
+                label: "Compressed Archive",
+                color: "#6B7280"
+            }
+        };
 
         let files = [];
         let uploadedKeys = [];
@@ -520,10 +588,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = document.createElement('div');
                 item.className = 'artwork-file';
 
-                const icon = document.createElement('span');
-                icon.className = 'artwork-file__icon';
-                icon.setAttribute('aria-hidden', 'true');
-                icon.innerHTML = '<i class="fa-regular fa-file"></i>';
+                const icon = document.createElement("span");
+                icon.className = "artwork-file__icon";
+
+                const extension = getExtension(file.name);
+
+                const type =
+                    FILE_TYPES[extension] || {
+                        icon: "fa-file",
+                        label: "File",
+                        color: "#6B7280"
+                    };
+
+                if (
+                    ["png", "jpg", "jpeg", "tif", "tiff"].includes(extension)
+                ) {
+                    const preview = document.createElement("img");
+
+                    preview.src = URL.createObjectURL(file);
+
+                    preview.className = "artwork-file__preview";
+
+                    icon.appendChild(preview);
+                } else {
+                    icon.innerHTML =
+                        `<i class="fa-solid ${type.icon}"></i>`;
+
+                    icon.style.backgroundColor =
+                        `${type.color}15`;
+
+                    icon.style.color =
+                        type.color;
+                }
 
                 const details = document.createElement('div');
                 details.className = 'artwork-file__details';
@@ -532,7 +628,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 name.textContent = file.name;
 
                 const meta = document.createElement('span');
-                meta.textContent = formatBytes(file.size);
+                meta.textContent =
+                    `${type.label} • ${formatBytes(file.size)}`;
 
                 details.append(name, meta);
 
@@ -554,50 +651,138 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.append(icon, details, remove);
                 fileList.append(item);
             });
+
+            if (files.length) {
+                const totalBytes = files.reduce(
+                    (total, file) => total + file.size,
+                    0
+                );
+            
+                const summary = document.createElement('div');
+                summary.className = 'artwork-file-list__summary';
+            
+                summary.innerHTML = `
+                    <span>
+                        ${files.length}
+                        file${files.length === 1 ? '' : 's'} selected
+                    </span>
+            
+                    <strong>
+                        ${formatBytes(totalBytes)} total
+                    </strong>
+                `;
+            
+                fileList.append(summary);
+            }
         };
 
         const validateFiles = selectedFiles => {
             const nextFiles = [...selectedFiles];
-
+        
             if (nextFiles.length > MAX_FILES) {
                 throw new Error(
                     `Choose no more than ${MAX_FILES} files.`
                 );
             }
-
+        
+            const totalBytes = nextFiles.reduce(
+                (total, file) => total + file.size,
+                0
+            );
+        
+            if (totalBytes > MAX_TOTAL_BYTES) {
+                throw new Error(
+                    'The combined artwork size cannot exceed 250 MB.'
+                );
+            }
+        
             nextFiles.forEach(file => {
                 const extension = getExtension(file.name);
-
+        
                 if (!ALLOWED_EXTENSIONS.has(extension)) {
                     throw new Error(
                         `${file.name} is not an accepted artwork format.`
                     );
                 }
-
+        
                 if (file.size <= 0) {
                     throw new Error(`${file.name} is empty.`);
                 }
-
+        
                 if (file.size > MAX_FILE_BYTES) {
                     throw new Error(
                         `${file.name} is larger than 95 MB.`
                     );
                 }
             });
-
+        
             return nextFiles;
         };
 
         const chooseFiles = selectedFiles => {
             try {
-                files = validateFiles(selectedFiles);
+                const validatedFiles = validateFiles(selectedFiles);
+        
+                /*
+                 * Append new selections while preventing the same file
+                 * from being added more than once.
+                 *
+                 * Name, size and lastModified are used together because
+                 * two separate files may occasionally have the same name.
+                 */
+                const existingFileKeys = new Set(
+                    files.map(file => (
+                        `${file.name}-${file.size}-${file.lastModified}`
+                    ))
+                );
+        
+                const uniqueNewFiles = validatedFiles.filter(file => {
+                    const key =
+                        `${file.name}-${file.size}-${file.lastModified}`;
+        
+                    return !existingFileKeys.has(key);
+                });
+        
+                const combinedFiles = [
+                    ...files,
+                    ...uniqueNewFiles
+                ];
+        
+                if (combinedFiles.length > MAX_FILES) {
+                    throw new Error(
+                        `You can upload no more than ${MAX_FILES} files.`
+                    );
+                }
+        
+                const totalBytes = combinedFiles.reduce(
+                    (total, file) => total + file.size,
+                    0
+                );
+        
+                if (totalBytes > MAX_TOTAL_BYTES) {
+                    throw new Error(
+                        'The combined artwork size cannot exceed 250 MB.'
+                    );
+                }
+        
+                files = combinedFiles;
+        
                 clearUploadResult();
                 renderFiles();
-
-                if (status) status.hidden = true;
+        
+                if (status) {
+                    status.hidden = true;
+                }
+        
                 section?.classList.remove('has-error');
             } catch (error) {
-                setStatus(error.message, 0, true);
+                setStatus(
+                    error instanceof Error
+                        ? error.message
+                        : 'The selected files could not be added.',
+                    0,
+                    true
+                );
             }
         };
 

@@ -4859,3 +4859,29 @@ body.option-visual-open {
         transition: none;
     }
 }
+
+.artwork-file-list__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    padding: 12px 2px 0;
+
+    color: #756159;
+
+    font-size: 0.67rem;
+}
+
+.artwork-file-list__summary strong {
+    color: #2e1c15;
+    font-weight: 600;
+}
+
+.artwork-file__preview{
+    width:44px;
+    height:44px;
+    border-radius:12px;
+    object-fit:cover;
+    flex-shrink:0;
+}
