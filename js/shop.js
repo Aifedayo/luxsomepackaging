@@ -869,7 +869,19 @@ document.addEventListener('DOMContentLoaded', () => {
             input.addEventListener('change', updateVisibility);
         });
 
-        dropzone?.addEventListener('click', () => {
+        /*
+         * The file input sits inside the clickable dropzone.
+         * A programmatic fileInput.click() also bubbles a click back to the
+         * dropzone, which can reopen the picker and prevent the chosen file
+         * list from appearing correctly. Ignore clicks originating from the
+         * input and stop its click event from bubbling.
+         */
+        fileInput?.addEventListener('click', event => {
+            event.stopPropagation();
+        });
+
+        dropzone?.addEventListener('click', event => {
+            if (event.target === fileInput) return;
             fileInput?.click();
         });
 
@@ -898,9 +910,20 @@ document.addEventListener('DOMContentLoaded', () => {
             chooseFiles(event.dataTransfer?.files || []);
         });
 
-        fileInput?.addEventListener('change', () => {
-            chooseFiles(fileInput.files || []);
-            fileInput.value = '';
+        fileInput?.addEventListener('change', event => {
+            const selectedFiles = event.currentTarget.files;
+
+            if (!selectedFiles?.length) {
+                return;
+            }
+
+            chooseFiles(selectedFiles);
+
+            /*
+             * Clear only after copying the File objects into the internal
+             * array. This allows the same file to be selected again later.
+             */
+            event.currentTarget.value = '';
         });
 
         updateVisibility();
