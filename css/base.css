@@ -6464,3 +6464,160 @@ button:focus-visible {
         animation: none;
     }
 }
+
+/* =========================================================
+   BRAND TAGS CAROUSEL — SIX-CARD WIDTH FIX
+========================================================= */
+
+.tag-tier-carousel {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.tag-tier-carousel__viewport {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+
+    scrollbar-width: none;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tag-tier-carousel__viewport::-webkit-scrollbar {
+    display: none;
+}
+
+.tag-tier-carousel__track {
+    display: flex;
+    align-items: stretch;
+
+    gap: clamp(14px, 1.7vw, 24px);
+
+    /* Critical fixes */
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
+
+    padding:
+        0
+        max(
+            16px,
+            calc((100vw - 1380px) / 2)
+        );
+
+    margin: 0;
+
+    transform: none;
+}
+
+/* Stop old CSS from creating artificial width */
+.tag-tier-carousel__track::before,
+.tag-tier-carousel__track::after {
+    display: none !important;
+    content: none !important;
+}
+
+.tag-tier-card {
+    flex:
+        0 0
+        clamp(
+            250px,
+            24vw,
+            340px
+        );
+
+    width:
+        clamp(
+            250px,
+            24vw,
+            340px
+        );
+
+    max-width: 340px;
+    min-width: 0;
+
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
+
+.tag-tier-card__image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+}
+
+.tag-tier-card__image img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+}
+
+/* Prevent cloned or hidden cards from creating empty space */
+.tag-tier-card[aria-hidden="true"],
+.tag-tier-card.is-clone,
+.tag-tier-card[data-clone] {
+    display: none !important;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+    .tag-tier-carousel__track {
+        padding-inline: 20px;
+    }
+
+    .tag-tier-card {
+        flex-basis:
+            min(
+                42vw,
+                310px
+            );
+
+        width:
+            min(
+                42vw,
+                310px
+            );
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 620px) {
+    .tag-tier-carousel__track {
+        gap: 14px;
+        padding-inline: 16px;
+    }
+
+    .tag-tier-card {
+        flex-basis:
+            min(
+                78vw,
+                300px
+            );
+
+        width:
+            min(
+                78vw,
+                300px
+            );
+
+        max-width: 300px;
+    }
+}
