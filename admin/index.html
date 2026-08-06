@@ -279,6 +279,109 @@
 
                 <dl id="payloadList" class="crm-payload-list"></dl>
             </section>
+
+            <section
+                class="crm-artwork-section"
+                id="artworkSection"
+                hidden
+            >
+                <div class="crm-section-heading crm-section-heading--row">
+                    <div>
+                        <p class="crm-eyebrow">CUSTOMER ARTWORK</p>
+                        <h3>Uploaded artwork files</h3>
+                    </div>
+
+                    <span
+                        class="crm-artwork-count"
+                        id="artworkCount"
+                    >
+                        0 files
+                    </span>
+                </div>
+
+                <p
+                    class="crm-artwork-status"
+                    id="artworkStatus"
+                    role="status"
+                ></p>
+
+                <div
+                    class="crm-artwork-grid"
+                    id="artworkGrid"
+                ></div>
+
+                <div
+                    class="crm-artwork-empty"
+                    id="artworkEmpty"
+                    hidden
+                >
+                    <strong>No artwork uploaded</strong>
+                    <p>
+                        This project does not currently have artwork files
+                        connected to its upload reference.
+                    </p>
+                </div>
+
+                <form
+                    class="crm-artwork-review"
+                    id="artworkReviewForm"
+                >
+                    <div class="crm-section-heading">
+                        <p class="crm-eyebrow">INTERNAL REVIEW</p>
+                        <h3>Artwork review</h3>
+                    </div>
+
+                    <div class="crm-artwork-review__grid">
+                        <label>
+                            Review status
+                            <select id="artworkReviewStatus">
+                                <option value="pending_review">Pending review</option>
+                                <option value="reviewing">Reviewing</option>
+                                <option value="needs_changes">Needs changes</option>
+                                <option value="approved">Approved</option>
+                                <option value="production_ready">Production ready</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Reviewed by
+                            <input
+                                id="artworkReviewedBy"
+                                type="text"
+                                maxlength="120"
+                                placeholder="Team member name"
+                            >
+                        </label>
+                    </div>
+
+                    <label class="crm-artwork-review__notes">
+                        Internal artwork notes
+                        <textarea
+                            id="artworkReviewNotes"
+                            rows="4"
+                            maxlength="4000"
+                            placeholder="Add internal notes about file quality, corrections or production readiness."
+                        ></textarea>
+                    </label>
+
+                    <div class="crm-artwork-review__footer">
+                        <p
+                            id="artworkReviewMessage"
+                            class="crm-form-status"
+                            role="status"
+                        ></p>
+
+                        <button
+                            class="crm-button crm-button--primary"
+                            id="saveArtworkReviewButton"
+                            type="submit"
+                        >
+                            Save artwork review
+                        </button>
+                    </div>
+                </form>
+            </section>
+
         </div>
     </aside>
 
@@ -786,8 +889,55 @@
             </button>
         </footer>
     </section>
+
+    <div
+        class="crm-artwork-preview-backdrop"
+        id="artworkPreviewBackdrop"
+        hidden
+    ></div>
+
+    <section
+        class="crm-artwork-preview"
+        id="artworkPreviewModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="artworkPreviewTitle"
+        aria-hidden="true"
+    >
+        <header>
+            <div>
+                <p class="crm-eyebrow">ARTWORK PREVIEW</p>
+                <h2 id="artworkPreviewTitle">Artwork file</h2>
+            </div>
+
+            <button
+                class="crm-detail-close"
+                id="closeArtworkPreviewButton"
+                type="button"
+                aria-label="Close artwork preview"
+            >
+                ×
+            </button>
+        </header>
+
+        <div
+            class="crm-artwork-preview__body"
+            id="artworkPreviewBody"
+        ></div>
+
+        <footer>
+            <button
+                class="crm-button crm-button--secondary"
+                id="downloadPreviewArtworkButton"
+                type="button"
+            >
+                Download file
+            </button>
+        </footer>
+    </section>
+
     <script src="/js/environment.js"></script>
-    <script src="/js/admin-dashboard-v2.js?v=3"></script>
+    <script src="/js/admin-dashboard-v2.js?v=4"></script>
     <script src="/js/crm-brand.js"></script>
 </body>
 </html>
