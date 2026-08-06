@@ -1012,292 +1012,289 @@
     </div>
 
     <fieldset class="configuration-group artwork-status-group">
-    <legend>
-        Logo and artwork status
-        <span class="option-status option-status--included">
-            Project preparation
-        </span>
-    </legend>
-
-    <p class="configuration-help">
-        Tell us how prepared your files are. You can upload final artwork,
-        incomplete assets, existing brand materials or visual references.
-    </p>
-
-    <div class="option-grid option-grid--artwork-status">
-        <label>
-            <input
-                type="radio"
-                name="artworkStatus"
-                value="Everything is ready"
-                required
-            >
-            <span>
-                Everything is ready
-                <small>
-                    My logo and packaging artwork are ready for production review.
-                </small>
+        <legend>
+            Logo and brand assets
+            <span class="option-status option-status--included">
+                Project preparation
             </span>
-        </label>
-
-        <label>
-            <input
-                type="radio"
-                name="artworkStatus"
-                value="Some files are ready"
-                required
-            >
-            <span>
-                Some files are ready
-                <small>
-                    I can upload what I have, but I need support with other pieces.
-                </small>
-            </span>
-        </label>
-
-        <label>
-            <input
-                type="radio"
-                name="artworkStatus"
-                value="Full design support required"
-                required
-            >
-            <span>
-                Full design support
-                <small>
-                    I need Luxsome to create or refine the required artwork.
-                </small>
-            </span>
-        </label>
-    </div>
-</fieldset>
-
-<section
-    class="artwork-support"
-    id="artworkSupportSection"
-    aria-labelledby="artworkSupportHeading"
-    aria-hidden="true"
-    hidden
->
-    <div class="artwork-support__heading">
-        <p class="configuration-section__eyebrow">
-            Design assistance
+        </legend>
+    
+        <p class="configuration-help">
+            Tell us how prepared your files are. You can upload final assets,
+            incomplete assets, existing brand materials or visual references.
         </p>
-
-        <h3 id="artworkSupportHeading">
-            What would you like Luxsome to help with?
-        </h3>
-
-        <p id="artworkSupportDescription">
-            Select every item that still needs design, refinement or artwork preparation.
-        </p>
-    </div>
-
-    <div class="check-grid artwork-support__grid">
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Logo design or refinement">
-            <span>Logo design or refinement</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Box artwork">
-            <span>Box artwork</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Hang tag artwork">
-            <span>Hang tag artwork</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Thank-you card artwork">
-            <span>Thank-you card artwork</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Envelope artwork">
-            <span>Envelope artwork</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Tissue pattern">
-            <span>Tissue pattern</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Sticker artwork">
-            <span>Sticker artwork</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Ribbon artwork">
-            <span>Ribbon artwork</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Complete visual direction">
-            <span>Complete visual direction</span>
-        </label>
-
-        <label>
-            <input type="checkbox" name="designSupportNeeded" value="Other design support">
-            <span>Other design support</span>
-        </label>
-    </div>
-
-    <p
-        class="artwork-support__error"
-        id="artworkSupportError"
-        role="alert"
-        hidden
-    >
-        Select at least one item that needs design support.
-    </p>
-</section>
-    <!-- =====================================================
-         ARTWORK UPLOAD
-         Visible only when "Everything is ready" is selected.
-    ====================================================== -->
+    
+        <div class="option-grid option-grid--artwork-status">
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Everything is ready"
+                    required
+                >
+                <span>
+                    Everything is ready
+                    <small>
+                        My logo and brand assets are ready for production review.
+                    </small>
+                </span>
+            </label>
+    
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Some files are ready"
+                    required
+                >
+                <span>
+                    Some brand assets are ready
+                    <small>
+                        I can upload what I have, but I need support with other pieces.
+                    </small>
+                </span>
+            </label>
+    
+            <label>
+                <input
+                    type="radio"
+                    name="artworkStatus"
+                    value="Full design support required"
+                    required
+                >
+                <span>
+                    Full design support
+                    <small>
+                        I need Luxsome to create or refine the required brand assets.
+                    </small>
+                </span>
+            </label>
+        </div>
+    </fieldset>
+    
     <section
-        class="artwork-upload"
-        id="artworkUploadSection"
-        aria-labelledby="artworkUploadHeading"
+        class="artwork-support"
+        id="artworkSupportSection"
+        aria-labelledby="artworkSupportHeading"
         aria-hidden="true"
         hidden
-        data-upload-endpoint="https://api.luxsomepackaging.com/artwork"
     >
-        <div class="artwork-upload__heading">
-            <div>
-                <p class="configuration-section__eyebrow">
-                    Final production files
-                </p>
-
-                <h2 id="artworkUploadHeading">
-                    Upload your artwork
-                </h2>
-            </div>
-
-            <span class="artwork-upload__secure-note">
-                <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                Private upload
-            </span>
+        <div class="artwork-support__heading">
+            <p class="configuration-section__eyebrow">
+                Design assistance
+            </p>
+    
+            <h3 id="artworkSupportHeading">
+                What would you like Luxsome to help with?
+            </h3>
+    
+            <p id="artworkSupportDescription">
+                Select every item that still needs design, refinement or design preparation.
+            </p>
         </div>
-
-        <p class="configuration-help">
-            Upload the final files Luxsome should review for this project.
-            Files are stored privately and are not added to the public website.
-        </p>
-
-        <div
-            class="artwork-dropzone"
-            id="artworkDropzone"
-            tabindex="0"
-            role="button"
-            aria-describedby="artworkUploadHelp"
-        >
-            <input
-                type="file"
-                id="artworkFiles"
-                name="artworkFiles"
-                accept=".pdf,.ai,.eps,.svg,.psd,.tif,.tiff,.png,.jpg,.jpeg,.zip"
-                multiple
-                hidden
-            >
-
-            <span class="artwork-dropzone__icon" aria-hidden="true">
-                <i class="fa-solid fa-cloud-arrow-up"></i>
-            </span>
-
-            <strong>
-                Drop your artwork here
-            </strong>
-
-            <span>
-                or click to choose files
-            </span>
-
-            <small id="artworkUploadHelp">
-                PDF, AI, EPS, SVG, PSD, TIFF, PNG, JPG or ZIP.
-                Up to 10 files, 95 MB per file and 250 MB combined.
-                You may select files in more than one step.
-            </small>
+    
+        <div class="check-grid artwork-support__grid">
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Logo design or refinement">
+                <span>Logo design or refinement</span>
+            </label>
+    
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Hang tag artwork">
+                <span>Hang tag design</span>
+            </label>
+    
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Thank-you card artwork">
+                <span>Thank-you card design</span>
+            </label>
+    
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Envelope artwork">
+                <span>Envelope design</span>
+            </label>
+    
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Tissue pattern">
+                <span>Tissue pattern</span>
+            </label>
+    
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Sticker artwork">
+                <span>Sticker design</span>
+            </label>
+    
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Ribbon artwork">
+                <span>Ribbon design</span>
+            </label>
+    
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Complete visual direction">
+                <span>Complete visual direction</span>
+            </label>
+    
+            <label>
+                <input type="checkbox" name="designSupportNeeded" value="Other design support">
+                <span>Other design support</span>
+            </label>
         </div>
-
-        <div
-            class="artwork-file-list"
-            id="artworkFileList"
-            aria-live="polite"
-        ></div>
-
-        <div class="artwork-upload__verification">
-            <div
-                class="cf-turnstile"
-                data-sitekey="0x4AAAAAAEHXVhHvzepUlY8B"
-                data-theme="light"
-                data-size="flexible"
-                data-action="artwork-upload"
-            ></div>
-        </div>
-
-        <label class="artwork-confirmation">
-            <input
-                type="checkbox"
-                id="artworkFinalConfirmation"
-                name="artworkFinalConfirmation"
-                value="Confirmed"
-            >
-
-            <span>
-                I confirm that these are the latest files available for
-                Luxsome to review for this project.
-            </span>
-        </label>
-
-        <div
-            class="artwork-upload__status"
-            id="artworkUploadStatus"
-            role="status"
-            aria-live="polite"
+    
+        <p
+            class="artwork-support__error"
+            id="artworkSupportError"
+            role="alert"
             hidden
         >
-            <div class="artwork-upload__status-row">
-                <span id="artworkUploadStatusText">
-                    Preparing your upload…
-                </span>
-
-                <strong id="artworkUploadPercentage">
-                    0%
-                </strong>
-            </div>
-
-            <div
-                class="artwork-upload__progress"
-                aria-hidden="true"
-            >
-                <span id="artworkUploadProgressBar"></span>
-            </div>
-        </div>
-
-        <p class="artwork-upload__privacy">
-            Luxsome will use these files only for your packaging enquiry and
-            production workflow. In this first version, files expire
-            automatically 90 days after upload.
+            Select at least one item that needs design support.
         </p>
-
-        <input
-            type="hidden"
-            name="artworkUploadId"
-            id="artworkUploadId"
-            value=""
-        >
-
-        <input
-            type="hidden"
-            name="artworkObjectKeys"
-            id="artworkObjectKeys"
-            value=""
-        >
     </section>
+    
+    
+        <!-- =====================================================
+             ARTWORK UPLOAD
+             Visible only when "Everything is ready" is selected.
+        ====================================================== -->
+        <section
+            class="artwork-upload"
+            id="artworkUploadSection"
+            aria-labelledby="artworkUploadHeading"
+            aria-hidden="true"
+            hidden
+            data-upload-endpoint="https://api.luxsomepackaging.com/artwork"
+        >
+            <div class="artwork-upload__heading">
+                <div>
+                    <p class="configuration-section__eyebrow">
+                        Final production design files
+                    </p>
+    
+                    <h2 id="artworkUploadHeading">
+                        Upload your brand assets
+                    </h2>
+                </div>
+    
+                <span class="artwork-upload__secure-note">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    Private upload
+                </span>
+            </div>
+    
+            <p class="configuration-help">
+                Upload the final files Luxsome packaging should review for this project.
+                Files are stored privately and are not added to the public website.
+            </p>
+    
+            <div
+                class="artwork-dropzone"
+                id="artworkDropzone"
+                tabindex="0"
+                role="button"
+                aria-describedby="artworkUploadHelp"
+            >
+                <input
+                    type="file"
+                    id="artworkFiles"
+                    name="artworkFiles"
+                    accept=".pdf,.ai,.eps,.svg,.psd,.tif,.tiff,.png,.jpg,.jpeg,.zip"
+                    multiple
+                    hidden
+                >
+    
+                <span class="artwork-dropzone__icon" aria-hidden="true">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </span>
+    
+                <strong>
+                    Drop your design files here
+                </strong>
+    
+                <span>
+                    or click to choose files
+                </span>
+    
+                <small id="artworkUploadHelp">
+                    PDF, AI, EPS, SVG, PSD, TIFF, PNG, JPG or ZIP.
+                    Up to 10 files, 95 MB per file and 250 MB combined.
+                    You may select files in more than one step.
+                </small>
+            </div>
+    
+            <div
+                class="artwork-file-list"
+                id="artworkFileList"
+                aria-live="polite"
+            ></div>
+    
+            <div class="artwork-upload__verification">
+                <div
+                    class="cf-turnstile"
+                    data-sitekey="0x4AAAAAAEHXVhHvzepUlY8B"
+                    data-theme="light"
+                    data-size="flexible"
+                    data-action="artwork-upload"
+                ></div>
+            </div>
+    
+            <label class="artwork-confirmation">
+                <input
+                    type="checkbox"
+                    id="artworkFinalConfirmation"
+                    name="artworkFinalConfirmation"
+                    value="Confirmed"
+                >
+    
+                <span>
+                    I confirm that these are the latest files available for
+                    Luxsome to review for this project.
+                </span>
+            </label>
+    
+            <div
+                class="artwork-upload__status"
+                id="artworkUploadStatus"
+                role="status"
+                aria-live="polite"
+                hidden
+            >
+                <div class="artwork-upload__status-row">
+                    <span id="artworkUploadStatusText">
+                        Preparing your upload…
+                    </span>
+    
+                    <strong id="artworkUploadPercentage">
+                        0%
+                    </strong>
+                </div>
+    
+                <div
+                    class="artwork-upload__progress"
+                    aria-hidden="true"
+                >
+                    <span id="artworkUploadProgressBar"></span>
+                </div>
+            </div>
+    
+            <p class="artwork-upload__privacy">
+                Luxsome packaging will use these files only for your packaging enquiry and
+                production workflow. In this first version, files expire
+                automatically 90 days after upload.
+            </p>
+    
+            <input
+                type="hidden"
+                name="artworkUploadId"
+                id="artworkUploadId"
+                value=""
+            >
+    
+            <input
+                type="hidden"
+                name="artworkObjectKeys"
+                id="artworkObjectKeys"
+                value=""
+            >
+        </section>
 
 
     <label class="product-field">

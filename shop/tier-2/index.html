@@ -442,187 +442,98 @@
                         </div>
                     </fieldset>
 
-                    <fieldset
-            class="configuration-group"
-            id="ribbonConfiguration"
-        >
-            <legend>
-                Ribbon
-                <span class="option-status option-status--paid">
-                    Additional fee
-                </span>
-            </legend>
-
-            <p class="configuration-help">
-                Choose between an unprinted premium ribbon or a branded ribbon
-            </p>
-
-            <div class="option-grid">
-
-                <label>
-                    <input
-                        type="radio"
-                        name="ribbonStyle"
-                        value="Premium ribbon"
-                    >
-
-                    <span>
-                        Plain ribbon
-                        <small>
-                            Plain satin or grosgrain ribbon
-                        </small>
-                    </span>
-                </label>
-
-                <label>
-                    <input
-                        type="radio"
-                        name="ribbonStyle"
-                        value="Branded ribbon"
-                    >
-
-                    <span>
-                        Branded ribbon
-                        <small>
-                            Your logo repeated along the ribbon
-                        </small>
-                    </span>
-                </label>
-
-            </div>
-
-            <button
-                type="button"
-                class="ribbon-remove-button"
-                id="removeRibbonButton"
-                hidden
-            >
-                Remove ribbon
-            </button>
-
-            <div
-                class="ribbon-colour-selection"
-                id="ribbonColourSelection"
-                hidden
-            >
-                <p class="configuration-subheading">
-                    Ribbon colour
-                </p>
-
-                <p class="configuration-help">
-                    Select the colour you would like for your ribbon.
-                    Final shades are subject to material availability.
-                </p>
-
-                <div class="colour-option-grid">
-
-                    <label class="colour-option">
-                        <input
-                            type="radio"
-                            name="ribbonColour"
-                            value="White"
+                    <fieldset class="configuration-group">
+                        <legend>
+                            Ribbon
+                            <span class="option-status option-status--paid">Additional fee</span>
+                        </legend>
+            
+                        <p class="configuration-help">
+                            Choose between an unprinted premium ribbon or a branded ribbon
+                            printed repeatedly with your logo.
+                        </p>
+            
+                        <div class="option-grid">
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="ribbonStyle"
+                                    value="Premium ribbon"
+                                >
+                                <span>
+                                     Plain ribbon
+                                    <small>Plain satin or grosgrain ribbon</small>
+                                </span>
+                            </label>
+            
+                            <label>
+                                <input
+                                    type="radio"
+                                    name="ribbonStyle"
+                                    value="Branded ribbon"
+                                >
+                                <span>
+                                    Branded ribbon
+                                    <small>Your logo repeated along the ribbon</small>
+                                </span>
+                            </label>
+                        </div>
+            
+                        <div
+                            class="ribbon-colour-selection"
+                            id="ribbonColourSelection"
+                            hidden
                         >
-
-                        <span>
-                            <i style="--swatch:#ffffff"></i>
-                            White
-                        </span>
-                    </label>
-
-                    <label class="colour-option">
-                        <input
-                            type="radio"
-                            name="ribbonColour"
-                            value="Off white / Ivory"
-                        >
-
-                        <span>
-                            <i style="--swatch:#f3eee3"></i>
-                            Off white / Ivory
-                        </span>
-                    </label>
-
-                    <label class="colour-option">
-                        <input
-                            type="radio"
-                            name="ribbonColour"
-                            value="Brown"
-                        >
-
-                        <span>
-                            <i style="--swatch:#6b4636"></i>
-                            Brown
-                        </span>
-                    </label>
-
-                    <label class="colour-option">
-                        <input
-                            type="radio"
-                            name="ribbonColour"
-                            value="Wine"
-                        >
-
-                        <span>
-                            <i style="--swatch:#851409"></i>
-                            Wine
-                        </span>
-                    </label>
-
-                    <label class="colour-option">
-                        <input
-                            type="radio"
-                            name="ribbonColour"
-                            value="Forest Green"
-                        >
-
-                        <span>
-                            <i style="--swatch:#314936"></i>
-                            Forest Green
-                        </span>
-                    </label>
-
-                    <label class="colour-option">
-                        <input
-                            type="radio"
-                            name="ribbonColour"
-                            value="Blue"
-                        >
-
-                        <span>
-                            <i style="--swatch:#27456b"></i>
-                            Blue
-                        </span>
-                    </label>
-
-                    <label class="colour-option">
-                        <input
-                            type="radio"
-                            name="ribbonColour"
-                            value="Gold"
-                        >
-
-                        <span>
-                            <i style="--swatch:#c6a15b"></i>
-                            Gold
-                        </span>
-                    </label>
-
-                    <label class="colour-option">
-                        <input
-                            type="radio"
-                            name="ribbonColour"
-                            value="Black"
-                        >
-
-                        <span>
-                            <i style="--swatch:#111111"></i>
-                            Black
-                        </span>
-                    </label>
-
-                </div>
-            </div>
-        </fieldset>
+                            <p class="configuration-subheading">Ribbon colour</p>
+            
+                            <p class="configuration-help">
+                                Select the colour you would like for your ribbon.
+                                Final shades are subject to material availability.
+                            </p>
+            
+                            <div class="colour-option-grid">
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="White">
+                                    <span><i style="--swatch:#ffffff"></i>White</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Off white / Ivory">
+                                    <span><i style="--swatch:#f3eee3"></i>Off white / Ivory</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Brown">
+                                    <span><i style="--swatch:#6b4636"></i>Brown</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Wine">
+                                    <span><i style="--swatch:#851409"></i>Wine</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Forest Green">
+                                    <span><i style="--swatch:#314936"></i>Forest Green</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Blue">
+                                    <span><i style="--swatch:#27456b"></i>Blue</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Gold">
+                                    <span><i style="--swatch:#c6a15b"></i>Gold</span>
+                                </label>
+            
+                                <label class="colour-option">
+                                    <input type="radio" name="ribbonColour" value="Black">
+                                    <span><i style="--swatch:#111111"></i>Black</span>
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
 
                     <fieldset class="configuration-group">
                         <legend>Accessories <span class="option-status option-status--paid">Additional fee</span></legend>
@@ -784,16 +695,16 @@
     </div>
 </div>
 
-            <fieldset class="configuration-group artwork-status-group">
+<fieldset class="configuration-group artwork-status-group">
     <legend>
-        Logo and artwork status
+        Logo and brand assets
         <span class="option-status option-status--included">
             Project preparation
         </span>
     </legend>
 
     <p class="configuration-help">
-        Tell us how prepared your files are. You can upload final artwork,
+        Tell us how prepared your files are. You can upload final assets,
         incomplete assets, existing brand materials or visual references.
     </p>
 
@@ -808,7 +719,7 @@
             <span>
                 Everything is ready
                 <small>
-                    My logo and packaging artwork are ready for production review.
+                    My logo and brand assets are ready for production review.
                 </small>
             </span>
         </label>
@@ -821,7 +732,7 @@
                 required
             >
             <span>
-                Some files are ready
+                Some brand assets are ready
                 <small>
                     I can upload what I have, but I need support with other pieces.
                 </small>
@@ -838,7 +749,7 @@
             <span>
                 Full design support
                 <small>
-                    I need Luxsome to create or refine the required artwork.
+                    I need Luxsome to create or refine the required brand assets.
                 </small>
             </span>
         </label>
@@ -862,7 +773,7 @@
         </h3>
 
         <p id="artworkSupportDescription">
-            Select every item that still needs design, refinement or artwork preparation.
+            Select every item that still needs design, refinement or design preparation.
         </p>
     </div>
 
@@ -873,23 +784,18 @@
         </label>
 
         <label>
-            <input type="checkbox" name="designSupportNeeded" value="Box artwork">
-            <span>Box artwork</span>
-        </label>
-
-        <label>
             <input type="checkbox" name="designSupportNeeded" value="Hang tag artwork">
-            <span>Hang tag artwork</span>
+            <span>Hang tag design</span>
         </label>
 
         <label>
             <input type="checkbox" name="designSupportNeeded" value="Thank-you card artwork">
-            <span>Thank-you card artwork</span>
+            <span>Thank-you card design</span>
         </label>
 
         <label>
             <input type="checkbox" name="designSupportNeeded" value="Envelope artwork">
-            <span>Envelope artwork</span>
+            <span>Envelope design</span>
         </label>
 
         <label>
@@ -899,12 +805,12 @@
 
         <label>
             <input type="checkbox" name="designSupportNeeded" value="Sticker artwork">
-            <span>Sticker artwork</span>
+            <span>Sticker design</span>
         </label>
 
         <label>
             <input type="checkbox" name="designSupportNeeded" value="Ribbon artwork">
-            <span>Ribbon artwork</span>
+            <span>Ribbon design</span>
         </label>
 
         <label>
@@ -927,150 +833,152 @@
         Select at least one item that needs design support.
     </p>
 </section>
-            <!-- =====================================================
+
+
+    <!-- =====================================================
          ARTWORK UPLOAD
          Visible only when "Everything is ready" is selected.
     ====================================================== -->
-            <section
-            class="artwork-upload"
-            id="artworkUploadSection"
-            aria-labelledby="artworkUploadHeading"
-            aria-hidden="true"
-            hidden
-            data-upload-endpoint="https://api.luxsomepackaging.com/artwork"
+    <section
+        class="artwork-upload"
+        id="artworkUploadSection"
+        aria-labelledby="artworkUploadHeading"
+        aria-hidden="true"
+        hidden
+        data-upload-endpoint="https://api.luxsomepackaging.com/artwork"
+    >
+        <div class="artwork-upload__heading">
+            <div>
+                <p class="configuration-section__eyebrow">
+                    Final production design files
+                </p>
+
+                <h2 id="artworkUploadHeading">
+                    Upload your brand assets
+                </h2>
+            </div>
+
+            <span class="artwork-upload__secure-note">
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                Private upload
+            </span>
+        </div>
+
+        <p class="configuration-help">
+            Upload the final files Luxsome packaging should review for this project.
+            Files are stored privately and are not added to the public website.
+        </p>
+
+        <div
+            class="artwork-dropzone"
+            id="artworkDropzone"
+            tabindex="0"
+            role="button"
+            aria-describedby="artworkUploadHelp"
         >
-            <div class="artwork-upload__heading">
-                <div>
-                    <p class="configuration-section__eyebrow">
-                        Final production files
-                    </p>
-
-                    <h2 id="artworkUploadHeading">
-                        Upload your artwork
-                    </h2>
-                </div>
-
-                <span class="artwork-upload__secure-note">
-                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                    Private upload
-                </span>
-            </div>
-
-            <p class="configuration-help">
-                Upload the final files Luxsome should review for this project.
-                Files are stored privately and are not added to the public website.
-            </p>
-
-            <div
-                class="artwork-dropzone"
-                id="artworkDropzone"
-                tabindex="0"
-                role="button"
-                aria-describedby="artworkUploadHelp"
-            >
-                <input
-                    type="file"
-                    id="artworkFiles"
-                    name="artworkFiles"
-                    accept=".pdf,.ai,.eps,.svg,.psd,.tif,.tiff,.png,.jpg,.jpeg,.zip"
-                    multiple
-                    hidden
-                >
-
-                <span class="artwork-dropzone__icon" aria-hidden="true">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                </span>
-
-                <strong>
-                    Drop your artwork here
-                </strong>
-
-                <span>
-                    or click to choose files
-                </span>
-
-                <small id="artworkUploadHelp">
-                    PDF, AI, EPS, SVG, PSD, TIFF, PNG, JPG or ZIP.
-                    Up to 10 files, 95 MB per file and 250 MB combined.
-                    You may select files in more than one step.
-                </small>
-            </div>
-
-            <div
-                class="artwork-file-list"
-                id="artworkFileList"
-                aria-live="polite"
-            ></div>
-
-            <div class="artwork-upload__verification">
-                <div
-                    class="cf-turnstile"
-                    data-sitekey="0x4AAAAAAEHXVhHvzepUlY8B"
-                    data-theme="light"
-                    data-size="flexible"
-                    data-action="artwork-upload"
-                ></div>
-            </div>
-
-            <label class="artwork-confirmation">
-                <input
-                    type="checkbox"
-                    id="artworkFinalConfirmation"
-                    name="artworkFinalConfirmation"
-                    value="Confirmed"
-                >
-
-                <span>
-                    I confirm that these are the latest files available for
-                    Luxsome to review for this project.
-                </span>
-            </label>
-
-            <div
-                class="artwork-upload__status"
-                id="artworkUploadStatus"
-                role="status"
-                aria-live="polite"
+            <input
+                type="file"
+                id="artworkFiles"
+                name="artworkFiles"
+                accept=".pdf,.ai,.eps,.svg,.psd,.tif,.tiff,.png,.jpg,.jpeg,.zip"
+                multiple
                 hidden
             >
-                <div class="artwork-upload__status-row">
-                    <span id="artworkUploadStatusText">
-                        Preparing your upload…
-                    </span>
 
-                    <strong id="artworkUploadPercentage">
-                        0%
-                    </strong>
-                </div>
+            <span class="artwork-dropzone__icon" aria-hidden="true">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+            </span>
 
-                <div
-                    class="artwork-upload__progress"
-                    aria-hidden="true"
-                >
-                    <span id="artworkUploadProgressBar"></span>
-                </div>
+            <strong>
+                Drop your design files here
+            </strong>
+
+            <span>
+                or click to choose files
+            </span>
+
+            <small id="artworkUploadHelp">
+                PDF, AI, EPS, SVG, PSD, TIFF, PNG, JPG or ZIP.
+                Up to 10 files, 95 MB per file and 250 MB combined.
+                You may select files in more than one step.
+            </small>
+        </div>
+
+        <div
+            class="artwork-file-list"
+            id="artworkFileList"
+            aria-live="polite"
+        ></div>
+
+        <div class="artwork-upload__verification">
+            <div
+                class="cf-turnstile"
+                data-sitekey="0x4AAAAAAEHXVhHvzepUlY8B"
+                data-theme="light"
+                data-size="flexible"
+                data-action="artwork-upload"
+            ></div>
+        </div>
+
+        <label class="artwork-confirmation">
+            <input
+                type="checkbox"
+                id="artworkFinalConfirmation"
+                name="artworkFinalConfirmation"
+                value="Confirmed"
+            >
+
+            <span>
+                I confirm that these are the latest files available for
+                Luxsome to review for this project.
+            </span>
+        </label>
+
+        <div
+            class="artwork-upload__status"
+            id="artworkUploadStatus"
+            role="status"
+            aria-live="polite"
+            hidden
+        >
+            <div class="artwork-upload__status-row">
+                <span id="artworkUploadStatusText">
+                    Preparing your upload…
+                </span>
+
+                <strong id="artworkUploadPercentage">
+                    0%
+                </strong>
             </div>
 
-            <p class="artwork-upload__privacy">
-                Luxsome will use these files only for your packaging enquiry and
-                production workflow. In this first version, files expire
-                automatically 90 days after upload.
-            </p>
-
-            <input
-                type="hidden"
-                name="artworkUploadId"
-                id="artworkUploadId"
-                value=""
+            <div
+                class="artwork-upload__progress"
+                aria-hidden="true"
             >
+                <span id="artworkUploadProgressBar"></span>
+            </div>
+        </div>
 
-            <input
-                type="hidden"
-                name="artworkObjectKeys"
-                id="artworkObjectKeys"
-                value=""
-            >
-        </section>
+        <p class="artwork-upload__privacy">
+            Luxsome packaging will use these files only for your packaging enquiry and
+            production workflow. In this first version, files expire
+            automatically 90 days after upload.
+        </p>
+
+        <input
+            type="hidden"
+            name="artworkUploadId"
+            id="artworkUploadId"
+            value=""
+        >
+
+        <input
+            type="hidden"
+            name="artworkObjectKeys"
+            id="artworkObjectKeys"
+            value=""
+        >
+    </section>
 
                 <label class="product-field">
                     <span>Additional comments</span>
