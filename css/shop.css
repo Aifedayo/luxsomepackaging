@@ -5044,3 +5044,55 @@ body.option-visual-open {
         min-height: auto;
     }
 }
+
+/* =========================================================
+   OPTIONAL RIBBON CONTROLS
+========================================================= */
+
+.ribbon-colour-selection[hidden],
+.ribbon-remove-button[hidden] {
+    display: none !important;
+}
+
+.ribbon-colour-selection {
+    margin-top: 22px;
+    padding-top: 22px;
+    border-top: 1px solid #eee6e1;
+}
+
+.ribbon-remove-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-top: 12px;
+    padding: 0 0 4px;
+
+    border: 0;
+    border-bottom: 1px solid currentColor;
+
+    background: transparent;
+    color: #673629;
+
+    font-family: "Montserrat", Arial, sans-serif;
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+
+    text-transform: uppercase;
+
+    cursor: pointer;
+
+    transition:
+        color 200ms ease,
+        opacity 200ms ease;
+}
+
+.ribbon-remove-button:hover {
+    color: #2e1c15;
+}
+
+.ribbon-remove-button:focus-visible {
+    outline: 3px solid rgba(103, 54, 41, 0.28);
+    outline-offset: 5px;
+}

@@ -489,27 +489,35 @@
                 </div>
             </div>
         </fieldset>
-        <fieldset class="configuration-group">
+        <fieldset
+            class="configuration-group"
+            id="ribbonConfiguration"
+        >
             <legend>
                 Ribbon
-                <span class="option-status option-status--paid">Additional fee</span>
+                <span class="option-status option-status--paid">
+                    Additional fee
+                </span>
             </legend>
 
             <p class="configuration-help">
                 Choose between an unprinted premium ribbon or a branded ribbon
-                printed repeatedly with your logo.
             </p>
 
             <div class="option-grid">
+
                 <label>
                     <input
                         type="radio"
                         name="ribbonStyle"
                         value="Premium ribbon"
                     >
+
                     <span>
-                         Plain ribbon
-                        <small>Plain satin or grosgrain ribbon</small>
+                        Plain ribbon
+                        <small>
+                            Plain satin or grosgrain ribbon
+                        </small>
                     </span>
                 </label>
 
@@ -519,19 +527,34 @@
                         name="ribbonStyle"
                         value="Branded ribbon"
                     >
+
                     <span>
                         Branded ribbon
-                        <small>Your logo repeated along the ribbon</small>
+                        <small>
+                            Your logo repeated along the ribbon
+                        </small>
                     </span>
                 </label>
+
             </div>
+
+            <button
+                type="button"
+                class="ribbon-remove-button"
+                id="removeRibbonButton"
+                hidden
+            >
+                Remove ribbon
+            </button>
 
             <div
                 class="ribbon-colour-selection"
                 id="ribbonColourSelection"
                 hidden
             >
-                <p class="configuration-subheading">Ribbon colour</p>
+                <p class="configuration-subheading">
+                    Ribbon colour
+                </p>
 
                 <p class="configuration-help">
                     Select the colour you would like for your ribbon.
@@ -539,45 +562,111 @@
                 </p>
 
                 <div class="colour-option-grid">
+
                     <label class="colour-option">
-                        <input type="radio" name="ribbonColour" value="White">
-                        <span><i style="--swatch:#ffffff"></i>White</span>
+                        <input
+                            type="radio"
+                            name="ribbonColour"
+                            value="White"
+                        >
+
+                        <span>
+                            <i style="--swatch:#ffffff"></i>
+                            White
+                        </span>
                     </label>
 
                     <label class="colour-option">
-                        <input type="radio" name="ribbonColour" value="Off white / Ivory">
-                        <span><i style="--swatch:#f3eee3"></i>Off white / Ivory</span>
+                        <input
+                            type="radio"
+                            name="ribbonColour"
+                            value="Off white / Ivory"
+                        >
+
+                        <span>
+                            <i style="--swatch:#f3eee3"></i>
+                            Off white / Ivory
+                        </span>
                     </label>
 
                     <label class="colour-option">
-                        <input type="radio" name="ribbonColour" value="Brown">
-                        <span><i style="--swatch:#6b4636"></i>Brown</span>
+                        <input
+                            type="radio"
+                            name="ribbonColour"
+                            value="Brown"
+                        >
+
+                        <span>
+                            <i style="--swatch:#6b4636"></i>
+                            Brown
+                        </span>
                     </label>
 
                     <label class="colour-option">
-                        <input type="radio" name="ribbonColour" value="Wine">
-                        <span><i style="--swatch:#851409"></i>Wine</span>
+                        <input
+                            type="radio"
+                            name="ribbonColour"
+                            value="Wine"
+                        >
+
+                        <span>
+                            <i style="--swatch:#851409"></i>
+                            Wine
+                        </span>
                     </label>
 
                     <label class="colour-option">
-                        <input type="radio" name="ribbonColour" value="Forest Green">
-                        <span><i style="--swatch:#314936"></i>Forest Green</span>
+                        <input
+                            type="radio"
+                            name="ribbonColour"
+                            value="Forest Green"
+                        >
+
+                        <span>
+                            <i style="--swatch:#314936"></i>
+                            Forest Green
+                        </span>
                     </label>
 
                     <label class="colour-option">
-                        <input type="radio" name="ribbonColour" value="Blue">
-                        <span><i style="--swatch:#27456b"></i>Blue</span>
+                        <input
+                            type="radio"
+                            name="ribbonColour"
+                            value="Blue"
+                        >
+
+                        <span>
+                            <i style="--swatch:#27456b"></i>
+                            Blue
+                        </span>
                     </label>
 
                     <label class="colour-option">
-                        <input type="radio" name="ribbonColour" value="Gold">
-                        <span><i style="--swatch:#c6a15b"></i>Gold</span>
+                        <input
+                            type="radio"
+                            name="ribbonColour"
+                            value="Gold"
+                        >
+
+                        <span>
+                            <i style="--swatch:#c6a15b"></i>
+                            Gold
+                        </span>
                     </label>
 
                     <label class="colour-option">
-                        <input type="radio" name="ribbonColour" value="Black">
-                        <span><i style="--swatch:#111111"></i>Black</span>
+                        <input
+                            type="radio"
+                            name="ribbonColour"
+                            value="Black"
+                        >
+
+                        <span>
+                            <i style="--swatch:#111111"></i>
+                            Black
+                        </span>
                     </label>
+
                 </div>
             </div>
         </fieldset>

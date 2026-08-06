@@ -406,6 +406,259 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('productConfigForm');
     const product = document.querySelector('.product-detail');
 
+    /* ==========================================================
+    OPTIONAL RIBBON SELECTION
+    Allows an active radio option to be clicked again to clear it.
+    ========================================================== */
+
+    const setupOptionalRibbonSelection = () => {
+        const ribbonConfiguration =
+            document.getElementById('ribbonConfiguration');
+
+        const ribbonColourSelection =
+            document.getElementById('ribbonColourSelection');
+
+        const removeRibbonButton =
+            document.getElementById('removeRibbonButton');
+
+        if (
+            !ribbonConfiguration ||
+            !ribbonColourSelection
+        ) {
+            return;
+        }
+
+        const ribbonStyleInputs = Array.from(
+            ribbonConfiguration.querySelectorAll(
+                'input[name="ribbonStyle"]'
+            )
+        );
+
+        const ribbonColourInputs = Array.from(
+            ribbonConfiguration.querySelectorAll(
+                'input[name="ribbonColour"]'
+            )
+        );
+
+        if (!ribbonStyleInputs.length) {
+            return;
+        }
+
+        /*
+        * Keeps track of the option that was selected before the click.
+        * This is necessary because radio inputs cannot normally be
+        * unchecked by clicking them again.
+        */
+        let clickedCheckedInput = null;
+
+        const getSelectedRibbonStyle = () => (
+            ribbonStyleInputs.find(input => input.checked) || null
+        );
+
+        const clearRibbonColours = () => {
+            ribbonColourInputs.forEach(input => {
+                input.checked = false;
+            });
+        };
+
+        const updateRibbonInterface = () => {
+            const selectedRibbon =
+                getSelectedRibbonStyle();
+
+            const hasRibbon =
+                Boolean(selectedRibbon);
+
+            ribbonColourSelection.hidden =
+                !hasRibbon;
+
+            ribbonColourSelection.setAttribute(
+                'aria-hidden',
+                String(!hasRibbon)
+            );
+
+            ribbonColourInputs.forEach(input => {
+                input.disabled = !hasRibbon;
+            });
+
+            if (removeRibbonButton) {
+                removeRibbonButton.hidden =
+                    !hasRibbon;
+            }
+
+            if (!hasRibbon) {
+                clearRibbonColours();
+            }
+        };
+
+        const clearRibbonSelection = () => {
+            ribbonStyleInputs.forEach(input => {
+                input.checked = false;
+            });
+
+            clearRibbonColours();
+            updateRibbonInterface();
+
+            /*
+            * Notify any other configuration logic that the ribbon
+            * selection has changed.
+            */
+            ribbonConfiguration.dispatchEvent(
+                new CustomEvent(
+                    'luxsome:ribbon-change',
+                    {
+                        bubbles: true,
+                        detail: {
+                            ribbonStyle: '',
+                            ribbonColour: ''
+                        }
+                    }
+                )
+            );
+
+            /*
+            * Dispatch a normal change event so summary, pricing,
+            * preview and saved-configuration logic can react.
+            */
+            ribbonStyleInputs[0]?.dispatchEvent(
+                new Event(
+                    'change',
+                    {
+                        bubbles: true
+                    }
+                )
+            );
+        };
+
+        ribbonStyleInputs.forEach(input => {
+            /*
+            * `pointerdown` happens before the browser changes the
+            * checked state, so we can determine whether the user is
+            * clicking the already-selected option.
+            */
+            input.addEventListener(
+                'pointerdown',
+                () => {
+                    clickedCheckedInput =
+                        input.checked
+                            ? input
+                            : null;
+                }
+            );
+
+            input.addEventListener(
+                'click',
+                event => {
+                    if (clickedCheckedInput !== input) {
+                        clickedCheckedInput = null;
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    input.checked = false;
+                    clickedCheckedInput = null;
+
+                    clearRibbonColours();
+                    updateRibbonInterface();
+
+                    ribbonConfiguration.dispatchEvent(
+                        new CustomEvent(
+                            'luxsome:ribbon-change',
+                            {
+                                bubbles: true,
+                                detail: {
+                                    ribbonStyle: '',
+                                    ribbonColour: ''
+                                }
+                            }
+                        )
+                    );
+
+                    input.dispatchEvent(
+                        new Event(
+                            'change',
+                            {
+                                bubbles: true
+                            }
+                        )
+                    );
+                }
+            );
+
+            input.addEventListener(
+                'change',
+                () => {
+                    clickedCheckedInput = null;
+                    updateRibbonInterface();
+
+                    const selectedRibbon =
+                        getSelectedRibbonStyle();
+
+                    const selectedColour =
+                        ribbonColourInputs.find(
+                            colourInput =>
+                                colourInput.checked
+                        );
+
+                    ribbonConfiguration.dispatchEvent(
+                        new CustomEvent(
+                            'luxsome:ribbon-change',
+                            {
+                                bubbles: true,
+                                detail: {
+                                    ribbonStyle:
+                                        selectedRibbon?.value || '',
+                                    ribbonColour:
+                                        selectedColour?.value || ''
+                                }
+                            }
+                        )
+                    );
+                }
+            );
+        });
+
+        ribbonColourInputs.forEach(input => {
+            input.addEventListener(
+                'change',
+                () => {
+                    const selectedRibbon =
+                        getSelectedRibbonStyle();
+
+                    ribbonConfiguration.dispatchEvent(
+                        new CustomEvent(
+                            'luxsome:ribbon-change',
+                            {
+                                bubbles: true,
+                                detail: {
+                                    ribbonStyle:
+                                        selectedRibbon?.value || '',
+                                    ribbonColour:
+                                        input.checked
+                                            ? input.value
+                                            : ''
+                                }
+                            }
+                        )
+                    );
+                }
+            );
+        });
+
+        removeRibbonButton?.addEventListener(
+            'click',
+            clearRibbonSelection
+        );
+
+        /*
+        * Handles restored configurations. If a ribbon was restored
+        * from localStorage or URL parameters, the colour section
+        * appears immediately.
+        */
+        updateRibbonInterface();
+    };
+
+    setupOptionalRibbonSelection();
 
     /*
      * Artwork upload
