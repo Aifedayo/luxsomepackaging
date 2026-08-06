@@ -1856,38 +1856,158 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const visualOptionImageOverrides = {
-        'Magnetic flap': '/assets/images/catalogue-preview/collapsible-magnetic-flap-box.webp',
-        'Shoulder box': '/assets/images/catalogue-preview/shoulder-box.webp',
-        'Tray-in-bed': '/assets/images/catalogue-preview/tray-in-bed-box.webp',
-        'Door style': '/assets/images/catalogue-preview/door-style-box.webp',
-        'Collapsible magnetic flap': '/assets/images/catalogue-preview/collapsible-magnetic-flap-box.webp',
-        'Recommend a structure': '/assets/images/catalogue-preview/recommend-a-box-structure.webp',
-        'Custom structure': '/assets/images/catalogue-preview/custom-box-structure.webp',
+        /* =====================================================
+           BOX STYLES
+        ====================================================== */
+    
+        'Magnetic flap':
+            '/assets/images/catalogue-preview/collapsible-magnetic-flap-box.webp',
+    
+        'Shoulder box':
+            '/assets/images/catalogue-preview/shoulder-box.webp',
+    
+        'Tray-in-bed':
+            '/assets/images/catalogue-preview/tray-in-bed-box.webp',
+    
+        'Door style':
+            '/assets/images/catalogue-preview/door-style-box.webp',
+    
+        'Collapsible magnetic flap':
+            '/assets/images/catalogue-preview/collapsible-magnetic-flap-box.webp',
+    
+        'Recommend a structure':
+            '/assets/images/catalogue-preview/recommend-a-box-structure.webp',
+    
+        'Custom structure':
+            '/assets/images/catalogue-preview/custom-box-structure.webp',
+    
+    
+        /* =====================================================
+           BESPOKE PACKAGING PIECES
+        ====================================================== */
+    
+        'Rigid box':
+            '/assets/images/catalogue-preview/collapsible-magnetic-flap-box.webp',
+    
+        'Hang tag':
+            '/assets/images/catalogue-preview/two-piece-tag.webp',
+    
+        'Thank-you card':
+            '/assets/images/catalogue-preview/flat-thank-you-card.webp',
+    
+        'Envelope':
+            '/assets/images/catalogue-preview/wallet-envelope.webp',
+    
+        'Branded tissue':
+            '/assets/images/catalogue-preview/repeating-logo-pattern.webp',
+    
+        'Sticker seal':
+            '/assets/images/catalogue-preview/sticker-seal.webp',
+    
+        'Branded ribbon':
+            '/assets/images/catalogue-preview/branded-ribbon.webp',
+    
+        'Product insert':
+            '/assets/images/catalogue-preview/box-insert.webp',
+    
+        'Product description card':
+            '/assets/images/catalogue-preview/product-description-card.webp',
+    
+    
+        /* =====================================================
+           TAGS
+        ====================================================== */
+    
+        'One-piece tag':
+            '/assets/images/catalogue-preview/one-piece-tag.webp',
+    
+        'Two-piece tag':
+            '/assets/images/catalogue-preview/two-piece-tag.webp',
+    
+        'Three-piece tag':
+            '/assets/images/catalogue-preview/three-piece-tag.webp',
+    
+    
+        /* =====================================================
+           CARDS
+        ====================================================== */
+    
+        'Flat thank-you card':
+            '/assets/images/catalogue-preview/flat-thank-you-card.webp',
+    
+        'Folded Thank you card':
+            '/assets/images/catalogue-preview/folded-thank-you-card.png',
+    
+        'Thank-you note':
+            '/assets/images/catalogue-preview/thank-you-note.webp',
+    
+    
+        /* =====================================================
+           FINISHES
+        ====================================================== */
+    
+        'Matte vinyl':
+            '/assets/images/catalogue-preview/matte-vinyl.webp',
+    
+        'Metallic vinyl':
+            '/assets/images/catalogue-preview/metallic-vinyl.webp',
+    
+        'Embossed':
+            '/assets/images/catalogue-preview/embossed-finish.webp',
+    
+        'Debossed':
+            '/assets/images/catalogue-preview/debossed-finish.webp',
+    
+        'Foiled':
+            '/assets/images/catalogue-preview/foil-finish.webp',
+    
+        'UV printed':
+            '/assets/images/catalogue-preview/uv-print.webp',
+    
+    
+        /* =====================================================
+           ACCESSORIES
+        ====================================================== */
+    
+        'Ribbon handle':
+            '/assets/images/catalogue-preview/ribbon-handle.webp',
+    
+        'Pull tab':
+            '/assets/images/catalogue-preview/pull-tab.webp',
+    
+        'Insert':
+            '/assets/images/catalogue-preview/box-insert.webp',
+    
+        'Custom insert':
+            '/assets/images/catalogue-preview/custom-box-insert.webp',
+    
+        'Foam insert':
+            '/assets/images/catalogue-preview/foam-insert.webp',
+    
+        'Card insert':
+            '/assets/images/catalogue-preview/card-insert.webp',
+    
+        'Fabric lining':
+            '/assets/images/catalogue-preview/fabric-lining.webp',
+    
+        'Window cut-out':
+            '/assets/images/catalogue-preview/window-cut-out.webp',
+    
+        'Special closure':
+            '/assets/images/catalogue-preview/special-closure.webp',
+    
+        'Compartment divider':
+            '/assets/images/catalogue-preview/compartment-divider.webp',
+        
+        'Standard sticker seal':
+            '/assets/images/catalogue-preview/standard-sticker-seal.webp',
 
-        'One-piece tag': '/assets/images/catalogue-preview/one-piece-tag.webp',
-        'Two-piece tag': '/assets/images/catalogue-preview/two-piece-tag.webp',
-        'Three-piece tag': '/assets/images/catalogue-preview/three-piece-tag.webp',
-
-        'Folded Thank you card': '/assets/images/catalogue-preview/folded-thank-you-card.png',
-        'Matte vinyl': '/assets/images/catalogue-preview/matte-vinyl.webp',
-        'Metallic vinyl': '/assets/images/catalogue-preview/metallic-vinyl.webp',
-        'Embossed': '/assets/images/catalogue-preview/embossed-finish.webp',
-        'Debossed': '/assets/images/catalogue-preview/debossed-finish.webp',
-        'Foiled': '/assets/images/catalogue-preview/foil-finish.webp',
-        'UV printed': '/assets/images/catalogue-preview/uv-print.webp',
-
-        'Ribbon handle': '/assets/images/catalogue-preview/ribbon-handle.webp',
-        'Pull tab': '/assets/images/catalogue-preview/pull-tab.webp',
-        'Product description card': '/assets/images/catalogue-preview/product-description-card.webp',
-        'Insert': '/assets/images/catalogue-preview/box-insert.webp',
-        'Custom insert': '/assets/images/catalogue-preview/custom-box-insert.webp',
-        'Foam insert': '/assets/images/catalogue-preview/foam-insert.webp',
-        'Card insert': '/assets/images/catalogue-preview/card-insert.webp',
-        'Fabric lining': '/assets/images/catalogue-preview/fabric-lining.webp',
-        'Window cut-out': '/assets/images/catalogue-preview/window-cut-out.webp',
-        'Special closure': '/assets/images/catalogue-preview/special-closure.webp',
-        'Compartment divider': '/assets/images/catalogue-preview/compartment-divider.webp'
+        'Custom die-cut sticker':
+            '/assets/images/catalogue-preview/branded-sticker.webp',
     };
+
+    const DEFAULT_VISUAL_FALLBACK =
+    '/assets/images/catalogue-preview/no-image-available.webp';
 
     const slugifyVisualOption = value => (
         String(value || '')
@@ -2166,10 +2286,14 @@ document.addEventListener('DOMContentLoaded', () => {
             `${input.name}-${slugifyVisualOption(input.value)}`
         );
 
-        const getPreviewImage = input => (
-            visualOptionImageOverrides[input.value] ||
-            `/assets/images/catalogue-preview/${slugifyVisualOption(input.value)}.webp`
-        );
+        const getPreviewImage = input => {
+            return (
+                visualOptionImageOverrides[input.value] ||
+                `/assets/images/catalogue-preview/${slugifyVisualOption(
+                    input.value
+                )}.webp`
+            );
+        };
 
         const getGroup = input => (
             visualOptionGroups[input.name] || {
@@ -2197,6 +2321,24 @@ document.addEventListener('DOMContentLoaded', () => {
             image.alt = `${input.value} visual preview`;
             image.decoding = 'async';
 
+            image.addEventListener(
+                'error',
+                () => {
+                    if (
+                        image.dataset.fallbackApplied ===
+                        'true'
+                    ) {
+                        return;
+                    }
+            
+                    image.dataset.fallbackApplied =
+                        'true';
+            
+                    image.src =
+                        DEFAULT_VISUAL_FALLBACK;
+                }
+            );
+
             slide.appendChild(image);
             slidesContainer.appendChild(slide);
 
@@ -2205,9 +2347,38 @@ document.addEventListener('DOMContentLoaded', () => {
             thumbnail.className = 'product-thumb';
             thumbnail.dataset.previewKey = key;
             thumbnail.setAttribute('aria-label', `Show ${input.value}`);
-            thumbnail.innerHTML = `
-                <img src="${imagePath}" alt="" loading="lazy">
-            `;
+            const thumbnailImage =
+                document.createElement('img');
+
+            thumbnailImage.src =
+                imagePath;
+
+            thumbnailImage.alt = '';
+
+            thumbnailImage.loading =
+                'lazy';
+
+            thumbnailImage.addEventListener(
+                'error',
+                () => {
+                    if (
+                        thumbnailImage.dataset
+                            .fallbackApplied === 'true'
+                    ) {
+                        return;
+                    }
+
+                    thumbnailImage.dataset
+                        .fallbackApplied = 'true';
+
+                    thumbnailImage.src =
+                        DEFAULT_VISUAL_FALLBACK;
+                }
+            );
+
+            thumbnail.appendChild(
+                thumbnailImage
+            );
 
             thumbnail.addEventListener('click', () => {
                 if (!input.checked) {
