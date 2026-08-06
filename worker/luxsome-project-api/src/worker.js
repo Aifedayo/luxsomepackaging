@@ -6481,8 +6481,12 @@ function projectDimensions(configuration) {
     const length = configurationValue(
         configuration,
         [
+            "finished_length",
+            "finishedLength",
             "box_length_cm",
+            "box_length",
             "boxLength",
+            "boxLengthDisplay",
             "length"
         ]
     );
@@ -6490,8 +6494,14 @@ function projectDimensions(configuration) {
     const breadth = configurationValue(
         configuration,
         [
+            "finished_width",
+            "finished_breadth",
+            "finishedWidth",
+            "finishedBreadth",
             "box_breadth_cm",
+            "box_breadth",
             "boxBreadth",
+            "boxBreadthDisplay",
             "breadth",
             "width"
         ]
@@ -6500,17 +6510,186 @@ function projectDimensions(configuration) {
     const height = configurationValue(
         configuration,
         [
+            "finished_height",
+            "finishedHeight",
             "box_height_cm",
+            "box_height",
             "boxHeight",
+            "boxHeightDisplay",
             "height"
         ]
     );
 
     if (!length || !breadth || !height) {
-        return "";
+        return configurationValue(
+            configuration,
+            [
+                "finished_dimensions",
+                "finishedDimensions",
+                "box_dimensions",
+                "boxDimensions",
+                "dimensions"
+            ]
+        );
     }
 
-    return `${length} × ${breadth} × ${height} cm`;
+    const values = [length, breadth, height];
+    const explicitUnit = values
+        .map(value => text(value).match(/\b(mm|cm|in|inch|inches)\b/i)?.[1])
+        .find(Boolean);
+
+    const unit = explicitUnit
+        ? explicitUnit.toLowerCase().replace("inches", "in").replace("inch", "in")
+        : "cm";
+
+    const cleanDimension = value => text(value)
+        .replace(/\s*(mm|cm|in|inch|inches)\s*$/i, "")
+        .trim();
+
+    return `${cleanDimension(length)} × ${cleanDimension(breadth)} × ${cleanDimension(height)} ${unit}`;
+}
+
+function isBespokePackagingSystem(packagingSystem, configuration = {}) {
+    const candidates = [
+        packagingSystem,
+        configuration.system,
+        configuration.product_name,
+        configuration.product_slug,
+        configuration.package_type,
+        configuration.project_type
+    ]
+        .map(value => text(value).toLowerCase())
+        .filter(Boolean);
+
+    return candidates.some(value => (
+        value === "bespoke" ||
+        value.includes("bespoke packaging") ||
+        value.includes("bespoke system") ||
+        value.includes("/bespoke") ||
+        value.includes("shop-bespoke")
+    ));
+}
+
+function projectEmailSummary(data) {
+    const configuration = parseProjectConfiguration(data);
+
+    const packagingSystem =
+        configurationValue(
+            configuration,
+            ["system", "product_name"]
+        ) ||
+        text(data.submitted_packaging_system) ||
+        text(data.package_type);
+
+    const isBespoke = isBespokePackagingSystem(
+        packagingSystem,
+        configuration
+    );
+
+    const packagingPieces = isBespoke
+        ? configurationValue(
+            configuration,
+            ["packaging_pieces"]
+        ) || displayList(
+            data.submitted_components || data.components,
+            "To be confirmed"
+        )
+        : "";
+
+    const boxQuantity = isBespoke
+        ? formatProjectQuantity(
+            configurationValue(
+                configuration,
+                ["box_quantity"]
+            )
+        )
+        : "";
+
+    const otherQuantity = isBespoke
+        ? formatProjectQuantity(
+            configurationValue(
+                configuration,
+                ["other_pieces_quantity"]
+            )
+        )
+        : "";
+
+    const generalQuantity = isBespoke
+        ? ""
+        : formatProjectQuantity(
+            configurationValue(
+                configuration,
+                ["quantity"]
+            ) || data.quantity
+        );
+
+    const dimensions =
+        projectDimensions(configuration) ||
+        text(data.finished_dimensions) ||
+        text(data.dimensions);
+
+    return {
+        configuration,
+        packagingSystem,
+        isBespoke,
+        projectType: isBespoke
+            ? configurationValue(configuration, ["project_type"])
+            : "",
+        packagingPieces,
+        boxStyle: configurationValue(configuration, ["box_style"]),
+        generalQuantity,
+        boxQuantity,
+        otherQuantity,
+        dimensions,
+        weight: configurationValue(configuration, ["volumetric_weight_kg"]),
+        colours: projectColours(configuration)
+    };
+}
+
+function projectPackagingRows(summary) {
+    const rows = [
+        row("Selected system", summary.packagingSystem)
+    ];
+
+    if (summary.isBespoke) {
+        rows.push(
+            row("Project type", summary.projectType),
+            row("Packaging pieces", summary.packagingPieces),
+            row("Box style", summary.boxStyle),
+            row("Box quantity", summary.boxQuantity),
+            row("Other packaging quantity", summary.otherQuantity)
+        );
+    } else {
+        rows.push(
+            row("Box style", summary.boxStyle),
+            row("Quantity", summary.generalQuantity)
+        );
+    }
+
+    return rows;
+}
+
+function projectPackagingTextLines(summary) {
+    const lines = [
+        `System: ${summary.packagingSystem || "Not supplied"}`
+    ];
+
+    if (summary.isBespoke) {
+        lines.push(
+            `Project type: ${summary.projectType || "Not supplied"}`,
+            `Packaging pieces: ${summary.packagingPieces || "Not supplied"}`,
+            `Box style: ${summary.boxStyle || "Not supplied"}`,
+            `Box quantity: ${summary.boxQuantity || "Not supplied"}`,
+            `Other packaging quantity: ${summary.otherQuantity || "Not supplied"}`
+        );
+    } else {
+        lines.push(
+            `Box style: ${summary.boxStyle || "Not supplied"}`,
+            `Quantity: ${summary.generalQuantity || "Not supplied"}`
+        );
+    }
+
+    return lines;
 }
 
 function projectColours(configuration) {
@@ -6705,75 +6884,19 @@ function additionalProjectsText(projects) {
 }
 
 function buildInternalEmail(data, reference) {
-    const configuration = parseProjectConfiguration(data);
+    const summary = projectEmailSummary(data);
+    const { configuration } = summary;
 
-    const packagingSystem =
-        configurationValue(
-            configuration,
-            ["system", "product_name"]
-        ) ||
-        text(data.submitted_packaging_system) ||
-        text(data.package_type);
-
-    const packagingPieces =
-        configurationValue(
-            configuration,
-            ["packaging_pieces"]
-        ) ||
-        displayList(
-            data.submitted_components ||
-            data.components,
-            "To be confirmed"
-        );
-
-    const boxQuantity = formatProjectQuantity(
-        configurationValue(
-            configuration,
-            ["box_quantity"]
-        )
+    const additionalProjects = parseAdditionalProjects(
+        configuration.additional_projects || data.additional_projects
     );
-
-    const otherQuantity = formatProjectQuantity(
-        configurationValue(
-            configuration,
-            ["other_pieces_quantity"]
-        )
-    );
-
-    const generalQuantity =
-        boxQuantity || otherQuantity
-            ? ""
-            : formatProjectQuantity(
-                configurationValue(
-                    configuration,
-                    ["quantity"]
-                ) || data.quantity
-            );
-
-    const dimensions =
-        projectDimensions(configuration) ||
-        text(data.dimensions);
-
-    const weight = configurationValue(
-        configuration,
-        ["volumetric_weight_kg"]
-    );
-
-    const colours = projectColours(configuration);
-
-    const additionalProjects =
-        parseAdditionalProjects(
-            configuration.additional_projects ||
-            data.additional_projects
-        );
 
     const phoneLink = whatsappLink(text(data.phone));
     const instagram = text(data.instagram_handle);
 
-    const selectedDetailRows =
-        projectPieceDetails(configuration).map(
-            ([label, value]) => row(label, value)
-        );
+    const selectedDetailRows = projectPieceDetails(configuration).map(
+        ([label, value]) => row(label, value)
+    );
 
     return emailShell(`
         <p style="margin:0 0 10px;font:600 11px/1.4 Arial,sans-serif;letter-spacing:2.3px;text-transform:uppercase;color:#8d654d;">
@@ -6798,92 +6921,51 @@ function buildInternalEmail(data, reference) {
             row("Phone / WhatsApp", data.phone),
             row(
                 "Preferred contact",
-                preferredContactLabel(
-                    data.preferred_contact_method
-                )
+                preferredContactLabel(data.preferred_contact_method)
             ),
-            row(
-                "Instagram",
-                instagram || "Not supplied"
-            ),
+            row("Instagram", instagram || "Not supplied"),
             row("Location", data.business_location)
         ])}
 
-        ${section("Packaging system", [
-            row("Selected system", packagingSystem),
-            row(
-                "Project type",
-                configurationValue(
-                    configuration,
-                    ["project_type"]
-                )
-            ),
-            row("Packaging pieces", packagingPieces),
-            row(
-                "Box style",
-                configurationValue(
-                    configuration,
-                    ["box_style"]
-                )
-            ),
-            row("Quantity", generalQuantity),
-            row("Box quantity", boxQuantity),
-            row(
-                "Other packaging quantity",
-                otherQuantity
-            )
-        ])}
+        ${section(
+            "Packaging system",
+            projectPackagingRows(summary)
+        )}
 
         ${
             selectedDetailRows.length
-                ? section(
-                    "Selected packaging details",
-                    selectedDetailRows
-                )
+                ? section("Selected packaging details", selectedDetailRows)
                 : ""
         }
 
         ${section("Specifications and branding", [
-            row("Finished dimensions", dimensions),
+            row("Finished dimensions", summary.dimensions),
             row(
                 "Volumetric weight",
-                weight ? `${weight} kg` : ""
+                summary.weight ? `${summary.weight} kg` : ""
             ),
-            row("Preferred colours", colours),
+            row("Preferred colours", summary.colours),
             row(
                 "Logo finish",
-                configurationValue(
-                    configuration,
-                    ["logo_finish"]
-                )
+                configurationValue(configuration, ["logo_finish"])
             ),
             row(
                 "Logo and artwork status",
-                configurationValue(
-                    configuration,
-                    ["artwork_status"]
-                ) || data.artwork_status
+                configurationValue(configuration, ["artwork_status"]) ||
+                data.artwork_status
             ),
             row(
                 "Accessories",
-                configurationValue(
-                    configuration,
-                    ["accessories"]
-                )
+                configurationValue(configuration, ["accessories"])
             )
         ])}
 
         ${notesBlock(
-            configurationValue(
-                configuration,
-                ["comments"]
-            ) ||
+            configurationValue(configuration, ["comments"]) ||
             data.project_notes
         )}
 
-        ${additionalProjectsEmail(
-            additionalProjects
-        )}
+        ${additionalProjectsEmail(additionalProjects)}
 
         <table role="presentation" cellspacing="0" cellpadding="0" style="margin:30px 0 4px;">
             <tr>
@@ -6910,63 +6992,31 @@ function buildInternalEmail(data, reference) {
 }
 
 function buildCustomerEmail(data, reference) {
-    const configuration = parseProjectConfiguration(data);
+    const summary = projectEmailSummary(data);
+    const { configuration } = summary;
 
     const firstName = escapeHtml(
-        text(data.name).split(/\s+/)[0] ||
-        "there"
+        text(data.name).split(/\s+/)[0] || "there"
     );
 
-    const packagingSystem =
-        configurationValue(
-            configuration,
-            ["system", "product_name"]
-        ) ||
-        text(data.submitted_packaging_system) ||
-        text(data.package_type);
-
-    const packagingPieces =
-        configurationValue(
-            configuration,
-            ["packaging_pieces"]
-        ) ||
-        displayList(
-            data.submitted_components ||
-            data.components,
-            "To be confirmed during review"
-        );
-
-    const boxQuantity = formatProjectQuantity(
-        configurationValue(
-            configuration,
-            ["box_quantity"]
+    const requestRows = [
+        row("Brand", data.brand_name),
+        ...projectPackagingRows(summary).map((value, index) => {
+            if (index !== 0) return value;
+            return row("Packaging system", summary.packagingSystem);
+        }),
+        row("Finished dimensions", summary.dimensions),
+        row("Preferred colours", summary.colours),
+        row(
+            "Logo and artwork status",
+            configurationValue(configuration, ["artwork_status"]) ||
+            data.artwork_status
+        ),
+        row(
+            "Preferred contact",
+            preferredContactLabel(data.preferred_contact_method)
         )
-    );
-
-    const otherQuantity = formatProjectQuantity(
-        configurationValue(
-            configuration,
-            ["other_pieces_quantity"]
-        )
-    );
-
-    const generalQuantity =
-        boxQuantity || otherQuantity
-            ? ""
-            : formatProjectQuantity(
-                configurationValue(
-                    configuration,
-                    ["quantity"]
-                ) || data.quantity
-            );
-
-    const dimensions = projectDimensions(
-        configuration
-    );
-
-    const colours = projectColours(
-        configuration
-    );
+    ];
 
     return emailShell(`
         <div style="text-align:center;padding:5px 0 2px;">
@@ -6991,39 +7041,7 @@ function buildCustomerEmail(data, reference) {
 
         ${referenceBlock(reference)}
 
-        ${section("Your request at a glance", [
-            row("Brand", data.brand_name),
-            row("Packaging system", packagingSystem),
-            row("Packaging pieces", packagingPieces),
-            row(
-                "Box style",
-                configurationValue(
-                    configuration,
-                    ["box_style"]
-                )
-            ),
-            row("Quantity", generalQuantity),
-            row("Box quantity", boxQuantity),
-            row(
-                "Other packaging quantity",
-                otherQuantity
-            ),
-            row("Finished dimensions", dimensions),
-            row("Preferred colours", colours),
-            row(
-                "Logo and artwork status",
-                configurationValue(
-                    configuration,
-                    ["artwork_status"]
-                ) || data.artwork_status
-            ),
-            row(
-                "Preferred contact",
-                preferredContactLabel(
-                    data.preferred_contact_method
-                )
-            )
-        ])}
+        ${section("Your request at a glance", requestRows)}
 
         <div style="margin:28px 0;padding:24px;background:#fff;border:1px solid #eadfd7;">
             <p style="margin:0 0 13px;font:600 11px Arial,sans-serif;letter-spacing:1.8px;text-transform:uppercase;color:#8d654d;">
@@ -7120,62 +7138,15 @@ function notesBlock(notes) {
 }
 
 function buildInternalText(data, reference) {
-    const configuration = parseProjectConfiguration(data);
+    const summary = projectEmailSummary(data);
+    const { configuration } = summary;
 
-    const packagingSystem =
-        configurationValue(
-            configuration,
-            ["system", "product_name"]
-        ) ||
-        text(data.submitted_packaging_system) ||
-        text(data.package_type);
-
-    const packagingPieces =
-        configurationValue(
-            configuration,
-            ["packaging_pieces"]
-        ) ||
-        displayList(
-            data.submitted_components ||
-            data.components,
-            "To be confirmed"
-        );
-
-    const boxQuantity = formatProjectQuantity(
-        configurationValue(
-            configuration,
-            ["box_quantity"]
-        )
+    const additionalProjects = parseAdditionalProjects(
+        configuration.additional_projects || data.additional_projects
     );
 
-    const otherQuantity = formatProjectQuantity(
-        configurationValue(
-            configuration,
-            ["other_pieces_quantity"]
-        )
-    );
-
-    const generalQuantity =
-        boxQuantity || otherQuantity
-            ? ""
-            : formatProjectQuantity(
-                configurationValue(
-                    configuration,
-                    ["quantity"]
-                ) || data.quantity
-            );
-
-    const additionalProjects =
-        parseAdditionalProjects(
-            configuration.additional_projects ||
-            data.additional_projects
-        );
-
-    const detailLines = projectPieceDetails(
-        configuration
-    ).map(
-        ([label, value]) =>
-            `${label}: ${value}`
+    const detailLines = projectPieceDetails(configuration).map(
+        ([label, value]) => `${label}: ${value}`
     );
 
     return [
@@ -7187,143 +7158,29 @@ function buildInternalText(data, reference) {
         `Brand: ${text(data.brand_name)}`,
         `Email: ${text(data.email)}`,
         `Phone: ${text(data.phone)}`,
-        `Preferred contact: ${
-            preferredContactLabel(
-                data.preferred_contact_method
-            )
-        }`,
-        `Instagram: ${
-            text(data.instagram_handle) ||
-            "Not supplied"
-        }`,
+        `Preferred contact: ${preferredContactLabel(data.preferred_contact_method)}`,
+        `Instagram: ${text(data.instagram_handle) || "Not supplied"}`,
         `Location: ${text(data.business_location)}`,
         "",
         "PACKAGING SYSTEM",
-        `System: ${packagingSystem}`,
-        `Project type: ${
-            configurationValue(
-                configuration,
-                ["project_type"]
-            ) || "Not supplied"
-        }`,
-        `Packaging pieces: ${packagingPieces}`,
-        `Box style: ${
-            configurationValue(
-                configuration,
-                ["box_style"]
-            ) || "Not supplied"
-        }`,
-        `Quantity: ${
-            generalQuantity || "Not applicable"
-        }`,
-        `Box quantity: ${
-            boxQuantity || "Not applicable"
-        }`,
-        `Other packaging quantity: ${
-            otherQuantity || "Not applicable"
-        }`,
+        ...projectPackagingTextLines(summary),
         ...detailLines,
         "",
         "SPECIFICATIONS AND BRANDING",
-        `Dimensions: ${
-            projectDimensions(configuration) ||
-            "Not supplied"
-        }`,
-        `Volumetric weight: ${
-            configurationValue(
-                configuration,
-                ["volumetric_weight_kg"]
-            )
-                ? `${configurationValue(
-                    configuration,
-                    ["volumetric_weight_kg"]
-                )} kg`
-                : "Not supplied"
-        }`,
-        `Preferred colours: ${
-            projectColours(configuration) ||
-            "Not supplied"
-        }`,
-        `Logo finish: ${
-            configurationValue(
-                configuration,
-                ["logo_finish"]
-            ) || "Not supplied"
-        }`,
-        `Artwork status: ${
-            configurationValue(
-                configuration,
-                ["artwork_status"]
-            ) ||
-            text(data.artwork_status) ||
-            "Not supplied"
-        }`,
-        `Accessories: ${
-            configurationValue(
-                configuration,
-                ["accessories"]
-            ) || "Not supplied"
-        }`,
+        `Finished dimensions: ${summary.dimensions || "Not supplied"}`,
+        `Volumetric weight: ${summary.weight ? `${summary.weight} kg` : "Not supplied"}`,
+        `Preferred colours: ${summary.colours || "Not supplied"}`,
+        `Logo finish: ${configurationValue(configuration, ["logo_finish"]) || "Not supplied"}`,
+        `Artwork status: ${configurationValue(configuration, ["artwork_status"]) || text(data.artwork_status) || "Not supplied"}`,
+        `Accessories: ${configurationValue(configuration, ["accessories"]) || "Not supplied"}`,
         "",
-        `Notes: ${
-            configurationValue(
-                configuration,
-                ["comments"]
-            ) ||
-            text(data.project_notes) ||
-            "None supplied"
-        }`,
-        ...additionalProjectsText(
-            additionalProjects
-        )
+        `Notes: ${configurationValue(configuration, ["comments"]) || text(data.project_notes) || "None supplied"}`,
+        ...additionalProjectsText(additionalProjects)
     ].join("\n");
 }
 
 function buildCustomerText(data, reference) {
-    const configuration = parseProjectConfiguration(data);
-
-    const packagingSystem =
-        configurationValue(
-            configuration,
-            ["system", "product_name"]
-        ) ||
-        text(data.submitted_packaging_system) ||
-        text(data.package_type);
-
-    const packagingPieces =
-        configurationValue(
-            configuration,
-            ["packaging_pieces"]
-        ) ||
-        displayList(
-            data.submitted_components ||
-            data.components,
-            "To be confirmed during review"
-        );
-
-    const boxQuantity = formatProjectQuantity(
-        configurationValue(
-            configuration,
-            ["box_quantity"]
-        )
-    );
-
-    const otherQuantity = formatProjectQuantity(
-        configurationValue(
-            configuration,
-            ["other_pieces_quantity"]
-        )
-    );
-
-    const generalQuantity =
-        boxQuantity || otherQuantity
-            ? ""
-            : formatProjectQuantity(
-                configurationValue(
-                    configuration,
-                    ["quantity"]
-                ) || data.quantity
-            );
+    const summary = projectEmailSummary(data);
 
     return [
         `Thank you, ${text(data.name)}.`,
@@ -7332,28 +7189,13 @@ function buildCustomerText(data, reference) {
         `Project reference: ${reference}`,
         "",
         `Brand: ${text(data.brand_name)}`,
-        `Packaging system: ${packagingSystem}`,
-        `Packaging pieces: ${packagingPieces}`,
-        `Box style: ${
-            configurationValue(
-                configuration,
-                ["box_style"]
-            ) || "Not supplied"
-        }`,
-        `Quantity: ${
-            generalQuantity || "Not applicable"
-        }`,
-        `Box quantity: ${
-            boxQuantity || "Not applicable"
-        }`,
-        `Other packaging quantity: ${
-            otherQuantity || "Not applicable"
-        }`,
-        `Preferred contact: ${
-            preferredContactLabel(
-                data.preferred_contact_method
-            )
-        }`,
+        ...projectPackagingTextLines(summary).map((line, index) => (
+            index === 0
+                ? line.replace(/^System:/, "Packaging system:")
+                : line
+        )),
+        `Finished dimensions: ${summary.dimensions || "Not supplied"}`,
+        `Preferred contact: ${preferredContactLabel(data.preferred_contact_method)}`,
         "",
         "We will review your submitted selections and contact you to confirm any details needed before preparing your quotation.",
         "",
