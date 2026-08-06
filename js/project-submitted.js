@@ -190,6 +190,14 @@ document.addEventListener("DOMContentLoaded", () => {
             data?.shopConfiguration ||
             {}
         );
+        const isBespoke =
+        (
+            project.packagingSystem ||
+            configuration.system ||
+            ""
+        )
+        .toLowerCase()
+        .includes("bespoke");
 
         setText("summaryBrand", customer.brandName);
         setText("summaryName", customer.fullName);
@@ -217,20 +225,8 @@ document.addEventListener("DOMContentLoaded", () => {
             configuration.system
         );
 
-        setOptionalText(
-            "summaryProjectTypeRow",
-            "summaryProjectType",
-            configuration.project_type
-        );
-
         const packagingPieces = splitList(
             configuration.packaging_pieces
-        );
-
-        setOptionalText(
-            "summaryPiecesRow",
-            "summaryPieces",
-            packagingPieces.join(", ")
         );
 
         setOptionalText(
@@ -252,19 +248,53 @@ document.addEventListener("DOMContentLoaded", () => {
                 : formatQuantity(configuration.quantity)
         );
 
-        setOptionalText(
-            "summaryBoxQuantityRow",
-            "summaryBoxQuantity",
-            formatQuantity(configuration.box_quantity)
-        );
+        if (isBespoke) {
 
-        setOptionalText(
-            "summaryOtherQuantityRow",
-            "summaryOtherQuantity",
-            formatQuantity(
-                configuration.other_pieces_quantity
-            )
-        );
+            setOptionalText(
+                "summaryProjectTypeRow",
+                "summaryProjectType",
+                configuration.project_type
+            );
+        
+            setOptionalText(
+                "summaryPiecesRow",
+                "summaryPieces",
+                packagingPieces.join(", ")
+            );
+        
+            setOptionalText(
+                "summaryBoxQuantityRow",
+                "summaryBoxQuantity",
+                formatQuantity(configuration.box_quantity)
+            );
+        
+            setOptionalText(
+                "summaryOtherQuantityRow",
+                "summaryOtherQuantity",
+                formatQuantity(
+                    configuration.other_pieces_quantity
+                )
+            );
+        
+        } else {
+        
+            document.getElementById(
+                "summaryProjectTypeRow"
+            ).hidden = true;
+        
+            document.getElementById(
+                "summaryPiecesRow"
+            ).hidden = true;
+        
+            document.getElementById(
+                "summaryBoxQuantityRow"
+            ).hidden = true;
+        
+            document.getElementById(
+                "summaryOtherQuantityRow"
+            ).hidden = true;
+        
+        }
 
         setOptionalText(
             "summaryDimensionsRow",
@@ -377,21 +407,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function dimensionsValue(configuration) {
-        const length = clean(
-            configuration.box_length_cm
-        );
-        const breadth = clean(
-            configuration.box_breadth_cm
-        );
-        const height = clean(
-            configuration.box_height_cm
-        );
 
-        if (!length || !breadth || !height) {
+        const length =
+            clean(
+                configuration.finished_length ??
+                configuration.box_length_cm ??
+                configuration.length
+            );
+    
+        const width =
+            clean(
+                configuration.finished_width ??
+                configuration.box_breadth_cm ??
+                configuration.width
+            );
+    
+        const height =
+            clean(
+                configuration.finished_height ??
+                configuration.box_height_cm ??
+                configuration.height
+            );
+    
+        if (!length || !width || !height) {
             return "";
         }
-
-        return `${length} × ${breadth} × ${height} cm`;
+    
+        return `${length} × ${width} × ${height} mm`;
     }
 
     function coloursValue(configuration) {
