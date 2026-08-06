@@ -1144,7 +1144,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 quantity: item.quantity,
                 unitPrice: 0,
                 requestedQuantity: item.quantity,
-                inheritedFromProject: true
+                inheritedFromProject: true,
+                sourcePath: item.sourcePath || ""
             });
         });
 
@@ -1212,11 +1213,40 @@ document.addEventListener("DOMContentLoaded", function () {
             const rawValue = clean(value);
             if (!rawValue) return fallback;
 
+            const candidates = [rawValue];
+
             try {
-                return JSON.parse(rawValue);
+                const decoded = decodeURIComponent(rawValue);
+
+                if (decoded !== rawValue) {
+                    candidates.push(decoded);
+                }
             } catch (_) {
-                return fallback;
+                // The value is not URL encoded.
             }
+
+            for (const candidate of candidates) {
+                try {
+                    let parsed = JSON.parse(candidate);
+
+                    /*
+                     * Some submissions contain JSON encoded twice.
+                     */
+                    if (typeof parsed === "string") {
+                        try {
+                            parsed = JSON.parse(parsed);
+                        } catch (_) {
+                            // Keep the first parsed value.
+                        }
+                    }
+
+                    return parsed;
+                } catch (_) {
+                    // Try the next representation.
+                }
+            }
+
+            return fallback;
         }
 
         function firstValue(object, keys) {
@@ -1236,14 +1266,48 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         function list(value) {
+            const normaliseEntry = entry => {
+                if (entry && typeof entry === "object") {
+                    return clean(
+                        firstValue(entry, [
+                            "value",
+                            "name",
+                            "label",
+                            "title",
+                            "piece",
+                            "item",
+                            "description"
+                        ])
+                    );
+                }
+
+                return clean(entry);
+            };
+
             if (Array.isArray(value)) {
-                return value.map(clean).filter(Boolean);
+                return value.map(normaliseEntry).filter(Boolean);
             }
 
             const parsed = parseJsonValue(value, null);
 
             if (Array.isArray(parsed)) {
-                return parsed.map(clean).filter(Boolean);
+                return parsed.map(normaliseEntry).filter(Boolean);
+            }
+
+            if (parsed && typeof parsed === "object") {
+                return Object.entries(parsed)
+                    .filter(function ([, selected]) {
+                        return (
+                            selected === true ||
+                            selected === 1 ||
+                            selected === "1" ||
+                            String(selected).toLowerCase() === "yes"
+                        );
+                    })
+                    .map(function ([key]) {
+                        return clean(key);
+                    })
+                    .filter(Boolean);
             }
 
             return clean(value)
@@ -1273,14 +1337,21 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         function configurationFromPayload(source) {
+            const root =
+                source && typeof source === "object" && !Array.isArray(source)
+                    ? source
+                    : {};
+
             const candidates = [
-                source?.shop_configuration,
-                source?.shopConfiguration,
-                source?.configuration,
-                source?.project_configuration,
-                source?.projectConfiguration,
-                source?.project?.configuration
+                root.shop_configuration,
+                root.shopConfiguration,
+                root.configuration,
+                root.project_configuration,
+                root.projectConfiguration,
+                root.project?.configuration
             ];
+
+            let nestedConfiguration = {};
 
             for (const candidate of candidates) {
                 const parsed = parseJsonValue(candidate, null);
@@ -1290,11 +1361,45 @@ document.addEventListener("DOMContentLoaded", function () {
                     typeof parsed === "object" &&
                     !Array.isArray(parsed)
                 ) {
-                    return parsed;
+                    nestedConfiguration = parsed;
+                    break;
                 }
             }
 
-            return source && typeof source === "object" ? source : {};
+            /*
+             * Project submissions contain a mixture of:
+             *   - normal keys: packaging_pieces
+             *   - shop-prefixed keys: shop_packaging_pieces
+             *   - a serialized shop_configuration object
+             *
+             * Previously, returning only shop_configuration discarded
+             * top-level accessories and additional projects. Bespoke quotes
+             * therefore imported only part of the customer's selection.
+             */
+            const merged = {
+                ...root,
+                ...nestedConfiguration
+            };
+
+            /*
+             * Create unprefixed aliases for every shop_* field. Existing
+             * unprefixed fields remain authoritative when both are present.
+             */
+            Object.entries(merged).forEach(function ([key, value]) {
+                if (!key.startsWith("shop_")) return;
+
+                const unprefixedKey = key.slice(5);
+
+                if (
+                    merged[unprefixedKey] === undefined ||
+                    merged[unprefixedKey] === null ||
+                    clean(merged[unprefixedKey]) === ""
+                ) {
+                    merged[unprefixedKey] = value;
+                }
+            });
+
+            return merged;
         }
 
         function pieceName(piece) {
@@ -1308,6 +1413,14 @@ document.addEventListener("DOMContentLoaded", function () {
             if (/envelope/.test(normalised)) return "Envelope";
             if (/ribbon/.test(normalised)) return "Branded ribbon";
             if (/shopping\s*bag|paper\s*bag|bag/.test(normalised)) return "Shopping bag";
+            if (/product\s*(description|care)\s*card/.test(normalised)) {
+                return "Product description card";
+            }
+            if (/pull\s*tab/.test(normalised)) return "Pull tab";
+            if (/ribbon\s*handle/.test(normalised)) {
+                return "Ribbon handle with eyelets";
+            }
+            if (/insert/.test(normalised)) return "Product insert";
 
             return title(piece);
         }
@@ -1323,7 +1436,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     "submitted_packaging_system",
                     "packaging_system",
                     "packagingSystem",
-                    "tier"
+                    "tier",
+                    "shop_system",
+                    "shop_product",
+                    "shop_product_name"
                 ])
             );
         }
@@ -1334,7 +1450,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const projectType = clean(
                 firstValue(configuration, [
                     "project_type",
-                    "projectType"
+                    "projectType",
+                    "shop_project_type"
                 ])
             ).toLowerCase();
 
@@ -1382,7 +1499,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Branded tissue": ["tissue_style", "tissueStyle"],
                 "Envelope": ["envelope_style", "envelopeStyle"],
                 "Branded ribbon": ["ribbon_style", "ribbonStyle"],
-                "Shopping bag": ["bag_style", "bagStyle"]
+                "Shopping bag": ["bag_style", "bagStyle"],
+                "Product description card": [
+                    "product_description_card",
+                    "productDescriptionCard"
+                ],
+                "Product insert": ["insert_style", "insertStyle"],
+                "Ribbon handle with eyelets": [
+                    "ribbon_handle",
+                    "ribbonHandle"
+                ],
+                "Pull tab": ["pull_tab", "pullTab"]
             };
 
             const style = firstValue(
@@ -1416,17 +1543,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const length = firstValue(
                 configuration,
-                ["box_length_cm", "boxLength", "length"]
+                [
+                    "box_length_cm",
+                    "boxLength",
+                    "box_length",
+                    "boxLengthDisplay",
+                    "length"
+                ]
             );
 
             const breadth = firstValue(
                 configuration,
-                ["box_breadth_cm", "boxBreadth", "breadth", "width"]
+                [
+                    "box_breadth_cm",
+                    "boxBreadth",
+                    "box_breadth",
+                    "boxBreadthDisplay",
+                    "breadth",
+                    "width"
+                ]
             );
 
             const height = firstValue(
                 configuration,
-                ["box_height_cm", "boxHeight", "height"]
+                [
+                    "box_height_cm",
+                    "boxHeight",
+                    "box_height",
+                    "boxHeightDisplay",
+                    "height"
+                ]
             );
 
             if (length && breadth && height) {
@@ -1463,7 +1609,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     "packaging_pieces",
                     "packagingPieces",
                     "submitted_components",
-                    "components"
+                    "components",
+                    "shop_packaging_pieces"
                 ])
             );
 
@@ -1489,7 +1636,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     "additionalAccessories",
                     "extras",
                     "selected_extras",
-                    "selectedExtras"
+                    "selectedExtras",
+                    "shop_accessories"
                 ])
             ).map(pieceName);
         }
@@ -1518,7 +1666,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     "requested_quantity",
                     "requestedQuantity",
                     "box_quantity",
-                    "boxQuantity"
+                    "boxQuantity",
+                    "shop_quantity",
+                    "shop_box_quantity"
                 ]
             );
 
@@ -1545,7 +1695,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     "packaging_pieces",
                     "packagingPieces",
                     "submitted_components",
-                    "components"
+                    "components",
+                    "shop_packaging_pieces"
                 ])
             );
 
@@ -1584,7 +1735,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const boxQuantity = firstValue(
                 configuration,
-                ["box_quantity", "boxQuantity"]
+                [
+                    "box_quantity",
+                    "boxQuantity",
+                    "shop_box_quantity"
+                ]
             ) || generalQuantity;
 
             const otherQuantity = firstValue(
@@ -1593,7 +1748,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     "other_pieces_quantity",
                     "otherPiecesQuantity",
                     "other_quantity",
-                    "otherQuantity"
+                    "otherQuantity",
+                    "shop_other_pieces_quantity"
                 ]
             ) || generalQuantity;
 
@@ -1627,27 +1783,38 @@ document.addEventListener("DOMContentLoaded", function () {
             const additionalProjects = parseJsonValue(
                 firstValue(configuration, [
                     "additional_projects",
-                    "additionalProjects"
+                    "additionalProjects",
+                    "shop_additional_projects"
                 ]),
                 []
             );
 
-            if (Array.isArray(additionalProjects)) {
-                additionalProjects.forEach(function (project, index) {
-                    if (!project || typeof project !== "object") return;
+            const additionalProjectList = Array.isArray(additionalProjects)
+                ? additionalProjects
+                : (
+                    additionalProjects &&
+                    typeof additionalProjects === "object"
+                        ? [additionalProjects]
+                        : []
+                );
 
-                    const projectName = clean(
-                        firstValue(project, [
-                            "brand_name",
-                            "brandName",
-                            "project_name",
-                            "projectName"
-                        ])
-                    ) || `Additional project ${index + 1}`;
+            additionalProjectList.forEach(function (project, index) {
+                if (!project || typeof project !== "object") return;
 
-                    importBespoke(project, projectName);
-                });
-            }
+                const projectConfiguration = configurationFromPayload(project);
+                const projectName = clean(
+                    firstValue(projectConfiguration, [
+                        "brand_name",
+                        "brandName",
+                        "project_name",
+                        "projectName",
+                        "name",
+                        "title"
+                    ])
+                ) || `Additional project ${index + 1}`;
+
+                importBespoke(projectConfiguration, projectName);
+            });
         }
 
         const source = normaliseSubmissionPayload(payload);
@@ -1851,6 +2018,7 @@ document.addEventListener("DOMContentLoaded", function () {
         wrapper.className = "crm-quote-item";
         wrapper.dataset.requestedQuantity = item.requestedQuantity ?? "";
         wrapper.dataset.inheritedFromProject = item.inheritedFromProject ? "true" : "false";
+        wrapper.dataset.sourcePath = item.sourcePath || "";
 
         wrapper.innerHTML = `
             <label>

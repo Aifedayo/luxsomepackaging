@@ -1447,50 +1447,111 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         /*
-         * The file input sits inside the clickable dropzone.
-         * A programmatic fileInput.click() also bubbles a click back to the
-         * dropzone, which can reopen the picker and prevent the chosen file
-         * list from appearing correctly. Ignore clicks originating from the
-         * input and stop its click event from bubbling.
+         * FILE PICKER + DRAG AND DROP
+         *
+         * Keep the native input for accessibility, but handle all drag events
+         * from the dropzone itself. A small drag-depth counter prevents the
+         * highlight from flickering when the pointer moves over child elements
+         * inside the dropzone.
          */
+        let artworkDragDepth = 0;
+
+        const preventArtworkDragDefaults = event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = 'copy';
+            }
+        };
+
         fileInput?.addEventListener('click', event => {
             event.stopPropagation();
         });
 
         dropzone?.addEventListener('click', event => {
-            if (event.target === fileInput) return;
-            fileInput?.click();
+            if (
+                event.target === fileInput ||
+                event.target.closest('button, a')
+            ) {
+                return;
+            }
+
+            if (!fileInput?.disabled) {
+                fileInput?.click();
+            }
         });
 
         dropzone?.addEventListener('keydown', event => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
 
             event.preventDefault();
-            fileInput?.click();
+
+            if (!fileInput?.disabled) {
+                fileInput?.click();
+            }
         });
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone?.addEventListener(eventName, event => {
-                event.preventDefault();
-                dropzone.classList.add('is-dragging');
-            });
+        dropzone?.addEventListener('dragenter', event => {
+            preventArtworkDragDefaults(event);
+            artworkDragDepth += 1;
+            dropzone.classList.add('is-dragging');
         });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropzone?.addEventListener(eventName, event => {
-                event.preventDefault();
+        dropzone?.addEventListener('dragover', event => {
+            preventArtworkDragDefaults(event);
+            dropzone.classList.add('is-dragging');
+        });
+
+        dropzone?.addEventListener('dragleave', event => {
+            preventArtworkDragDefaults(event);
+            artworkDragDepth = Math.max(0, artworkDragDepth - 1);
+
+            if (artworkDragDepth === 0) {
                 dropzone.classList.remove('is-dragging');
-            });
+            }
         });
 
         dropzone?.addEventListener('drop', event => {
-            chooseFiles(event.dataTransfer?.files || []);
+            preventArtworkDragDefaults(event);
+
+            artworkDragDepth = 0;
+            dropzone.classList.remove('is-dragging');
+
+            const droppedFiles = Array.from(
+                event.dataTransfer?.files || []
+            );
+
+            if (!droppedFiles.length) {
+                setStatus(
+                    'No files were detected in the drop.',
+                    0,
+                    true
+                );
+                return;
+            }
+
+            chooseFiles(droppedFiles);
+        });
+
+        /*
+         * Prevent the browser from opening a dropped file when it is released
+         * just outside the dropzone.
+         */
+        ['dragenter', 'dragover', 'drop'].forEach(eventName => {
+            document.addEventListener(eventName, event => {
+                if (!dropzone?.contains(event.target)) {
+                    event.preventDefault();
+                }
+            });
         });
 
         fileInput?.addEventListener('change', event => {
-            const selectedFiles = event.currentTarget.files;
+            const selectedFiles = Array.from(
+                event.currentTarget.files || []
+            );
 
-            if (!selectedFiles?.length) {
+            if (!selectedFiles.length) {
                 return;
             }
 
