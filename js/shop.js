@@ -2003,7 +2003,7 @@ document.addEventListener('DOMContentLoaded', () => {
             '/assets/images/catalogue-preview/standard-sticker-seal.webp',
 
         'Custom die-cut sticker':
-            '/assets/images/catalogue-preview/branded-sticker.webp',
+            '/assets/images/catalogue-preview/branded-sticker.webp'
     };
 
     const DEFAULT_VISUAL_FALLBACK =
