@@ -735,6 +735,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const specificationRows = [
             ["Quantity", unitValue("quantity", "pieces")],
             ["Finished dimensions", dimensionsValue()],
+            ["Measurement unit", dimensionUnitLabel()],
             ["Volumetric weight", unitValue("volumetric_weight_kg", "kg")],
             ["Primary colour", colourValue()],
             ["Secondary colour", labelValue("secondary_colour")],
@@ -1185,13 +1186,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function dimensionsValue() {
-        const length = labelValue("box_length_cm");
-        const breadth = labelValue("box_breadth_cm");
-        const height = labelValue("box_height_cm");
+        /*
+         * Prefer the exact values and unit selected by the customer on the
+         * product page. The hidden centimetre values remain only as a
+         * fallback for older saved configurations.
+         */
+        const selectedUnit = labelValue("dimension_unit")
+            .toLowerCase();
 
-        if (!length && !breadth && !height) return "";
+        const unit =
+            selectedUnit === "cm" || selectedUnit === "in"
+                ? selectedUnit
+                : "cm";
 
-        return `${length || "—"} × ${breadth || "—"} × ${height || "—"} cm`;
+        const length =
+            labelValue("box_length") ||
+            labelValue("box_length_cm");
+
+        const breadth =
+            labelValue("box_breadth") ||
+            labelValue("box_breadth_cm");
+
+        const height =
+            labelValue("box_height") ||
+            labelValue("box_height_cm");
+
+        if (!length && !breadth && !height) {
+            return "";
+        }
+
+        const unitLabel = unit === "in"
+            ? "inches"
+            : "cm";
+
+        return `${length || "—"} × ${breadth || "—"} × ${height || "—"} ${unitLabel}`;
+    }
+
+    function dimensionUnitLabel() {
+        const unit = labelValue("dimension_unit").toLowerCase();
+
+        if (unit === "in") {
+            return "Inches";
+        }
+
+        if (unit === "cm") {
+            return "Centimetres";
+        }
+
+        /*
+         * Older saved configurations used only converted centimetre values
+         * and did not include a dimension_unit field.
+         */
+        if (
+            labelValue("box_length_cm") ||
+            labelValue("box_breadth_cm") ||
+            labelValue("box_height_cm")
+        ) {
+            return "Centimetres";
+        }
+
+        return "";
     }
 
     function colourValue() {

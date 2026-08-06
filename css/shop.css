@@ -4885,3 +4885,78 @@ body.option-visual-open {
     object-fit:cover;
     flex-shrink:0;
 }
+
+/* =========================================================
+   PRODUCT GALLERY — MOBILE NORMAL DOCUMENT FLOW
+   The gallery scrolls naturally with the rest of the page.
+========================================================= */
+
+@media (max-width: 980px) {
+    .product-detail__grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 26px;
+        align-items: start;
+    }
+
+    .product-gallery,
+    .product-gallery.product-gallery--mobile-released {
+        position: relative !important;
+        inset: auto !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+
+        z-index: 1 !important;
+
+        width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+
+        transform: none !important;
+    }
+
+    .product-gallery__sticky,
+    .product-gallery.product-gallery--mobile-released
+        .product-gallery__sticky {
+        position: relative !important;
+        inset: auto !important;
+        top: auto !important;
+
+        display: block;
+        width: 100%;
+
+        padding: 0 !important;
+        transform: none !important;
+    }
+
+    .product-gallery__main {
+        width: 100%;
+        aspect-ratio: 4 / 4.7;
+    }
+
+    .product-gallery__thumbs {
+        position: static !important;
+        width: 100%;
+    }
+}
+
+@media (max-width: 620px) {
+    .product-detail__grid {
+        gap: 20px;
+    }
+
+    .product-gallery,
+    .product-gallery__sticky {
+        position: relative !important;
+        top: auto !important;
+    }
+}
