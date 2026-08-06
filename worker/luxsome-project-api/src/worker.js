@@ -943,32 +943,72 @@ async function handleAdminArtworkFile(
             ? "inline"
             : "attachment";
 
-    const headers = new Headers();
-    object.writeHttpMetadata(headers);
+            const headers = new Headers();
 
-    headers.set(
-        "Content-Type",
-        headers.get("Content-Type") ||
-        artworkContentTypeFromExtension(extension)
-    );
-    headers.set(
-        "Content-Disposition",
-        `${disposition}; filename*=UTF-8''${encodeURIComponent(originalName)}`
-    );
-    headers.set("Cache-Control", "private, max-age=60");
-    headers.set("X-Content-Type-Options", "nosniff");
-
-    if (disposition === "inline") {
-        headers.set(
-            "Content-Security-Policy",
-            "default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; sandbox"
-        );
-    }
-
-    return new Response(object.body, {
-        status: 200,
-        headers
-    });
+            /*
+             * Copy the content metadata saved with the R2 object.
+             */
+            object.writeHttpMetadata(headers);
+            
+            /*
+             * Add CORS headers because this is a raw file response.
+             * jsonResponse() normally does this for JSON responses,
+             * but this endpoint returns the R2 object body directly.
+             */
+            const responseCorsHeaders = corsHeaders(
+                request.headers.get("Origin")
+            );
+            
+            Object.entries(responseCorsHeaders).forEach(
+                ([headerName, headerValue]) => {
+                    headers.set(headerName, headerValue);
+                }
+            );
+            
+            /*
+             * Allow the browser to read download-related headers.
+             */
+            headers.set(
+                "Access-Control-Expose-Headers",
+                "Content-Disposition, Content-Length, Content-Type"
+            );
+            
+            headers.set(
+                "Content-Type",
+                headers.get("Content-Type") ||
+                artworkContentTypeFromExtension(extension)
+            );
+            
+            headers.set(
+                "Content-Disposition",
+                `${disposition}; filename*=UTF-8''${encodeURIComponent(originalName)}`
+            );
+            
+            headers.set(
+                "Cache-Control",
+                "private, max-age=60"
+            );
+            
+            headers.set(
+                "X-Content-Type-Options",
+                "nosniff"
+            );
+            
+            if (disposition === "inline") {
+                headers.set(
+                    "Content-Security-Policy",
+                    "default-src 'none'; img-src 'self' data: blob:; " +
+                    "style-src 'unsafe-inline'; sandbox"
+                );
+            }
+            
+            return new Response(
+                object.body,
+                {
+                    status: 200,
+                    headers
+                }
+            );
 }
 
 async function handleAdminArtworkReviewUpdate(
