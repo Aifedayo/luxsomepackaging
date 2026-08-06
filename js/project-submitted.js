@@ -185,24 +185,31 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderProjectSummary(data) {
         const customer = data?.customer || {};
         const project = data?.project || {};
+
         const configuration = normaliseConfiguration(
             project.configuration ||
             data?.shopConfiguration ||
             {}
         );
-        const isBespoke =
-        (
+
+        const systemValue = clean(
             project.packagingSystem ||
             configuration.system ||
-            ""
-        )
-        .toLowerCase()
-        .includes("bespoke");
+            configuration.packaging_system ||
+            configuration.product ||
+            configuration.product_slug
+        );
+
+        const isBespoke = isBespokeSystem(
+            systemValue,
+            configuration
+        );
 
         setText("summaryBrand", customer.brandName);
         setText("summaryName", customer.fullName);
         setText("summaryEmail", customer.email);
         setText("summaryPhone", customer.phone);
+
         setText(
             "summaryContact",
             contactMethodLabel(
@@ -211,6 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 configuration.preferred_contact_method
             )
         );
+
         setText("summaryLocation", customer.location);
 
         setOptionalText(
@@ -221,12 +229,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setText(
             "summarySystem",
-            project.packagingSystem ||
-            configuration.system
+            systemValue
         );
 
+        /*
+         * These rows belong only to the Bespoke configurator.
+         * They are hidden explicitly for every preset tier, even when
+         * stale values remain in localStorage from an earlier project.
+         */
         const packagingPieces = splitList(
             configuration.packaging_pieces
+        );
+
+        setOptionalText(
+            "summaryProjectTypeRow",
+            "summaryProjectType",
+            isBespoke
+                ? configuration.project_type
+                : ""
+        );
+
+        setOptionalText(
+            "summaryPiecesRow",
+            "summaryPieces",
+            isBespoke
+                ? packagingPieces.join(", ")
+                : ""
+        );
+
+        setOptionalText(
+            "summaryBoxQuantityRow",
+            "summaryBoxQuantity",
+            isBespoke
+                ? formatQuantity(configuration.box_quantity)
+                : ""
+        );
+
+        setOptionalText(
+            "summaryOtherQuantityRow",
+            "summaryOtherQuantity",
+            isBespoke
+                ? formatQuantity(
+                    configuration.other_pieces_quantity
+                )
+                : ""
         );
 
         setOptionalText(
@@ -235,66 +281,24 @@ document.addEventListener("DOMContentLoaded", () => {
             configuration.box_style
         );
 
-        const hasSplitQuantities = Boolean(
-            clean(configuration.box_quantity) ||
-            clean(configuration.other_pieces_quantity)
-        );
+        /*
+         * Preset tiers always use the standard quantity.
+         * Bespoke projects may use separate box and other-piece quantities.
+         */
+        const standardQuantity = isBespoke
+            ? (
+                clean(configuration.box_quantity) ||
+                clean(configuration.other_pieces_quantity)
+                    ? ""
+                    : formatQuantity(configuration.quantity)
+            )
+            : formatQuantity(configuration.quantity);
 
         setOptionalText(
             "summaryQuantityRow",
             "summaryQuantity",
-            hasSplitQuantities
-                ? ""
-                : formatQuantity(configuration.quantity)
+            standardQuantity
         );
-
-        if (isBespoke) {
-
-            setOptionalText(
-                "summaryProjectTypeRow",
-                "summaryProjectType",
-                configuration.project_type
-            );
-        
-            setOptionalText(
-                "summaryPiecesRow",
-                "summaryPieces",
-                packagingPieces.join(", ")
-            );
-        
-            setOptionalText(
-                "summaryBoxQuantityRow",
-                "summaryBoxQuantity",
-                formatQuantity(configuration.box_quantity)
-            );
-        
-            setOptionalText(
-                "summaryOtherQuantityRow",
-                "summaryOtherQuantity",
-                formatQuantity(
-                    configuration.other_pieces_quantity
-                )
-            );
-        
-        } else {
-        
-            document.getElementById(
-                "summaryProjectTypeRow"
-            ).hidden = true;
-        
-            document.getElementById(
-                "summaryPiecesRow"
-            ).hidden = true;
-        
-            document.getElementById(
-                "summaryBoxQuantityRow"
-            ).hidden = true;
-        
-            document.getElementById(
-                "summaryOtherQuantityRow"
-            ).hidden = true;
-        
-        }
 
         setOptionalText(
             "summaryDimensionsRow",
@@ -306,7 +310,8 @@ document.addEventListener("DOMContentLoaded", () => {
             "summaryWeightRow",
             "summaryWeight",
             unitValue(
-                configuration.volumetric_weight_kg,
+                configuration.volumetric_weight_kg ||
+                configuration.volumetric_weight,
                 "kg"
             )
         );
@@ -342,11 +347,34 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         renderSelectedDetails(configuration);
+
         renderAdditionalProjects(
             parseAdditionalProjects(
                 configuration.additional_projects
             )
         );
+    }
+
+    function isBespokeSystem(systemValue, configuration) {
+        const candidates = [
+            systemValue,
+            configuration.system,
+            configuration.packaging_system,
+            configuration.project_type,
+            configuration.product,
+            configuration.product_slug,
+            configuration.route,
+            configuration.page
+        ]
+            .map(value => clean(value).toLowerCase())
+            .filter(Boolean);
+
+        return candidates.some(value => (
+            value === "bespoke" ||
+            value.includes("bespoke packaging") ||
+            value.includes("/shop/bespoke") ||
+            value.includes("shop/bespoke")
+        ));
     }
 
     function normaliseConfiguration(value) {
@@ -407,33 +435,59 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function dimensionsValue(configuration) {
+        const length = firstValue(
+            configuration.finished_length,
+            configuration.box_length_cm,
+            configuration.box_length,
+            configuration.length
+        );
 
-        const length =
-            clean(
-                configuration.finished_length ??
-                configuration.box_length_cm ??
-                configuration.length
-            );
-    
-        const width =
-            clean(
-                configuration.finished_width ??
-                configuration.box_breadth_cm ??
-                configuration.width
-            );
-    
-        const height =
-            clean(
-                configuration.finished_height ??
-                configuration.box_height_cm ??
-                configuration.height
-            );
-    
-        if (!length || !width || !height) {
+        const breadth = firstValue(
+            configuration.finished_breadth,
+            configuration.finished_width,
+            configuration.box_breadth_cm,
+            configuration.box_breadth,
+            configuration.width,
+            configuration.breadth
+        );
+
+        const height = firstValue(
+            configuration.finished_height,
+            configuration.box_height_cm,
+            configuration.box_height,
+            configuration.height
+        );
+
+        if (!length || !breadth || !height) {
             return "";
         }
-    
-        return `${length} × ${width} × ${height} mm`;
+
+        const unit = firstValue(
+            configuration.dimension_unit,
+            configuration.dimensions_unit,
+            "cm"
+        );
+
+        return [
+            stripDimensionUnit(length),
+            stripDimensionUnit(breadth),
+            stripDimensionUnit(height)
+        ].join(" × ") + ` ${unit}`;
+    }
+
+    function firstValue(...values) {
+        return values
+            .map(clean)
+            .find(Boolean) || "";
+    }
+
+    function stripDimensionUnit(value) {
+        return clean(value)
+            .replace(
+                /\s*(millimetres?|millimeters?|centimetres?|centimeters?|mm|cm)\s*$/i,
+                ""
+            )
+            .trim();
     }
 
     function coloursValue(configuration) {
@@ -484,14 +538,32 @@ document.addEventListener("DOMContentLoaded", () => {
         const element = document.getElementById(
             elementId
         );
+
         const displayValue = clean(value);
 
         if (!row || !element) return;
 
-        row.hidden = !displayValue;
+        const shouldShow = Boolean(displayValue);
 
-        if (displayValue) {
+        row.hidden = !shouldShow;
+        row.setAttribute(
+            "aria-hidden",
+            String(!shouldShow)
+        );
+
+        /*
+         * Some existing page CSS assigns display:grid directly to
+         * .project-summary-row. Explicitly setting display prevents that
+         * rule from overriding the HTML hidden attribute.
+         */
+        row.style.display = shouldShow
+            ? ""
+            : "none";
+
+        if (shouldShow) {
             element.textContent = displayValue;
+        } else {
+            element.textContent = "—";
         }
     }
 
