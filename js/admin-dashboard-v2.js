@@ -12,7 +12,10 @@ document.addEventListener("DOMContentLoaded", function () {
         total: 0,
         selectedReference: "",
         selectedSubmission: null,
-        selectedQuotation: null
+        selectedQuotation: null,
+        artworkFiles: [],
+        selectedArtwork: null,
+        artworkObjectUrls: []
     };
 
     if (!state.token) {
@@ -44,6 +47,23 @@ document.addEventListener("DOMContentLoaded", function () {
         detailStatus: document.getElementById("detailStatus"),
         detailCreateQuoteButton: document.getElementById("detailCreateQuoteButton"),
         payloadList: document.getElementById("payloadList"),
+        artworkSection: document.getElementById("artworkSection"),
+        artworkGrid: document.getElementById("artworkGrid"),
+        artworkCount: document.getElementById("artworkCount"),
+        artworkStatus: document.getElementById("artworkStatus"),
+        artworkEmpty: document.getElementById("artworkEmpty"),
+        artworkReviewForm: document.getElementById("artworkReviewForm"),
+        artworkReviewStatus: document.getElementById("artworkReviewStatus"),
+        artworkReviewedBy: document.getElementById("artworkReviewedBy"),
+        artworkReviewNotes: document.getElementById("artworkReviewNotes"),
+        artworkReviewMessage: document.getElementById("artworkReviewMessage"),
+        saveArtworkReviewButton: document.getElementById("saveArtworkReviewButton"),
+        artworkPreviewBackdrop: document.getElementById("artworkPreviewBackdrop"),
+        artworkPreviewModal: document.getElementById("artworkPreviewModal"),
+        artworkPreviewTitle: document.getElementById("artworkPreviewTitle"),
+        artworkPreviewBody: document.getElementById("artworkPreviewBody"),
+        closeArtworkPreviewButton: document.getElementById("closeArtworkPreviewButton"),
+        downloadPreviewArtworkButton: document.getElementById("downloadPreviewArtworkButton"),
         quotationBackdrop: document.getElementById("quotationBackdrop"),
         quotationBuilder: document.getElementById("quotationBuilder"),
         quotationForm: document.getElementById("quotationForm"),
@@ -150,6 +170,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.closeDetailButton.addEventListener("click", closeDetail);
     elements.detailBackdrop.addEventListener("click", closeDetail);
+
+    elements.artworkGrid?.addEventListener("click", handleArtworkGridClick);
+    elements.artworkReviewForm?.addEventListener("submit", saveArtworkReview);
+    elements.closeArtworkPreviewButton?.addEventListener(
+        "click",
+        closeArtworkPreview
+    );
+    elements.artworkPreviewBackdrop?.addEventListener(
+        "click",
+        closeArtworkPreview
+    );
+    elements.downloadPreviewArtworkButton?.addEventListener(
+        "click",
+        function () {
+            if (state.selectedArtwork) {
+                downloadArtwork(state.selectedArtwork);
+            }
+        }
+    );
 
     elements.detailStatus.addEventListener("change", async function () {
         if (!state.selectedReference) return;
@@ -281,7 +320,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("keydown", function (event) {
         if (event.key !== "Escape") return;
 
-        if (elements.sendQuotationModal.classList.contains("is-open")) {
+        if (elements.artworkPreviewModal?.classList.contains("is-open")) {
+            closeArtworkPreview();
+        } else if (elements.sendQuotationModal.classList.contains("is-open")) {
             closeSendQuotationModal();
         } else if (elements.quotationPreviewModal.classList.contains("is-open")) {
             closeQuotationPreview();
@@ -594,6 +635,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             elements.detailStatus.value = submission.status;
             renderPayload(submission.payload || {});
+            await loadSubmissionArtwork(submission);
 
             elements.detailBackdrop.hidden = false;
             elements.detailPanel.classList.add("is-open");
@@ -616,6 +658,11 @@ document.addEventListener("DOMContentLoaded", function () {
             .filter(function ([key, value]) {
                 return (
                     !key.startsWith("_") &&
+                    ![
+                        "artwork_upload_id",
+                        "artwork_object_keys",
+                        "artwork_uploaded"
+                    ].includes(key) &&
                     value !== "" &&
                     value !== null &&
                     value !== undefined
@@ -634,13 +681,379 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
+
+    async function loadSubmissionArtwork(submission) {
+        if (!elements.artworkSection) return;
+
+        const isProject = submission.submission_type === "project";
+        elements.artworkSection.hidden = !isProject;
+
+        if (!isProject) {
+            return;
+        }
+
+        revokeArtworkObjectUrls();
+        state.artworkFiles = [];
+        state.selectedArtwork = null;
+
+        elements.artworkGrid.replaceChildren();
+        elements.artworkEmpty.hidden = true;
+        elements.artworkStatus.textContent = "Loading artwork files...";
+        elements.artworkCount.textContent = "0 files";
+        elements.artworkReviewMessage.textContent = "";
+
+        try {
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(
+                    submission.reference
+                )}/artwork`
+            );
+
+            state.artworkFiles = Array.isArray(data.files)
+                ? data.files
+                : [];
+
+            renderArtworkFiles(state.artworkFiles);
+            renderArtworkReview(data.review || {});
+            elements.artworkStatus.textContent = "";
+        } catch (error) {
+            elements.artworkStatus.textContent =
+                error.message || "Artwork files could not be loaded.";
+            elements.artworkStatus.classList.add("is-error");
+            elements.artworkEmpty.hidden = false;
+        }
+    }
+
+    function renderArtworkFiles(files) {
+        elements.artworkGrid.replaceChildren();
+
+        const count = files.length;
+        elements.artworkCount.textContent =
+            `${count} ${count === 1 ? "file" : "files"}`;
+        elements.artworkEmpty.hidden = count > 0;
+
+        if (!count) {
+            return;
+        }
+
+        files.forEach(function (file) {
+            const card = document.createElement("article");
+            card.className = "crm-artwork-card";
+
+            const previewable = Boolean(file.previewable);
+            const typeLabel =
+                file.extension
+                    ? file.extension.toUpperCase()
+                    : "FILE";
+
+            card.innerHTML = `
+                <div class="crm-artwork-card__preview" data-artwork-preview-area>
+                    <span class="crm-artwork-card__type">
+                        ${escapeHtml(typeLabel)}
+                    </span>
+                    <span class="crm-artwork-card__icon" aria-hidden="true">
+                        ${escapeHtml(artworkTypeIcon(file.extension))}
+                    </span>
+                </div>
+
+                <div class="crm-artwork-card__content">
+                    <strong title="${escapeHtml(file.name)}">
+                        ${escapeHtml(file.name)}
+                    </strong>
+
+                    <p>
+                        ${escapeHtml(formatFileSize(file.size))}
+                        ${file.uploadedAt
+                            ? ` · ${escapeHtml(formatDate(file.uploadedAt))}`
+                            : ""}
+                    </p>
+
+                    <div class="crm-artwork-card__actions">
+                        ${previewable
+                            ? `<button
+                                    type="button"
+                                    data-artwork-action="preview"
+                                    data-artwork-key="${escapeHtml(file.key)}"
+                               >
+                                    Preview
+                               </button>`
+                            : ""}
+
+                        <button
+                            type="button"
+                            data-artwork-action="download"
+                            data-artwork-key="${escapeHtml(file.key)}"
+                        >
+                            Download
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            elements.artworkGrid.appendChild(card);
+
+            if (file.thumbnailable) {
+                loadArtworkThumbnail(
+                    file,
+                    card.querySelector("[data-artwork-preview-area]")
+                );
+            }
+        });
+    }
+
+    function renderArtworkReview(review) {
+        elements.artworkReviewStatus.value =
+            review.status || "pending_review";
+        elements.artworkReviewedBy.value =
+            review.reviewedBy || "";
+        elements.artworkReviewNotes.value =
+            review.notes || "";
+    }
+
+    async function loadArtworkThumbnail(file, container) {
+        try {
+            const blob = await fetchArtworkBlob(file, "inline");
+            const objectUrl = URL.createObjectURL(blob);
+            state.artworkObjectUrls.push(objectUrl);
+
+            const image = document.createElement("img");
+            image.src = objectUrl;
+            image.alt = "";
+            image.loading = "lazy";
+
+            container.replaceChildren(image);
+        } catch (_) {
+            // Keep the file-type placeholder when a thumbnail cannot load.
+        }
+    }
+
+    function handleArtworkGridClick(event) {
+        const button = event.target.closest("[data-artwork-action]");
+        if (!button) return;
+
+        const file = state.artworkFiles.find(
+            item => item.key === button.dataset.artworkKey
+        );
+
+        if (!file) return;
+
+        if (button.dataset.artworkAction === "preview") {
+            previewArtwork(file);
+        } else {
+            downloadArtwork(file);
+        }
+    }
+
+    async function previewArtwork(file) {
+        state.selectedArtwork = file;
+        elements.artworkPreviewTitle.textContent = file.name;
+        elements.artworkPreviewBody.innerHTML =
+            '<p class="crm-artwork-preview__loading">Loading preview...</p>';
+
+        elements.artworkPreviewBackdrop.hidden = false;
+        elements.artworkPreviewModal.classList.add("is-open");
+        elements.artworkPreviewModal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("crm-lock-scroll");
+
+        try {
+            const blob = await fetchArtworkBlob(file, "inline");
+            const objectUrl = URL.createObjectURL(blob);
+            state.artworkObjectUrls.push(objectUrl);
+
+            if (file.kind === "image") {
+                const image = document.createElement("img");
+                image.src = objectUrl;
+                image.alt = file.name;
+                elements.artworkPreviewBody.replaceChildren(image);
+                return;
+            }
+
+            if (file.kind === "pdf") {
+                const frame = document.createElement("iframe");
+                frame.src = objectUrl;
+                frame.title = `Preview of ${file.name}`;
+                elements.artworkPreviewBody.replaceChildren(frame);
+                return;
+            }
+
+            throw new Error("This file type cannot be previewed in the browser.");
+        } catch (error) {
+            elements.artworkPreviewBody.innerHTML = `
+                <div class="crm-artwork-preview__unavailable">
+                    <strong>Preview unavailable</strong>
+                    <p>${escapeHtml(
+                        error.message ||
+                        "Download the file to review it."
+                    )}</p>
+                </div>
+            `;
+        }
+    }
+
+    function closeArtworkPreview() {
+        if (!elements.artworkPreviewModal) return;
+
+        elements.artworkPreviewBackdrop.hidden = true;
+        elements.artworkPreviewModal.classList.remove("is-open");
+        elements.artworkPreviewModal.setAttribute("aria-hidden", "true");
+        elements.artworkPreviewBody.replaceChildren();
+        state.selectedArtwork = null;
+
+        if (
+            !elements.detailPanel.classList.contains("is-open") &&
+            !elements.quotationBuilder.classList.contains("is-open") &&
+            !elements.quotationDetailPanel.classList.contains("is-open")
+        ) {
+            document.body.classList.remove("crm-lock-scroll");
+        }
+    }
+
+    async function downloadArtwork(file) {
+        try {
+            const blob = await fetchArtworkBlob(file, "attachment");
+            const objectUrl = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+
+            anchor.href = objectUrl;
+            anchor.download = file.name || "luxsome-artwork";
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+
+            window.setTimeout(function () {
+                URL.revokeObjectURL(objectUrl);
+            }, 1000);
+        } catch (error) {
+            window.alert(
+                error.message || "The artwork file could not be downloaded."
+            );
+        }
+    }
+
+    async function fetchArtworkBlob(file, disposition) {
+        const params = new URLSearchParams({
+            key: file.key,
+            disposition
+        });
+
+        const response = await fetch(
+            `${API_BASE}/admin/submissions/${encodeURIComponent(
+                state.selectedReference
+            )}/artwork/file?${params.toString()}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${state.token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+            const data = await response.json().catch(function () {
+                return {};
+            });
+
+            throw new Error(
+                data.message || "The artwork file could not be opened."
+            );
+        }
+
+        return response.blob();
+    }
+
+    async function saveArtworkReview(event) {
+        event.preventDefault();
+
+        if (!state.selectedReference) return;
+
+        const button = elements.saveArtworkReviewButton;
+        elements.artworkReviewMessage.textContent = "Saving review...";
+        button.disabled = true;
+
+        try {
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(
+                    state.selectedReference
+                )}/artwork-review`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        status: elements.artworkReviewStatus.value,
+                        reviewedBy: elements.artworkReviewedBy.value.trim(),
+                        notes: elements.artworkReviewNotes.value.trim()
+                    })
+                }
+            );
+
+            renderArtworkReview(data.review || {});
+            elements.artworkReviewMessage.textContent =
+                "Artwork review saved.";
+        } catch (error) {
+            elements.artworkReviewMessage.textContent =
+                error.message || "The artwork review could not be saved.";
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    function artworkTypeIcon(extension) {
+        const value = String(extension || "").toLowerCase();
+
+        if (["jpg", "jpeg", "png", "webp", "svg"].includes(value)) {
+            return "IMG";
+        }
+
+        if (value === "pdf") return "PDF";
+        if (["ai", "eps"].includes(value)) return "AI";
+        if (value === "psd") return "PSD";
+        if (["tif", "tiff"].includes(value)) return "TIF";
+        if (value === "zip") return "ZIP";
+
+        return "FILE";
+    }
+
+    function formatFileSize(bytes) {
+        const size = Number(bytes || 0);
+
+        if (!Number.isFinite(size) || size <= 0) {
+            return "Size unavailable";
+        }
+
+        const units = ["B", "KB", "MB", "GB"];
+        const unitIndex = Math.min(
+            Math.floor(Math.log(size) / Math.log(1024)),
+            units.length - 1
+        );
+
+        const amount = size / Math.pow(1024, unitIndex);
+
+        return `${amount >= 10 || unitIndex === 0
+            ? amount.toFixed(0)
+            : amount.toFixed(1)} ${units[unitIndex]}`;
+    }
+
+    function revokeArtworkObjectUrls() {
+        state.artworkObjectUrls.forEach(function (url) {
+            URL.revokeObjectURL(url);
+        });
+
+        state.artworkObjectUrls = [];
+    }
+
     function closeDetail() {
         elements.detailBackdrop.hidden = true;
         elements.detailPanel.classList.remove("is-open");
         elements.detailPanel.setAttribute("aria-hidden", "true");
         document.body.classList.remove("crm-lock-scroll");
+        closeArtworkPreview();
+        revokeArtworkObjectUrls();
         state.selectedReference = "";
         state.selectedSubmission = null;
+        state.artworkFiles = [];
+        state.selectedArtwork = null;
+
+        if (elements.artworkSection) {
+            elements.artworkSection.hidden = true;
+        }
     }
 
     function openQuotationBuilder(submission = null, quotation = null) {

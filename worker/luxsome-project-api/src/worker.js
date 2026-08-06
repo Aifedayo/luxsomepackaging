@@ -211,6 +211,43 @@ async function handleAdminRequest(request, env, url) {
             return await handleAdminSubmissionList(request, env, url);
         }
 
+        const artworkFileMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/artwork\/file$/
+        );
+
+        if (artworkFileMatch && request.method === "GET") {
+            return await handleAdminArtworkFile(
+                request,
+                env,
+                url,
+                artworkFileMatch[1]
+            );
+        }
+
+        const artworkListMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/artwork$/
+        );
+
+        if (artworkListMatch && request.method === "GET") {
+            return await handleAdminArtworkList(
+                request,
+                env,
+                artworkListMatch[1]
+            );
+        }
+
+        const artworkReviewMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/artwork-review$/
+        );
+
+        if (artworkReviewMatch && request.method === "PATCH") {
+            return await handleAdminArtworkReviewUpdate(
+                request,
+                env,
+                artworkReviewMatch[1]
+            );
+        }
+
         const detailMatch = url.pathname.match(
             /^\/admin\/submissions\/([A-Z0-9-]+)$/
         );
@@ -672,6 +709,490 @@ async function handleAdminSubmissionDetail(request, env, reference) {
         env
     );
 }
+
+
+async function handleAdminArtworkList(request, env, reference) {
+    if (!env.ARTWORK_BUCKET) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Artwork storage is not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    const submission = await getSubmissionWithPayload(
+        env.DB,
+        reference
+    );
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const uploadId = getSubmissionArtworkUploadId(
+        submission.payload
+    );
+
+    await ensureArtworkReviewTable(env.DB);
+
+    const reviewRow = await env.DB.prepare(`
+        SELECT
+            status,
+            notes,
+            reviewed_by,
+            reviewed_at,
+            updated_at
+        FROM project_artwork_reviews
+        WHERE project_reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!uploadId) {
+        return jsonResponse(
+            {
+                success: true,
+                files: [],
+                review: normaliseArtworkReviewRow(reviewRow)
+            },
+            200,
+            request,
+            env
+        );
+    }
+
+    const prefix = `incoming/${uploadId}/`;
+    const listedObjects = [];
+    let cursor;
+
+    do {
+        const result = await env.ARTWORK_BUCKET.list({
+            prefix,
+            cursor,
+            limit: 1000,
+            include: ["httpMetadata", "customMetadata"]
+        });
+
+        listedObjects.push(...(result.objects || []));
+        cursor = result.truncated ? result.cursor : undefined;
+    } while (cursor);
+
+    const allowedKeys = getSubmissionArtworkObjectKeys(
+        submission.payload
+    );
+
+    const files = listedObjects
+        .filter(object => (
+            !allowedKeys.size ||
+            allowedKeys.has(object.key)
+        ))
+        .map(object => {
+            const extension = getArtworkExtension(object.key);
+            const originalName =
+                text(object.customMetadata?.originalName) ||
+                object.key.split("/").pop() ||
+                "Artwork file";
+
+            return {
+                key: object.key,
+                name: originalName,
+                extension,
+                size: Number(object.size || 0),
+                uploadedAt:
+                    text(object.customMetadata?.uploadedAt) ||
+                    object.uploaded?.toISOString?.() ||
+                    null,
+                contentType:
+                    text(object.httpMetadata?.contentType) ||
+                    artworkContentTypeFromExtension(extension),
+                kind: artworkFileKind(extension),
+                previewable:
+                    ["jpg", "jpeg", "png", "webp", "pdf"].includes(extension),
+                thumbnailable:
+                    ["jpg", "jpeg", "png", "webp"].includes(extension)
+            };
+        })
+        .sort((left, right) => (
+            String(left.name).localeCompare(String(right.name))
+        ));
+
+    return jsonResponse(
+        {
+            success: true,
+            files,
+            review: normaliseArtworkReviewRow(reviewRow)
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminArtworkFile(
+    request,
+    env,
+    url,
+    reference
+) {
+    if (!env.ARTWORK_BUCKET) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Artwork storage is not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    const submission = await getSubmissionWithPayload(
+        env.DB,
+        reference
+    );
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const uploadId = getSubmissionArtworkUploadId(
+        submission.payload
+    );
+    const key = text(url.searchParams.get("key"));
+
+    if (
+        !uploadId ||
+        !key ||
+        !key.startsWith(`incoming/${uploadId}/`) ||
+        key.includes("..") ||
+        key.includes("\\")
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "The requested artwork file is invalid."
+            },
+            400,
+            request,
+            env
+        );
+    }
+
+    const allowedKeys = getSubmissionArtworkObjectKeys(
+        submission.payload
+    );
+
+    if (allowedKeys.size && !allowedKeys.has(key)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "This artwork file does not belong to the project."
+            },
+            403,
+            request,
+            env
+        );
+    }
+
+    const object = await env.ARTWORK_BUCKET.get(key);
+
+    if (!object) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Artwork file not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const extension = getArtworkExtension(key);
+    const originalName =
+        text(object.customMetadata?.originalName) ||
+        key.split("/").pop() ||
+        "luxsome-artwork";
+    const requestedDisposition =
+        text(url.searchParams.get("disposition")) === "inline"
+            ? "inline"
+            : "attachment";
+    const mayDisplayInline =
+        ["jpg", "jpeg", "png", "webp", "pdf"].includes(extension);
+    const disposition =
+        requestedDisposition === "inline" && mayDisplayInline
+            ? "inline"
+            : "attachment";
+
+    const headers = new Headers();
+    object.writeHttpMetadata(headers);
+
+    headers.set(
+        "Content-Type",
+        headers.get("Content-Type") ||
+        artworkContentTypeFromExtension(extension)
+    );
+    headers.set(
+        "Content-Disposition",
+        `${disposition}; filename*=UTF-8''${encodeURIComponent(originalName)}`
+    );
+    headers.set("Cache-Control", "private, max-age=60");
+    headers.set("X-Content-Type-Options", "nosniff");
+
+    if (disposition === "inline") {
+        headers.set(
+            "Content-Security-Policy",
+            "default-src 'none'; img-src 'self' data: blob:; style-src 'unsafe-inline'; sandbox"
+        );
+    }
+
+    return new Response(object.body, {
+        status: 200,
+        headers
+    });
+}
+
+async function handleAdminArtworkReviewUpdate(
+    request,
+    env,
+    reference
+) {
+    const submission = await env.DB.prepare(`
+        SELECT reference
+        FROM submissions
+        WHERE reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const allowedStatuses = new Set([
+        "pending_review",
+        "reviewing",
+        "needs_changes",
+        "approved",
+        "production_ready"
+    ]);
+    const status = text(body.status);
+
+    if (!allowedStatuses.has(status)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Please select a valid artwork review status."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const notes = text(body.notes).slice(0, 4000);
+    const reviewedBy = text(body.reviewedBy).slice(0, 120);
+    const now = new Date().toISOString();
+    const reviewedAt =
+        status === "pending_review"
+            ? null
+            : now;
+
+    await ensureArtworkReviewTable(env.DB);
+
+    await env.DB.prepare(`
+        INSERT INTO project_artwork_reviews (
+            project_reference,
+            status,
+            notes,
+            reviewed_by,
+            reviewed_at,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(project_reference) DO UPDATE SET
+            status = excluded.status,
+            notes = excluded.notes,
+            reviewed_by = excluded.reviewed_by,
+            reviewed_at = excluded.reviewed_at,
+            updated_at = excluded.updated_at
+    `).bind(
+        reference,
+        status,
+        notes || null,
+        reviewedBy || null,
+        reviewedAt,
+        now,
+        now
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Artwork review saved.",
+            review: {
+                status,
+                notes,
+                reviewedBy,
+                reviewedAt,
+                updatedAt: now
+            }
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function getSubmissionWithPayload(db, reference) {
+    const submission = await db.prepare(`
+        SELECT reference, submission_type, payload_json
+        FROM submissions
+        WHERE reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!submission) return null;
+
+    let payload = {};
+
+    try {
+        payload = JSON.parse(submission.payload_json || "{}");
+    } catch (_) {
+        payload = {};
+    }
+
+    return {
+        ...submission,
+        payload
+    };
+}
+
+function getSubmissionArtworkUploadId(payload) {
+    const direct = normaliseArtworkUploadId(
+        payload?.artwork_upload_id
+    );
+
+    if (direct) return direct;
+
+    const configuration = parseProjectConfiguration(payload);
+
+    return normaliseArtworkUploadId(
+        configuration?.artwork_upload_id
+    );
+}
+
+function getSubmissionArtworkObjectKeys(payload) {
+    const configuration = parseProjectConfiguration(payload);
+    const value =
+        payload?.artwork_object_keys ||
+        configuration?.artwork_object_keys ||
+        "";
+
+    const keys = Array.isArray(value)
+        ? value
+        : String(value)
+            .split(",")
+            .map(item => item.trim())
+            .filter(Boolean);
+
+    return new Set(
+        keys.filter(key => key.startsWith("incoming/"))
+    );
+}
+
+async function ensureArtworkReviewTable(db) {
+    await db.prepare(`
+        CREATE TABLE IF NOT EXISTS project_artwork_reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_reference TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'pending_review',
+            notes TEXT,
+            reviewed_by TEXT,
+            reviewed_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (project_reference)
+                REFERENCES submissions(reference)
+                ON DELETE CASCADE
+        )
+    `).run();
+
+    await db.prepare(`
+        CREATE INDEX IF NOT EXISTS
+            idx_project_artwork_reviews_reference
+        ON project_artwork_reviews(project_reference)
+    `).run();
+}
+
+function normaliseArtworkReviewRow(row) {
+    return {
+        status: text(row?.status) || "pending_review",
+        notes: text(row?.notes),
+        reviewedBy: text(row?.reviewed_by),
+        reviewedAt: row?.reviewed_at || null,
+        updatedAt: row?.updated_at || null
+    };
+}
+
+function artworkFileKind(extension) {
+    if (["jpg", "jpeg", "png", "webp", "svg", "tif", "tiff"].includes(extension)) {
+        return "image";
+    }
+
+    if (extension === "pdf") return "pdf";
+    if (["ai", "eps"].includes(extension)) return "vector";
+    if (extension === "psd") return "design";
+    if (extension === "zip") return "archive";
+
+    return "file";
+}
+
+function artworkContentTypeFromExtension(extension) {
+    return {
+        pdf: "application/pdf",
+        ai: "application/postscript",
+        eps: "application/postscript",
+        svg: "image/svg+xml",
+        psd: "image/vnd.adobe.photoshop",
+        tif: "image/tiff",
+        tiff: "image/tiff",
+        png: "image/png",
+        jpg: "image/jpeg",
+        jpeg: "image/jpeg",
+        webp: "image/webp",
+        zip: "application/zip"
+    }[extension] || "application/octet-stream";
+}
+
 
 async function handleAdminSubmissionUpdate(request, env, reference) {
     const body = await request.json().catch(() => ({}));
