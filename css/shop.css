@@ -5474,3 +5474,103 @@ body.option-visual-open {
         padding-left: 12px;
     }
 }
+
+/* =========================================================
+   SHOP — SPECIALITY PAPER MATERIAL STANDARD
+========================================================= */
+
+.shop-material {
+    padding: clamp(54px, 7vw, 92px) 0;
+    border-bottom: 1px solid rgba(46, 28, 21, 0.08);
+    background: #f4ede7;
+}
+
+.shop-material__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: clamp(42px, 7vw, 110px);
+    align-items: start;
+}
+
+.shop-material__heading h2 {
+    max-width: 600px;
+    margin: 0;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(2.45rem, 4.8vw, 4.85rem);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: #2e1c15;
+}
+
+.shop-material__content > p {
+    max-width: 630px;
+    margin: 4px 0 0;
+    color: #6d5a52;
+    font-size: clamp(0.9rem, 1.15vw, 1rem);
+    line-height: 1.8;
+}
+
+.shop-material__points {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: clamp(28px, 4vw, 44px);
+    border-top: 1px solid rgba(103, 54, 41, 0.17);
+    border-bottom: 1px solid rgba(103, 54, 41, 0.17);
+}
+
+.shop-material__points span {
+    min-width: 0;
+    padding: 17px 14px;
+    color: #673629;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.shop-material__points span + span {
+    border-left: 1px solid rgba(103, 54, 41, 0.17);
+}
+
+@media (max-width: 800px) {
+    .shop-material__layout {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .shop-material__content > p {
+        max-width: 700px;
+    }
+}
+
+@media (max-width: 620px) {
+    .shop-material {
+        padding: 52px 0;
+    }
+
+    .shop-material__heading h2 {
+        font-size: clamp(2.35rem, 11.5vw, 3.4rem);
+    }
+
+    .shop-material__content > p {
+        font-size: 0.86rem;
+        line-height: 1.72;
+    }
+
+    .shop-material__points {
+        grid-template-columns: 1fr;
+    }
+
+    .shop-material__points span {
+        text-align: left;
+        padding: 13px 0;
+    }
+
+    .shop-material__points span + span {
+        border-top: 1px solid rgba(103, 54, 41, 0.17);
+        border-left: 0;
+    }
+}
+
