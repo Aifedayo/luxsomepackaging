@@ -156,11 +156,11 @@
                 >
                     <div class="builder-progress__top">
                         <span id="progress-label">
-                            Step 1 of 5
+                            Step 1 of 4
                         </span>
 
                         <span id="progress-percentage">
-                            20%
+                            25%
                         </span>
                     </div>
 
@@ -168,7 +168,7 @@
                         class="builder-progress__track"
                         role="progressbar"
                         aria-valuemin="1"
-                        aria-valuemax="5"
+                        aria-valuemax="4"
                         aria-valuenow="1"
                         aria-labelledby="progress-label"
                     >
@@ -475,57 +475,11 @@
                         ></p>
                     </fieldset>
 
-                    <fieldset
-                        class="builder-step"
-                        data-step="5"
-                        aria-describedby="timeline-help timeline-error"
-                    >
-                        <legend>When would you like your packaging?</legend>
-
-                        <p class="step-description" id="timeline-help">
-                            Production timing will be confirmed after reviewing your full requirements.
-                        </p>
-
-                        <div class="option-grid option-grid--two">
-                            <label class="option-card option-card--compact">
-                                <input
-                                    type="radio"
-                                    name="timeline"
-                                    value="As soon as possible"
-                                >
-                                <span class="option-card__title">As soon as possible</span>
-                            </label>
-
-                            <label class="option-card option-card--compact">
-                                <input
-                                    type="radio"
-                                    name="timeline"
-                                    value="Within one month"
-                                >
-                                <span class="option-card__title">Within one month</span>
-                            </label>
-
-                            <label class="option-card option-card--compact">
-                                <input
-                                    type="radio"
-                                    name="timeline"
-                                    value="Within two months"
-                                >
-                                <span class="option-card__title">Within two months</span>
-                            </label>
-
-                            <label class="option-card option-card--compact">
-                                <input type="radio" name="timeline" value="Just exploring">
-                                <span class="option-card__title">Just exploring</span>
-                            </label>
-                        </div>
-
-                        <p class="field-error" id="timeline-error" aria-live="polite"></p>
-                    </fieldset>
+                    
 
                     <section
                         class="builder-step builder-result"
-                        data-step="6"
+                        data-step="5"
                         aria-labelledby="result-heading"
                         aria-live="polite"
                     >
@@ -585,10 +539,6 @@
                                 <dd id="result-quantity"></dd>
                             </div>
 
-                            <div>
-                                <dt>Timeline</dt>
-                                <dd id="result-timeline"></dd>
-                            </div>
                         </dl>
 
                         <p class="result-note">

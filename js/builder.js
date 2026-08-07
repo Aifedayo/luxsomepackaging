@@ -23,8 +23,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
     const experienceCount = document.getElementById("experience-count");
 
-    const totalQuestionSteps = 5;
-    const resultStep = 6;
+    const totalQuestionSteps = 4;
+    const resultStep = 5;
     const whatsappNumber = "2349068804133";
 
     let currentStep = 0;
@@ -34,8 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
         1: "product-error",
         2: "stage-error",
         3: "quantity-error",
-        4: "experience-error",
-        5: "timeline-error"
+        4: "experience-error"
     };
 
     const productProfiles = {
@@ -293,17 +292,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return true;
         }
 
-        if (stepNumber === 5) {
-            const timeline = getSelectedValue("timeline");
-
-            if (!timeline) {
-                showError(5, "Please select your preferred timeline.");
-                return false;
-            }
-
-            return true;
-        }
-
         return true;
     }
 
@@ -442,11 +430,6 @@ document.addEventListener("DOMContentLoaded", () => {
             addScore(scores, "One-piece hang tag", 1);
         }
 
-        if (data.timeline === "As soon as possible") {
-            addScore(scores, "Custom structural development", -5);
-            addScore(scores, "Shopping bag", -1);
-        }
-
         const targetCount = Math.min(
             7,
             Math.max(4, stage.targetCount + quantity.targetAdjustment)
@@ -517,8 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
             product: getSelectedValue("product"),
             stage: getSelectedValue("stage"),
             quantity: getSelectedValue("quantity"),
-            experience: getSelectedValues("experience"),
-            timeline: getSelectedValue("timeline")
+            experience: getSelectedValues("experience")
         };
     }
 
@@ -539,7 +521,6 @@ document.addEventListener("DOMContentLoaded", () => {
             `Brand stage: ${data.stage}`,
             `Quantity: ${data.quantity}`,
             `Desired experience: ${data.experience.join(", ")}`,
-            `Timeline: ${data.timeline}`,
             "",
             `Match score: ${recommendation.confidence}%`,
             `Recommended direction: ${recommendation.direction}`,
@@ -582,7 +563,6 @@ document.addEventListener("DOMContentLoaded", () => {
             setText("result-product", data.product);
             setText("result-stage", data.stage);
             setText("result-quantity", data.quantity);
-            setText("result-timeline", data.timeline);
             setText(
                 "result-introduction",
                 `${recommendation.confidence}% match based on your answers.`
@@ -613,7 +593,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Unable to generate recommendation:", error);
 
             showError(
-                5,
+                4,
                 "We could not generate your recommendation. Please review your answers and try again."
             );
 
