@@ -72,6 +72,41 @@
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     >
+
+    <style>
+        .project-submitted-additional-project {
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(46, 28, 21, 0.12);
+        }
+
+        .project-submitted-additional-project:last-child {
+            border-bottom: 0;
+        }
+
+        .project-submitted-additional-project strong {
+            display: block;
+            margin-bottom: 9px;
+            color: #2e1c15;
+            font-family: "DM Serif Display", Georgia, serif;
+            font-size: 1.15rem;
+            font-weight: 400;
+        }
+
+        .project-submitted-additional-project ul {
+            display: grid;
+            gap: 6px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .project-submitted-additional-project li {
+            color: #756159;
+            font-size: 0.7rem;
+            line-height: 1.55;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -114,11 +149,11 @@
                 aria-label="Main navigation"
             >
                 <a
-                href="/shop/"
-                class="nav-shop-link"
-              >
-                  Shop Packaging
-              </a>
+                    href="/shop/"
+                    class="nav-shop-link"
+                >
+                    Shop Packaging
+                </a>
                 <a href="/gallery/">Gallery</a>
                 <a href="/our-story/">Our Story</a>
                 <a href="/pricing/">Pricing</a>
@@ -183,7 +218,7 @@
                 </div>
 
                 <p class="confirmation-eyebrow">
-                    PROJECT SUCCESSFULLY RECEIVED
+                    ORDER SUCCESSFULLY RECEIVED
                 </p>
 
                 <h1 id="confirmationTitle">
@@ -193,15 +228,15 @@
 
                 <p class="confirmation-hero__text">
                     Thank you for trusting Luxsome Packaging.
-                    We have received your project brief and will
+                    We have received your order brief and will
                     carefully review every detail before contacting
-                    you within the next 24 hours with our recommendations and next steps.
+                    you within the next 24 hours with the next steps.
                 </p>
 
                 <div class="project-reference-card">
 
                     <p class="project-reference-card__label">
-                        Your project reference
+                        Your order reference
                     </p>
 
                     <strong
@@ -252,7 +287,7 @@
                     <article class="journey-panel">
 
                         <div class="confirmation-section-heading">
-                            <p>YOUR PROJECT JOURNEY</p>
+                            <p>YOUR ORDER JOURNEY</p>
 
                             <h2>
                                 What happens from here?
@@ -271,7 +306,7 @@
 
                                 <div>
                                     <small>COMPLETED</small>
-                                    <h3>Project brief received</h3>
+                                    <h3>Order brief received</h3>
                                     <p>
                                         Your information has been securely
                                         sent to the Luxsome team.
@@ -288,9 +323,9 @@
                                     <small>WITHIN 24 HOURS</small>
                                     <h3>Review and assessment</h3>
                                     <p>
-                                        We assess your product,
-                                        requirements, timeline and
-                                        selected packaging system.
+                                        We assess your selected pieces,
+                                        specifications and complete
+                                        packaging system.
                                     </p>
                                 </div>
                             </li>
@@ -319,8 +354,7 @@
                                     <small>AFTER CONSULTATION</small>
                                     <h3>Proposal and approval</h3>
                                     <p>
-                                        You receive the recommended scope,
-                                        specifications and project route.
+                                        You receive the quotations
                                     </p>
                                 </div>
                             </li>
@@ -368,7 +402,7 @@
                     >
 
                         <div class="confirmation-section-heading">
-                            <p>PROJECT SUMMARY</p>
+                            <p>ORDER SUMMARY</p>
 
                             <h2>
                                 The brief we received.
@@ -376,7 +410,6 @@
                         </div>
 
                         <dl class="project-summary-list">
-
                             <div class="project-summary-row">
                                 <dt>Brand</dt>
                                 <dd id="summaryBrand">—</dd>
@@ -388,28 +421,13 @@
                             </div>
 
                             <div class="project-summary-row">
-                                <dt>Packaging system</dt>
-                                <dd id="summarySystem">—</dd>
+                                <dt>Email</dt>
+                                <dd id="summaryEmail">—</dd>
                             </div>
 
                             <div class="project-summary-row">
-                                <dt>Quantity</dt>
-                                <dd id="summaryQuantity">—</dd>
-                            </div>
-
-                            <div class="project-summary-row">
-                                <dt>Required date</dt>
-                                <dd id="summaryDate">—</dd>
-                            </div>
-
-                            <div class="project-summary-row">
-                                <dt>Product</dt>
-                                <dd id="summaryProduct">—</dd>
-                            </div>
-
-                            <div class="project-summary-row">
-                                <dt>Investment level</dt>
-                                <dd id="summaryInvestment">—</dd>
+                                <dt>Phone or WhatsApp</dt>
+                                <dd id="summaryPhone">—</dd>
                             </div>
 
                             <div class="project-summary-row">
@@ -417,23 +435,154 @@
                                 <dd id="summaryContact">—</dd>
                             </div>
 
+                            <div class="project-summary-row">
+                                <dt>Business location</dt>
+                                <dd id="summaryLocation">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryInstagramRow"
+                            >
+                                <dt>Instagram</dt>
+                                <dd id="summaryInstagram">—</dd>
+                            </div>
+
+                            <div class="project-summary-row">
+                                <dt>Packaging system</dt>
+                                <dd id="summarySystem">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryProjectTypeRow"
+                            >
+                                <dt>Order type</dt>
+                                <dd id="summaryProjectType">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryPiecesRow"
+                            >
+                                <dt>Packaging pieces</dt>
+                                <dd id="summaryPieces">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryBoxStyleRow"
+                            >
+                                <dt>Box style</dt>
+                                <dd id="summaryBoxStyle">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryQuantityRow"
+                            >
+                                <dt>Quantity</dt>
+                                <dd id="summaryQuantity">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryBoxQuantityRow"
+                            >
+                                <dt>Box quantity</dt>
+                                <dd id="summaryBoxQuantity">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryOtherQuantityRow"
+                            >
+                                <dt>Other packaging quantity</dt>
+                                <dd id="summaryOtherQuantity">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryDimensionsRow"
+                            >
+                                <dt>Finished dimensions</dt>
+                                <dd id="summaryDimensions">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryWeightRow"
+                            >
+                                <dt>Volumetric weight</dt>
+                                <dd id="summaryWeight">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryColoursRow"
+                            >
+                                <dt>Preferred colours</dt>
+                                <dd id="summaryColours">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryLogoFinishRow"
+                            >
+                                <dt>Logo finish</dt>
+                                <dd id="summaryLogoFinish">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryArtworkRow"
+                            >
+                                <dt>Logo and artwork</dt>
+                                <dd id="summaryArtwork">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryAccessoriesRow"
+                            >
+                                <dt>Accessories</dt>
+                                <dd id="summaryAccessories">—</dd>
+                            </div>
+
+                            <div
+                                class="project-summary-row"
+                                id="summaryCommentsRow"
+                            >
+                                <dt>Additional comments</dt>
+                                <dd id="summaryComments">—</dd>
+                            </div>
                         </dl>
-
-
-                        <!-- Components -->
 
                         <section
                             class="recommended-components"
                             id="recommendedComponents"
+                            hidden
                         >
                             <p class="recommended-components__label">
-                                Selected or recommended pieces
+                                Selected packaging details
                             </p>
 
                             <ul
                                 class="recommended-components__list"
                                 id="componentsList"
                             ></ul>
+                        </section>
+
+                        <section
+                            class="recommended-components"
+                            id="additionalProjectsSection"
+                            hidden
+                        >
+                            <p class="recommended-components__label">
+                                Additional brand projects
+                            </p>
+
+                            <div id="additionalProjectsList"></div>
                         </section>
 
 
@@ -450,7 +599,7 @@
                             ></i>
 
                             <span>
-                                Download project summary
+                                Download order summary
                             </span>
 
                             <small>
@@ -459,6 +608,55 @@
                         </button>
 
                     </article>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- =================================================
+             WHATSAPP SUPPORT
+        ================================================== -->
+
+        <section class="confirmation-support">
+
+            <div class="confirmation-container">
+
+                <div class="confirmation-support__card">
+
+                    <div>
+                        <p class="confirmation-support__eyebrow">
+                            NEED TO SPEAK WITH US?
+                        </p>
+
+                        <h2>
+                            Questions about your order?
+                        </h2>
+
+                        <p>
+                            Use your order reference when speaking
+                            with our team so we can identify your
+                            request quickly.
+                        </p>
+                    </div>
+
+                    <a
+                        href="https://wa.me/2349068804133"
+                        class="confirmation-button confirmation-button--light"
+                        id="whatsappButton"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <i
+                            class="fa-brands fa-whatsapp"
+                            aria-hidden="true"
+                        ></i>
+
+                        Chat on WhatsApp
+
+                        <span aria-hidden="true">↗</span>
+                    </a>
 
                 </div>
 
@@ -496,8 +694,8 @@
                         <h3>We review</h3>
 
                         <p>
-                            We assess your brand, product,
-                            requirements and preferred timeline.
+                            We assess your brand, selected packaging
+                            pieces and submitted specifications.
                         </p>
                     </article>
 
@@ -529,7 +727,7 @@
                         <h3>We create</h3>
 
                         <p>
-                            Once the project is approved, design
+                            Once the quotation is approved and 70% of the approved quotation is paid, design
                             and production can officially begin.
                         </p>
                     </article>
@@ -539,57 +737,6 @@
             </div>
 
         </section>
-
-
-        <!-- =================================================
-             WHATSAPP SUPPORT
-        ================================================== -->
-
-        <section class="confirmation-support">
-
-            <div class="confirmation-container">
-
-                <div class="confirmation-support__card">
-
-                    <div>
-                        <p class="confirmation-support__eyebrow">
-                            NEED TO SPEAK WITH US?
-                        </p>
-
-                        <h2>
-                            Questions about your project?
-                        </h2>
-
-                        <p>
-                            Use your project reference when speaking
-                            with our team so we can identify your
-                            request quickly.
-                        </p>
-                    </div>
-
-                    <a
-                        href="https://wa.me/2349068804133"
-                        class="confirmation-button confirmation-button--light"
-                        id="whatsappButton"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <i
-                            class="fa-brands fa-whatsapp"
-                            aria-hidden="true"
-                        ></i>
-
-                        Chat on WhatsApp
-
-                        <span aria-hidden="true">↗</span>
-                    </a>
-
-                </div>
-
-            </div>
-
-        </section>
-
 
         <!-- =================================================
              EXPLORE
@@ -603,7 +750,7 @@
                     <p>WHILE YOU WAIT</p>
 
                     <h2>
-                        Continue exploring Luxsome.
+                        Continue exploring Luxsome Packaging.
                     </h2>
                 </div>
 
@@ -710,57 +857,225 @@
          SIMPLE FOOTER
     ====================================================== -->
 
-    <footer class="confirmation-footer">
+    <footer class="site-footer">
 
-        <div class="confirmation-container confirmation-footer__inner">
+        <div class="container">
 
-            <a
-                href="/"
-                class="confirmation-footer__logo"
-                aria-label="Luxsome Packaging homepage"
-            >
-                <img
-                    src="/assets/images/luxsome-logo-white.png"
-                    alt="Luxsome Packaging"
-                >
-            </a>
+            <!-- Footer columns -->
+            <div class="footer-grid reveal-group">
 
-            <div class="confirmation-footer__links">
+                <!-- Brand column -->
+                <div class="footer-brand reveal reveal--up">
 
-                <a
-                    href="https://www.instagram.com/luxsomepackaging"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Instagram
-                </a>
+                    <a
+                        href="/"
+                        class="footer-logo"
+                        aria-label="Luxsome Packaging homepage"
+                    >
+                        <img
+                            src="/assets/images/luxsome-logo-white.png"
+                            alt="Luxsome Packaging"
+                            class="logo-image"
+                            loading="lazy"
+                            decoding="async"
+                        >
+                    </a>
 
-                <a
-                    href="https://www.pinterest.com/luxsomepackaging"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Pinterest
-                </a>
+                    <p class="footer-description">
+                        Custom packaging boxes and complete luxury packaging
+                        systems for fashion and lifestyle brands in Lagos and
+                        across Nigeria.
+                    </p>
 
-                <a
-                    href="https://wa.me/2349068804133"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    WhatsApp
-                </a>
+                    <div class="footer-socials">
 
-                <a href="/contact/">
-                    Email
-                </a>
+                        <a
+                            href="https://www.instagram.com/luxsomepackaging"
+                            aria-label="Luxsome Packaging on Instagram"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-instagram"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                        <a
+                            href="https://wa.me/2349068804133"
+                            aria-label="Contact Luxsome Packaging on WhatsApp"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-whatsapp"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                        <a
+                            href="https://x.com/luxsomePG"
+                            aria-label="Luxsome Packaging on X"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-x-twitter"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                        <a
+                            href="https://www.pinterest.com/luxsomepackaging"
+                            aria-label="Luxsome Packaging on Pinterest"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i
+                                class="fa-brands fa-pinterest-p"
+                                aria-hidden="true"
+                            ></i>
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- Explore column -->
+                <div class="footer-column reveal reveal--up">
+
+                    <h2>
+                        Explore
+                    </h2>
+
+                    <div class="footer-links">
+
+                        <a href="/">
+                            Home
+                        </a>
+
+                        <a href="/shop/">
+                            Shop
+                        </a>
+
+                        <a href="/pricing/">
+                            Pricing
+                        </a>
+
+                        <a href="/gallery/">
+                            Gallery
+                        </a>
+
+                        <a href="/our-story/">
+                            Our Story
+                        </a>
+
+                        <a href="/contact/">
+                            Contact Us
+                        </a>
+
+                        <a
+                            href="https://assets.luxsomepackaging.com/catalogues/catalogue.pdf"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Product Guide
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- Information column -->
+                <div class="footer-column reveal reveal--up">
+
+                    <h2>
+                        Information
+                    </h2>
+
+                    <div class="footer-links">
+
+                        <a href="/faq/">
+                            Frequently Asked Questions
+                        </a>
+
+                        <a href="/shipping-production/">
+                            Shipping &amp; Production
+                        </a>
+
+                        <a href="/refund-returns/">
+                            Refund &amp; Returns
+                        </a>
+
+                        <a href="/privacy/">
+                            Privacy Policy
+                        </a>
+
+                        <a href="/terms/">
+                            Terms &amp; Conditions
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- Contact column -->
+                <div class="footer-column reveal reveal--up">
+
+                    <h2>
+                        Contact
+                    </h2>
+
+                    <div class="footer-links">
+
+                        <a
+                            href="https://wa.me/2349068804133"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            WhatsApp
+                        </a>
+
+                        <a href="mailto:hello@luxsomepackaging.com">
+                            hello@luxsomepackaging.com
+                        </a>
+
+                        <a href="/packaging-builder/">
+                            Guide Me
+                        </a>
+
+                    </div>
+
+                </div>
 
             </div>
 
-            <p>
-                © <span id="currentYear"></span>
-                Luxsome Packaging.
-            </p>
+            <!-- Footer bottom -->
+            <div class="footer-bottom">
+
+                <span>
+                    &copy;
+                    <span id="currentYear"></span>
+                    Luxsome Packaging. All rights reserved.
+                </span>
+
+                <div class="footer-bottom-links">
+
+                    <a href="/privacy/">
+                        Privacy
+                    </a>
+
+                    <a href="/terms/">
+                        Terms
+                    </a>
+
+                </div>
+
+                <span>
+                    Packaging created to be remembered.
+                </span>
+
+            </div>
 
         </div>
 
