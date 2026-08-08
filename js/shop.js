@@ -687,6 +687,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressBar = document.getElementById(
             'artworkUploadProgressBar'
         );
+        const retryActions = document.getElementById(
+            'artworkUploadStatusActions'
+        );
+        const retryButton = document.getElementById(
+            'artworkUploadRetryButton'
+        );
         const uploadIdInput = document.getElementById('artworkUploadId');
         const objectKeysInput = document.getElementById(
             'artworkObjectKeys'
@@ -801,6 +807,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let uploadedKeys = [];
         let uploadId = '';
 
+        /*
+         * Retry state is kept in memory so a failed network upload can
+         * continue from the failed file without asking the customer to
+         * select the artwork again or re-upload files that already succeeded.
+         */
+        let retryState = null;
+        let retryInProgress = false;
+
         const endpoint = section?.dataset.uploadEndpoint
             ?.replace(/\/+$/, '');
 
@@ -854,9 +868,25 @@ document.addEventListener('DOMContentLoaded', () => {
             section.classList.toggle('has-error', isError);
         };
 
+        const setRetryVisible = visible => {
+            if (retryActions) {
+                retryActions.hidden = !visible;
+            }
+
+            if (retryButton && !visible) {
+                retryButton.disabled = false;
+
+                const label = retryButton.querySelector('span');
+                if (label) label.textContent = 'Retry upload';
+            }
+        };
+
         const clearUploadResult = () => {
             uploadedKeys = [];
             uploadId = '';
+            retryState = null;
+
+            setRetryVisible(false);
 
             if (uploadIdInput) uploadIdInput.value = '';
             if (objectKeysInput) objectKeysInput.value = '';
@@ -1142,7 +1172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (heading) {
                 heading.textContent = ready
-                    ? 'Upload your final artwork'
+                    ? 'Upload your final design files'
                     : partial
                         ? 'Upload the files you already have'
                         : 'Upload optional references';
@@ -1335,34 +1365,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                reject(
-                    new Error(
-                        payload.error ||
-                        `Upload failed for ${file.name}.`
-                    )
+                const uploadError = new Error(
+                    payload.error ||
+                    `Upload failed for ${file.name}.`
                 );
+
+                uploadError.httpStatus = request.status;
+                uploadError.fileIndex = index;
+
+                reject(uploadError);
             });
 
             request.addEventListener('error', () => {
-                reject(
-                    new Error(
-                        `Network error while uploading ${file.name}.`
-                    )
+                const uploadError = new Error(
+                    `Network error while uploading ${file.name}.`
                 );
+
+                uploadError.fileIndex = index;
+                reject(uploadError);
             });
 
             request.addEventListener('abort', () => {
-                reject(
-                    new Error(
-                        `Upload cancelled for ${file.name}.`
-                    )
+                const uploadError = new Error(
+                    `Upload cancelled for ${file.name}.`
                 );
+
+                uploadError.fileIndex = index;
+                reject(uploadError);
             });
 
             request.send(file);
         });
 
-        const upload = async () => {
+        const upload = async (options = {}) => {
+            const retry = options.retry === true;
+
             if (!section || !getSelectedArtworkStatus()) {
                 return {
                     uploadId: '',
@@ -1389,31 +1426,129 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
             }
 
+            /*
+             * If a manual retry has already completed successfully, the
+             * customer can click Order Now again without uploading everything
+             * a second time.
+             */
+            const uploadComplete =
+                Boolean(uploadId) &&
+                uploadedKeys.length === files.length &&
+                uploadedKeys.every(Boolean);
+
+            if (!retry && uploadComplete) {
+                return {
+                    uploadId,
+                    keys: [...uploadedKeys]
+                };
+            }
+
+            if (retryInProgress) {
+                throw new Error(
+                    'The artwork upload is already being retried.'
+                );
+            }
+
             section.classList.add('is-uploading');
             section.classList.remove('has-error');
 
-            try {
+            if (retry) {
+                retryInProgress = true;
+
+                if (retryButton) {
+                    retryButton.disabled = true;
+
+                    const label = retryButton.querySelector('span');
+                    if (label) label.textContent = 'Retrying…';
+                }
+            } else {
                 clearUploadResult();
                 uploadId = createUploadId();
+            }
 
-                setStatus(
-                    'Creating a secure upload session…',
-                    0
-                );
+            let sessionToken = retryState?.sessionToken || '';
+            let startIndex = retry
+                ? Math.max(0, retryState?.index ?? 0)
+                : 0;
 
-                const sessionToken =
-                    await createSession(uploadId);
+            /*
+             * Keep only keys that are known to have uploaded before the
+             * failed index. This prevents successful files from being sent
+             * again during a normal network retry.
+             */
+            if (retry) {
+                uploadedKeys = uploadedKeys.slice(0, startIndex);
+            }
 
-                for (const [index, file] of files.entries()) {
-                    const key = await uploadFile(
-                        file,
-                        index,
-                        uploadId,
-                        sessionToken
+            try {
+                if (!sessionToken) {
+                    setStatus(
+                        retry
+                            ? 'Refreshing the secure upload session…'
+                            : 'Creating a secure upload session…',
+                        startIndex
+                            ? (startIndex / files.length) * 100
+                            : 0
                     );
 
-                    uploadedKeys.push(key);
+                    try {
+                        sessionToken = await createSession(uploadId);
+                    } catch (sessionError) {
+                        retryState = {
+                            index: startIndex,
+                            sessionToken: ''
+                        };
+
+                        setRetryVisible(true);
+                        resetTurnstile();
+                        throw sessionError;
+                    }
                 }
+
+                for (
+                    let index = startIndex;
+                    index < files.length;
+                    index += 1
+                ) {
+                    const file = files[index];
+
+                    try {
+                        const key = await uploadFile(
+                            file,
+                            index,
+                            uploadId,
+                            sessionToken
+                        );
+
+                        uploadedKeys[index] = key;
+                    } catch (fileError) {
+                        /*
+                         * 401/403 usually means the secure upload session is no
+                         * longer usable. The retry button will request a fresh
+                         * session after Turnstile is completed again.
+                         */
+                        const sessionExpired = [401, 403].includes(
+                            Number(fileError.httpStatus)
+                        );
+
+                        retryState = {
+                            index,
+                            sessionToken: sessionExpired
+                                ? ''
+                                : sessionToken
+                        };
+
+                        if (sessionExpired) {
+                            resetTurnstile();
+                        }
+
+                        setRetryVisible(true);
+                        throw fileError;
+                    }
+                }
+
+                retryState = null;
+                setRetryVisible(false);
 
                 if (uploadIdInput) {
                     uploadIdInput.value = uploadId;
@@ -1434,13 +1569,75 @@ document.addEventListener('DOMContentLoaded', () => {
                     keys: [...uploadedKeys]
                 };
             } catch (error) {
-                setStatus(error.message, 0, true);
-                resetTurnstile();
+                const failedFileIndex = retryState?.index;
+                const failedFile =
+                    Number.isInteger(failedFileIndex)
+                        ? files[failedFileIndex]
+                        : null;
+
+                const message = failedFile
+                    ? `${error.message} Your files are still selected — retry from ${failedFile.name}.`
+                    : `${error.message} Your files are still selected — you can retry the upload.`;
+
+                setStatus(
+                    message,
+                    failedFileIndex
+                        ? (failedFileIndex / files.length) * 100
+                        : 0,
+                    true
+                );
+
+                setRetryVisible(true);
                 throw error;
             } finally {
                 section.classList.remove('is-uploading');
+
+                if (retry) {
+                    retryInProgress = false;
+
+                    if (retryButton) {
+                        retryButton.disabled = false;
+
+                        const label = retryButton.querySelector('span');
+                        if (label) label.textContent = 'Retry upload';
+                    }
+                }
             }
         };
+
+        /*
+         * Retry only the failed portion of the artwork upload.
+         * Successfully uploaded files keep their existing object keys.
+         */
+        retryButton?.addEventListener('click', async () => {
+            if (!retryState) {
+                setRetryVisible(false);
+                return;
+            }
+
+            try {
+                await upload({
+                    retry: true
+                });
+
+                /*
+                 * The original Order Now submission stopped when the upload
+                 * failed. After a successful retry we leave the project form
+                 * intact and clearly tell the customer to submit again. The
+                 * second submit reuses the completed upload and does not send
+                 * the files a second time.
+                 */
+                setStatus(
+                    'Artwork uploaded successfully. Click Order Now again to continue your project.',
+                    100
+                );
+            } catch (error) {
+                /*
+                 * upload() already renders the useful failure message and
+                 * keeps the retry button visible.
+                 */
+            }
+        });
 
         artworkStatusInputs.forEach(input => {
             input.addEventListener('change', updateVisibility);
