@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <meta
+        name="robots"
+        content="noindex, nofollow"
+    >
+
+    <title>Production Schedule | Luxsome CRM</title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/admin-v2.css">
+    <link rel="stylesheet" href="/css/crm-responsive.css">
+    <link rel="stylesheet" href="/css/production-v1.css">
+</head>
+
+<body>
+    <div class="app">
+        <aside>
+            <div data-luxsome-crm-logo></div>
+
+            <nav>
+                <a href="/admin/">Enquiries</a>
+                <a href="/admin/">Quotations</a>
+                <a href="/admin/invoices/">Invoices</a>
+                <a href="/admin/orders/">Orders</a>
+
+                <a
+                    class="active"
+                    href="/admin/production/"
+                >
+                    Production
+                </a>
+            </nav>
+
+            <button id="logout">
+                Lock dashboard
+            </button>
+        </aside>
+
+        <main>
+            <header class="page-header production-header">
+                <div>
+                    <p>PRODUCTION CONTROL</p>
+                    <h1>Production Schedule</h1>
+                    <span>
+                        Plan and track every active packaging project.
+                    </span>
+                </div>
+
+                <div class="header-actions">
+                    <button
+                        id="todayButton"
+                        type="button"
+                    >
+                        Today
+                    </button>
+
+                    <button
+                        id="refreshButton"
+                        type="button"
+                    >
+                        Refresh
+                    </button>
+                </div>
+            </header>
+
+            <section class="production-stats">
+                <article>
+                    <span>Scheduled tasks</span>
+                    <strong id="scheduledCount">0</strong>
+                </article>
+
+                <article>
+                    <span>In progress</span>
+                    <strong id="inProgressCount">0</strong>
+                </article>
+
+                <article>
+                    <span>Blocked</span>
+                    <strong id="blockedCount">0</strong>
+                </article>
+
+                <article>
+                    <span>Overdue</span>
+                    <strong id="overdueCount">0</strong>
+                </article>
+            </section>
+
+            <section class="production-toolbar card">
+                <input
+                    id="productionSearch"
+                    type="search"
+                    placeholder="Search brand, order, product or task"
+                >
+
+                <select id="taskStatusFilter">
+                    <option value="">All task statuses</option>
+                    <option value="not_started">Not started</option>
+                    <option value="ready">Ready</option>
+                    <option value="in_progress">In progress</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="on_hold">On hold</option>
+                    <option value="completed">Completed</option>
+                </select>
+
+                <input
+                    id="assigneeFilter"
+                    type="search"
+                    placeholder="Assigned person"
+                >
+
+                <select id="timelineScale">
+                    <option value="day">Daily</option>
+                    <option value="week" selected>Weekly</option>
+                </select>
+            </section>
+
+            <p id="productionMessage"></p>
+
+            <section class="gantt-card card">
+                <div class="gantt-shell">
+
+                    <div class="gantt-sidebar">
+                        <div class="gantt-sidebar-header">
+                            <span>Production task</span>
+                        </div>
+
+                        <div id="ganttTaskRows"></div>
+                    </div>
+
+                    <div
+                        id="ganttTimeline"
+                        class="gantt-timeline"
+                    >
+                        <div
+                            id="ganttHeader"
+                            class="gantt-header"
+                        ></div>
+
+                        <div
+                            id="ganttRows"
+                            class="gantt-rows"
+                        ></div>
+                    </div>
+
+                </div>
+
+                <div
+                    id="ganttEmpty"
+                    class="gantt-empty"
+                    hidden
+                >
+                    <strong>No production tasks scheduled.</strong>
+                    <p>
+                        Add schedule tasks from an order to start
+                        building the production timeline.
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/production-v1.js"></script>
+    <script src="/js/crm-brand.js"></script>
+</body>
+</html>
