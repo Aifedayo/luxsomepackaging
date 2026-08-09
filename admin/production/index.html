@@ -33,46 +33,130 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
-    <link rel="stylesheet" href="/css/production-v1.css">
+    <link rel="stylesheet" href="/css/production-v1.css?v=2">
 </head>
 
-<body>
-    <div class="app">
-        <aside>
-            <div data-luxsome-crm-logo></div>
 
-            <nav>
-                <a href="/admin/">Enquiries</a>
-                <a href="/admin/">Quotations</a>
-                <a href="/admin/invoices/">Invoices</a>
-                <a href="/admin/orders/">Orders</a>
+<body class="crm-app-page">
 
-                <a
-                    class="active"
-                    href="/admin/production/"
+    <div class="crm-app">
+
+        <aside
+            class="crm-sidebar"
+            id="crmSidebar"
+        >
+            <div>
+                <div data-luxsome-crm-logo></div>
+
+                <nav
+                    class="crm-nav"
+                    aria-label="CRM navigation"
                 >
-                    Production
-                </a>
-            </nav>
+                    <section class="crm-nav__group">
+                        <p class="crm-nav__label">
+                            Overview
+                        </p>
 
-            <button id="logout">
-                Lock dashboard
-            </button>
+                        <a
+                            class="crm-nav__item crm-nav__item--link"
+                            href="/admin/"
+                        >
+                            <span>Dashboard</span>
+                            <small>→</small>
+                        </a>
+                    </section>
+
+                    <section class="crm-nav__group">
+                        <p class="crm-nav__label">
+                            Sales
+                        </p>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link"
+                            href="/admin/"
+                        >
+                            <span>Enquiries</span>
+                            <small>→</small>
+                        </a>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link"
+                            href="/admin/invoices/"
+                        >
+                            <span>Invoices</span>
+                            <small>→</small>
+                        </a>
+                    </section>
+
+                    <section class="crm-nav__group">
+                        <p class="crm-nav__label">
+                            Fulfilment
+                        </p>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link"
+                            href="/admin/orders/"
+                        >
+                            <span>Orders</span>
+                            <small>→</small>
+                        </a>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link is-active"
+                            href="/admin/production/"
+                        >
+                            <span>Production</span>
+                            <small>●</small>
+                        </a>
+                    </section>
+                </nav>
+            </div>
+
+            <div class="crm-sidebar__footer">
+                <button
+                    id="logout"
+                    class="crm-sidebar__logout"
+                    type="button"
+                >
+                    Lock dashboard
+                </button>
+            </div>
         </aside>
 
-        <main>
-            <header class="page-header production-header">
+
+        <div class="crm-main">
+
+            <header class="crm-topbar production-header">
+
+                <button
+                    id="mobileMenuButton"
+                    class="crm-mobile-menu"
+                    type="button"
+                    aria-controls="crmSidebar"
+                    aria-expanded="false"
+                >
+                    Menu
+                </button>
+
                 <div>
-                    <p>PRODUCTION CONTROL</p>
-                    <h1>Production Schedule</h1>
+                    <p class="crm-eyebrow">
+                        PRODUCTION CONTROL
+                    </p>
+
+                    <h1>
+                        Production Schedule
+                    </h1>
+
                     <span>
                         Plan and track every active packaging project.
                     </span>
                 </div>
 
-                <div class="header-actions">
+                <div class="crm-topbar__actions header-actions">
+
                     <button
                         id="todayButton"
+                        class="crm-button crm-button--secondary"
                         type="button"
                     >
                         Today
@@ -80,107 +164,16 @@
 
                     <button
                         id="refreshButton"
+                        class="crm-button crm-button--primary"
                         type="button"
                     >
                         Refresh
                     </button>
+
                 </div>
+
             </header>
-
-            <section class="production-stats">
-                <article>
-                    <span>Scheduled tasks</span>
-                    <strong id="scheduledCount">0</strong>
-                </article>
-
-                <article>
-                    <span>In progress</span>
-                    <strong id="inProgressCount">0</strong>
-                </article>
-
-                <article>
-                    <span>Blocked</span>
-                    <strong id="blockedCount">0</strong>
-                </article>
-
-                <article>
-                    <span>Overdue</span>
-                    <strong id="overdueCount">0</strong>
-                </article>
-            </section>
-
-            <section class="production-toolbar card">
-                <input
-                    id="productionSearch"
-                    type="search"
-                    placeholder="Search brand, order, product or task"
-                >
-
-                <select id="taskStatusFilter">
-                    <option value="">All task statuses</option>
-                    <option value="not_started">Not started</option>
-                    <option value="ready">Ready</option>
-                    <option value="in_progress">In progress</option>
-                    <option value="blocked">Blocked</option>
-                    <option value="on_hold">On hold</option>
-                    <option value="completed">Completed</option>
-                </select>
-
-                <input
-                    id="assigneeFilter"
-                    type="search"
-                    placeholder="Assigned person"
-                >
-
-                <select id="timelineScale">
-                    <option value="day">Daily</option>
-                    <option value="week" selected>Weekly</option>
-                </select>
-            </section>
-
-            <p id="productionMessage"></p>
-
-            <section class="gantt-card card">
-                <div class="gantt-shell">
-
-                    <div class="gantt-sidebar">
-                        <div class="gantt-sidebar-header">
-                            <span>Production task</span>
-                        </div>
-
-                        <div id="ganttTaskRows"></div>
-                    </div>
-
-                    <div
-                        id="ganttTimeline"
-                        class="gantt-timeline"
-                    >
-                        <div
-                            id="ganttHeader"
-                            class="gantt-header"
-                        ></div>
-
-                        <div
-                            id="ganttRows"
-                            class="gantt-rows"
-                        ></div>
-                    </div>
-
-                </div>
-
-                <div
-                    id="ganttEmpty"
-                    class="gantt-empty"
-                    hidden
-                >
-                    <strong>No production tasks scheduled.</strong>
-                    <p>
-                        Add schedule tasks from an order to start
-                        building the production timeline.
-                    </p>
-                </div>
-            </section>
-        </main>
+        </div>
     </div>
 
     <script src="/js/production-v1.js"></script>
