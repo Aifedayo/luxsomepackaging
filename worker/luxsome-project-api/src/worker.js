@@ -311,6 +311,59 @@ async function handleAdminRequest(request, env, url) {
             );
         }
 
+        const orderScheduleMatch = url.pathname.match(
+            /^\/admin\/orders\/([A-Z0-9-]+)\/schedule$/
+        );
+        
+        if (orderScheduleMatch && request.method === "GET") {
+            return await handleAdminOrderSchedule(
+                request,
+                env,
+                orderScheduleMatch[1]
+            );
+        }
+        
+        if (orderScheduleMatch && request.method === "POST") {
+            return await handleAdminOrderScheduleCreate(
+                request,
+                env,
+                orderScheduleMatch[1]
+            );
+        }
+        
+        const orderScheduleTaskMatch = url.pathname.match(
+            /^\/admin\/orders\/([A-Z0-9-]+)\/schedule\/(\d+)$/
+        );
+        
+        if (orderScheduleTaskMatch && request.method === "PATCH") {
+            return await handleAdminOrderScheduleUpdate(
+                request,
+                env,
+                orderScheduleTaskMatch[1],
+                Number(orderScheduleTaskMatch[2])
+            );
+        }
+        
+        if (orderScheduleTaskMatch && request.method === "DELETE") {
+            return await handleAdminOrderScheduleDelete(
+                request,
+                env,
+                orderScheduleTaskMatch[1],
+                Number(orderScheduleTaskMatch[2])
+            );
+        }
+
+        if (
+            request.method === "GET" &&
+            url.pathname === "/admin/production-schedule"
+        ) {
+            return await handleAdminProductionSchedule(
+                request,
+                env,
+                url
+            );
+        }
+
         const orderMatch = url.pathname.match(
             /^\/admin\/orders\/([A-Z0-9-]+)$/
         );
@@ -513,6 +566,1059 @@ async function handleAdminRequest(request, env, url) {
             env
         );
     }
+}
+
+async function handleAdminOrderScheduleCreate(
+    request,
+    env,
+    orderReference
+) {
+    const order = await env.DB.prepare(`
+        SELECT
+            id,
+            order_reference
+        FROM orders
+        WHERE order_reference = ?
+        LIMIT 1
+    `).bind(orderReference).first();
+
+    if (!order) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Order not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+
+    const taskName = text(body.taskName);
+
+    if (!taskName) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Task name is required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const orderItemId = body.orderItemId
+        ? Number(body.orderItemId)
+        : null;
+
+    if (orderItemId) {
+        const orderItem = await env.DB.prepare(`
+            SELECT id
+            FROM order_items
+            WHERE id = ?
+              AND order_id = ?
+            LIMIT 1
+        `).bind(
+            orderItemId,
+            order.id
+        ).first();
+
+        if (!orderItem) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message:
+                        "The selected order item does not belong to this order."
+                },
+                422,
+                request,
+                env
+            );
+        }
+    }
+
+    const dependencyTaskId = body.dependencyTaskId
+        ? Number(body.dependencyTaskId)
+        : null;
+
+    if (dependencyTaskId) {
+        const dependency = await env.DB.prepare(`
+            SELECT id
+            FROM production_schedule_tasks
+            WHERE id = ?
+              AND order_id = ?
+            LIMIT 1
+        `).bind(
+            dependencyTaskId,
+            order.id
+        ).first();
+
+        if (!dependency) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message:
+                        "The selected dependency does not belong to this order."
+                },
+                422,
+                request,
+                env
+            );
+        }
+    }
+
+    const plannedStartDate =
+        normaliseScheduleDate(body.plannedStartDate);
+
+    const plannedEndDate =
+        normaliseScheduleDate(body.plannedEndDate);
+
+    if (
+        body.plannedStartDate &&
+        !plannedStartDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Planned start date must use YYYY-MM-DD."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (
+        body.plannedEndDate &&
+        !plannedEndDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Planned end date must use YYYY-MM-DD."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (
+        plannedStartDate &&
+        plannedEndDate &&
+        plannedEndDate < plannedStartDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Planned end date cannot be before the start date."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const actualStartDate =
+        normaliseScheduleDate(body.actualStartDate);
+
+    const actualEndDate =
+        normaliseScheduleDate(body.actualEndDate);
+
+    if (
+        actualStartDate &&
+        actualEndDate &&
+        actualEndDate < actualStartDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Actual end date cannot be before the actual start date."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const status =
+        normaliseProductionTaskStatus(body.status);
+
+    const priority =
+        normaliseProductionTaskPriority(body.priority);
+
+    let progress =
+        normaliseProductionTaskProgress(body.progress);
+
+    /*
+     * Keep status and progress sensible.
+     */
+    if (status === "completed") {
+        progress = 100;
+    }
+
+    const now = new Date().toISOString();
+
+    const sortOrder = Number.isFinite(
+        Number(body.sortOrder)
+    )
+        ? Math.max(0, Math.round(Number(body.sortOrder)))
+        : 0;
+
+    const result = await env.DB.prepare(`
+        INSERT INTO production_schedule_tasks (
+            order_id,
+            order_item_id,
+            task_key,
+            task_name,
+            task_type,
+            status,
+            priority,
+            assigned_to,
+            planned_start_date,
+            planned_end_date,
+            actual_start_date,
+            actual_end_date,
+            progress,
+            dependency_task_id,
+            sort_order,
+            notes,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+    `).bind(
+        order.id,
+        orderItemId,
+        text(body.taskKey) || null,
+        taskName,
+        text(body.taskType) || null,
+        status,
+        priority,
+        text(body.assignedTo) || null,
+        plannedStartDate,
+        plannedEndDate,
+        actualStartDate,
+        actualEndDate,
+        progress,
+        dependencyTaskId,
+        sortOrder,
+        text(body.notes) || null,
+        now,
+        now
+    ).run();
+
+    const taskId = result.meta?.last_row_id;
+
+    if (!taskId) {
+        throw new Error(
+            "The production schedule task could not be created."
+        );
+    }
+
+    await recordOrderActivity(env.DB, {
+        orderId: order.id,
+        activityType: "schedule_task_created",
+        title: "Production task added",
+        details:
+            `${taskName} was added to the production schedule.`,
+        createdAt: now
+    });
+
+    const task = await env.DB.prepare(`
+        SELECT
+            pst.*,
+            oi.item_order,
+            oi.description AS item_description,
+            dependency.task_name AS dependency_task_name
+        FROM production_schedule_tasks pst
+
+        LEFT JOIN order_items oi
+            ON oi.id = pst.order_item_id
+
+        LEFT JOIN production_schedule_tasks dependency
+            ON dependency.id = pst.dependency_task_id
+
+        WHERE pst.id = ?
+          AND pst.order_id = ?
+
+        LIMIT 1
+    `).bind(
+        taskId,
+        order.id
+    ).first();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production task created.",
+            task: {
+                id: task.id,
+
+                orderId: task.order_id,
+                orderItemId: task.order_item_id,
+
+                itemOrder: task.item_order,
+                itemDescription: task.item_description,
+
+                taskKey: task.task_key,
+                taskName: task.task_name,
+                taskType: task.task_type,
+
+                status: task.status,
+                priority: task.priority,
+                assignedTo: task.assigned_to,
+
+                plannedStartDate:
+                    task.planned_start_date,
+                plannedEndDate:
+                    task.planned_end_date,
+
+                actualStartDate:
+                    task.actual_start_date,
+                actualEndDate:
+                    task.actual_end_date,
+
+                progress:
+                    Number(task.progress || 0),
+
+                dependencyTaskId:
+                    task.dependency_task_id,
+                dependencyTaskName:
+                    task.dependency_task_name,
+
+                sortOrder:
+                    Number(task.sort_order || 0),
+
+                notes: task.notes,
+
+                createdAt: task.created_at,
+                updatedAt: task.updated_at
+            }
+        },
+        201,
+        request,
+        env
+    );
+}
+
+async function handleAdminOrderScheduleUpdate(
+    request,
+    env,
+    orderReference,
+    taskId
+) {
+    const order = await env.DB.prepare(`
+        SELECT
+            id,
+            order_reference
+        FROM orders
+        WHERE order_reference = ?
+        LIMIT 1
+    `).bind(orderReference).first();
+
+    if (!order) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Order not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const existing = await env.DB.prepare(`
+        SELECT *
+        FROM production_schedule_tasks
+        WHERE id = ?
+          AND order_id = ?
+        LIMIT 1
+    `).bind(
+        taskId,
+        order.id
+    ).first();
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production task not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+
+    const taskName =
+        body.taskName !== undefined
+            ? text(body.taskName)
+            : existing.task_name;
+
+    if (!taskName) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Task name is required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    /*
+     * Validate optional order-item relationship.
+     */
+    let orderItemId = existing.order_item_id;
+
+    if (body.orderItemId !== undefined) {
+        orderItemId =
+            body.orderItemId === null ||
+            body.orderItemId === ""
+                ? null
+                : Number(body.orderItemId);
+
+        if (
+            orderItemId !== null &&
+            !Number.isInteger(orderItemId)
+        ) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message: "Invalid order item."
+                },
+                422,
+                request,
+                env
+            );
+        }
+
+        if (orderItemId !== null) {
+            const orderItem = await env.DB.prepare(`
+                SELECT id
+                FROM order_items
+                WHERE id = ?
+                  AND order_id = ?
+                LIMIT 1
+            `).bind(
+                orderItemId,
+                order.id
+            ).first();
+
+            if (!orderItem) {
+                return jsonResponse(
+                    {
+                        success: false,
+                        message:
+                            "The selected order item does not belong to this order."
+                    },
+                    422,
+                    request,
+                    env
+                );
+            }
+        }
+    }
+
+    /*
+     * Validate dependency.
+     */
+    let dependencyTaskId =
+        existing.dependency_task_id;
+
+    if (body.dependencyTaskId !== undefined) {
+        dependencyTaskId =
+            body.dependencyTaskId === null ||
+            body.dependencyTaskId === ""
+                ? null
+                : Number(body.dependencyTaskId);
+
+        if (
+            dependencyTaskId !== null &&
+            !Number.isInteger(dependencyTaskId)
+        ) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message: "Invalid dependency task."
+                },
+                422,
+                request,
+                env
+            );
+        }
+
+        if (dependencyTaskId === taskId) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message:
+                        "A production task cannot depend on itself."
+                },
+                422,
+                request,
+                env
+            );
+        }
+
+        if (dependencyTaskId !== null) {
+            const dependency = await env.DB.prepare(`
+                SELECT id
+                FROM production_schedule_tasks
+                WHERE id = ?
+                  AND order_id = ?
+                LIMIT 1
+            `).bind(
+                dependencyTaskId,
+                order.id
+            ).first();
+
+            if (!dependency) {
+                return jsonResponse(
+                    {
+                        success: false,
+                        message:
+                            "The selected dependency does not belong to this order."
+                    },
+                    422,
+                    request,
+                    env
+                );
+            }
+        }
+    }
+
+    /*
+     * Planned dates.
+     */
+    const requestedPlannedStart =
+        body.plannedStartDate !== undefined
+            ? body.plannedStartDate
+            : existing.planned_start_date;
+
+    const requestedPlannedEnd =
+        body.plannedEndDate !== undefined
+            ? body.plannedEndDate
+            : existing.planned_end_date;
+
+    const plannedStartDate =
+        requestedPlannedStart === null ||
+        requestedPlannedStart === ""
+            ? null
+            : normaliseScheduleDate(
+                requestedPlannedStart
+            );
+
+    const plannedEndDate =
+        requestedPlannedEnd === null ||
+        requestedPlannedEnd === ""
+            ? null
+            : normaliseScheduleDate(
+                requestedPlannedEnd
+            );
+
+    if (
+        requestedPlannedStart &&
+        !plannedStartDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Planned start date must use YYYY-MM-DD."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (
+        requestedPlannedEnd &&
+        !plannedEndDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Planned end date must use YYYY-MM-DD."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (
+        plannedStartDate &&
+        plannedEndDate &&
+        plannedEndDate < plannedStartDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Planned end date cannot be before the start date."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    /*
+     * Actual dates.
+     */
+    const requestedActualStart =
+        body.actualStartDate !== undefined
+            ? body.actualStartDate
+            : existing.actual_start_date;
+
+    const requestedActualEnd =
+        body.actualEndDate !== undefined
+            ? body.actualEndDate
+            : existing.actual_end_date;
+
+    let actualStartDate =
+        requestedActualStart === null ||
+        requestedActualStart === ""
+            ? null
+            : normaliseScheduleDate(
+                requestedActualStart
+            );
+
+    let actualEndDate =
+        requestedActualEnd === null ||
+        requestedActualEnd === ""
+            ? null
+            : normaliseScheduleDate(
+                requestedActualEnd
+            );
+
+    if (
+        requestedActualStart &&
+        !actualStartDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Actual start date must use YYYY-MM-DD."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (
+        requestedActualEnd &&
+        !actualEndDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Actual end date must use YYYY-MM-DD."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const status =
+        body.status !== undefined
+            ? normaliseProductionTaskStatus(
+                body.status
+            )
+            : existing.status;
+
+    const priority =
+        body.priority !== undefined
+            ? normaliseProductionTaskPriority(
+                body.priority
+            )
+            : existing.priority;
+
+    let progress =
+        body.progress !== undefined
+            ? normaliseProductionTaskProgress(
+                body.progress
+            )
+            : Number(existing.progress || 0);
+
+    const now = new Date().toISOString();
+    const today = now.slice(0, 10);
+
+    /*
+     * Automatically maintain actual dates where useful.
+     */
+    if (
+        status === "in_progress" &&
+        !actualStartDate
+    ) {
+        actualStartDate = today;
+    }
+
+    if (status === "completed") {
+        progress = 100;
+
+        if (!actualStartDate) {
+            actualStartDate = today;
+        }
+
+        if (!actualEndDate) {
+            actualEndDate = today;
+        }
+    }
+
+    if (
+        actualStartDate &&
+        actualEndDate &&
+        actualEndDate < actualStartDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Actual end date cannot be before the actual start date."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const sortOrder =
+        body.sortOrder !== undefined
+            ? Math.max(
+                0,
+                Math.round(
+                    Number(body.sortOrder) || 0
+                )
+            )
+            : Number(existing.sort_order || 0);
+
+    await env.DB.prepare(`
+        UPDATE production_schedule_tasks
+        SET
+            order_item_id = ?,
+            task_key = ?,
+            task_name = ?,
+            task_type = ?,
+            status = ?,
+            priority = ?,
+            assigned_to = ?,
+            planned_start_date = ?,
+            planned_end_date = ?,
+            actual_start_date = ?,
+            actual_end_date = ?,
+            progress = ?,
+            dependency_task_id = ?,
+            sort_order = ?,
+            notes = ?,
+            updated_at = ?
+        WHERE id = ?
+          AND order_id = ?
+    `).bind(
+        orderItemId,
+
+        body.taskKey !== undefined
+            ? text(body.taskKey) || null
+            : existing.task_key,
+
+        taskName,
+
+        body.taskType !== undefined
+            ? text(body.taskType) || null
+            : existing.task_type,
+
+        status,
+        priority,
+
+        body.assignedTo !== undefined
+            ? text(body.assignedTo) || null
+            : existing.assigned_to,
+
+        plannedStartDate,
+        plannedEndDate,
+
+        actualStartDate,
+        actualEndDate,
+
+        progress,
+        dependencyTaskId,
+        sortOrder,
+
+        body.notes !== undefined
+            ? text(body.notes) || null
+            : existing.notes,
+
+        now,
+        taskId,
+        order.id
+    ).run();
+
+    const changes = [];
+
+    if (taskName !== existing.task_name) {
+        changes.push(
+            `Task renamed to ${taskName}.`
+        );
+    }
+
+    if (status !== existing.status) {
+        changes.push(
+            `Status changed from ${existing.status} to ${status}.`
+        );
+    }
+
+    if (
+        progress !==
+        Number(existing.progress || 0)
+    ) {
+        changes.push(
+            `Progress changed to ${progress}%.`
+        );
+    }
+
+    if (
+        plannedStartDate !==
+            existing.planned_start_date ||
+        plannedEndDate !==
+            existing.planned_end_date
+    ) {
+        changes.push(
+            "Production dates were updated."
+        );
+    }
+
+    await recordOrderActivity(env.DB, {
+        orderId: order.id,
+        activityType: "schedule_task_updated",
+        title: "Production task updated",
+        details: changes.length
+            ? `${taskName}: ${changes.join(" ")}`
+            : `${taskName} was updated.`,
+        createdAt: now
+    });
+
+    const updated = await env.DB.prepare(`
+        SELECT
+            pst.*,
+            oi.item_order,
+            oi.description AS item_description,
+            dependency.task_name
+                AS dependency_task_name
+        FROM production_schedule_tasks pst
+
+        LEFT JOIN order_items oi
+            ON oi.id = pst.order_item_id
+
+        LEFT JOIN production_schedule_tasks dependency
+            ON dependency.id =
+                pst.dependency_task_id
+            AND dependency.order_id =
+                pst.order_id
+
+        WHERE pst.id = ?
+          AND pst.order_id = ?
+
+        LIMIT 1
+    `).bind(
+        taskId,
+        order.id
+    ).first();
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                "Production task updated.",
+            task: {
+                id: updated.id,
+
+                orderId: updated.order_id,
+                orderItemId:
+                    updated.order_item_id,
+
+                itemOrder:
+                    updated.item_order,
+                itemDescription:
+                    updated.item_description,
+
+                taskKey:
+                    updated.task_key,
+                taskName:
+                    updated.task_name,
+                taskType:
+                    updated.task_type,
+
+                status:
+                    updated.status,
+                priority:
+                    updated.priority,
+                assignedTo:
+                    updated.assigned_to,
+
+                plannedStartDate:
+                    updated.planned_start_date,
+                plannedEndDate:
+                    updated.planned_end_date,
+
+                actualStartDate:
+                    updated.actual_start_date,
+                actualEndDate:
+                    updated.actual_end_date,
+
+                progress:
+                    Number(
+                        updated.progress || 0
+                    ),
+
+                dependencyTaskId:
+                    updated.dependency_task_id,
+                dependencyTaskName:
+                    updated.dependency_task_name,
+
+                sortOrder:
+                    Number(
+                        updated.sort_order || 0
+                    ),
+
+                notes:
+                    updated.notes,
+
+                createdAt:
+                    updated.created_at,
+                updatedAt:
+                    updated.updated_at
+            }
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminOrderScheduleDelete(
+    request,
+    env,
+    orderReference,
+    taskId
+) {
+    const order = await env.DB.prepare(`
+        SELECT
+            id,
+            order_reference
+        FROM orders
+        WHERE order_reference = ?
+        LIMIT 1
+    `).bind(orderReference).first();
+
+    if (!order) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Order not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const existing = await env.DB.prepare(`
+        SELECT
+            id,
+            task_name
+        FROM production_schedule_tasks
+        WHERE id = ?
+          AND order_id = ?
+        LIMIT 1
+    `).bind(
+        taskId,
+        order.id
+    ).first();
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production task not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    /*
+     * Clear dependencies from tasks that point to this task.
+     *
+     * The FK is already ON DELETE SET NULL,
+     * but doing this explicitly keeps the behaviour obvious
+     * and avoids relying entirely on FK enforcement.
+     */
+    await env.DB.prepare(`
+        UPDATE production_schedule_tasks
+        SET
+            dependency_task_id = NULL,
+            updated_at = ?
+        WHERE order_id = ?
+          AND dependency_task_id = ?
+    `).bind(
+        new Date().toISOString(),
+        order.id,
+        taskId
+    ).run();
+
+    await env.DB.prepare(`
+        DELETE FROM production_schedule_tasks
+        WHERE id = ?
+          AND order_id = ?
+    `).bind(
+        taskId,
+        order.id
+    ).run();
+
+    const now = new Date().toISOString();
+
+    await recordOrderActivity(env.DB, {
+        orderId: order.id,
+        activityType: "schedule_task_deleted",
+        title: "Production task removed",
+        details:
+            `${existing.task_name} was removed from the production schedule.`,
+        createdAt: now
+    });
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production task deleted.",
+            taskId
+        },
+        200,
+        request,
+        env
+    );
 }
 
 async function handleAdminStats(request, env) {
@@ -1645,6 +2751,166 @@ async function handleAdminOrderDetail(
     );
 }
 
+async function handleAdminOrderSchedule(
+    request,
+    env,
+    orderReference
+) {
+    const order = await env.DB.prepare(`
+        SELECT
+            o.id,
+            o.order_reference,
+            o.customer_name,
+            o.brand_name,
+            o.status,
+            o.priority,
+            o.assigned_to,
+            o.production_status,
+            o.production_deadline,
+            o.expected_delivery_date,
+            i.invoice_reference,
+            q.quote_reference
+        FROM orders o
+        INNER JOIN invoices i
+            ON i.id = o.invoice_id
+        LEFT JOIN quotations q
+            ON q.id = o.quotation_id
+        WHERE o.order_reference = ?
+        LIMIT 1
+    `).bind(orderReference).first();
+
+    if (!order) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Order not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const result = await env.DB.prepare(`
+        SELECT
+            pst.id,
+            pst.order_id,
+            pst.order_item_id,
+
+            oi.item_order,
+            oi.description AS item_description,
+
+            pst.task_key,
+            pst.task_name,
+            pst.task_type,
+
+            pst.status,
+            pst.priority,
+            pst.assigned_to,
+
+            pst.planned_start_date,
+            pst.planned_end_date,
+
+            pst.actual_start_date,
+            pst.actual_end_date,
+
+            pst.progress,
+            pst.dependency_task_id,
+            pst.sort_order,
+            pst.notes,
+
+            pst.created_at,
+            pst.updated_at,
+
+            dependency.task_name AS dependency_task_name
+
+        FROM production_schedule_tasks pst
+
+        LEFT JOIN order_items oi
+            ON oi.id = pst.order_item_id
+
+        LEFT JOIN production_schedule_tasks dependency
+            ON dependency.id = pst.dependency_task_id
+            AND dependency.order_id = pst.order_id
+
+        WHERE pst.order_id = ?
+
+        ORDER BY
+            pst.sort_order ASC,
+            COALESCE(
+                pst.planned_start_date,
+                '9999-12-31'
+            ) ASC,
+            pst.id ASC
+    `).bind(order.id).all();
+
+    const tasks = (result.results || []).map(task => ({
+        id: task.id,
+
+        orderId: task.order_id,
+        orderItemId: task.order_item_id,
+
+        itemOrder: task.item_order,
+        itemDescription: task.item_description,
+
+        taskKey: task.task_key,
+        taskName: task.task_name,
+        taskType: task.task_type,
+
+        status: task.status,
+        priority: task.priority,
+        assignedTo: task.assigned_to,
+
+        plannedStartDate: task.planned_start_date,
+        plannedEndDate: task.planned_end_date,
+
+        actualStartDate: task.actual_start_date,
+        actualEndDate: task.actual_end_date,
+
+        progress: Number(task.progress || 0),
+
+        dependencyTaskId: task.dependency_task_id,
+        dependencyTaskName: task.dependency_task_name,
+
+        sortOrder: Number(task.sort_order || 0),
+
+        notes: task.notes,
+
+        createdAt: task.created_at,
+        updatedAt: task.updated_at
+    }));
+
+    return jsonResponse(
+        {
+            success: true,
+
+            order: {
+                id: order.id,
+                orderReference: order.order_reference,
+                invoiceReference: order.invoice_reference,
+                quoteReference: order.quote_reference,
+
+                customerName: order.customer_name,
+                brandName: order.brand_name,
+
+                status: order.status,
+                priority: order.priority,
+                assignedTo: order.assigned_to,
+
+                productionStatus: order.production_status,
+                productionDeadline: order.production_deadline,
+                expectedDeliveryDate:
+                    order.expected_delivery_date
+            },
+
+            tasks
+        },
+        200,
+        request,
+        env
+    );
+}
+
 async function handleAdminOrderUpdate(
     request,
     env,
@@ -1964,6 +3230,225 @@ async function handleAdminOrderActivity(
     );
 }
 
+async function handleAdminProductionSchedule(
+    request,
+    env,
+    url
+) {
+    const status = text(url.searchParams.get("status"));
+    const assignee = text(url.searchParams.get("assignedTo"));
+    const search = text(url.searchParams.get("search")).slice(0, 100);
+
+    const where = [
+        "o.status NOT IN ('completed', 'cancelled')"
+    ];
+
+    const bindings = [];
+
+    if (status) {
+        where.push("pst.status = ?");
+        bindings.push(status);
+    }
+
+    if (assignee) {
+        where.push("pst.assigned_to = ?");
+        bindings.push(assignee);
+    }
+
+    if (search) {
+        const term = `%${search}%`;
+
+        where.push(`
+            (
+                o.order_reference LIKE ?
+                OR o.customer_name LIKE ?
+                OR o.brand_name LIKE ?
+                OR pst.task_name LIKE ?
+                OR oi.description LIKE ?
+            )
+        `);
+
+        bindings.push(
+            term,
+            term,
+            term,
+            term,
+            term
+        );
+    }
+
+    const result = await env.DB.prepare(`
+        SELECT
+            pst.id,
+
+            pst.order_id,
+            o.order_reference,
+
+            o.customer_name,
+            o.brand_name,
+
+            o.status AS order_status,
+            o.priority AS order_priority,
+            o.production_status,
+            o.production_deadline,
+            o.expected_delivery_date,
+
+            pst.order_item_id,
+            oi.item_order,
+            oi.description AS item_description,
+
+            pst.task_key,
+            pst.task_name,
+            pst.task_type,
+
+            pst.status,
+            pst.priority,
+            pst.assigned_to,
+
+            pst.planned_start_date,
+            pst.planned_end_date,
+
+            pst.actual_start_date,
+            pst.actual_end_date,
+
+            pst.progress,
+
+            pst.dependency_task_id,
+            dependency.task_name
+                AS dependency_task_name,
+
+            pst.sort_order,
+            pst.notes,
+
+            pst.created_at,
+            pst.updated_at
+
+        FROM production_schedule_tasks pst
+
+        INNER JOIN orders o
+            ON o.id = pst.order_id
+
+        LEFT JOIN order_items oi
+            ON oi.id = pst.order_item_id
+
+        LEFT JOIN production_schedule_tasks dependency
+            ON dependency.id =
+                pst.dependency_task_id
+            AND dependency.order_id =
+                pst.order_id
+
+        WHERE ${where.join(" AND ")}
+
+        ORDER BY
+            CASE o.priority
+                WHEN 'urgent' THEN 1
+                WHEN 'high' THEN 2
+                WHEN 'normal' THEN 3
+                ELSE 4
+            END,
+
+            COALESCE(
+                pst.planned_start_date,
+                '9999-12-31'
+            ),
+
+            o.order_reference,
+
+            pst.sort_order,
+
+            pst.id
+    `).bind(...bindings).all();
+
+    const tasks = (result.results || []).map(task => ({
+        id: task.id,
+
+        orderId: task.order_id,
+        orderReference: task.order_reference,
+
+        customerName: task.customer_name,
+        brandName: task.brand_name,
+
+        orderStatus: task.order_status,
+        orderPriority: task.order_priority,
+        productionStatus: task.production_status,
+
+        productionDeadline:
+            task.production_deadline,
+
+        expectedDeliveryDate:
+            task.expected_delivery_date,
+
+        orderItemId:
+            task.order_item_id,
+
+        itemOrder:
+            task.item_order,
+
+        itemDescription:
+            task.item_description,
+
+        taskKey:
+            task.task_key,
+
+        taskName:
+            task.task_name,
+
+        taskType:
+            task.task_type,
+
+        status:
+            task.status,
+
+        priority:
+            task.priority,
+
+        assignedTo:
+            task.assigned_to,
+
+        plannedStartDate:
+            task.planned_start_date,
+
+        plannedEndDate:
+            task.planned_end_date,
+
+        actualStartDate:
+            task.actual_start_date,
+
+        actualEndDate:
+            task.actual_end_date,
+
+        progress:
+            Number(task.progress || 0),
+
+        dependencyTaskId:
+            task.dependency_task_id,
+
+        dependencyTaskName:
+            task.dependency_task_name,
+
+        sortOrder:
+            Number(task.sort_order || 0),
+
+        notes:
+            task.notes,
+
+        createdAt:
+            task.created_at,
+
+        updatedAt:
+            task.updated_at
+    }));
+
+    return jsonResponse(
+        {
+            success: true,
+            tasks
+        },
+        200,
+        request,
+        env
+    );
+}
 
 
 async function handleAdminOrderTrackingEmail(request, env, orderReference) {
@@ -2454,6 +3939,69 @@ function normaliseProductionStatus(value) {
     return allowed.has(status)
         ? status
         : "not_started";
+}
+
+function normaliseProductionTaskStatus(value) {
+    const allowed = new Set([
+        "not_started",
+        "ready",
+        "in_progress",
+        "blocked",
+        "on_hold",
+        "completed",
+        "cancelled"
+    ]);
+
+    const status = text(value);
+
+    return allowed.has(status)
+        ? status
+        : "not_started";
+}
+
+
+function normaliseProductionTaskPriority(value) {
+    const allowed = new Set([
+        "low",
+        "normal",
+        "high",
+        "urgent"
+    ]);
+
+    const priority = text(value);
+
+    return allowed.has(priority)
+        ? priority
+        : "normal";
+}
+
+
+function normaliseProductionTaskProgress(value) {
+    const progress = Number(value);
+
+    if (!Number.isFinite(progress)) {
+        return 0;
+    }
+
+    return Math.min(
+        100,
+        Math.max(0, Math.round(progress))
+    );
+}
+
+
+function normaliseScheduleDate(value) {
+    const date = text(value);
+
+    if (!date) {
+        return null;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return null;
+    }
+
+    return date;
 }
 
 async function recordOrderActivity(
