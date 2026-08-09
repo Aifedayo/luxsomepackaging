@@ -19,6 +19,7 @@
         rel="preconnect"
         href="https://fonts.googleapis.com"
     >
+
     <link
         rel="preconnect"
         href="https://fonts.gstatic.com"
@@ -33,13 +34,16 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
-    <link rel="stylesheet" href="/css/production-v1.css?v=2">
+    <link rel="stylesheet" href="/css/production-v1.css?v=3">
 </head>
-
 
 <body class="crm-app-page">
 
     <div class="crm-app">
+
+        <!-- ==================================================
+             SIDEBAR
+        =================================================== -->
 
         <aside
             class="crm-sidebar"
@@ -53,6 +57,7 @@
                     aria-label="CRM navigation"
                 >
                     <section class="crm-nav__group">
+
                         <p class="crm-nav__label">
                             Overview
                         </p>
@@ -62,11 +67,14 @@
                             href="/admin/"
                         >
                             <span>Dashboard</span>
-                            <small>→</small>
+                            <small aria-hidden="true">→</small>
                         </a>
+
                     </section>
 
+
                     <section class="crm-nav__group">
+
                         <p class="crm-nav__label">
                             Sales
                         </p>
@@ -76,7 +84,7 @@
                             href="/admin/"
                         >
                             <span>Enquiries</span>
-                            <small>→</small>
+                            <small aria-hidden="true">→</small>
                         </a>
 
                         <a
@@ -84,11 +92,14 @@
                             href="/admin/invoices/"
                         >
                             <span>Invoices</span>
-                            <small>→</small>
+                            <small aria-hidden="true">→</small>
                         </a>
+
                     </section>
 
+
                     <section class="crm-nav__group">
+
                         <p class="crm-nav__label">
                             Fulfilment
                         </p>
@@ -98,21 +109,25 @@
                             href="/admin/orders/"
                         >
                             <span>Orders</span>
-                            <small>→</small>
+                            <small aria-hidden="true">→</small>
                         </a>
 
                         <a
                             class="crm-nav__item crm-nav__item--link is-active"
                             href="/admin/production/"
+                            aria-current="page"
                         >
                             <span>Production</span>
-                            <small>●</small>
+                            <small aria-hidden="true">●</small>
                         </a>
+
                     </section>
                 </nav>
             </div>
 
+
             <div class="crm-sidebar__footer">
+
                 <button
                     id="logout"
                     class="crm-sidebar__logout"
@@ -120,11 +135,18 @@
                 >
                     Lock dashboard
                 </button>
+
             </div>
         </aside>
 
 
+        <!-- ==================================================
+             MAIN
+        =================================================== -->
+
         <div class="crm-main">
+
+            <!-- HEADER -->
 
             <header class="crm-topbar production-header">
 
@@ -138,7 +160,9 @@
                     Menu
                 </button>
 
-                <div>
+
+                <div class="production-heading">
+
                     <p class="crm-eyebrow">
                         PRODUCTION CONTROL
                     </p>
@@ -150,7 +174,9 @@
                     <span>
                         Plan and track every active packaging project.
                     </span>
+
                 </div>
+
 
                 <div class="crm-topbar__actions header-actions">
 
@@ -173,10 +199,242 @@
                 </div>
 
             </header>
+
+
+            <!-- ==================================================
+                 STATS
+            =================================================== -->
+
+            <section
+                class="production-stats"
+                aria-label="Production overview"
+            >
+
+                <article>
+                    <span>
+                        Scheduled tasks
+                    </span>
+
+                    <strong id="scheduledCount">
+                        0
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>
+                        In progress
+                    </span>
+
+                    <strong id="inProgressCount">
+                        0
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>
+                        Blocked
+                    </span>
+
+                    <strong id="blockedCount">
+                        0
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>
+                        Overdue
+                    </span>
+
+                    <strong id="overdueCount">
+                        0
+                    </strong>
+                </article>
+
+            </section>
+
+
+            <!-- ==================================================
+                 FILTERS
+            =================================================== -->
+
+            <section
+                class="production-toolbar card"
+                aria-label="Production schedule filters"
+            >
+
+                <label class="sr-only" for="productionSearch">
+                    Search production schedule
+                </label>
+
+                <input
+                    id="productionSearch"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Search brand, order, product or task"
+                >
+
+
+                <label class="sr-only" for="taskStatusFilter">
+                    Filter by task status
+                </label>
+
+                <select id="taskStatusFilter">
+
+                    <option value="">
+                        All task statuses
+                    </option>
+
+                    <option value="not_started">
+                        Not started
+                    </option>
+
+                    <option value="ready">
+                        Ready
+                    </option>
+
+                    <option value="in_progress">
+                        In progress
+                    </option>
+
+                    <option value="blocked">
+                        Blocked
+                    </option>
+
+                    <option value="on_hold">
+                        On hold
+                    </option>
+
+                    <option value="completed">
+                        Completed
+                    </option>
+
+                    <option value="cancelled">
+                        Cancelled
+                    </option>
+
+                </select>
+
+
+                <label class="sr-only" for="assigneeFilter">
+                    Filter by assigned person
+                </label>
+
+                <input
+                    id="assigneeFilter"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Assigned person"
+                >
+
+
+                <label class="sr-only" for="timelineScale">
+                    Timeline scale
+                </label>
+
+                <select id="timelineScale">
+
+                    <option value="day">
+                        Daily
+                    </option>
+
+                    <option value="week" selected>
+                        Weekly
+                    </option>
+
+                </select>
+
+            </section>
+
+
+            <!-- STATUS / ERROR MESSAGE -->
+
+            <p
+                id="productionMessage"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+
+            <!-- ==================================================
+                 GANTT
+            =================================================== -->
+
+            <section
+                class="gantt-card card"
+                aria-label="Production Gantt schedule"
+            >
+
+                <div class="gantt-shell">
+
+                    <!-- LEFT TASK COLUMN -->
+
+                    <div class="gantt-sidebar">
+
+                        <div class="gantt-sidebar-header">
+
+                            <span>
+                                Production task
+                            </span>
+
+                        </div>
+
+                        <div id="ganttTaskRows"></div>
+
+                    </div>
+
+
+                    <!-- RIGHT TIMELINE -->
+
+                    <div
+                        id="ganttTimeline"
+                        class="gantt-timeline"
+                    >
+
+                        <div
+                            id="ganttHeader"
+                            class="gantt-header"
+                        ></div>
+
+                        <div
+                            id="ganttRows"
+                            class="gantt-rows"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- EMPTY STATE -->
+
+                <div
+                    id="ganttEmpty"
+                    class="gantt-empty"
+                    hidden
+                >
+
+                    <strong>
+                        No production tasks scheduled.
+                    </strong>
+
+                    <p>
+                        Add schedule tasks from an order to begin
+                        building the production timeline.
+                    </p>
+
+                </div>
+
+            </section>
+
         </div>
     </div>
 
-    <script src="/js/production-v1.js"></script>
+
+    <script src="/js/production-v1.js?v=3"></script>
     <script src="/js/crm-brand.js"></script>
+
 </body>
 </html>
