@@ -27,12 +27,16 @@
         ganttInteraction: null,
         suppressTaskClickUntil: 0,
         generator: {
+            mode: "single",
             orderReference: "",
             orderItemId: null,
             matchedTemplate: null,
             previewTasks: [],
+            previewItems: [],
             alreadyScheduled: false,
-            existingTaskCount: 0
+            existingTaskCount: 0,
+            eligibleItemCount: 0,
+            eligibleTaskCount: 0
         },
     };
 
@@ -4491,12 +4495,16 @@
     
     function resetScheduleGenerator() {
         state.generator = {
+            mode: "single",
             orderReference: "",
             orderItemId: null,
             matchedTemplate: null,
             previewTasks: [],
+            previewItems: [],
             alreadyScheduled: false,
-            existingTaskCount: 0
+            existingTaskCount: 0,
+            eligibleItemCount: 0,
+            eligibleTaskCount: 0
         };
     
         element("scheduleGeneratorForm").reset();
@@ -4568,87 +4576,58 @@
     async function loadGeneratorOrderItems(
         orderReference
     ) {
-        const select =
-            element("generatorOrderItem");
-    
+        const select = element("generatorOrderItem");
+
         if (!orderReference) {
             select.disabled = true;
-    
             select.innerHTML = `
                 <option value="">
                     Select an order first
                 </option>
             `;
-    
             return;
         }
-    
+
         select.disabled = true;
-    
         select.innerHTML = `
             <option value="">
                 Loading order items…
             </option>
         `;
-    
+
         try {
-            let order =
-                state.orderDetails.get(
-                    orderReference
-                );
-    
+            let order = state.orderDetails.get(orderReference);
+
             if (!order) {
-                const data =
-                    await api(
-                        `/admin/orders/${encodeURIComponent(
-                            orderReference
-                        )}`
-                    );
-    
-                order = data.order;
-    
-                state.orderDetails.set(
-                    orderReference,
-                    order
+                const data = await api(
+                    `/admin/orders/${encodeURIComponent(orderReference)}`
                 );
+                order = data.order;
+                state.orderDetails.set(orderReference, order);
             }
-    
+
             select.innerHTML = `
-                <option value="">
-                    Select an order item
+                <option value="__all__">
+                    All eligible order items
                 </option>
-    
-                ${
-                    (order.items || [])
-                        .map(item => `
-                            <option value="${item.id}">
-                                ${escapeHtml(
-                                    item.description
-                                )}
-                                ${
-                                    item.quantity
-                                        ? ` — ${escapeHtml(
-                                            item.quantity
-                                        )} units`
-                                        : ""
-                                }
-                            </option>
-                        `)
-                        .join("")
-                }
+
+                ${(order.items || []).map(item => `
+                    <option value="${item.id}">
+                        ${escapeHtml(item.description)}
+                        ${item.quantity ? ` — ${escapeHtml(item.quantity)} units` : ""}
+                    </option>
+                `).join("")}
             `;
-    
+
+            select.value = "__all__";
             select.disabled = false;
-    
         } catch (error) {
             select.innerHTML = `
                 <option value="">
                     Unable to load items
                 </option>
             `;
-    
-            element("generatorMessage").textContent =
-                error.message;
+            element("generatorMessage").textContent = error.message;
         }
     }
 
@@ -4661,282 +4640,366 @@
        returned plan.
     ================================================== */
 
+    function generatorItemStatusLabel(status) {
+        return ({
+            ready: "Ready",
+            already_scheduled: "Already scheduled",
+            no_template: "No template",
+            error: "Needs attention"
+        })[status] || "Review";
+    }
+
+
     function renderGeneratorPreview() {
-        const tasks =
-            state.generator
-                .previewTasks;
+        if (state.generator.mode === "full") {
+            const items = state.generator.previewItems || [];
 
-        element(
-            "generatorPreviewCount"
-        ).textContent =
-            `${tasks.length} ${
-                tasks.length === 1
-                    ? "task"
-                    : "tasks"
-            }`;
+            element("generatorPreviewCount").textContent =
+                `${state.generator.eligibleTaskCount} task${state.generator.eligibleTaskCount === 1 ? "" : "s"} · ${state.generator.eligibleItemCount} item${state.generator.eligibleItemCount === 1 ? "" : "s"} ready`;
 
-        element(
-            "generatorPreviewList"
-        ).innerHTML =
-            tasks.map(
-                (task, index) => {
-                    const duration =
-                        Number(
-                            task.durationDays ??
-                            task.duration ??
-                            1
-                        );
+            element("generatorPreviewList").innerHTML =
+                items.map((item, itemIndex) => {
+                    const itemTasks = item.tasks || [];
+                    const statusLabel = generatorItemStatusLabel(item.status);
+                    const templateName =
+                        item.template?.name ||
+                        "No matching production template";
 
                     return `
-                        <div
-                            class="generator-preview-row"
-                        >
-                            <span
-                                class="generator-preview-row__number"
-                            >
-                                ${index + 1}
-                            </span>
+                        <section style="border-bottom:1px solid rgba(103,54,41,.12);">
+                            <div class="generator-preview-row">
+                                <span class="generator-preview-row__number">
+                                    ${itemIndex + 1}
+                                </span>
 
-                            <div>
-                                <strong>
-                                    ${escapeHtml(
-                                        task.taskName
-                                    )}
-                                </strong>
+                                <div>
+                                    <strong>
+                                        ${escapeHtml(
+                                            item.orderItem?.description ||
+                                            "Order item"
+                                        )}
+                                    </strong>
 
-                                <small>
-                                    ${duration}
-                                    ${
-                                        duration === 1
-                                            ? "day"
-                                            : "days"
-                                    }
-                                </small>
+                                    <small>
+                                        ${escapeHtml(templateName)}
+                                        ${
+                                            item.orderItem?.quantity
+                                                ? ` · ${escapeHtml(item.orderItem.quantity)} units`
+                                                : ""
+                                        }
+                                    </small>
+                                </div>
+
+                                <span class="generator-preview-row__dates">
+                                    ${escapeHtml(statusLabel)}
+                                </span>
+
+                                ${
+                                    item.message
+                                        ? `
+                                            <small style="grid-column:2 / -1; line-height:1.5;">
+                                                ${escapeHtml(item.message)}
+                                            </small>
+                                        `
+                                        : ""
+                                }
                             </div>
 
-                            <span
-                                class="generator-preview-row__dates"
-                            >
-                                ${escapeHtml(
-                                    task.plannedStartDate
-                                )}
-                                →
-                                ${escapeHtml(
-                                    task.plannedEndDate
-                                )}
-                            </span>
-                        </div>
-                    `;
-                }
-            ).join("");
+                            ${
+                                itemTasks.length
+                                    ? itemTasks.map((task, taskIndex) => `
+                                        <div
+                                            class="generator-preview-row"
+                                            style="padding-left:52px; background:rgba(103,54,41,.018);"
+                                        >
+                                            <span
+                                                class="generator-preview-row__number"
+                                                style="width:24px;height:24px;"
+                                            >
+                                                ${taskIndex + 1}
+                                            </span>
 
-        element(
-            "generatorPreview"
-        ).hidden =
-            !tasks.length;
+                                            <div>
+                                                <strong>
+                                                    ${escapeHtml(task.taskName)}
+                                                </strong>
+                                                <small>
+                                                    ${Number(task.durationDays || 1)} day${Number(task.durationDays || 1) === 1 ? "" : "s"}
+                                                </small>
+                                            </div>
+
+                                            <span class="generator-preview-row__dates">
+                                                ${escapeHtml(task.plannedStartDate)}
+                                                →
+                                                ${escapeHtml(task.plannedEndDate)}
+                                            </span>
+                                        </div>
+                                    `).join("")
+                                    : ""
+                            }
+                        </section>
+                    `;
+                }).join("");
+
+            element("generatorPreview").hidden = !items.length;
+            return;
+        }
+
+        const tasks = state.generator.previewTasks;
+
+        element("generatorPreviewCount").textContent =
+            `${tasks.length} ${tasks.length === 1 ? "task" : "tasks"}`;
+
+        element("generatorPreviewList").innerHTML =
+            tasks.map((task, index) => {
+                const duration = Number(
+                    task.durationDays ??
+                    task.duration ??
+                    1
+                );
+
+                return `
+                    <div class="generator-preview-row">
+                        <span class="generator-preview-row__number">
+                            ${index + 1}
+                        </span>
+
+                        <div>
+                            <strong>
+                                ${escapeHtml(task.taskName)}
+                            </strong>
+
+                            <small>
+                                ${duration}
+                                ${duration === 1 ? "day" : "days"}
+                            </small>
+                        </div>
+
+                        <span class="generator-preview-row__dates">
+                            ${escapeHtml(task.plannedStartDate)}
+                            →
+                            ${escapeHtml(task.plannedEndDate)}
+                        </span>
+                    </div>
+                `;
+            }).join("");
+
+        element("generatorPreview").hidden = !tasks.length;
     }
 
 
     async function refreshGeneratorMatch() {
-        const orderReference =
-            element("generatorOrder").value;
+        const orderReference = element("generatorOrder").value;
+        const itemValue = element("generatorOrderItem").value;
+        const startDate = element("generatorStartDate").value;
 
-        const itemId =
-            Number(
-                element(
-                    "generatorOrderItem"
-                ).value
-            );
-
-        const startDate =
-            element(
-                "generatorStartDate"
-            ).value;
-
+        state.generator.mode = "single";
         state.generator.orderReference = "";
         state.generator.orderItemId = null;
         state.generator.matchedTemplate = null;
         state.generator.previewTasks = [];
+        state.generator.previewItems = [];
         state.generator.alreadyScheduled = false;
         state.generator.existingTaskCount = 0;
+        state.generator.eligibleItemCount = 0;
+        state.generator.eligibleTaskCount = 0;
 
-        element(
-            "generatorMatchCard"
-        ).hidden = true;
+        element("generatorMatchCard").hidden = true;
+        element("generatorPreview").hidden = true;
+        element("generatorPreviewList").innerHTML = "";
+        element("confirmGenerateSchedule").disabled = true;
+        element("confirmGenerateSchedule").textContent = "Generate schedule";
+        element("generatorMessage").textContent = "";
 
-        element(
-            "generatorPreview"
-        ).hidden = true;
-
-        element(
-            "generatorPreviewList"
-        ).innerHTML = "";
-
-        element(
-            "confirmGenerateSchedule"
-        ).disabled = true;
-
-        element(
-            "generatorMessage"
-        ).textContent = "";
-
-        if (
-            !orderReference ||
-            !itemId ||
-            !startDate
-        ) {
+        if (!orderReference || !itemValue || !startDate) {
             return;
         }
 
-        element(
-            "generatorMessage"
-        ).textContent =
+        element("generatorMessage").textContent =
             "Preparing production schedule preview…";
 
         try {
-            const data =
-                await api(
+            if (itemValue === "__all__") {
+                const data = await api(
                     `/admin/orders/${encodeURIComponent(
                         orderReference
-                    )}/schedule-preview`,
+                    )}/full-schedule-preview`,
                     {
                         method: "POST",
-                        body: JSON.stringify({
-                            orderItemId: itemId,
-                            startDate
-                        })
+                        body: JSON.stringify({ startDate })
                     }
                 );
 
-            state.generator.orderReference =
-                orderReference;
-
-            state.generator.orderItemId =
-                itemId;
-
-            state.generator.matchedTemplate =
-                data.template || null;
-
-            state.generator.previewTasks =
-                data.tasks || [];
-
-            state.generator.alreadyScheduled =
-                Boolean(
-                    data.alreadyScheduled
+                state.generator.mode = "full";
+                state.generator.orderReference = orderReference;
+                state.generator.previewItems = data.items || [];
+                state.generator.previewTasks = state.generator.previewItems
+                    .flatMap(item => item.tasks || []);
+                state.generator.eligibleItemCount = Number(
+                    data.eligibleItemCount || 0
+                );
+                state.generator.eligibleTaskCount = Number(
+                    data.eligibleTaskCount || 0
                 );
 
-            state.generator.existingTaskCount =
-                Number(
-                    data.existingTaskCount || 0
-                );
+                element("generatorTemplateName").textContent =
+                    "Full order production schedule";
 
-            element(
-                "generatorTemplateName"
-            ).textContent =
-                data.template?.name ||
-                "Production template";
+                const summary = [
+                    `${state.generator.eligibleItemCount} ready`
+                ];
 
-            const matchedBy =
-                data.template?.matchedBy;
+                if (Number(data.alreadyScheduledItemCount || 0)) {
+                    summary.push(
+                        `${Number(data.alreadyScheduledItemCount)} already scheduled`
+                    );
+                }
 
-            element(
-                "generatorTemplateReason"
-            ).textContent =
-                matchedBy
-                    ? `Matched by ${matchedBy.type}: "${matchedBy.value}".`
-                    : "Matched by the production template engine.";
+                if (Number(data.noTemplateItemCount || 0)) {
+                    summary.push(
+                        `${Number(data.noTemplateItemCount)} without templates`
+                    );
+                }
 
-            element(
-                "generatorMatchCard"
-            ).hidden = false;
+                if (Number(data.errorItemCount || 0)) {
+                    summary.push(
+                        `${Number(data.errorItemCount)} needing attention`
+                    );
+                }
 
-            renderGeneratorPreview();
+                element("generatorTemplateReason").textContent =
+                    summary.join(" · ");
+                element("generatorMatchCard").hidden = false;
 
-            if (
-                state.generator.alreadyScheduled
-            ) {
-                const count =
-                    state.generator.existingTaskCount;
+                renderGeneratorPreview();
 
-                element(
-                    "generatorMessage"
-                ).textContent =
-                    `A production schedule already exists for this item (${count} ${
-                        count === 1
-                            ? "task"
-                            : "tasks"
-                    }). The preview is shown for reference.`;
+                element("confirmGenerateSchedule").textContent =
+                    "Generate full schedule";
+                element("confirmGenerateSchedule").disabled =
+                    state.generator.eligibleItemCount < 1;
 
-                element(
-                    "confirmGenerateSchedule"
-                ).disabled = true;
+                if (state.generator.eligibleItemCount < 1) {
+                    element("generatorMessage").textContent =
+                        data.message ||
+                        "There are no eligible unscheduled items to generate.";
+                    return;
+                }
+
+                if (Number(data.noTemplateItemCount || 0) > 0) {
+                    element("generatorMessage").textContent =
+                        "Items without a production template will be skipped.";
+                } else {
+                    element("generatorMessage").textContent = "";
+                }
 
                 return;
             }
 
-            element(
-                "confirmGenerateSchedule"
-            ).disabled =
+            const itemId = Number(itemValue);
+            if (!itemId) return;
+
+            const data = await api(
+                `/admin/orders/${encodeURIComponent(
+                    orderReference
+                )}/schedule-preview`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        orderItemId: itemId,
+                        startDate
+                    })
+                }
+            );
+
+            state.generator.mode = "single";
+            state.generator.orderReference = orderReference;
+            state.generator.orderItemId = itemId;
+            state.generator.matchedTemplate = data.template || null;
+            state.generator.previewTasks = data.tasks || [];
+            state.generator.alreadyScheduled = Boolean(data.alreadyScheduled);
+            state.generator.existingTaskCount = Number(
+                data.existingTaskCount || 0
+            );
+
+            element("generatorTemplateName").textContent =
+                data.template?.name || "Production template";
+
+            const matchedBy = data.template?.matchedBy;
+
+            element("generatorTemplateReason").textContent = matchedBy
+                ? `Matched by ${matchedBy.type}: "${matchedBy.value}".`
+                : "Matched by the production template engine.";
+
+            element("generatorMatchCard").hidden = false;
+            renderGeneratorPreview();
+
+            if (state.generator.alreadyScheduled) {
+                const count = state.generator.existingTaskCount;
+
+                element("generatorMessage").textContent =
+                    `A production schedule already exists for this item (${count} ${count === 1 ? "task" : "tasks"}). The preview is shown for reference.`;
+                element("confirmGenerateSchedule").disabled = true;
+                return;
+            }
+
+            element("confirmGenerateSchedule").disabled =
                 !state.generator.previewTasks.length;
-
-            element(
-                "generatorMessage"
-            ).textContent = "";
-
+            element("generatorMessage").textContent = "";
         } catch (error) {
             console.error(error);
-
-            element(
-                "generatorMessage"
-            ).textContent =
+            element("generatorMessage").textContent =
                 error.message ||
                 "Unable to prepare the production schedule preview.";
         }
     }
 
 
-    async function generateScheduleFromPanel(
-        event
-    ) {
+    async function generateScheduleFromPanel(event) {
         event.preventDefault();
 
-        const orderReference =
-            state.generator
-                .orderReference;
+        const orderReference = state.generator.orderReference;
+        const startDate = element("generatorStartDate").value;
 
-        const orderItemId =
-            state.generator
-                .orderItemId;
-
-        const startDate =
-            element(
-                "generatorStartDate"
-            ).value;
-
-        if (
-            !orderReference ||
-            !orderItemId ||
-            !startDate ||
-            state.generator.alreadyScheduled
-        ) {
+        if (!orderReference || !startDate) {
             return;
         }
 
-        const button =
-            element(
-                "confirmGenerateSchedule"
-            );
-
+        const button = element("confirmGenerateSchedule");
         button.disabled = true;
 
-        element(
-            "generatorMessage"
-        ).textContent =
-            "Generating production schedule…";
+        element("generatorMessage").textContent =
+            state.generator.mode === "full"
+                ? "Generating full production schedule…"
+                : "Generating production schedule…";
 
         try {
-            const data =
-                await api(
+            let data;
+
+            if (state.generator.mode === "full") {
+                if (state.generator.eligibleItemCount < 1) {
+                    return;
+                }
+
+                data = await api(
+                    `/admin/orders/${encodeURIComponent(
+                        orderReference
+                    )}/generate-full-schedule`,
+                    {
+                        method: "POST",
+                        body: JSON.stringify({ startDate })
+                    }
+                );
+
+                element("generatorMessage").textContent =
+                    `${data.taskCount} production tasks created across ${data.generatedItemCount} order item${data.generatedItemCount === 1 ? "" : "s"}.`;
+            } else {
+                const orderItemId = state.generator.orderItemId;
+
+                if (!orderItemId || state.generator.alreadyScheduled) {
+                    return;
+                }
+
+                data = await api(
                     `/admin/orders/${encodeURIComponent(
                         orderReference
                     )}/generate-schedule`,
@@ -4949,31 +5012,22 @@
                     }
                 );
 
-            element(
-                "generatorMessage"
-            ).textContent =
-                `${data.taskCount} production tasks created.`;
+                element("generatorMessage").textContent =
+                    `${data.taskCount} production tasks created.`;
+            }
 
             await loadProductionSchedule();
 
             window.setTimeout(
                 closeScheduleGenerator,
-                500
+                650
             );
-
         } catch (error) {
             console.error(error);
-
-            element(
-                "generatorMessage"
-            ).textContent =
+            element("generatorMessage").textContent =
                 error.message ||
                 "Unable to generate the production schedule.";
 
-            /*
-             * Re-run preview so duplicate state or other
-             * server-side changes are immediately reflected.
-             */
             await refreshGeneratorMatch();
         }
     }

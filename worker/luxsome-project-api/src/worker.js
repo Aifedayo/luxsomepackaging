@@ -282,6 +282,36 @@ async function handleAdminRequest(request, env, url) {
             );
         }
 
+        const fullOrderSchedulePreviewMatch = url.pathname.match(
+            /^\/admin\/orders\/([A-Z0-9-]+)\/full-schedule-preview$/
+        );
+
+        if (
+            fullOrderSchedulePreviewMatch &&
+            request.method === "POST"
+        ) {
+            return await handleAdminFullProductionSchedulePreview(
+                request,
+                env,
+                fullOrderSchedulePreviewMatch[1]
+            );
+        }
+
+        const fullOrderScheduleGenerateMatch = url.pathname.match(
+            /^\/admin\/orders\/([A-Z0-9-]+)\/generate-full-schedule$/
+        );
+
+        if (
+            fullOrderScheduleGenerateMatch &&
+            request.method === "POST"
+        ) {
+            return await handleAdminGenerateFullProductionSchedule(
+                request,
+                env,
+                fullOrderScheduleGenerateMatch[1]
+            );
+        }
+
         if (detailMatch && request.method === "GET") {
             return await handleAdminSubmissionDetail(
                 request,
@@ -739,6 +769,577 @@ async function handleAdminRequest(request, env, url) {
             env
         );
     }
+}
+
+
+/* ==========================================================
+   LUXSOME DEFAULT PRODUCTION TEMPLATE LIBRARY
+
+   These defaults are seeded idempotently on the first schedule
+   preview/generation request that needs them. Existing templates,
+   steps and rules are never overwritten or reactivated, so later
+   CRM customisation remains authoritative.
+========================================================== */
+
+const LUXSOME_DEFAULT_PRODUCTION_TEMPLATES = [
+    {
+        templateKey: "hang-tag-production",
+        name: "Hang Tag Production",
+        description:
+            "Standard Luxsome workflow for printed hang tags, including finishing, cutting and string or eyelet application.",
+        productCategory: "hang_tag",
+        sortOrder: 20,
+        steps: [
+            {
+                stepKey: "artwork-approval",
+                taskName: "Artwork Approval",
+                taskType: "design",
+                description: "Confirm tag artwork, size, stock, print colours and finishing requirements.",
+                duration: 1,
+                priority: "normal",
+                sortOrder: 10
+            },
+            {
+                stepKey: "print-preparation",
+                taskName: "Print Preparation",
+                taskType: "prepress",
+                description: "Prepare print-ready artwork, imposition and production stock.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "artwork-approval",
+                sortOrder: 20
+            },
+            {
+                stepKey: "printing",
+                taskName: "Printing",
+                taskType: "printing",
+                description: "Print the approved tag artwork on the selected stock.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "print-preparation",
+                sortOrder: 30
+            },
+            {
+                stepKey: "finishing",
+                taskName: "Lamination / Foil / Finishing",
+                taskType: "finishing",
+                description: "Apply required lamination, foil, spot finish or other decorative treatment.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "printing",
+                sortOrder: 40
+            },
+            {
+                stepKey: "cutting",
+                taskName: "Cutting",
+                taskType: "cutting",
+                description: "Cut tags to final production size and shape.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "finishing",
+                sortOrder: 50
+            },
+            {
+                stepKey: "eyelet-string-application",
+                taskName: "Eyelet / String Application",
+                taskType: "assembly",
+                description: "Punch holes and apply eyelets, cords, strings or ribbons as specified.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "cutting",
+                sortOrder: 60
+            },
+            {
+                stepKey: "quality-control",
+                taskName: "Quality Control",
+                taskType: "quality_check",
+                description: "Inspect print, finishing, cutting, hole placement and attachment quality.",
+                duration: 1,
+                priority: "high",
+                dependencyStepKey: "eyelet-string-application",
+                sortOrder: 70
+            }
+        ],
+        rules: [
+            { matchType: "contains", matchValue: "hang tag", priority: 100 },
+            { matchType: "contains", matchValue: "swing tag", priority: 90 },
+            { matchType: "contains", matchValue: "clothing tag", priority: 80 },
+            { matchType: "exact", matchValue: "tag", priority: 70 }
+        ]
+    },
+    {
+        templateKey: "branded-tissue-production",
+        name: "Branded Tissue Production",
+        description:
+            "Standard Luxsome workflow for custom printed tissue and wrapping tissue.",
+        productCategory: "branded_tissue",
+        sortOrder: 30,
+        steps: [
+            {
+                stepKey: "artwork-approval",
+                taskName: "Artwork Approval",
+                taskType: "design",
+                description: "Confirm tissue artwork, repeat pattern, colours, sheet size and production quantity.",
+                duration: 1,
+                priority: "normal",
+                sortOrder: 10
+            },
+            {
+                stepKey: "print-preparation",
+                taskName: "Print Preparation",
+                taskType: "prepress",
+                description: "Prepare print layout, screens or production setup for the approved tissue artwork.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "artwork-approval",
+                sortOrder: 20
+            },
+            {
+                stepKey: "printing",
+                taskName: "Printing",
+                taskType: "printing",
+                description: "Print the approved branding or repeat pattern onto tissue stock.",
+                duration: 2,
+                priority: "normal",
+                dependencyStepKey: "print-preparation",
+                sortOrder: 30
+            },
+            {
+                stepKey: "drying-curing",
+                taskName: "Drying / Curing",
+                taskType: "finishing",
+                description: "Allow printed tissue to dry or cure fully before handling and packing.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "printing",
+                sortOrder: 40
+            },
+            {
+                stepKey: "quality-control",
+                taskName: "Quality Control",
+                taskType: "quality_check",
+                description: "Inspect print consistency, registration, sheet condition and finished tissue quality.",
+                duration: 1,
+                priority: "high",
+                dependencyStepKey: "drying-curing",
+                sortOrder: 50
+            }
+        ],
+        rules: [
+            { matchType: "contains", matchValue: "branded tissue", priority: 100 },
+            { matchType: "contains", matchValue: "tissue paper", priority: 90 },
+            { matchType: "contains", matchValue: "wrapping tissue", priority: 80 },
+            { matchType: "exact", matchValue: "tissue", priority: 70 }
+        ]
+    },
+    {
+        templateKey: "thank-you-card-envelope-production",
+        name: "Thank You Card / Envelope Production",
+        description:
+            "Standard Luxsome workflow for thank-you cards, inserts and coordinating envelopes.",
+        productCategory: "thank_you_card_envelope",
+        sortOrder: 40,
+        steps: [
+            {
+                stepKey: "artwork-approval",
+                taskName: "Artwork Approval",
+                taskType: "design",
+                description: "Confirm card or envelope artwork, dimensions, stock, print and finishing requirements.",
+                duration: 1,
+                priority: "normal",
+                sortOrder: 10
+            },
+            {
+                stepKey: "printing",
+                taskName: "Printing",
+                taskType: "printing",
+                description: "Print the approved card, insert or envelope artwork.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "artwork-approval",
+                sortOrder: 20
+            },
+            {
+                stepKey: "finishing",
+                taskName: "Finishing / Foil / Lamination",
+                taskType: "finishing",
+                description: "Apply foil, lamination, spot finish or other specified decorative treatment.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "printing",
+                sortOrder: 30
+            },
+            {
+                stepKey: "cutting-creasing",
+                taskName: "Cutting / Creasing",
+                taskType: "cutting",
+                description: "Cut cards to size and crease envelope or folded components where required.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "finishing",
+                sortOrder: 40
+            },
+            {
+                stepKey: "folding-assembly",
+                taskName: "Folding / Assembly",
+                taskType: "assembly",
+                description: "Fold and assemble envelope or folded paper components where applicable.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "cutting-creasing",
+                sortOrder: 50
+            },
+            {
+                stepKey: "quality-control",
+                taskName: "Quality Control",
+                taskType: "quality_check",
+                description: "Inspect print, finishing, trimming, folds and overall presentation quality.",
+                duration: 1,
+                priority: "high",
+                dependencyStepKey: "folding-assembly",
+                sortOrder: 60
+            }
+        ],
+        rules: [
+            { matchType: "contains", matchValue: "thank you card", priority: 100 },
+            { matchType: "contains", matchValue: "thank-you card", priority: 100 },
+            { matchType: "contains", matchValue: "thank you note", priority: 90 },
+            { matchType: "contains", matchValue: "card and envelope", priority: 85 },
+            { matchType: "exact", matchValue: "envelope", priority: 70 }
+        ]
+    },
+    {
+        templateKey: "shopping-bag-production",
+        name: "Shopping Bag Production",
+        description:
+            "Standard Luxsome workflow for branded paper shopping bags and carrier bags.",
+        productCategory: "shopping_bag",
+        sortOrder: 50,
+        steps: [
+            {
+                stepKey: "artwork-approval",
+                taskName: "Artwork Approval",
+                taskType: "design",
+                description: "Confirm bag artwork, dimensions, paper stock, handle type and finishing requirements.",
+                duration: 1,
+                priority: "normal",
+                sortOrder: 10
+            },
+            {
+                stepKey: "material-preparation",
+                taskName: "Material Preparation",
+                taskType: "materials",
+                description: "Prepare paper stock, reinforcement material, handles and production consumables.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "artwork-approval",
+                sortOrder: 20
+            },
+            {
+                stepKey: "printing",
+                taskName: "Printing",
+                taskType: "printing",
+                description: "Print the approved bag artwork on the selected paper stock.",
+                duration: 2,
+                priority: "normal",
+                dependencyStepKey: "material-preparation",
+                sortOrder: 30
+            },
+            {
+                stepKey: "lamination-finishing",
+                taskName: "Lamination / Finishing",
+                taskType: "finishing",
+                description: "Apply lamination, foil, spot finish or other specified surface treatment.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "printing",
+                sortOrder: 40
+            },
+            {
+                stepKey: "cutting-creasing",
+                taskName: "Cutting / Creasing",
+                taskType: "cutting",
+                description: "Cut and crease printed sheets to the approved shopping bag structure.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "lamination-finishing",
+                sortOrder: 50
+            },
+            {
+                stepKey: "assembly",
+                taskName: "Bag Assembly",
+                taskType: "assembly",
+                description: "Fold, glue and assemble bag bodies and base reinforcement.",
+                duration: 2,
+                priority: "normal",
+                dependencyStepKey: "cutting-creasing",
+                sortOrder: 60
+            },
+            {
+                stepKey: "handle-application",
+                taskName: "Handle Application",
+                taskType: "assembly",
+                description: "Punch and fit rope, ribbon or other specified handles and reinforcements.",
+                duration: 1,
+                priority: "normal",
+                dependencyStepKey: "assembly",
+                sortOrder: 70
+            },
+            {
+                stepKey: "quality-control",
+                taskName: "Quality Control",
+                taskType: "quality_check",
+                description: "Inspect print, finishing, structure, glue, handles and overall bag quality.",
+                duration: 1,
+                priority: "high",
+                dependencyStepKey: "handle-application",
+                sortOrder: 80
+            }
+        ],
+        rules: [
+            { matchType: "contains", matchValue: "shopping bag", priority: 100 },
+            { matchType: "contains", matchValue: "paper bag", priority: 90 },
+            { matchType: "contains", matchValue: "carrier bag", priority: 80 },
+            { matchType: "contains", matchValue: "branded bag", priority: 70 }
+        ]
+    }
+];
+
+
+async function ensureLuxsomeDefaultProductionTemplates(db) {
+    const templateKeys =
+        LUXSOME_DEFAULT_PRODUCTION_TEMPLATES.map(
+            template => template.templateKey
+        );
+
+    const expectedStepCount =
+        LUXSOME_DEFAULT_PRODUCTION_TEMPLATES.reduce(
+            (total, template) => total + template.steps.length,
+            0
+        );
+
+    const expectedRuleCount =
+        LUXSOME_DEFAULT_PRODUCTION_TEMPLATES.reduce(
+            (total, template) => total + template.rules.length,
+            0
+        );
+
+    const placeholders =
+        templateKeys.map(() => "?").join(", ");
+
+    const coverage = await db.prepare(`
+        SELECT
+            COUNT(*) AS template_count,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM production_task_template_steps pts
+                INNER JOIN production_task_templates pt
+                    ON pt.id = pts.template_id
+                WHERE pt.template_key IN (${placeholders})
+            ), 0) AS step_count,
+            COALESCE((
+                SELECT COUNT(*)
+                FROM production_template_item_rules rule
+                INNER JOIN production_task_templates pt
+                    ON pt.id = rule.template_id
+                WHERE pt.template_key IN (${placeholders})
+            ), 0) AS rule_count
+        FROM production_task_templates
+        WHERE template_key IN (${placeholders})
+    `).bind(
+        ...templateKeys,
+        ...templateKeys,
+        ...templateKeys
+    ).first();
+
+    if (
+        Number(coverage?.template_count || 0) >= templateKeys.length &&
+        Number(coverage?.step_count || 0) >= expectedStepCount &&
+        Number(coverage?.rule_count || 0) >= expectedRuleCount
+    ) {
+        return {
+            createdTemplates: 0,
+            createdSteps: 0,
+            createdRules: 0,
+            alreadyComplete: true
+        };
+    }
+
+    const result = {
+        createdTemplates: 0,
+        createdSteps: 0,
+        createdRules: 0,
+        alreadyComplete: false
+    };
+
+    const now = new Date().toISOString();
+
+    for (const definition of LUXSOME_DEFAULT_PRODUCTION_TEMPLATES) {
+        let template = await db.prepare(`
+            SELECT id
+            FROM production_task_templates
+            WHERE template_key = ?
+            LIMIT 1
+        `).bind(definition.templateKey).first();
+
+        if (!template) {
+            const insertedTemplate = await db.prepare(`
+                INSERT INTO production_task_templates (
+                    template_key,
+                    name,
+                    description,
+                    product_category,
+                    is_active,
+                    sort_order,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, 1, ?, ?, ?)
+            `).bind(
+                definition.templateKey,
+                definition.name,
+                definition.description,
+                definition.productCategory,
+                definition.sortOrder,
+                now,
+                now
+            ).run();
+
+            const templateId =
+                Number(insertedTemplate.meta?.last_row_id || 0);
+
+            if (!templateId) {
+                throw new Error(
+                    `Could not seed production template "${definition.name}".`
+                );
+            }
+
+            template = { id: templateId };
+            result.createdTemplates += 1;
+        }
+
+        const templateId = Number(template.id);
+        const stepIdByKey = new Map();
+
+        const existingSteps = await db.prepare(`
+            SELECT id, step_key
+            FROM production_task_template_steps
+            WHERE template_id = ?
+        `).bind(templateId).all();
+
+        for (const step of existingSteps.results || []) {
+            stepIdByKey.set(
+                String(step.step_key),
+                Number(step.id)
+            );
+        }
+
+        for (const step of definition.steps) {
+            if (stepIdByKey.has(step.stepKey)) {
+                continue;
+            }
+
+            const dependencyStepId =
+                step.dependencyStepKey
+                    ? stepIdByKey.get(step.dependencyStepKey) || null
+                    : null;
+
+            if (
+                step.dependencyStepKey &&
+                !dependencyStepId
+            ) {
+                throw new Error(
+                    `Could not seed "${step.taskName}" because dependency "${step.dependencyStepKey}" is missing.`
+                );
+            }
+
+            const insertedStep = await db.prepare(`
+                INSERT INTO production_task_template_steps (
+                    template_id,
+                    step_key,
+                    task_name,
+                    task_type,
+                    description,
+                    default_duration_days,
+                    default_priority,
+                    default_assigned_to,
+                    dependency_step_id,
+                    sort_order,
+                    is_active,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, 1, ?, ?)
+            `).bind(
+                templateId,
+                step.stepKey,
+                step.taskName,
+                step.taskType || null,
+                step.description || null,
+                step.duration,
+                step.priority || "normal",
+                dependencyStepId,
+                step.sortOrder,
+                now,
+                now
+            ).run();
+
+            const stepId =
+                Number(insertedStep.meta?.last_row_id || 0);
+
+            if (!stepId) {
+                throw new Error(
+                    `Could not seed production step "${step.taskName}".`
+                );
+            }
+
+            stepIdByKey.set(step.stepKey, stepId);
+            result.createdSteps += 1;
+        }
+
+        for (const rule of definition.rules) {
+            const existingRule = await db.prepare(`
+                SELECT id
+                FROM production_template_item_rules
+                WHERE template_id = ?
+                  AND match_type = ?
+                  AND lower(match_value) = lower(?)
+                LIMIT 1
+            `).bind(
+                templateId,
+                rule.matchType,
+                rule.matchValue
+            ).first();
+
+            if (existingRule) {
+                continue;
+            }
+
+            await db.prepare(`
+                INSERT INTO production_template_item_rules (
+                    template_id,
+                    match_type,
+                    match_value,
+                    priority,
+                    is_active,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, 1, ?, ?)
+            `).bind(
+                templateId,
+                rule.matchType,
+                rule.matchValue,
+                rule.priority,
+                now,
+                now
+            ).run();
+
+            result.createdRules += 1;
+        }
+    }
+
+    return result;
 }
 
 /* ==========================================================
@@ -10183,9 +10784,14 @@ async function prepareProductionSchedulePlan(
     {
         orderReference,
         orderItemId,
-        startDate
+        startDate,
+        skipDefaultTemplateSeed = false
     }
 ) {
+    if (!skipDefaultTemplateSeed) {
+        await ensureLuxsomeDefaultProductionTemplates(env.DB);
+    }
+
     const context =
         await getProductionScheduleOrderContext(
             env.DB,
@@ -10771,6 +11377,581 @@ async function handleAdminGenerateProductionSchedule(
                 generatedTasks.length,
             tasks:
                 generatedTasks
+        },
+        201,
+        request,
+        env
+    );
+}
+
+/* ==========================================================
+   FULL-ORDER PRODUCTION SCHEDULE
+========================================================== */
+
+async function getProductionOrderForFullSchedule(db, orderReference) {
+    return await db.prepare(`
+        SELECT
+            id,
+            order_reference,
+            customer_id,
+            customer_name,
+            brand_name,
+            status,
+            priority,
+            production_deadline,
+            expected_delivery_date
+        FROM orders
+        WHERE order_reference = ?
+        LIMIT 1
+    `).bind(orderReference).first();
+}
+
+async function getProductionOrderItemsForFullSchedule(db, orderId) {
+    const result = await db.prepare(`
+        SELECT
+            id,
+            order_id,
+            item_order,
+            description,
+            details,
+            quantity,
+            unit_price,
+            line_total,
+            production_notes
+        FROM order_items
+        WHERE order_id = ?
+        ORDER BY item_order ASC, id ASC
+    `).bind(orderId).all();
+
+    return result.results || [];
+}
+
+function serialiseProductionPlanTemplate(template) {
+    if (!template) return null;
+
+    return {
+        id: template.id,
+        templateKey: template.template_key,
+        name: template.name,
+        description: template.description,
+        productCategory: template.product_category,
+        matchedBy: {
+            ruleId: template.rule_id,
+            type: template.match_type,
+            value: template.match_value,
+            priority: Number(template.rule_priority || 0)
+        }
+    };
+}
+
+function serialiseProductionPlanTasks(tasks) {
+    return (tasks || []).map(task => ({
+        templateStepId: task.templateStepId,
+        dependencyTemplateStepId: task.dependencyTemplateStepId,
+        taskKey: task.stepKey,
+        taskName: task.taskName,
+        taskType: task.taskType,
+        description: task.description,
+        durationDays: task.durationDays,
+        priority: task.priority,
+        assignedTo: task.assignedTo,
+        sortOrder: task.sortOrder,
+        plannedStartDate: task.plannedStartDate,
+        plannedEndDate: task.plannedEndDate
+    }));
+}
+
+async function prepareFullProductionSchedulePlan(
+    env,
+    { orderReference, startDate }
+) {
+    await ensureLuxsomeDefaultProductionTemplates(env.DB);
+
+    const order = await getProductionOrderForFullSchedule(
+        env.DB,
+        orderReference
+    );
+
+    if (!order) {
+        return {
+            error: {
+                status: 404,
+                message: "Order not found."
+            }
+        };
+    }
+
+    const normalisedStartDate = normaliseScheduleDate(startDate);
+
+    if (startDate && !normalisedStartDate) {
+        return {
+            error: {
+                status: 422,
+                message: "Start date must use YYYY-MM-DD."
+            }
+        };
+    }
+
+    const finalStartDate =
+        normalisedStartDate ||
+        new Date().toISOString().slice(0, 10);
+
+    try {
+        addProductionScheduleDays(finalStartDate, 0);
+    } catch (_) {
+        return {
+            error: {
+                status: 422,
+                message:
+                    "Start date must be a valid calendar date using YYYY-MM-DD."
+            }
+        };
+    }
+
+    const orderItems = await getProductionOrderItemsForFullSchedule(
+        env.DB,
+        order.id
+    );
+
+    if (!orderItems.length) {
+        return {
+            error: {
+                status: 409,
+                message: "This order has no items to schedule."
+            }
+        };
+    }
+
+    const itemPlans = [];
+
+    for (const orderItem of orderItems) {
+        const prepared = await prepareProductionSchedulePlan(env, {
+            orderReference,
+            orderItemId: orderItem.id,
+            startDate: finalStartDate,
+            skipDefaultTemplateSeed: true
+        });
+
+        if (prepared.error) {
+            const noTemplate =
+                prepared.error.status === 404 &&
+                String(prepared.error.message || "").startsWith(
+                    "No active production template matches"
+                );
+
+            itemPlans.push({
+                status: noTemplate ? "no_template" : "error",
+                orderItem,
+                template: null,
+                tasks: [],
+                existingTaskCount: 0,
+                message: prepared.error.message
+            });
+            continue;
+        }
+
+        itemPlans.push({
+            status: prepared.alreadyScheduled
+                ? "already_scheduled"
+                : "ready",
+            orderItem: prepared.orderItem,
+            template: prepared.template,
+            tasks: prepared.tasks,
+            existingTaskCount: prepared.existingTaskCount,
+            message: prepared.alreadyScheduled
+                ? "A production schedule already exists for this item."
+                : "Ready to generate."
+        });
+    }
+
+    const readyItems = itemPlans.filter(item => item.status === "ready");
+    const alreadyScheduledItems = itemPlans.filter(
+        item => item.status === "already_scheduled"
+    );
+    const noTemplateItems = itemPlans.filter(
+        item => item.status === "no_template"
+    );
+    const errorItems = itemPlans.filter(item => item.status === "error");
+
+    return {
+        order,
+        startDate: finalStartDate,
+        items: itemPlans,
+        itemCount: itemPlans.length,
+        eligibleItemCount: readyItems.length,
+        eligibleTaskCount: readyItems.reduce(
+            (total, item) => total + item.tasks.length,
+            0
+        ),
+        alreadyScheduledItemCount: alreadyScheduledItems.length,
+        noTemplateItemCount: noTemplateItems.length,
+        errorItemCount: errorItems.length
+    };
+}
+
+function serialiseFullProductionScheduleItem(item) {
+    const orderItem = item.orderItem;
+
+    return {
+        status: item.status,
+        message: item.message,
+        orderItem: {
+            id: orderItem.id,
+            itemOrder: orderItem.item_order,
+            description: orderItem.description,
+            details: orderItem.details,
+            quantity: Number(orderItem.quantity || 0)
+        },
+        template: serialiseProductionPlanTemplate(item.template),
+        existingTaskCount: Number(item.existingTaskCount || 0),
+        taskCount: item.tasks.length,
+        tasks: serialiseProductionPlanTasks(item.tasks)
+    };
+}
+
+async function handleAdminFullProductionSchedulePreview(
+    request,
+    env,
+    orderReference
+) {
+    const body = await request.json().catch(() => ({}));
+
+    const prepared = await prepareFullProductionSchedulePlan(env, {
+        orderReference,
+        startDate: body.startDate
+    });
+
+    if (prepared.error) {
+        return jsonResponse(
+            {
+                success: false,
+                message: prepared.error.message
+            },
+            prepared.error.status,
+            request,
+            env
+        );
+    }
+
+    const order = prepared.order;
+
+    return jsonResponse(
+        {
+            success: true,
+            message: prepared.eligibleItemCount
+                ? "Full production schedule preview ready."
+                : "No unscheduled order items are currently ready for automatic generation.",
+            order: {
+                id: order.id,
+                orderReference: order.order_reference,
+                customerName: order.customer_name,
+                brandName: order.brand_name,
+                status: order.status,
+                priority: order.priority,
+                productionDeadline: order.production_deadline,
+                expectedDeliveryDate: order.expected_delivery_date
+            },
+            startDate: prepared.startDate,
+            itemCount: prepared.itemCount,
+            eligibleItemCount: prepared.eligibleItemCount,
+            eligibleTaskCount: prepared.eligibleTaskCount,
+            alreadyScheduledItemCount: prepared.alreadyScheduledItemCount,
+            noTemplateItemCount: prepared.noTemplateItemCount,
+            errorItemCount: prepared.errorItemCount,
+            items: prepared.items.map(serialiseFullProductionScheduleItem)
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function generatePreparedProductionScheduleRows(
+    env,
+    prepared,
+    now = new Date().toISOString()
+) {
+    const { order, orderItem, tasks } = prepared;
+    const taskIdByTemplateStepId = new Map();
+    const generatedTasks = [];
+
+    for (const task of tasks) {
+        const result = await env.DB.prepare(`
+            INSERT INTO production_schedule_tasks (
+                order_id,
+                order_item_id,
+                task_key,
+                task_name,
+                task_type,
+                status,
+                priority,
+                assigned_to,
+                planned_start_date,
+                planned_end_date,
+                actual_start_date,
+                actual_end_date,
+                progress,
+                dependency_task_id,
+                sort_order,
+                notes,
+                created_at,
+                updated_at
+            )
+            VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?, ?, ?
+            )
+        `).bind(
+            order.id,
+            orderItem.id,
+            task.stepKey || null,
+            task.taskName,
+            task.taskType || null,
+            "not_started",
+            task.priority || "normal",
+            task.assignedTo || null,
+            task.plannedStartDate,
+            task.plannedEndDate,
+            null,
+            null,
+            0,
+            null,
+            task.sortOrder,
+            task.description || null,
+            now,
+            now
+        ).run();
+
+        const taskId = Number(result.meta?.last_row_id);
+
+        if (!taskId) {
+            throw new Error(
+                `Could not create production task "${task.taskName}".`
+            );
+        }
+
+        taskIdByTemplateStepId.set(
+            Number(task.templateStepId),
+            taskId
+        );
+
+        generatedTasks.push({
+            id: taskId,
+            templateStepId: task.templateStepId,
+            taskKey: task.stepKey,
+            taskName: task.taskName,
+            taskType: task.taskType,
+            priority: task.priority,
+            assignedTo: task.assignedTo,
+            plannedStartDate: task.plannedStartDate,
+            plannedEndDate: task.plannedEndDate,
+            durationDays: task.durationDays,
+            dependencyTaskId: null,
+            sortOrder: task.sortOrder
+        });
+    }
+
+    for (const task of tasks) {
+        if (!task.dependencyTemplateStepId) continue;
+
+        const generatedTaskId = taskIdByTemplateStepId.get(
+            Number(task.templateStepId)
+        );
+        const generatedDependencyId = taskIdByTemplateStepId.get(
+            Number(task.dependencyTemplateStepId)
+        );
+
+        if (!generatedTaskId || !generatedDependencyId) {
+            throw new Error(
+                `Could not resolve the dependency for "${task.taskName}".`
+            );
+        }
+
+        await env.DB.prepare(`
+            UPDATE production_schedule_tasks
+            SET
+                dependency_task_id = ?,
+                updated_at = ?
+            WHERE id = ?
+              AND order_id = ?
+        `).bind(
+            generatedDependencyId,
+            now,
+            generatedTaskId,
+            order.id
+        ).run();
+
+        const generated = generatedTasks.find(
+            item => Number(item.id) === Number(generatedTaskId)
+        );
+
+        if (generated) {
+            generated.dependencyTaskId = generatedDependencyId;
+        }
+    }
+
+    return generatedTasks;
+}
+
+async function handleAdminGenerateFullProductionSchedule(
+    request,
+    env,
+    orderReference
+) {
+    const body = await request.json().catch(() => ({}));
+
+    const prepared = await prepareFullProductionSchedulePlan(env, {
+        orderReference,
+        startDate: body.startDate
+    });
+
+    if (prepared.error) {
+        return jsonResponse(
+            {
+                success: false,
+                message: prepared.error.message
+            },
+            prepared.error.status,
+            request,
+            env
+        );
+    }
+
+    const readyItems = prepared.items.filter(
+        item => item.status === "ready"
+    );
+
+    if (!readyItems.length) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "There are no unscheduled order items with matching production templates to generate.",
+                eligibleItemCount: 0,
+                alreadyScheduledItemCount:
+                    prepared.alreadyScheduledItemCount,
+                noTemplateItemCount: prepared.noTemplateItemCount,
+                errorItemCount: prepared.errorItemCount
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    const now = new Date().toISOString();
+    const generatedItems = [];
+    const failedItems = [];
+    let totalTaskCount = 0;
+
+    for (const item of readyItems) {
+        try {
+            const latestExistingCount =
+                await getExistingOrderItemScheduleCount(
+                    env.DB,
+                    prepared.order.id,
+                    item.orderItem.id
+                );
+
+            if (latestExistingCount > 0) {
+                failedItems.push({
+                    orderItemId: item.orderItem.id,
+                    description: item.orderItem.description,
+                    reason:
+                        "A production schedule was created before this request finished."
+                });
+                continue;
+            }
+
+            const generatedTasks =
+                await generatePreparedProductionScheduleRows(
+                    env,
+                    {
+                        order: prepared.order,
+                        orderItem: item.orderItem,
+                        tasks: item.tasks
+                    },
+                    now
+                );
+
+            totalTaskCount += generatedTasks.length;
+
+            generatedItems.push({
+                orderItemId: item.orderItem.id,
+                description: item.orderItem.description,
+                template: serialiseProductionPlanTemplate(item.template),
+                taskCount: generatedTasks.length,
+                tasks: generatedTasks
+            });
+        } catch (error) {
+            console.error(
+                "Full production schedule item generation failed",
+                {
+                    orderReference,
+                    orderItemId: item.orderItem.id,
+                    error
+                }
+            );
+
+            failedItems.push({
+                orderItemId: item.orderItem.id,
+                description: item.orderItem.description,
+                reason: error instanceof Error
+                    ? error.message
+                    : "The item schedule could not be generated."
+            });
+        }
+    }
+
+    if (!generatedItems.length) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "No production schedules were generated.",
+                failedItems
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    await recordOrderActivity(
+        env.DB,
+        {
+            orderId: prepared.order.id,
+            activityType: "production_full_schedule_generated",
+            title: "Full production schedule generated",
+            details:
+                `${totalTaskCount} production tasks were generated across ${generatedItems.length} order item${generatedItems.length === 1 ? "" : "s"}.`,
+            createdAt: now
+        }
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            message: failedItems.length
+                ? "Production schedules were generated for the eligible order items, but one or more items could not be completed."
+                : "Full production schedule generated.",
+            partial: failedItems.length > 0,
+            order: {
+                id: prepared.order.id,
+                orderReference: prepared.order.order_reference,
+                customerName: prepared.order.customer_name,
+                brandName: prepared.order.brand_name
+            },
+            startDate: prepared.startDate,
+            generatedItemCount: generatedItems.length,
+            taskCount: totalTaskCount,
+            generatedItems,
+            failedItems,
+            skipped: {
+                alreadyScheduledItemCount:
+                    prepared.alreadyScheduledItemCount,
+                noTemplateItemCount: prepared.noTemplateItemCount,
+                errorItemCount: prepared.errorItemCount
+            }
         },
         201,
         request,
