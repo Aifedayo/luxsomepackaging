@@ -22,7 +22,8 @@
         timeline: null,
 
         taskPanelMode: "edit",
-        editingTaskId: null
+        editingTaskId: null,
+        cascadePreview: null
     };
 
     const element = (id) =>
@@ -597,21 +598,924 @@
 
             notice.innerHTML =
                 "";
+        } else {
+            notice.hidden =
+                false;
+
+            notice.innerHTML = `
+                <strong>Schedule conflict</strong>
+                <span>
+                    ${escapeHtml(
+                        conflict.message
+                    )}
+                </span>
+            `;
+        }
+
+        refreshCascadeControls();
+    }
+
+
+    function ensureCascadePanel() {
+        let panel =
+            element(
+                "taskCascadePanel"
+            );
+
+        if (panel) {
+            return panel;
+        }
+
+        const formMessage =
+            element(
+                "taskFormMessage"
+            );
+
+        if (!formMessage) {
+            return null;
+        }
+
+        panel =
+            document.createElement(
+                "div"
+            );
+
+        panel.id =
+            "taskCascadePanel";
+
+        panel.className =
+            "task-cascade-panel";
+
+        panel.hidden =
+            true;
+
+        formMessage.parentNode.insertBefore(
+            panel,
+            formMessage
+        );
+
+        return panel;
+    }
+
+
+    function taskDurationDays(task) {
+        const start =
+            parseDate(
+                task?.plannedStartDate
+            );
+
+        const end =
+            parseDate(
+                task?.plannedEndDate
+            );
+
+        if (
+            !start ||
+            !end
+        ) {
+            return null;
+        }
+
+        return Math.max(
+            1,
+            differenceInDays(
+                start,
+                end
+            ) + 1
+        );
+    }
+
+
+    function getOrderTasks(
+        orderReference
+    ) {
+        return state.tasks.filter(
+            (task) =>
+                task.orderReference ===
+                orderReference
+        );
+    }
+
+
+    function getDirectDependants(
+        taskId,
+        orderReference
+    ) {
+        return getOrderTasks(
+            orderReference
+        ).filter(
+            (task) =>
+                Number(
+                    task.dependencyTaskId
+                ) ===
+                Number(taskId)
+        );
+    }
+
+
+    function hasDownstreamTasks(
+        taskId,
+        orderReference
+    ) {
+        return getDirectDependants(
+            taskId,
+            orderReference
+        ).length > 0;
+    }
+
+
+    function validateDependencyGraph(
+        orderReference,
+        overrideTaskId = null,
+        overrideDependencyId = null
+    ) {
+        const tasks =
+            getOrderTasks(
+                orderReference
+            );
+
+        const taskMap =
+            new Map(
+                tasks.map(
+                    (task) => [
+                        Number(task.id),
+                        task
+                    ]
+                )
+            );
+
+        const visiting =
+            new Set();
+
+        const visited =
+            new Set();
+
+        function visit(taskId) {
+            const id =
+                Number(taskId);
+
+            if (visiting.has(id)) {
+                throw new Error(
+                    "A circular task dependency was detected. Remove the circular dependency before rescheduling."
+                );
+            }
+
+            if (visited.has(id)) {
+                return;
+            }
+
+            const task =
+                taskMap.get(id);
+
+            if (!task) {
+                return;
+            }
+
+            visiting.add(id);
+
+            const dependencyId =
+                Number(task.id) ===
+                Number(overrideTaskId)
+                    ? (overrideDependencyId
+                        ? Number(overrideDependencyId)
+                        : null)
+                    : task.dependencyTaskId;
+
+            if (
+                dependencyId &&
+                taskMap.has(
+                    Number(
+                        dependencyId
+                    )
+                )
+            ) {
+                visit(
+                    dependencyId
+                );
+            }
+
+            visiting.delete(id);
+            visited.add(id);
+        }
+
+        tasks.forEach(
+            (task) =>
+                visit(task.id)
+        );
+    }
+
+
+    function buildCascadePlan() {
+        if (
+            state.taskPanelMode !==
+            "edit"
+        ) {
+            return {
+                changes: [],
+                warnings: []
+            };
+        }
+
+        const rootTask =
+            findTask(
+                state.editingTaskId
+            );
+
+        if (!rootTask) {
+            return {
+                changes: [],
+                warnings: []
+            };
+        }
+
+        const orderReference =
+            rootTask.orderReference;
+
+        const dependencyValue =
+            element(
+                "taskDependency"
+            ).value;
+
+        validateDependencyGraph(
+            orderReference,
+            rootTask.id,
+            dependencyValue
+                ? Number(dependencyValue)
+                : null
+        );
+
+        const formStart =
+            element(
+                "taskPlannedStart"
+            ).value;
+
+        const formEnd =
+            element(
+                "taskPlannedEnd"
+            ).value;
+
+        if (
+            !formStart ||
+            !formEnd
+        ) {
+            throw new Error(
+                "Set both planned start and planned end dates before previewing schedule changes."
+            );
+        }
+
+        const formStartDate =
+            parseDate(formStart);
+
+        const formEndDate =
+            parseDate(formEnd);
+
+        if (
+            !formStartDate ||
+            !formEndDate ||
+            formEndDate < formStartDate
+        ) {
+            throw new Error(
+                "The planned dates are not valid."
+            );
+        }
+
+        const proposed =
+            new Map();
+
+        const changes =
+            [];
+
+        const warnings =
+            [];
+
+        const rootDuration =
+            Math.max(
+                1,
+                differenceInDays(
+                    formStartDate,
+                    formEndDate
+                ) + 1
+            );
+
+        let rootStart =
+            formStartDate;
+
+        let rootEnd =
+            formEndDate;
+
+        if (dependencyValue) {
+            const dependency =
+                findTask(
+                    Number(
+                        dependencyValue
+                    )
+                );
+
+            if (
+                dependency?.plannedEndDate
+            ) {
+                const dependencyEnd =
+                    parseDate(
+                        dependency.plannedEndDate
+                    );
+
+                if (
+                    dependencyEnd &&
+                    rootStart <= dependencyEnd
+                ) {
+                    rootStart =
+                        addDays(
+                            dependencyEnd,
+                            1
+                        );
+
+                    rootEnd =
+                        addDays(
+                            rootStart,
+                            rootDuration - 1
+                        );
+                }
+            }
+        }
+
+        proposed.set(
+            Number(rootTask.id),
+            {
+                start: rootStart,
+                end: rootEnd
+            }
+        );
+
+        const originalRootStart =
+            parseDate(
+                rootTask.plannedStartDate
+            );
+
+        const originalRootEnd =
+            parseDate(
+                rootTask.plannedEndDate
+            );
+
+        if (
+            !originalRootStart ||
+            !originalRootEnd ||
+            localDateString(
+                originalRootStart
+            ) !==
+                localDateString(
+                    rootStart
+                ) ||
+            localDateString(
+                originalRootEnd
+            ) !==
+                localDateString(
+                    rootEnd
+                )
+        ) {
+            changes.push({
+                task:
+                    rootTask,
+                oldStart:
+                    rootTask.plannedStartDate,
+                oldEnd:
+                    rootTask.plannedEndDate,
+                newStart:
+                    localDateString(
+                        rootStart
+                    ),
+                newEnd:
+                    localDateString(
+                        rootEnd
+                    ),
+                reason:
+                    rootStart.getTime() !==
+                    formStartDate.getTime()
+                        ? "Shifted after its dependency"
+                        : "Current task date change"
+            });
+        }
+
+        const queue =
+            [Number(rootTask.id)];
+
+        const processed =
+            new Set();
+
+        while (queue.length) {
+            const parentId =
+                queue.shift();
+
+            if (processed.has(parentId)) {
+                continue;
+            }
+
+            processed.add(parentId);
+
+            const parentDates =
+                proposed.get(parentId) || (() => {
+                    const parent =
+                        findTask(parentId);
+
+                    const start =
+                        parseDate(
+                            parent?.plannedStartDate
+                        );
+
+                    const end =
+                        parseDate(
+                            parent?.plannedEndDate
+                        );
+
+                    return (
+                        start && end
+                    )
+                        ? { start, end }
+                        : null;
+                })();
+
+            if (!parentDates) {
+                continue;
+            }
+
+            const children =
+                getDirectDependants(
+                    parentId,
+                    orderReference
+                );
+
+            for (const child of children) {
+                const childId =
+                    Number(child.id);
+
+                const childStart =
+                    parseDate(
+                        child.plannedStartDate
+                    );
+
+                const childEnd =
+                    parseDate(
+                        child.plannedEndDate
+                    );
+
+                if (
+                    !childStart ||
+                    !childEnd
+                ) {
+                    warnings.push(
+                        `${child.taskName || "A downstream task"} is unscheduled and was not moved.`
+                    );
+
+                    queue.push(childId);
+                    continue;
+                }
+
+                const earliestStart =
+                    addDays(
+                        parentDates.end,
+                        1
+                    );
+
+                let effectiveStart =
+                    childStart;
+
+                let effectiveEnd =
+                    childEnd;
+
+                if (
+                    childStart <
+                    earliestStart
+                ) {
+                    if (
+                        child.status ===
+                        "completed"
+                    ) {
+                        warnings.push(
+                            `${child.taskName || "A completed task"} conflicts with the revised schedule but was not changed because it is completed.`
+                        );
+                    } else {
+                        const duration =
+                            taskDurationDays(
+                                child
+                            );
+
+                        effectiveStart =
+                            earliestStart;
+
+                        effectiveEnd =
+                            addDays(
+                                effectiveStart,
+                                (duration || 1) - 1
+                            );
+
+                        changes.push({
+                            task:
+                                child,
+                            oldStart:
+                                child.plannedStartDate,
+                            oldEnd:
+                                child.plannedEndDate,
+                            newStart:
+                                localDateString(
+                                    effectiveStart
+                                ),
+                            newEnd:
+                                localDateString(
+                                    effectiveEnd
+                                ),
+                            reason:
+                                `Shifted after ${findTask(parentId)?.taskName || "dependency"}`
+                        });
+                    }
+                }
+
+                proposed.set(
+                    childId,
+                    {
+                        start:
+                            effectiveStart,
+                        end:
+                            effectiveEnd
+                    }
+                );
+
+                queue.push(childId);
+            }
+        }
+
+        const uniqueChanges =
+            Array.from(
+                new Map(
+                    changes.map(
+                        (change) => [
+                            Number(
+                                change.task.id
+                            ),
+                            change
+                        ]
+                    )
+                ).values()
+            );
+
+        return {
+            orderReference,
+            changes:
+                uniqueChanges,
+            warnings
+        };
+    }
+
+
+    function clearCascadePreview() {
+        state.cascadePreview =
+            null;
+
+        const panel =
+            element(
+                "taskCascadePanel"
+            );
+
+        if (panel) {
+            panel.innerHTML =
+                "";
+        }
+    }
+
+
+    function refreshCascadeControls() {
+        const panel =
+            ensureCascadePanel();
+
+        if (!panel) {
+            return;
+        }
+
+        clearCascadePreview();
+
+        if (
+            state.taskPanelMode !==
+            "edit" ||
+            !state.editingTaskId
+        ) {
+            panel.hidden =
+                true;
 
             return;
         }
 
-        notice.hidden =
+        const task =
+            findTask(
+                state.editingTaskId
+            );
+
+        if (!task) {
+            panel.hidden =
+                true;
+
+            return;
+        }
+
+        const conflict =
+            getFormDependencyConflict();
+
+        const hasDownstream =
+            hasDownstreamTasks(
+                task.id,
+                task.orderReference
+            );
+
+        if (
+            !conflict &&
+            !hasDownstream
+        ) {
+            panel.hidden =
+                true;
+
+            return;
+        }
+
+        panel.hidden =
             false;
 
-        notice.innerHTML = `
-            <strong>Schedule conflict</strong>
-            <span>
-                ${escapeHtml(
-                    conflict.message
-                )}
-            </span>
+        panel.innerHTML = `
+            <div class="task-cascade-panel__intro">
+                <div>
+                    <strong>Dependency-aware scheduling</strong>
+                    <span>
+                        Preview any date shifts before changing the production schedule.
+                    </span>
+                </div>
+
+                <button
+                    id="previewCascadeButton"
+                    class="task-cascade-button"
+                    type="button"
+                >
+                    Preview schedule changes
+                </button>
+            </div>
         `;
+
+        element(
+            "previewCascadeButton"
+        )?.addEventListener(
+            "click",
+            previewCascadeReschedule
+        );
+    }
+
+
+    function previewCascadeReschedule() {
+        const panel =
+            ensureCascadePanel();
+
+        if (!panel) {
+            return;
+        }
+
+        try {
+            const plan =
+                buildCascadePlan();
+
+            state.cascadePreview =
+                plan;
+
+            if (
+                !plan.changes.length
+            ) {
+                panel.hidden =
+                    false;
+
+                panel.innerHTML = `
+                    <div class="task-cascade-empty">
+                        <strong>No schedule changes required</strong>
+                        <span>
+                            The current task and its downstream dependencies already have valid dates.
+                        </span>
+                    </div>
+                `;
+
+                return;
+            }
+
+            panel.hidden =
+                false;
+
+            panel.innerHTML = `
+                <div class="task-cascade-preview">
+                    <div class="task-cascade-preview__header">
+                        <div>
+                            <strong>Proposed schedule changes</strong>
+                            <span>
+                                ${plan.changes.length} task${plan.changes.length === 1 ? "" : "s"} will move. Durations are preserved.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="task-cascade-change-list">
+                        ${plan.changes.map(
+                            (change) => `
+                                <article class="task-cascade-change">
+                                    <strong>
+                                        ${escapeHtml(
+                                            change.task.taskName ||
+                                            "Production task"
+                                        )}
+                                    </strong>
+
+                                    <span>
+                                        ${escapeHtml(
+                                            change.oldStart ||
+                                            "Unscheduled"
+                                        )}
+                                        →
+                                        ${escapeHtml(
+                                            change.newStart
+                                        )}
+                                    </span>
+
+                                    <span>
+                                        ${escapeHtml(
+                                            change.oldEnd ||
+                                            "Unscheduled"
+                                        )}
+                                        →
+                                        ${escapeHtml(
+                                            change.newEnd
+                                        )}
+                                    </span>
+
+                                    <small>
+                                        ${escapeHtml(
+                                            change.reason
+                                        )}
+                                    </small>
+                                </article>
+                            `
+                        ).join("")}
+                    </div>
+
+                    ${
+                        plan.warnings.length
+                            ? `
+                                <div class="task-cascade-warnings">
+                                    ${plan.warnings.map(
+                                        (warning) => `
+                                            <span>
+                                                ⚠ ${escapeHtml(
+                                                    warning
+                                                )}
+                                            </span>
+                                        `
+                                    ).join("")}
+                                </div>
+                            `
+                            : ""
+                    }
+
+                    <div class="task-cascade-actions">
+                        <button
+                            id="cancelCascadeButton"
+                            class="task-cascade-button task-cascade-button--secondary"
+                            type="button"
+                        >
+                            Cancel preview
+                        </button>
+
+                        <button
+                            id="applyCascadeButton"
+                            class="task-cascade-button task-cascade-button--primary"
+                            type="button"
+                        >
+                            Apply schedule changes
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            element(
+                "cancelCascadeButton"
+            )?.addEventListener(
+                "click",
+                refreshCascadeControls
+            );
+
+            element(
+                "applyCascadeButton"
+            )?.addEventListener(
+                "click",
+                applyCascadeReschedule
+            );
+
+        } catch (error) {
+            console.error(error);
+
+            panel.hidden =
+                false;
+
+            panel.innerHTML = `
+                <div class="task-cascade-error">
+                    <strong>Unable to build schedule preview</strong>
+                    <span>
+                        ${escapeHtml(
+                            error.message ||
+                            "The schedule could not be calculated."
+                        )}
+                    </span>
+                </div>
+            `;
+        }
+    }
+
+
+    async function applyCascadeReschedule() {
+        const plan =
+            state.cascadePreview;
+
+        const panel =
+            ensureCascadePanel();
+
+        if (
+            !plan ||
+            !plan.changes.length ||
+            !panel
+        ) {
+            return;
+        }
+
+        const applyButton =
+            element(
+                "applyCascadeButton"
+            );
+
+        if (applyButton) {
+            applyButton.disabled =
+                true;
+
+            applyButton.textContent =
+                "Applying…";
+        }
+
+        try {
+            for (const change of plan.changes) {
+                if (
+                    change.task.status ===
+                    "completed"
+                ) {
+                    continue;
+                }
+
+                await api(
+                    `/admin/orders/${encodeURIComponent(
+                        change.task.orderReference
+                    )}/schedule/${Number(
+                        change.task.id
+                    )}`,
+                    {
+                        method:
+                            "PATCH",
+
+                        body:
+                            JSON.stringify({
+                                plannedStartDate:
+                                    change.newStart,
+                                plannedEndDate:
+                                    change.newEnd
+                            })
+                    }
+                );
+            }
+
+            panel.innerHTML = `
+                <div class="task-cascade-success">
+                    <strong>Schedule updated</strong>
+                    <span>
+                        Downstream production dates were shifted successfully.
+                    </span>
+                </div>
+            `;
+
+            await loadProductionSchedule();
+
+            window.setTimeout(
+                closeTaskPanel,
+                500
+            );
+
+        } catch (error) {
+            console.error(error);
+
+            panel.innerHTML = `
+                <div class="task-cascade-error">
+                    <strong>Schedule update failed</strong>
+                    <span>
+                        ${escapeHtml(
+                            error.message ||
+                            "One or more tasks could not be rescheduled."
+                        )}
+                    </span>
+                </div>
+            `;
+        }
     }
 
 
@@ -690,6 +1594,142 @@
                 font-size: 11px;
                 letter-spacing: 0.05em;
                 text-transform: uppercase;
+            }
+
+
+            .task-cascade-panel {
+                display: grid;
+                gap: 12px;
+                margin-top: 14px;
+                padding: 14px;
+                border: 1px solid rgba(103, 54, 41, 0.18);
+                border-radius: 9px;
+                background: rgba(103, 54, 41, 0.035);
+                font-size: 12px;
+                line-height: 1.5;
+            }
+
+            .task-cascade-panel[hidden] {
+                display: none !important;
+            }
+
+            .task-cascade-panel__intro,
+            .task-cascade-preview__header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 14px;
+            }
+
+            .task-cascade-panel__intro > div,
+            .task-cascade-preview__header > div,
+            .task-cascade-empty,
+            .task-cascade-error,
+            .task-cascade-success {
+                display: grid;
+                gap: 4px;
+            }
+
+            .task-cascade-panel strong {
+                color: #2e1c15;
+            }
+
+            .task-cascade-panel span,
+            .task-cascade-panel small {
+                color: #7f6d64;
+            }
+
+            .task-cascade-button {
+                flex: none;
+                min-height: 38px;
+                padding: 8px 12px;
+                border: 1px solid rgba(103, 54, 41, 0.28);
+                border-radius: 7px;
+                color: #673629;
+                background: #fff;
+                font: inherit;
+                font-weight: 700;
+                cursor: pointer;
+            }
+
+            .task-cascade-button--primary {
+                color: #fff;
+                border-color: #673629;
+                background: #673629;
+            }
+
+            .task-cascade-button--secondary {
+                background: transparent;
+            }
+
+            .task-cascade-button:disabled {
+                opacity: 0.6;
+                cursor: wait;
+            }
+
+            .task-cascade-change-list {
+                display: grid;
+                gap: 8px;
+            }
+
+            .task-cascade-change {
+                display: grid;
+                grid-template-columns: minmax(120px, 1.3fr) 1fr 1fr;
+                gap: 5px 10px;
+                padding: 10px 0;
+                border-bottom: 1px solid rgba(103, 54, 41, 0.12);
+            }
+
+            .task-cascade-change small {
+                grid-column: 1 / -1;
+            }
+
+            .task-cascade-warnings {
+                display: grid;
+                gap: 5px;
+                padding: 10px;
+                border-radius: 7px;
+                color: #8a5a13;
+                background: rgba(178, 122, 34, 0.08);
+            }
+
+            .task-cascade-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+                margin-top: 4px;
+            }
+
+            .task-cascade-error {
+                color: #8f1d14;
+            }
+
+            .task-cascade-success {
+                color: #2f6d49;
+            }
+
+            @media (max-width: 620px) {
+                .task-cascade-panel__intro,
+                .task-cascade-preview__header {
+                    flex-direction: column;
+                }
+
+                .task-cascade-button {
+                    width: 100%;
+                }
+
+                .task-cascade-change {
+                    grid-template-columns: 1fr;
+                }
+
+                .task-cascade-change small {
+                    grid-column: auto;
+                }
+
+                .task-cascade-actions {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                }
             }
         `;
 
@@ -1797,6 +2837,18 @@
         ).textContent =
             "";
 
+
+        clearCascadePreview();
+
+        const cascadePanel =
+            element(
+                "taskCascadePanel"
+            );
+
+        if (cascadePanel) {
+            cascadePanel.hidden =
+                true;
+        }
 
         state.editingTaskId =
             null;
@@ -3124,6 +4176,7 @@
 
     installScheduleConflictStyles();
     ensureScheduleConflictNotice();
+    ensureCascadePanel();
     loadProductionSchedule();
 
 })();
