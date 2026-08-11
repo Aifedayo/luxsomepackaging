@@ -861,10 +861,17 @@ const LUXSOME_DEFAULT_PRODUCTION_TEMPLATES = [
             }
         ],
         rules: [
-            { matchType: "contains", matchValue: "hang tag", priority: 100 },
-            { matchType: "contains", matchValue: "swing tag", priority: 90 },
-            { matchType: "contains", matchValue: "clothing tag", priority: 80 },
-            { matchType: "exact", matchValue: "tag", priority: 70 }
+            { matchType: "contains", matchValue: "hang tag", priority: 120 },
+            { matchType: "contains", matchValue: "swing tag", priority: 115 },
+            { matchType: "contains", matchValue: "clothing tag", priority: 110 },
+            { matchType: "contains", matchValue: "single piece tag", priority: 108 },
+            { matchType: "contains", matchValue: "1 piece tag", priority: 108 },
+            { matchType: "contains", matchValue: "one piece tag", priority: 108 },
+            { matchType: "contains", matchValue: "2 piece tag", priority: 106 },
+            { matchType: "contains", matchValue: "two piece tag", priority: 106 },
+            { matchType: "contains", matchValue: "3 piece tag", priority: 104 },
+            { matchType: "contains", matchValue: "three piece tag", priority: 104 },
+            { matchType: "contains", matchValue: "tag", priority: 70 }
         ]
     },
     {
@@ -926,10 +933,11 @@ const LUXSOME_DEFAULT_PRODUCTION_TEMPLATES = [
             }
         ],
         rules: [
-            { matchType: "contains", matchValue: "branded tissue", priority: 100 },
-            { matchType: "contains", matchValue: "tissue paper", priority: 90 },
-            { matchType: "contains", matchValue: "wrapping tissue", priority: 80 },
-            { matchType: "exact", matchValue: "tissue", priority: 70 }
+            { matchType: "contains", matchValue: "branded tissue", priority: 110 },
+            { matchType: "contains", matchValue: "tissue paper", priority: 105 },
+            { matchType: "contains", matchValue: "wrapping tissue", priority: 100 },
+            { matchType: "contains", matchValue: "printed tissue", priority: 95 },
+            { matchType: "contains", matchValue: "tissue", priority: 70 }
         ]
     },
     {
@@ -1001,10 +1009,16 @@ const LUXSOME_DEFAULT_PRODUCTION_TEMPLATES = [
             }
         ],
         rules: [
-            { matchType: "contains", matchValue: "thank you card", priority: 100 },
-            { matchType: "contains", matchValue: "thank-you card", priority: 100 },
-            { matchType: "contains", matchValue: "thank you note", priority: 90 },
-            { matchType: "contains", matchValue: "card and envelope", priority: 85 },
+            { matchType: "contains", matchValue: "thank you card", priority: 120 },
+            { matchType: "contains", matchValue: "thank-you card", priority: 120 },
+            { matchType: "contains", matchValue: "thankyou card", priority: 118 },
+            { matchType: "contains", matchValue: "thank you note", priority: 115 },
+            { matchType: "contains", matchValue: "thank-you note", priority: 115 },
+            { matchType: "contains", matchValue: "thank you", priority: 105 },
+            { matchType: "contains", matchValue: "thank-you", priority: 105 },
+            { matchType: "contains", matchValue: "card and envelope", priority: 95 },
+            { matchType: "contains", matchValue: "card + envelope", priority: 95 },
+            { matchType: "contains", matchValue: "card & envelope", priority: 95 },
             { matchType: "exact", matchValue: "envelope", priority: 70 }
         ]
     },
@@ -1097,10 +1111,12 @@ const LUXSOME_DEFAULT_PRODUCTION_TEMPLATES = [
             }
         ],
         rules: [
-            { matchType: "contains", matchValue: "shopping bag", priority: 100 },
-            { matchType: "contains", matchValue: "paper bag", priority: 90 },
-            { matchType: "contains", matchValue: "carrier bag", priority: 80 },
-            { matchType: "contains", matchValue: "branded bag", priority: 70 }
+            { matchType: "contains", matchValue: "shopping bag", priority: 110 },
+            { matchType: "contains", matchValue: "paper bag", priority: 105 },
+            { matchType: "contains", matchValue: "carrier bag", priority: 100 },
+            { matchType: "contains", matchValue: "branded bag", priority: 95 },
+            { matchType: "contains", matchValue: "gift bag", priority: 90 },
+            { matchType: "contains", matchValue: "bag", priority: 60 }
         ]
     }
 ];
