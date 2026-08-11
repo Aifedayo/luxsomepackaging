@@ -196,6 +196,13 @@
                         Refresh
                     </button>
                     <button
+                        id="generateScheduleButton"
+                        class="crm-button crm-button--primary"
+                        type="button"
+                    >
+                        Generate schedule
+                    </button>
+                    <button
                         id="newTaskButton"
                         class="crm-button crm-button--primary"
                         type="button"
@@ -704,6 +711,161 @@
 
         </form>
         </aside>
+        <div
+    id="scheduleGeneratorBackdrop"
+    class="task-backdrop"
+    hidden
+></div>
+
+    <aside
+        id="scheduleGeneratorPanel"
+        class="task-panel schedule-generator-panel"
+        aria-hidden="true"
+        aria-labelledby="scheduleGeneratorTitle"
+    >
+        <header class="task-panel__header">
+
+            <div>
+                <p class="crm-eyebrow">
+                    PRODUCTION SETUP
+                </p>
+
+                <h2 id="scheduleGeneratorTitle">
+                    Generate schedule
+                </h2>
+
+                <p>
+                    Create a production workflow from an active order item.
+                </p>
+            </div>
+
+            <button
+                id="closeScheduleGenerator"
+                class="task-panel__close"
+                type="button"
+                aria-label="Close schedule generator"
+            >
+                ×
+            </button>
+
+        </header>
+
+
+        <form id="scheduleGeneratorForm">
+
+            <div class="task-form-grid">
+
+                <label class="task-field task-field--wide">
+                    <span>Order</span>
+
+                    <select
+                        id="generatorOrder"
+                        required
+                    >
+                        <option value="">
+                            Select an active order
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="task-field task-field--wide">
+                    <span>Order item</span>
+
+                    <select
+                        id="generatorOrderItem"
+                        required
+                        disabled
+                    >
+                        <option value="">
+                            Select an order first
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="task-field task-field--wide">
+                    <span>Schedule start date</span>
+
+                    <input
+                        id="generatorStartDate"
+                        type="date"
+                        required
+                    >
+                </label>
+
+            </div>
+
+
+            <section
+                id="generatorMatchCard"
+                class="generator-match-card"
+                hidden
+            >
+                <span>
+                    Matched template
+                </span>
+
+                <strong id="generatorTemplateName">
+                    —
+                </strong>
+
+                <p id="generatorTemplateReason"></p>
+            </section>
+
+
+            <section
+                id="generatorPreview"
+                class="generator-preview"
+                hidden
+            >
+                <div class="generator-preview__header">
+                    <div>
+                        <span>
+                            Schedule preview
+                        </span>
+
+                        <strong id="generatorPreviewCount">
+                            0 tasks
+                        </strong>
+                    </div>
+                </div>
+
+                <div id="generatorPreviewList"></div>
+            </section>
+
+
+            <p
+                id="generatorMessage"
+                class="task-form-message"
+                role="status"
+            ></p>
+
+
+            <footer class="task-panel__footer">
+
+                <button
+                    id="cancelScheduleGenerator"
+                    class="crm-button crm-button--secondary"
+                    type="button"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    id="confirmGenerateSchedule"
+                    class="crm-button crm-button--primary"
+                    type="submit"
+                    disabled
+                >
+                    Generate schedule
+                </button>
+
+            </footer>
+
+        </form>
+
+    </aside>
     </div>
 
 

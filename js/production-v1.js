@@ -25,7 +25,13 @@
         editingTaskId: null,
         cascadePreview: null,
         ganttInteraction: null,
-        suppressTaskClickUntil: 0
+        suppressTaskClickUntil: 0,
+        generator: {
+            orderReference: "",
+            orderItemId: null,
+            matchedTemplate: null,
+            previewTasks: []
+        },
     };
 
     const element = (id) =>
@@ -4445,6 +4451,749 @@
         );
     }
 
+    function todayDateString() {
+        return localDateString(
+            new Date()
+        );
+    }
+
+    function showScheduleGenerator() {
+        element("scheduleGeneratorBackdrop").hidden = false;
+    
+        element("scheduleGeneratorPanel")
+            .classList.add("is-open");
+    
+        element("scheduleGeneratorPanel")
+            .setAttribute(
+                "aria-hidden",
+                "false"
+            );
+    }
+    
+    
+    function closeScheduleGenerator() {
+        element("scheduleGeneratorPanel")
+            .classList.remove("is-open");
+    
+        element("scheduleGeneratorPanel")
+            .setAttribute(
+                "aria-hidden",
+                "true"
+            );
+    
+        element("scheduleGeneratorBackdrop").hidden = true;
+    
+        resetScheduleGenerator();
+    }
+    
+    
+    function resetScheduleGenerator() {
+        state.generator = {
+            orderReference: "",
+            orderItemId: null,
+            matchedTemplate: null,
+            previewTasks: []
+        };
+    
+        element("scheduleGeneratorForm").reset();
+    
+        element("generatorOrderItem").innerHTML = `
+            <option value="">
+                Select an order first
+            </option>
+        `;
+    
+        element("generatorOrderItem").disabled = true;
+    
+        element("generatorMatchCard").hidden = true;
+        element("generatorPreview").hidden = true;
+    
+        element("generatorPreviewList").innerHTML = "";
+    
+        element("generatorMessage").textContent = "";
+    
+        element("confirmGenerateSchedule").disabled = true;
+    }
+
+    async function openScheduleGenerator() {
+        resetScheduleGenerator();
+    
+        element("generatorStartDate").value =
+            todayDateString();
+    
+        showScheduleGenerator();
+    
+        element("generatorOrder").innerHTML = `
+            <option value="">
+                Loading active orders…
+            </option>
+        `;
+    
+        try {
+            await loadActiveOrders();
+    
+            element("generatorOrder").innerHTML = `
+                <option value="">
+                    Select an active order
+                </option>
+    
+                ${
+                    state.orders.map(order => {
+                        const reference =
+                            getOrderReference(order);
+    
+                        const name =
+                            getOrderDisplayName(order);
+    
+                        return `
+                            <option value="${escapeHtml(reference)}">
+                                ${escapeHtml(reference)}
+                                — ${escapeHtml(name)}
+                            </option>
+                        `;
+                    }).join("")
+                }
+            `;
+    
+        } catch (error) {
+            element("generatorMessage").textContent =
+                error.message;
+        }
+    }
+
+    async function loadGeneratorOrderItems(
+        orderReference
+    ) {
+        const select =
+            element("generatorOrderItem");
+    
+        if (!orderReference) {
+            select.disabled = true;
+    
+            select.innerHTML = `
+                <option value="">
+                    Select an order first
+                </option>
+            `;
+    
+            return;
+        }
+    
+        select.disabled = true;
+    
+        select.innerHTML = `
+            <option value="">
+                Loading order items…
+            </option>
+        `;
+    
+        try {
+            let order =
+                state.orderDetails.get(
+                    orderReference
+                );
+    
+            if (!order) {
+                const data =
+                    await api(
+                        `/admin/orders/${encodeURIComponent(
+                            orderReference
+                        )}`
+                    );
+    
+                order = data.order;
+    
+                state.orderDetails.set(
+                    orderReference,
+                    order
+                );
+            }
+    
+            select.innerHTML = `
+                <option value="">
+                    Select an order item
+                </option>
+    
+                ${
+                    (order.items || [])
+                        .map(item => `
+                            <option value="${item.id}">
+                                ${escapeHtml(
+                                    item.description
+                                )}
+                                ${
+                                    item.quantity
+                                        ? ` — ${escapeHtml(
+                                            item.quantity
+                                        )} units`
+                                        : ""
+                                }
+                            </option>
+                        `)
+                        .join("")
+                }
+            `;
+    
+            select.disabled = false;
+    
+        } catch (error) {
+            select.innerHTML = `
+                <option value="">
+                    Unable to load items
+                </option>
+            `;
+    
+            element("generatorMessage").textContent =
+                error.message;
+        }
+    }
+
+    async function findMatchingTemplateForItem(
+        itemDescription
+    ) {
+        const listData =
+            await api(
+                "/admin/production-templates"
+            );
+
+        const templates =
+            listData.templates || [];
+
+        const description =
+            String(
+                itemDescription || ""
+            )
+                .trim()
+                .toLowerCase();
+
+        const matches = [];
+
+        for (const template of templates) {
+            if (!template.isActive) {
+                continue;
+            }
+
+            const detail =
+                await api(
+                    `/admin/production-templates/${template.id}`
+                );
+
+            const fullTemplate =
+                detail.template;
+
+            for (
+                const rule of
+                fullTemplate.rules || []
+            ) {
+                if (!rule.isActive) {
+                    continue;
+                }
+
+                const value =
+                    String(
+                        rule.matchValue || ""
+                    )
+                        .trim()
+                        .toLowerCase();
+
+                if (!value) {
+                    continue;
+                }
+
+                let matched = false;
+
+                if (
+                    rule.matchType ===
+                    "exact"
+                ) {
+                    matched =
+                        description === value;
+                } else if (
+                    rule.matchType ===
+                    "contains"
+                ) {
+                    matched =
+                        description.includes(
+                            value
+                        );
+                }
+
+                if (!matched) {
+                    continue;
+                }
+
+                matches.push({
+                    template:
+                        fullTemplate,
+
+                    rule,
+
+                    matchRank:
+                        rule.matchType ===
+                        "exact"
+                            ? 1
+                            : 2,
+
+                    rulePriority:
+                        Number(
+                            rule.priority || 0
+                        ),
+
+                    templateSortOrder:
+                        Number(
+                            fullTemplate.sortOrder ??
+                            template.sortOrder ??
+                            0
+                        )
+                });
+            }
+        }
+
+        if (!matches.length) {
+            return null;
+        }
+
+        matches.sort(
+            (a, b) => {
+                if (
+                    a.matchRank !==
+                    b.matchRank
+                ) {
+                    return (
+                        a.matchRank -
+                        b.matchRank
+                    );
+                }
+
+                if (
+                    a.rulePriority !==
+                    b.rulePriority
+                ) {
+                    return (
+                        b.rulePriority -
+                        a.rulePriority
+                    );
+                }
+
+                if (
+                    a.templateSortOrder !==
+                    b.templateSortOrder
+                ) {
+                    return (
+                        a.templateSortOrder -
+                        b.templateSortOrder
+                    );
+                }
+
+                return (
+                    Number(a.rule.id || 0) -
+                    Number(b.rule.id || 0)
+                );
+            }
+        );
+
+        return {
+            template:
+                matches[0].template,
+
+            rule:
+                matches[0].rule
+        };
+    }
+
+    function buildTemplatePreview(
+        template,
+        startDate
+    ) {
+        const result = [];
+    
+        const planByStepId =
+            new Map();
+    
+        function addDaysToDate(
+            dateString,
+            days
+        ) {
+            const date =
+                parseDate(
+                    dateString
+                );
+    
+            const resultDate =
+                addDays(
+                    date,
+                    days
+                );
+    
+            return localDateString(
+                resultDate
+            );
+        }
+    
+        for (
+            const step of
+            template.steps || []
+        ) {
+            const duration =
+                Math.max(
+                    1,
+                    Number(
+                        step.defaultDurationDays ||
+                        1
+                    )
+                );
+    
+            let plannedStart =
+                startDate;
+    
+            if (
+                step.dependencyStepId
+            ) {
+                const dependency =
+                    planByStepId.get(
+                        Number(
+                            step.dependencyStepId
+                        )
+                    );
+    
+                if (dependency) {
+                    plannedStart =
+                        addDaysToDate(
+                            dependency.plannedEndDate,
+                            1
+                        );
+                }
+            }
+    
+            const plannedEnd =
+                addDaysToDate(
+                    plannedStart,
+                    duration - 1
+                );
+    
+            const previewTask = {
+                stepId:
+                    step.id,
+    
+                taskName:
+                    step.taskName,
+    
+                duration,
+    
+                plannedStartDate:
+                    plannedStart,
+    
+                plannedEndDate:
+                    plannedEnd
+            };
+    
+            result.push(
+                previewTask
+            );
+    
+            planByStepId.set(
+                Number(step.id),
+                previewTask
+            );
+        }
+    
+        return result;
+    }
+
+    function renderGeneratorPreview() {
+        const tasks =
+            state.generator
+                .previewTasks;
+    
+        element(
+            "generatorPreviewCount"
+        ).textContent =
+            `${tasks.length} ${
+                tasks.length === 1
+                    ? "task"
+                    : "tasks"
+            }`;
+    
+        element(
+            "generatorPreviewList"
+        ).innerHTML =
+            tasks.map(
+                (task, index) => `
+                    <div
+                        class="generator-preview-row"
+                    >
+                        <span
+                            class="generator-preview-row__number"
+                        >
+                            ${index + 1}
+                        </span>
+    
+                        <div>
+                            <strong>
+                                ${escapeHtml(
+                                    task.taskName
+                                )}
+                            </strong>
+    
+                            <small>
+                                ${task.duration}
+                                ${
+                                    task.duration === 1
+                                        ? "day"
+                                        : "days"
+                                }
+                            </small>
+                        </div>
+    
+                        <span
+                            class="generator-preview-row__dates"
+                        >
+                            ${escapeHtml(
+                                task.plannedStartDate
+                            )}
+                            →
+                            ${escapeHtml(
+                                task.plannedEndDate
+                            )}
+                        </span>
+                    </div>
+                `
+            ).join("");
+    
+        element(
+            "generatorPreview"
+        ).hidden =
+            !tasks.length;
+    }
+
+    async function refreshGeneratorMatch() {
+        const orderReference =
+            element("generatorOrder").value;
+
+        const itemId =
+            Number(
+                element(
+                    "generatorOrderItem"
+                ).value
+            );
+
+        const startDate =
+            element(
+                "generatorStartDate"
+            ).value;
+
+        state.generator.orderReference = "";
+        state.generator.orderItemId = null;
+        state.generator.matchedTemplate = null;
+        state.generator.previewTasks = [];
+
+        element(
+            "generatorMatchCard"
+        ).hidden =
+            true;
+
+        element(
+            "generatorPreview"
+        ).hidden =
+            true;
+
+        element(
+            "generatorPreviewList"
+        ).innerHTML =
+            "";
+
+        element(
+            "confirmGenerateSchedule"
+        ).disabled =
+            true;
+
+        element(
+            "generatorMessage"
+        ).textContent =
+            "";
+
+        if (
+            !orderReference ||
+            !itemId ||
+            !startDate
+        ) {
+            return;
+        }
+
+        const order =
+            state.orderDetails.get(
+                orderReference
+            );
+
+        const item =
+            (order?.items || [])
+                .find(
+                    candidate =>
+                        Number(candidate.id) ===
+                        itemId
+                );
+
+        if (!item) {
+            element(
+                "generatorMessage"
+            ).textContent =
+                "The selected order item could not be found.";
+
+            return;
+        }
+
+        element(
+            "generatorMessage"
+        ).textContent =
+            "Matching production template…";
+
+        try {
+            const match =
+                await findMatchingTemplateForItem(
+                    item.description
+                );
+
+            if (!match) {
+                element(
+                    "generatorMessage"
+                ).textContent =
+                    `No production template matches "${item.description}".`;
+
+                return;
+            }
+
+            state.generator.orderReference =
+                orderReference;
+
+            state.generator.orderItemId =
+                itemId;
+
+            state.generator.matchedTemplate =
+                match.template;
+
+            state.generator.previewTasks =
+                buildTemplatePreview(
+                    match.template,
+                    startDate
+                );
+
+            element(
+                "generatorTemplateName"
+            ).textContent =
+                match.template.name;
+
+            element(
+                "generatorTemplateReason"
+            ).textContent =
+                `Matched by ${match.rule.matchType}: "${match.rule.matchValue}".`;
+
+            element(
+                "generatorMatchCard"
+            ).hidden =
+                false;
+
+            renderGeneratorPreview();
+
+            element(
+                "confirmGenerateSchedule"
+            ).disabled =
+                false;
+
+            element(
+                "generatorMessage"
+            ).textContent =
+                "";
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            element(
+                "generatorMessage"
+            ).textContent =
+                error.message ||
+                "Unable to match a production template.";
+        }
+    }
+
+    async function generateScheduleFromPanel(
+        event
+    ) {
+        event.preventDefault();
+    
+        const orderReference =
+            state.generator
+                .orderReference;
+    
+        const orderItemId =
+            state.generator
+                .orderItemId;
+    
+        const startDate =
+            element(
+                "generatorStartDate"
+            ).value;
+    
+        if (
+            !orderReference ||
+            !orderItemId ||
+            !startDate
+        ) {
+            return;
+        }
+    
+        const button =
+            element(
+                "confirmGenerateSchedule"
+            );
+    
+        button.disabled = true;
+    
+        element(
+            "generatorMessage"
+        ).textContent =
+            "Generating production schedule…";
+    
+        try {
+            const data =
+                await api(
+                    `/admin/orders/${encodeURIComponent(
+                        orderReference
+                    )}/generate-schedule`,
+                    {
+                        method: "POST",
+    
+                        body:
+                            JSON.stringify({
+                                orderItemId,
+                                startDate
+                            })
+                    }
+                );
+    
+            element(
+                "generatorMessage"
+            ).textContent =
+                `${data.taskCount} production tasks created.`;
+    
+            await loadProductionSchedule();
+    
+            window.setTimeout(
+                closeScheduleGenerator,
+                500
+            );
+    
+        } catch (error) {
+            element(
+                "generatorMessage"
+            ).textContent =
+                error.message;
+    
+            button.disabled = false;
+        }
+    }
+
 
     /* ==================================================
        EVENT LISTENERS
@@ -4727,37 +5476,104 @@
             "click",
             closeTaskPanel
         );
-
-
-    document
+    
+        element("generateScheduleButton")
         .addEventListener(
-            "keydown",
-            (event) => {
-                if (
-                    event.key ===
-                    "Escape" &&
-                    state.ganttInteraction
-                ) {
-                    cancelGanttInteraction();
-                    return;
-                }
-
-                if (
-                    event.key ===
-                        "Escape" &&
+            "click",
+            openScheduleGenerator
+        );
+    
+    
+    element("generatorOrder")
+        .addEventListener(
+            "change",
+            async () => {
+                const reference =
                     element(
-                        "taskPanel"
-                    )
-                        .classList
-                        .contains(
-                            "is-open"
-                        )
-                ) {
-                    closeTaskPanel();
-                }
+                        "generatorOrder"
+                    ).value;
+    
+                await loadGeneratorOrderItems(
+                    reference
+                );
+    
+                await refreshGeneratorMatch();
             }
         );
+    
+    
+    element("generatorOrderItem")
+        .addEventListener(
+            "change",
+            refreshGeneratorMatch
+        );
+    
+    
+    element("generatorStartDate")
+        .addEventListener(
+            "change",
+            refreshGeneratorMatch
+        );
+    
+    
+    element("scheduleGeneratorForm")
+        .addEventListener(
+            "submit",
+            generateScheduleFromPanel
+        );
+    
+    
+    element("closeScheduleGenerator")
+        .addEventListener(
+            "click",
+            closeScheduleGenerator
+        );
+    
+    
+    element("cancelScheduleGenerator")
+        .addEventListener(
+            "click",
+            closeScheduleGenerator
+        );
+    
+    
+    element("scheduleGeneratorBackdrop")
+        .addEventListener(
+            "click",
+            closeScheduleGenerator
+        );
 
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            if (state.ganttInteraction) {
+                cancelGanttInteraction();
+                return;
+            }
+
+            if (
+                element("scheduleGeneratorPanel")
+                    ?.classList
+                    .contains("is-open")
+            ) {
+                closeScheduleGenerator();
+                return;
+            }
+
+            if (
+                element("taskPanel")
+                    ?.classList
+                    .contains("is-open")
+            ) {
+                closeTaskPanel();
+            }
+        }
+    );
 
     element(
         "logout"

@@ -1074,3 +1074,142 @@
 .gantt-today-line {
     z-index: 6;
 }
+
+.schedule-generator-panel {
+    width: min(560px, 100vw);
+}
+
+.generator-match-card {
+    margin-top: 22px;
+    padding: 18px;
+
+    border: 1px solid var(--production-border);
+    border-radius: 12px;
+
+    background: #f8f2ee;
+}
+
+.generator-match-card > span,
+.generator-preview__header span {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: var(--production-muted);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.generator-match-card strong {
+    display: block;
+
+    color: var(--production-text);
+
+    font-size: 16px;
+}
+
+.generator-match-card p {
+    margin: 7px 0 0;
+
+    color: var(--production-muted);
+
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+.generator-preview {
+    margin-top: 22px;
+
+    border: 1px solid var(--production-border);
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    background: #fff;
+}
+
+.generator-preview__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 15px 17px;
+
+    border-bottom: 1px solid var(--production-border);
+
+    background: #faf6f3;
+}
+
+.generator-preview__header strong {
+    font-size: 13px;
+}
+
+
+.generator-preview-row {
+    display: grid;
+
+    grid-template-columns:
+        34px
+        minmax(0, 1fr)
+        auto;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 14px 16px;
+
+    border-bottom: 1px solid var(--production-border);
+}
+
+.generator-preview-row:last-child {
+    border-bottom: 0;
+}
+
+.generator-preview-row__number {
+    display: grid;
+    place-items: center;
+
+    width: 28px;
+    height: 28px;
+
+    border-radius: 50%;
+
+    background: #efe5df;
+    color: var(--production-accent);
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.generator-preview-row strong {
+    display: block;
+
+    color: var(--production-text);
+
+    font-size: 12px;
+}
+
+.generator-preview-row small {
+    display: block;
+
+    margin-top: 4px;
+
+    color: var(--production-muted);
+
+    font-size: 10px;
+}
+
+.generator-preview-row__dates {
+    color: var(--production-accent);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
