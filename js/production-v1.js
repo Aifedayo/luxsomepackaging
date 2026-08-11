@@ -419,6 +419,286 @@
             : 44;
     }
 
+    /* ==================================================
+       SCHEDULE CONFLICTS
+    ================================================== */
+
+    function findTaskById(taskId) {
+        if (!taskId) {
+            return null;
+        }
+
+        return state.tasks.find(
+            (task) =>
+                Number(task.id) ===
+                Number(taskId)
+        ) || null;
+    }
+
+
+    function getDependencyConflict(task) {
+        if (
+            !task ||
+            !task.dependencyTaskId ||
+            !task.plannedStartDate
+        ) {
+            return null;
+        }
+
+        const dependency =
+            findTaskById(
+                task.dependencyTaskId
+            );
+
+        if (
+            !dependency ||
+            !dependency.plannedEndDate
+        ) {
+            return null;
+        }
+
+        const taskStart =
+            parseDate(
+                task.plannedStartDate
+            );
+
+        const dependencyEnd =
+            parseDate(
+                dependency.plannedEndDate
+            );
+
+        if (
+            !taskStart ||
+            !dependencyEnd
+        ) {
+            return null;
+        }
+
+        /*
+         * Dates are day-granular and inclusive. If an upstream
+         * task ends on Aug 15, its dependent task must start on
+         * Aug 16 or later.
+         */
+        if (
+            taskStart >
+            dependencyEnd
+        ) {
+            return null;
+        }
+
+        const earliestStart =
+            addDays(
+                dependencyEnd,
+                1
+            );
+
+        return {
+            dependency,
+            earliestStart,
+            earliestStartDate:
+                localDateString(
+                    earliestStart
+                ),
+            message:
+                `${task.taskName || "This task"} starts before ${dependency.taskName || "its dependency"} is complete. Earliest valid start: ${formatTimelineDate(earliestStart)}.`
+        };
+    }
+
+
+    function getFormDependencyConflict() {
+        const dependencyValue =
+            element("taskDependency")
+                ?.value;
+
+        const plannedStartDate =
+            element("taskPlannedStart")
+                ?.value;
+
+        if (
+            !dependencyValue ||
+            !plannedStartDate
+        ) {
+            return null;
+        }
+
+        return getDependencyConflict({
+            id:
+                state.editingTaskId,
+            taskName:
+                element("taskName")
+                    ?.value
+                    ?.trim() ||
+                "This task",
+            dependencyTaskId:
+                Number(
+                    dependencyValue
+                ),
+            plannedStartDate
+        });
+    }
+
+
+    function ensureScheduleConflictNotice() {
+        let notice =
+            element(
+                "taskScheduleConflict"
+            );
+
+        if (notice) {
+            return notice;
+        }
+
+        const formMessage =
+            element(
+                "taskFormMessage"
+            );
+
+        if (!formMessage) {
+            return null;
+        }
+
+        notice =
+            document.createElement(
+                "div"
+            );
+
+        notice.id =
+            "taskScheduleConflict";
+
+        notice.className =
+            "task-schedule-conflict";
+
+        notice.hidden =
+            true;
+
+        formMessage.parentNode.insertBefore(
+            notice,
+            formMessage
+        );
+
+        return notice;
+    }
+
+
+    function refreshScheduleConflictNotice() {
+        const notice =
+            ensureScheduleConflictNotice();
+
+        if (!notice) {
+            return;
+        }
+
+        const conflict =
+            getFormDependencyConflict();
+
+        if (!conflict) {
+            notice.hidden =
+                true;
+
+            notice.innerHTML =
+                "";
+
+            return;
+        }
+
+        notice.hidden =
+            false;
+
+        notice.innerHTML = `
+            <strong>Schedule conflict</strong>
+            <span>
+                ${escapeHtml(
+                    conflict.message
+                )}
+            </span>
+        `;
+    }
+
+
+    function installScheduleConflictStyles() {
+        if (
+            document.getElementById(
+                "productionScheduleConflictStyles"
+            )
+        ) {
+            return;
+        }
+
+        const style =
+            document.createElement(
+                "style"
+            );
+
+        style.id =
+            "productionScheduleConflictStyles";
+
+        style.textContent = `
+            .gantt-task-row.has-schedule-conflict {
+                box-shadow: inset 3px 0 0 #b42318;
+                background: rgba(180, 35, 24, 0.035);
+            }
+
+            .gantt-task-conflict {
+                color: #b42318 !important;
+                font-style: normal !important;
+                font-weight: 700;
+            }
+
+            .gantt-bar.has-schedule-conflict {
+                outline: 2px solid #b42318;
+                outline-offset: 2px;
+            }
+
+            .gantt-bar__conflict-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: none;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                color: #b42318;
+                background: #fff;
+                font-size: 10px;
+                font-weight: 800;
+            }
+
+            .gantt-dependency-line.is-conflict {
+                stroke: #b42318;
+                stroke-width: 2;
+                stroke-dasharray: 5 4;
+            }
+
+            .task-schedule-conflict {
+                display: grid;
+                gap: 5px;
+                margin-top: 18px;
+                padding: 13px 14px;
+                border: 1px solid rgba(180, 35, 24, 0.28);
+                border-radius: 8px;
+                color: #8f1d14;
+                background: rgba(180, 35, 24, 0.06);
+                font-size: 12px;
+                line-height: 1.55;
+            }
+
+            .task-schedule-conflict[hidden] {
+                display: none !important;
+            }
+
+            .task-schedule-conflict strong {
+                font-size: 11px;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+            }
+        `;
+
+        document.head.appendChild(
+            style
+        );
+    }
+
+
     function renderDependencyLines(
         rows,
         dayWidth
@@ -625,7 +905,13 @@
                         startX,
                         startY,
                         endX,
-                        endY
+                        endY,
+                        isConflict:
+                            Boolean(
+                                getDependencyConflict(
+                                    task
+                                )
+                            )
                     }
                 );
             }
@@ -798,9 +1084,19 @@
         sidebar.innerHTML =
             state.tasks
                 .map(
-                    (task) => `
+                    (task) => {
+                        const conflict =
+                            getDependencyConflict(
+                                task
+                            );
+
+                        return `
                         <article
-                            class="gantt-task-row"
+                            class="gantt-task-row ${
+                                conflict
+                                    ? "has-schedule-conflict"
+                                    : ""
+                            }"
                             data-task-id="${task.id}"
                         >
                             <strong>
@@ -842,8 +1138,18 @@
                                     `
                                     : ""
                             }
+                        ${
+                            conflict
+                                ? `
+                                    <small class="gantt-task-conflict">
+                                        ⚠ Schedule conflict
+                                    </small>
+                                `
+                                : ""
+                        }
                         </article>
-                    `
+                    `;
+                    }
                 )
                 .join("");
 
@@ -923,6 +1229,11 @@
             state.tasks
                 .map(
                     (task) => {
+                        const conflict =
+                            getDependencyConflict(
+                                task
+                            );
+
                         const start =
                             parseDate(
                                 task.plannedStartDate
@@ -1002,7 +1313,11 @@
                             >
                                 <button
                                     type="button"
-                                    class="gantt-bar"
+                                    class="gantt-bar ${
+                                        conflict
+                                            ? "has-schedule-conflict"
+                                            : ""
+                                    }"
                                     data-task-id="${task.id}"
                                     data-status="${escapeHtml(
                                         task.status
@@ -1012,7 +1327,9 @@
                                         width: ${width}px;
                                     "
                                     title="${escapeHtml(
-                                        task.taskName
+                                        conflict
+                                            ? conflict.message
+                                            : task.taskName
                                     )}"
                                 >
 
@@ -1033,6 +1350,19 @@
                                                 task.taskName
                                             )}
                                         </span>
+
+                                        ${
+                                            conflict
+                                                ? `
+                                                    <b
+                                                        class="gantt-bar__conflict-icon"
+                                                        aria-label="Schedule conflict"
+                                                    >
+                                                        !
+                                                    </b>
+                                                `
+                                                : ""
+                                        }
 
                                         <small>
                                             ${progress}%
@@ -1770,6 +2100,9 @@
             task.dependencyTaskId,
             task.id
         );
+
+
+        refreshScheduleConflictNotice();
     }
 
 
@@ -1858,6 +2191,9 @@
 
 
         showTaskPanel();
+
+
+        refreshScheduleConflictNotice();
 
 
         try {
@@ -2344,7 +2680,8 @@
             startX,
             startY,
             endX,
-            endY
+            endY,
+            isConflict = false
         }
     ) {
         const namespace =
@@ -2424,7 +2761,11 @@
     
         path.setAttribute(
             "class",
-            "gantt-dependency-line"
+            `gantt-dependency-line${
+                isConflict
+                    ? " is-conflict"
+                    : ""
+            }`
         );
     
     
@@ -2588,7 +2929,45 @@
                 populateDependencyOptions(
                     orderReference
                 );
+
+                refreshScheduleConflictNotice();
             }
+        );
+
+
+    element(
+        "taskDependency"
+    )
+        .addEventListener(
+            "change",
+            refreshScheduleConflictNotice
+        );
+
+
+    element(
+        "taskPlannedStart"
+    )
+        .addEventListener(
+            "change",
+            refreshScheduleConflictNotice
+        );
+
+
+    element(
+        "taskPlannedEnd"
+    )
+        .addEventListener(
+            "change",
+            refreshScheduleConflictNotice
+        );
+
+
+    element(
+        "taskName"
+    )
+        .addEventListener(
+            "input",
+            refreshScheduleConflictNotice
         );
 
 
@@ -2743,6 +3122,8 @@
        INITIAL LOAD
     ================================================== */
 
+    installScheduleConflictStyles();
+    ensureScheduleConflictNotice();
     loadProductionSchedule();
 
 })();
