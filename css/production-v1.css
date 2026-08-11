@@ -1008,3 +1008,9 @@
         width: 100%;
     }
 }
+
+#taskOrderItem:disabled,
+#taskOrder:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
