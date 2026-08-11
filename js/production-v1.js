@@ -30,7 +30,9 @@
             orderReference: "",
             orderItemId: null,
             matchedTemplate: null,
-            previewTasks: []
+            previewTasks: [],
+            alreadyScheduled: false,
+            existingTaskCount: 0
         },
     };
 
@@ -4492,7 +4494,9 @@
             orderReference: "",
             orderItemId: null,
             matchedTemplate: null,
-            previewTasks: []
+            previewTasks: [],
+            alreadyScheduled: false,
+            existingTaskCount: 0
         };
     
         element("scheduleGeneratorForm").reset();
@@ -4648,263 +4652,20 @@
         }
     }
 
-    async function findMatchingTemplateForItem(
-        itemDescription
-    ) {
-        const listData =
-            await api(
-                "/admin/production-templates"
-            );
+    /* ==================================================
+       SERVER-SIDE SCHEDULE PREVIEW
 
-        const templates =
-            listData.templates || [];
-
-        const description =
-            String(
-                itemDescription || ""
-            )
-                .trim()
-                .toLowerCase();
-
-        const matches = [];
-
-        for (const template of templates) {
-            if (!template.isActive) {
-                continue;
-            }
-
-            const detail =
-                await api(
-                    `/admin/production-templates/${template.id}`
-                );
-
-            const fullTemplate =
-                detail.template;
-
-            for (
-                const rule of
-                fullTemplate.rules || []
-            ) {
-                if (!rule.isActive) {
-                    continue;
-                }
-
-                const value =
-                    String(
-                        rule.matchValue || ""
-                    )
-                        .trim()
-                        .toLowerCase();
-
-                if (!value) {
-                    continue;
-                }
-
-                let matched = false;
-
-                if (
-                    rule.matchType ===
-                    "exact"
-                ) {
-                    matched =
-                        description === value;
-                } else if (
-                    rule.matchType ===
-                    "contains"
-                ) {
-                    matched =
-                        description.includes(
-                            value
-                        );
-                }
-
-                if (!matched) {
-                    continue;
-                }
-
-                matches.push({
-                    template:
-                        fullTemplate,
-
-                    rule,
-
-                    matchRank:
-                        rule.matchType ===
-                        "exact"
-                            ? 1
-                            : 2,
-
-                    rulePriority:
-                        Number(
-                            rule.priority || 0
-                        ),
-
-                    templateSortOrder:
-                        Number(
-                            fullTemplate.sortOrder ??
-                            template.sortOrder ??
-                            0
-                        )
-                });
-            }
-        }
-
-        if (!matches.length) {
-            return null;
-        }
-
-        matches.sort(
-            (a, b) => {
-                if (
-                    a.matchRank !==
-                    b.matchRank
-                ) {
-                    return (
-                        a.matchRank -
-                        b.matchRank
-                    );
-                }
-
-                if (
-                    a.rulePriority !==
-                    b.rulePriority
-                ) {
-                    return (
-                        b.rulePriority -
-                        a.rulePriority
-                    );
-                }
-
-                if (
-                    a.templateSortOrder !==
-                    b.templateSortOrder
-                ) {
-                    return (
-                        a.templateSortOrder -
-                        b.templateSortOrder
-                    );
-                }
-
-                return (
-                    Number(a.rule.id || 0) -
-                    Number(b.rule.id || 0)
-                );
-            }
-        );
-
-        return {
-            template:
-                matches[0].template,
-
-            rule:
-                matches[0].rule
-        };
-    }
-
-    function buildTemplatePreview(
-        template,
-        startDate
-    ) {
-        const result = [];
-    
-        const planByStepId =
-            new Map();
-    
-        function addDaysToDate(
-            dateString,
-            days
-        ) {
-            const date =
-                parseDate(
-                    dateString
-                );
-    
-            const resultDate =
-                addDays(
-                    date,
-                    days
-                );
-    
-            return localDateString(
-                resultDate
-            );
-        }
-    
-        for (
-            const step of
-            template.steps || []
-        ) {
-            const duration =
-                Math.max(
-                    1,
-                    Number(
-                        step.defaultDurationDays ||
-                        1
-                    )
-                );
-    
-            let plannedStart =
-                startDate;
-    
-            if (
-                step.dependencyStepId
-            ) {
-                const dependency =
-                    planByStepId.get(
-                        Number(
-                            step.dependencyStepId
-                        )
-                    );
-    
-                if (dependency) {
-                    plannedStart =
-                        addDaysToDate(
-                            dependency.plannedEndDate,
-                            1
-                        );
-                }
-            }
-    
-            const plannedEnd =
-                addDaysToDate(
-                    plannedStart,
-                    duration - 1
-                );
-    
-            const previewTask = {
-                stepId:
-                    step.id,
-    
-                taskName:
-                    step.taskName,
-    
-                duration,
-    
-                plannedStartDate:
-                    plannedStart,
-    
-                plannedEndDate:
-                    plannedEnd
-            };
-    
-            result.push(
-                previewTask
-            );
-    
-            planByStepId.set(
-                Number(step.id),
-                previewTask
-            );
-        }
-    
-        return result;
-    }
+       Template matching, duplicate detection, dependency
+       resolution and date calculation are intentionally
+       owned by the Worker. The browser only renders the
+       returned plan.
+    ================================================== */
 
     function renderGeneratorPreview() {
         const tasks =
             state.generator
                 .previewTasks;
-    
+
         element(
             "generatorPreviewCount"
         ).textContent =
@@ -4913,58 +4674,68 @@
                     ? "task"
                     : "tasks"
             }`;
-    
+
         element(
             "generatorPreviewList"
         ).innerHTML =
             tasks.map(
-                (task, index) => `
-                    <div
-                        class="generator-preview-row"
-                    >
-                        <span
-                            class="generator-preview-row__number"
+                (task, index) => {
+                    const duration =
+                        Number(
+                            task.durationDays ??
+                            task.duration ??
+                            1
+                        );
+
+                    return `
+                        <div
+                            class="generator-preview-row"
                         >
-                            ${index + 1}
-                        </span>
-    
-                        <div>
-                            <strong>
+                            <span
+                                class="generator-preview-row__number"
+                            >
+                                ${index + 1}
+                            </span>
+
+                            <div>
+                                <strong>
+                                    ${escapeHtml(
+                                        task.taskName
+                                    )}
+                                </strong>
+
+                                <small>
+                                    ${duration}
+                                    ${
+                                        duration === 1
+                                            ? "day"
+                                            : "days"
+                                    }
+                                </small>
+                            </div>
+
+                            <span
+                                class="generator-preview-row__dates"
+                            >
                                 ${escapeHtml(
-                                    task.taskName
+                                    task.plannedStartDate
                                 )}
-                            </strong>
-    
-                            <small>
-                                ${task.duration}
-                                ${
-                                    task.duration === 1
-                                        ? "day"
-                                        : "days"
-                                }
-                            </small>
+                                →
+                                ${escapeHtml(
+                                    task.plannedEndDate
+                                )}
+                            </span>
                         </div>
-    
-                        <span
-                            class="generator-preview-row__dates"
-                        >
-                            ${escapeHtml(
-                                task.plannedStartDate
-                            )}
-                            →
-                            ${escapeHtml(
-                                task.plannedEndDate
-                            )}
-                        </span>
-                    </div>
-                `
+                    `;
+                }
             ).join("");
-    
+
         element(
             "generatorPreview"
         ).hidden =
             !tasks.length;
     }
+
 
     async function refreshGeneratorMatch() {
         const orderReference =
@@ -4986,31 +4757,28 @@
         state.generator.orderItemId = null;
         state.generator.matchedTemplate = null;
         state.generator.previewTasks = [];
+        state.generator.alreadyScheduled = false;
+        state.generator.existingTaskCount = 0;
 
         element(
             "generatorMatchCard"
-        ).hidden =
-            true;
+        ).hidden = true;
 
         element(
             "generatorPreview"
-        ).hidden =
-            true;
+        ).hidden = true;
 
         element(
             "generatorPreviewList"
-        ).innerHTML =
-            "";
+        ).innerHTML = "";
 
         element(
             "confirmGenerateSchedule"
-        ).disabled =
-            true;
+        ).disabled = true;
 
         element(
             "generatorMessage"
-        ).textContent =
-            "";
+        ).textContent = "";
 
         if (
             !orderReference ||
@@ -5020,47 +4788,25 @@
             return;
         }
 
-        const order =
-            state.orderDetails.get(
-                orderReference
-            );
-
-        const item =
-            (order?.items || [])
-                .find(
-                    candidate =>
-                        Number(candidate.id) ===
-                        itemId
-                );
-
-        if (!item) {
-            element(
-                "generatorMessage"
-            ).textContent =
-                "The selected order item could not be found.";
-
-            return;
-        }
-
         element(
             "generatorMessage"
         ).textContent =
-            "Matching production template…";
+            "Preparing production schedule preview…";
 
         try {
-            const match =
-                await findMatchingTemplateForItem(
-                    item.description
+            const data =
+                await api(
+                    `/admin/orders/${encodeURIComponent(
+                        orderReference
+                    )}/schedule-preview`,
+                    {
+                        method: "POST",
+                        body: JSON.stringify({
+                            orderItemId: itemId,
+                            startDate
+                        })
+                    }
                 );
-
-            if (!match) {
-                element(
-                    "generatorMessage"
-                ).textContent =
-                    `No production template matches "${item.description}".`;
-
-                return;
-            }
 
             state.generator.orderReference =
                 orderReference;
@@ -5069,92 +4815,125 @@
                 itemId;
 
             state.generator.matchedTemplate =
-                match.template;
+                data.template || null;
 
             state.generator.previewTasks =
-                buildTemplatePreview(
-                    match.template,
-                    startDate
+                data.tasks || [];
+
+            state.generator.alreadyScheduled =
+                Boolean(
+                    data.alreadyScheduled
+                );
+
+            state.generator.existingTaskCount =
+                Number(
+                    data.existingTaskCount || 0
                 );
 
             element(
                 "generatorTemplateName"
             ).textContent =
-                match.template.name;
+                data.template?.name ||
+                "Production template";
+
+            const matchedBy =
+                data.template?.matchedBy;
 
             element(
                 "generatorTemplateReason"
             ).textContent =
-                `Matched by ${match.rule.matchType}: "${match.rule.matchValue}".`;
+                matchedBy
+                    ? `Matched by ${matchedBy.type}: "${matchedBy.value}".`
+                    : "Matched by the production template engine.";
 
             element(
                 "generatorMatchCard"
-            ).hidden =
-                false;
+            ).hidden = false;
 
             renderGeneratorPreview();
+
+            if (
+                state.generator.alreadyScheduled
+            ) {
+                const count =
+                    state.generator.existingTaskCount;
+
+                element(
+                    "generatorMessage"
+                ).textContent =
+                    `A production schedule already exists for this item (${count} ${
+                        count === 1
+                            ? "task"
+                            : "tasks"
+                    }). The preview is shown for reference.`;
+
+                element(
+                    "confirmGenerateSchedule"
+                ).disabled = true;
+
+                return;
+            }
 
             element(
                 "confirmGenerateSchedule"
             ).disabled =
-                false;
+                !state.generator.previewTasks.length;
 
             element(
                 "generatorMessage"
-            ).textContent =
-                "";
+            ).textContent = "";
 
         } catch (error) {
-            console.error(
-                error
-            );
+            console.error(error);
 
             element(
                 "generatorMessage"
             ).textContent =
                 error.message ||
-                "Unable to match a production template.";
+                "Unable to prepare the production schedule preview.";
         }
     }
+
 
     async function generateScheduleFromPanel(
         event
     ) {
         event.preventDefault();
-    
+
         const orderReference =
             state.generator
                 .orderReference;
-    
+
         const orderItemId =
             state.generator
                 .orderItemId;
-    
+
         const startDate =
             element(
                 "generatorStartDate"
             ).value;
-    
+
         if (
             !orderReference ||
             !orderItemId ||
-            !startDate
+            !startDate ||
+            state.generator.alreadyScheduled
         ) {
             return;
         }
-    
+
         const button =
             element(
                 "confirmGenerateSchedule"
             );
-    
+
         button.disabled = true;
-    
+
         element(
             "generatorMessage"
         ).textContent =
             "Generating production schedule…";
-    
+
         try {
             const data =
                 await api(
@@ -5163,34 +4942,39 @@
                     )}/generate-schedule`,
                     {
                         method: "POST",
-    
-                        body:
-                            JSON.stringify({
-                                orderItemId,
-                                startDate
-                            })
+                        body: JSON.stringify({
+                            orderItemId,
+                            startDate
+                        })
                     }
                 );
-    
+
             element(
                 "generatorMessage"
             ).textContent =
                 `${data.taskCount} production tasks created.`;
-    
+
             await loadProductionSchedule();
-    
+
             window.setTimeout(
                 closeScheduleGenerator,
                 500
             );
-    
+
         } catch (error) {
+            console.error(error);
+
             element(
                 "generatorMessage"
             ).textContent =
-                error.message;
-    
-            button.disabled = false;
+                error.message ||
+                "Unable to generate the production schedule.";
+
+            /*
+             * Re-run preview so duplicate state or other
+             * server-side changes are immediately reflected.
+             */
+            await refreshGeneratorMatch();
         }
     }
 

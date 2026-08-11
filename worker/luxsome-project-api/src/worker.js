@@ -252,6 +252,21 @@ async function handleAdminRequest(request, env, url) {
             /^\/admin\/submissions\/([A-Z0-9-]+)$/
         );
 
+        const orderSchedulePreviewMatch = url.pathname.match(
+            /^\/admin\/orders\/([A-Z0-9-]+)\/schedule-preview$/
+        );
+
+        if (
+            orderSchedulePreviewMatch &&
+            request.method === "POST"
+        ) {
+            return await handleAdminProductionSchedulePreview(
+                request,
+                env,
+                orderSchedulePreviewMatch[1]
+            );
+        }
+
         const orderScheduleGenerateMatch = url.pathname.match(
             /^\/admin\/orders\/([A-Z0-9-]+)\/generate-schedule$/
         );
@@ -9708,248 +9723,227 @@ async function saveSubmission(db, submission) {
     ).run();
 }
 
-async function handleAdminGenerateProductionSchedule(
-    request,
-    env,
-    orderReference
-) {
-    const body =
-        await request
-            .json()
-            .catch(() => ({}));
+/* ==========================================================
+   PRODUCTION SCHEDULE TEMPLATE PLANNER
+========================================================== */
 
-    const order = await env.DB.prepare(`
-        SELECT
-            id,
-            order_reference,
-            customer_name,
-            brand_name
-        FROM orders
-        WHERE order_reference = ?
-        LIMIT 1
-    `)
-        .bind(orderReference)
-        .first();
+function addProductionScheduleDays(
+    dateString,
+    amount
+) {
+    const match =
+        /^(\d{4})-(\d{2})-(\d{2})$/
+            .exec(
+                String(dateString || "")
+            );
+
+    if (!match) {
+        throw new Error(
+            "Invalid production schedule date."
+        );
+    }
+
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+
+    const date =
+        new Date(
+            Date.UTC(
+                year,
+                month - 1,
+                day
+            )
+        );
+
+    /* Reject dates such as 2026-02-31. */
+    if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+    ) {
+        throw new Error(
+            "Invalid production schedule date."
+        );
+    }
+
+    date.setUTCDate(
+        date.getUTCDate() +
+        Number(amount || 0)
+    );
+
+    return date
+        .toISOString()
+        .slice(0, 10);
+}
+
+
+async function getProductionScheduleOrderContext(
+    db,
+    orderReference,
+    orderItemId
+) {
+    const order =
+        await db.prepare(`
+            SELECT
+                id,
+                order_reference,
+                customer_id,
+                customer_name,
+                brand_name,
+                status,
+                priority,
+                production_deadline,
+                expected_delivery_date
+            FROM orders
+            WHERE order_reference = ?
+            LIMIT 1
+        `)
+            .bind(orderReference)
+            .first();
 
     if (!order) {
-        return jsonResponse(
-            {
-                success: false,
+        return {
+            error: {
+                status: 404,
                 message: "Order not found."
-            },
-            404,
-            request,
-            env
-        );
+            }
+        };
     }
 
-
-    const orderItemId =
-        Number(body.orderItemId);
+    const numericOrderItemId =
+        Number(orderItemId);
 
     if (
-        !Number.isInteger(orderItemId) ||
-        orderItemId <= 0
+        !Number.isInteger(
+            numericOrderItemId
+        ) ||
+        numericOrderItemId <= 0
     ) {
-        return jsonResponse(
-            {
-                success: false,
+        return {
+            error: {
+                status: 422,
                 message:
                     "A valid order item is required."
-            },
-            422,
-            request,
-            env
-        );
+            }
+        };
     }
 
-
     const orderItem =
-        await env.DB.prepare(`
+        await db.prepare(`
             SELECT
                 id,
                 order_id,
                 item_order,
                 description,
                 details,
-                quantity
+                quantity,
+                unit_price,
+                line_total,
+                production_notes
             FROM order_items
             WHERE id = ?
               AND order_id = ?
             LIMIT 1
         `)
             .bind(
-                orderItemId,
+                numericOrderItemId,
                 order.id
             )
             .first();
 
     if (!orderItem) {
-        return jsonResponse(
-            {
-                success: false,
+        return {
+            error: {
+                status: 422,
                 message:
                     "The selected order item does not belong to this order."
-            },
-            422,
-            request,
-            env
-        );
+            }
+        };
     }
 
-
-    const requestedStartDate =
-        normaliseScheduleDate(
-            body.startDate
-        );
-
-    if (
-        body.startDate &&
-        !requestedStartDate
-    ) {
-        return jsonResponse(
-            {
-                success: false,
-                message:
-                    "Start date must use YYYY-MM-DD."
-            },
-            422,
-            request,
-            env
-        );
-    }
+    return {
+        order,
+        orderItem
+    };
+}
 
 
-    const startDate =
-        requestedStartDate ||
-        new Date()
-            .toISOString()
-            .slice(0, 10);
-
-
-    /*
-     * Prevent accidental duplicate generation
-     * for the same order item.
-     */
-    const existingTasks =
-        await env.DB.prepare(`
-            SELECT COUNT(*) AS total
-            FROM production_schedule_tasks
-            WHERE order_id = ?
-              AND order_item_id = ?
-        `)
-            .bind(
-                order.id,
-                orderItem.id
-            )
-            .first();
-
-    if (
-        Number(existingTasks?.total || 0) > 0 &&
-        body.force !== true
-    ) {
-        return jsonResponse(
-            {
-                success: false,
-                message:
-                    "This order item already has production tasks. Use force=true only if you intentionally want to generate another schedule."
-            },
-            409,
-            request,
-            env
-        );
-    }
-
-
+async function findProductionTemplateMatch(
+    db,
+    itemDescription
+) {
     const description =
-        text(
-            orderItem.description
-        )
+        text(itemDescription)
             .toLowerCase();
 
-
-    /*
-     * Find the best active template rule.
-     *
-     * Exact matches outrank contains matches.
-     * Higher priority wins next.
-     */
-    const templateMatch =
-        await env.DB.prepare(`
-            SELECT
-                pt.id,
-                pt.template_key,
-                pt.name,
-                pt.description,
-                pt.product_category,
-
-                rule.id AS rule_id,
-                rule.match_type,
-                rule.match_value,
-                rule.priority
-
-            FROM production_task_templates pt
-
-            INNER JOIN production_template_item_rules rule
-                ON rule.template_id = pt.id
-
-            WHERE pt.is_active = 1
-              AND rule.is_active = 1
-
-              AND (
-                    (
-                        rule.match_type = 'exact'
-                        AND lower(?) = lower(rule.match_value)
-                    )
-
-                    OR
-
-                    (
-                        rule.match_type = 'contains'
-                        AND instr(
-                            lower(?),
-                            lower(rule.match_value)
-                        ) > 0
-                    )
-              )
-
-            ORDER BY
-                CASE rule.match_type
-                    WHEN 'exact' THEN 1
-                    ELSE 2
-                END ASC,
-
-                rule.priority DESC,
-
-                pt.sort_order ASC,
-
-                rule.id ASC
-
-            LIMIT 1
-        `)
-            .bind(
-                description,
-                description
-            )
-            .first();
-
-
-    if (!templateMatch) {
-        return jsonResponse(
-            {
-                success: false,
-                message:
-                    `No active production template matches "${orderItem.description}".`
-            },
-            404,
-            request,
-            env
-        );
+    if (!description) {
+        return null;
     }
 
+    return await db.prepare(`
+        SELECT
+            pt.id,
+            pt.template_key,
+            pt.name,
+            pt.description,
+            pt.product_category,
+            pt.sort_order,
 
-    const stepsResult =
-        await env.DB.prepare(`
+            rule.id AS rule_id,
+            rule.match_type,
+            rule.match_value,
+            rule.priority AS rule_priority
+
+        FROM production_task_templates pt
+
+        INNER JOIN production_template_item_rules rule
+            ON rule.template_id = pt.id
+
+        WHERE pt.is_active = 1
+          AND rule.is_active = 1
+          AND (
+                (
+                    rule.match_type = 'exact'
+                    AND lower(?) =
+                        lower(rule.match_value)
+                )
+                OR
+                (
+                    rule.match_type = 'contains'
+                    AND instr(
+                        lower(?),
+                        lower(rule.match_value)
+                    ) > 0
+                )
+          )
+
+        ORDER BY
+            CASE
+                WHEN rule.match_type = 'exact'
+                    THEN 1
+                ELSE 2
+            END ASC,
+            rule.priority DESC,
+            pt.sort_order ASC,
+            rule.id ASC
+
+        LIMIT 1
+    `)
+        .bind(
+            description,
+            description
+        )
+        .first();
+}
+
+
+async function getProductionTemplateSteps(
+    db,
+    templateId
+) {
+    const result =
+        await db.prepare(`
             SELECT
                 id,
                 template_id,
@@ -9961,7 +9955,8 @@ async function handleAdminGenerateProductionSchedule(
                 default_priority,
                 default_assigned_to,
                 dependency_step_id,
-                sort_order
+                sort_order,
+                is_active
             FROM production_task_template_steps
             WHERE template_id = ?
               AND is_active = 1
@@ -9969,22 +9964,570 @@ async function handleAdminGenerateProductionSchedule(
                 sort_order ASC,
                 id ASC
         `)
-            .bind(
-                templateMatch.id
-            )
+            .bind(templateId)
             .all();
 
+    return result.results || [];
+}
+
+
+async function getExistingOrderItemScheduleCount(
+    db,
+    orderId,
+    orderItemId
+) {
+    const row =
+        await db.prepare(`
+            SELECT COUNT(*) AS total
+            FROM production_schedule_tasks
+            WHERE order_id = ?
+              AND order_item_id = ?
+        `)
+            .bind(
+                orderId,
+                orderItemId
+            )
+            .first();
+
+    return Number(
+        row?.total || 0
+    );
+}
+
+
+function buildProductionSchedulePlan(
+    steps,
+    startDate
+) {
+    if (!steps.length) {
+        return [];
+    }
+
+    /* Validate the supplied start date before planning. */
+    addProductionScheduleDays(
+        startDate,
+        0
+    );
+
+    const stepById =
+        new Map(
+            steps.map(
+                step => [
+                    Number(step.id),
+                    step
+                ]
+            )
+        );
+
+    for (const step of steps) {
+        if (
+            step.dependency_step_id &&
+            !stepById.has(
+                Number(
+                    step.dependency_step_id
+                )
+            )
+        ) {
+            throw new Error(
+                `Template step "${step.task_name}" references an invalid dependency.`
+            );
+        }
+
+        if (
+            Number(
+                step.dependency_step_id
+            ) === Number(step.id)
+        ) {
+            throw new Error(
+                `Template step "${step.task_name}" cannot depend on itself.`
+            );
+        }
+    }
+
+    const planByStepId =
+        new Map();
+
+    const unresolved =
+        new Map(
+            steps.map(
+                step => [
+                    Number(step.id),
+                    step
+                ]
+            )
+        );
+
+    while (unresolved.size > 0) {
+        let resolvedThisPass = 0;
+
+        for (
+            const [stepId, step]
+            of unresolved
+        ) {
+            const dependencyStepId =
+                step.dependency_step_id
+                    ? Number(
+                        step.dependency_step_id
+                    )
+                    : null;
+
+            if (
+                dependencyStepId &&
+                !planByStepId.has(
+                    dependencyStepId
+                )
+            ) {
+                continue;
+            }
+
+            const duration =
+                Math.max(
+                    1,
+                    Math.round(
+                        Number(
+                            step.default_duration_days ||
+                            1
+                        )
+                    )
+                );
+
+            let plannedStartDate =
+                startDate;
+
+            if (dependencyStepId) {
+                const dependencyPlan =
+                    planByStepId.get(
+                        dependencyStepId
+                    );
+
+                plannedStartDate =
+                    addProductionScheduleDays(
+                        dependencyPlan
+                            .plannedEndDate,
+                        1
+                    );
+            }
+
+            const plannedEndDate =
+                addProductionScheduleDays(
+                    plannedStartDate,
+                    duration - 1
+                );
+
+            planByStepId.set(
+                stepId,
+                {
+                    templateStepId:
+                        stepId,
+                    dependencyTemplateStepId:
+                        dependencyStepId,
+                    stepKey:
+                        step.step_key,
+                    taskName:
+                        step.task_name,
+                    taskType:
+                        step.task_type || null,
+                    description:
+                        step.description || null,
+                    durationDays:
+                        duration,
+                    priority:
+                        step.default_priority ||
+                        "normal",
+                    assignedTo:
+                        step.default_assigned_to ||
+                        null,
+                    sortOrder:
+                        Number(
+                            step.sort_order || 0
+                        ),
+                    plannedStartDate,
+                    plannedEndDate
+                }
+            );
+
+            unresolved.delete(stepId);
+            resolvedThisPass += 1;
+        }
+
+        if (resolvedThisPass === 0) {
+            const problematicSteps =
+                Array.from(
+                    unresolved.values()
+                )
+                    .map(
+                        step =>
+                            step.task_name
+                    )
+                    .join(", ");
+
+            throw new Error(
+                `The production template contains a circular or unresolved dependency: ${problematicSteps}.`
+            );
+        }
+    }
+
+    return steps
+        .map(
+            step =>
+                planByStepId.get(
+                    Number(step.id)
+                )
+        )
+        .filter(Boolean);
+}
+
+
+async function prepareProductionSchedulePlan(
+    env,
+    {
+        orderReference,
+        orderItemId,
+        startDate
+    }
+) {
+    const context =
+        await getProductionScheduleOrderContext(
+            env.DB,
+            orderReference,
+            orderItemId
+        );
+
+    if (context.error) {
+        return {
+            error: context.error
+        };
+    }
+
+    const {
+        order,
+        orderItem
+    } = context;
+
+    const normalisedStartDate =
+        normaliseScheduleDate(
+            startDate
+        );
+
+    if (
+        startDate &&
+        !normalisedStartDate
+    ) {
+        return {
+            error: {
+                status: 422,
+                message:
+                    "Start date must use YYYY-MM-DD."
+            }
+        };
+    }
+
+    const finalStartDate =
+        normalisedStartDate ||
+        new Date()
+            .toISOString()
+            .slice(0, 10);
+
+    /* Catch syntactically valid but impossible dates. */
+    try {
+        addProductionScheduleDays(
+            finalStartDate,
+            0
+        );
+    } catch (_) {
+        return {
+            error: {
+                status: 422,
+                message:
+                    "Start date must be a valid calendar date using YYYY-MM-DD."
+            }
+        };
+    }
+
+    const template =
+        await findProductionTemplateMatch(
+            env.DB,
+            orderItem.description
+        );
+
+    if (!template) {
+        return {
+            error: {
+                status: 404,
+                message:
+                    `No active production template matches "${orderItem.description}".`
+            }
+        };
+    }
 
     const steps =
-        stepsResult.results || [];
-
+        await getProductionTemplateSteps(
+            env.DB,
+            template.id
+        );
 
     if (!steps.length) {
+        return {
+            error: {
+                status: 409,
+                message:
+                    "The matched production template has no active steps."
+            }
+        };
+    }
+
+    let tasks;
+
+    try {
+        tasks =
+            buildProductionSchedulePlan(
+                steps,
+                finalStartDate
+            );
+    } catch (error) {
+        return {
+            error: {
+                status: 409,
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : "The production schedule could not be calculated."
+            }
+        };
+    }
+
+    const existingTaskCount =
+        await getExistingOrderItemScheduleCount(
+            env.DB,
+            order.id,
+            orderItem.id
+        );
+
+    return {
+        order,
+        orderItem,
+        template,
+        steps,
+        tasks,
+        startDate: finalStartDate,
+        existingTaskCount,
+        alreadyScheduled:
+            existingTaskCount > 0
+    };
+}
+
+
+/* ==========================================================
+   ADMIN — PRODUCTION SCHEDULE PREVIEW
+========================================================== */
+
+async function handleAdminProductionSchedulePreview(
+    request,
+    env,
+    orderReference
+) {
+    const body =
+        await request
+            .json()
+            .catch(() => ({}));
+
+    const prepared =
+        await prepareProductionSchedulePlan(
+            env,
+            {
+                orderReference,
+                orderItemId:
+                    body.orderItemId,
+                startDate:
+                    body.startDate
+            }
+        );
+
+    if (prepared.error) {
         return jsonResponse(
             {
                 success: false,
                 message:
-                    "The matched production template has no active steps."
+                    prepared.error.message
+            },
+            prepared.error.status,
+            request,
+            env
+        );
+    }
+
+    const {
+        order,
+        orderItem,
+        template,
+        tasks,
+        startDate,
+        alreadyScheduled,
+        existingTaskCount
+    } = prepared;
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                alreadyScheduled
+                    ? "This order item already has a production schedule."
+                    : "Production schedule preview ready.",
+            alreadyScheduled,
+            existingTaskCount,
+            order: {
+                id: order.id,
+                orderReference:
+                    order.order_reference,
+                customerName:
+                    order.customer_name,
+                brandName:
+                    order.brand_name,
+                status:
+                    order.status,
+                priority:
+                    order.priority,
+                productionDeadline:
+                    order.production_deadline,
+                expectedDeliveryDate:
+                    order.expected_delivery_date
+            },
+            orderItem: {
+                id: orderItem.id,
+                itemOrder:
+                    orderItem.item_order,
+                description:
+                    orderItem.description,
+                details:
+                    orderItem.details,
+                quantity:
+                    Number(
+                        orderItem.quantity || 0
+                    )
+            },
+            template: {
+                id: template.id,
+                templateKey:
+                    template.template_key,
+                name:
+                    template.name,
+                description:
+                    template.description,
+                productCategory:
+                    template.product_category,
+                matchedBy: {
+                    ruleId:
+                        template.rule_id,
+                    type:
+                        template.match_type,
+                    value:
+                        template.match_value,
+                    priority:
+                        Number(
+                            template.rule_priority || 0
+                        )
+                }
+            },
+            startDate,
+            taskCount:
+                tasks.length,
+            tasks:
+                tasks.map(
+                    task => ({
+                        templateStepId:
+                            task.templateStepId,
+                        dependencyTemplateStepId:
+                            task.dependencyTemplateStepId,
+                        taskKey:
+                            task.stepKey,
+                        taskName:
+                            task.taskName,
+                        taskType:
+                            task.taskType,
+                        description:
+                            task.description,
+                        durationDays:
+                            task.durationDays,
+                        priority:
+                            task.priority,
+                        assignedTo:
+                            task.assignedTo,
+                        sortOrder:
+                            task.sortOrder,
+                        plannedStartDate:
+                            task.plannedStartDate,
+                        plannedEndDate:
+                            task.plannedEndDate
+                    })
+                )
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+/* ==========================================================
+   ADMIN — GENERATE PRODUCTION SCHEDULE
+========================================================== */
+
+async function handleAdminGenerateProductionSchedule(
+    request,
+    env,
+    orderReference
+) {
+    const body =
+        await request
+            .json()
+            .catch(() => ({}));
+
+    const prepared =
+        await prepareProductionSchedulePlan(
+            env,
+            {
+                orderReference,
+                orderItemId:
+                    body.orderItemId,
+                startDate:
+                    body.startDate
+            }
+        );
+
+    if (prepared.error) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    prepared.error.message
+            },
+            prepared.error.status,
+            request,
+            env
+        );
+    }
+
+    const {
+        order,
+        orderItem,
+        template,
+        tasks,
+        startDate,
+        alreadyScheduled,
+        existingTaskCount
+    } = prepared;
+
+    if (
+        alreadyScheduled &&
+        body.force !== true
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "This order item already has production tasks.",
+                alreadyScheduled: true,
+                existingTaskCount
             },
             409,
             request,
@@ -9992,145 +10535,17 @@ async function handleAdminGenerateProductionSchedule(
         );
     }
 
-
-    /*
-     * Date helper.
-     */
-    function addScheduleDays(
-        dateString,
-        amount
-    ) {
-        const [
-            year,
-            month,
-            day
-        ] =
-            dateString
-                .split("-")
-                .map(Number);
-
-        const date =
-            new Date(
-                Date.UTC(
-                    year,
-                    month - 1,
-                    day
-                )
-            );
-
-        date.setUTCDate(
-            date.getUTCDate() +
-            amount
-        );
-
-        return date
-            .toISOString()
-            .slice(0, 10);
-    }
-
-
-    /*
-     * Build planned dates first.
-     *
-     * Current behaviour:
-     * - first independent step starts on startDate
-     * - dependent steps start the day after their dependency ends
-     * - duration is inclusive
-     */
-    const plannedByStepId =
-        new Map();
-
-
-    for (const step of steps) {
-        const duration =
-            Math.max(
-                1,
-                Number(
-                    step.default_duration_days ||
-                    1
-                )
-            );
-
-        let plannedStart =
-            startDate;
-
-
-        if (step.dependency_step_id) {
-            const dependencyPlan =
-                plannedByStepId.get(
-                    Number(
-                        step.dependency_step_id
-                    )
-                );
-
-            if (!dependencyPlan) {
-                return jsonResponse(
-                    {
-                        success: false,
-                        message:
-                            `Template step "${step.task_name}" depends on a step that has not been scheduled. Check template step ordering.`
-                    },
-                    409,
-                    request,
-                    env
-                );
-            }
-
-
-            plannedStart =
-                addScheduleDays(
-                    dependencyPlan.plannedEndDate,
-                    1
-                );
-        }
-
-
-        const plannedEnd =
-            addScheduleDays(
-                plannedStart,
-                duration - 1
-            );
-
-
-        plannedByStepId.set(
-            Number(step.id),
-            {
-                plannedStartDate:
-                    plannedStart,
-
-                plannedEndDate:
-                    plannedEnd
-            }
-        );
-    }
-
-
     const now =
-        new Date().toISOString();
+        new Date()
+            .toISOString();
 
-
-    /*
-     * First pass:
-     * insert every task WITHOUT dependencies.
-     *
-     * We need the new production task IDs
-     * before we can translate dependency_step_id
-     * into dependency_task_id.
-     */
-    const generatedTasks =
-        [];
-
-    const taskIdByStepId =
+    const taskIdByTemplateStepId =
         new Map();
 
+    const generatedTasks = [];
 
-    for (const step of steps) {
-        const plan =
-            plannedByStepId.get(
-                Number(step.id)
-            );
-
-
+    /* First pass: create tasks without dependencies. */
+    for (const task of tasks) {
         const result =
             await env.DB.prepare(`
                 INSERT INTO production_schedule_tasks (
@@ -10161,120 +10576,102 @@ async function handleAdminGenerateProductionSchedule(
                 .bind(
                     order.id,
                     orderItem.id,
-
-                    step.step_key,
-                    step.task_name,
-                    step.task_type || null,
-
+                    task.stepKey || null,
+                    task.taskName,
+                    task.taskType || null,
                     "not_started",
-
-                    step.default_priority ||
+                    task.priority ||
                         "normal",
-
-                    step.default_assigned_to ||
-                        null,
-
-                    plan.plannedStartDate,
-                    plan.plannedEndDate,
-
+                    task.assignedTo || null,
+                    task.plannedStartDate,
+                    task.plannedEndDate,
                     null,
                     null,
-
                     0,
-
                     null,
-
-                    Number(
-                        step.sort_order ||
-                        0
-                    ),
-
-                    step.description ||
-                        null,
-
+                    task.sortOrder,
+                    task.description || null,
                     now,
                     now
                 )
                 .run();
 
-
         const taskId =
-            result.meta?.last_row_id;
-
+            Number(
+                result.meta
+                    ?.last_row_id
+            );
 
         if (!taskId) {
             throw new Error(
-                `Could not create production task "${step.task_name}".`
+                `Could not create production task "${task.taskName}".`
             );
         }
 
-
-        taskIdByStepId.set(
-            Number(step.id),
-            Number(taskId)
+        taskIdByTemplateStepId.set(
+            Number(
+                task.templateStepId
+            ),
+            taskId
         );
 
-
         generatedTasks.push({
-            id:
-                Number(taskId),
-
+            id: taskId,
             templateStepId:
-                Number(step.id),
-
+                task.templateStepId,
             taskKey:
-                step.step_key,
-
+                task.stepKey,
             taskName:
-                step.task_name,
-
+                task.taskName,
+            taskType:
+                task.taskType,
+            priority:
+                task.priority,
+            assignedTo:
+                task.assignedTo,
             plannedStartDate:
-                plan.plannedStartDate,
-
+                task.plannedStartDate,
             plannedEndDate:
-                plan.plannedEndDate,
-
+                task.plannedEndDate,
+            durationDays:
+                task.durationDays,
             dependencyTaskId:
-                null
+                null,
+            sortOrder:
+                task.sortOrder
         });
     }
 
-
-    /*
-     * Second pass:
-     * connect generated tasks.
-     */
-    for (const step of steps) {
+    /* Second pass: translate template dependencies. */
+    for (const task of tasks) {
         if (
-            !step.dependency_step_id
+            !task.dependencyTemplateStepId
         ) {
             continue;
         }
 
-
-        const taskId =
-            taskIdByStepId.get(
-                Number(step.id)
-            );
-
-
-        const dependencyTaskId =
-            taskIdByStepId.get(
+        const generatedTaskId =
+            taskIdByTemplateStepId.get(
                 Number(
-                    step.dependency_step_id
+                    task.templateStepId
                 )
             );
 
+        const generatedDependencyId =
+            taskIdByTemplateStepId.get(
+                Number(
+                    task.dependencyTemplateStepId
+                )
+            );
 
         if (
-            !taskId ||
-            !dependencyTaskId
+            !generatedTaskId ||
+            !generatedDependencyId
         ) {
             throw new Error(
-                "Generated task dependencies could not be resolved."
+                `Could not resolve the dependency for "${task.taskName}".`
             );
         }
-
 
         await env.DB.prepare(`
             UPDATE production_schedule_tasks
@@ -10285,114 +10682,93 @@ async function handleAdminGenerateProductionSchedule(
               AND order_id = ?
         `)
             .bind(
-                dependencyTaskId,
+                generatedDependencyId,
                 now,
-                taskId,
+                generatedTaskId,
                 order.id
             )
             .run();
 
-
         const generated =
             generatedTasks.find(
-                task =>
-                    task.id ===
-                    Number(taskId)
+                item =>
+                    Number(item.id) ===
+                    Number(
+                        generatedTaskId
+                    )
             );
-
 
         if (generated) {
             generated.dependencyTaskId =
-                Number(
-                    dependencyTaskId
-                );
+                generatedDependencyId;
         }
     }
-
 
     await recordOrderActivity(
         env.DB,
         {
             orderId:
                 order.id,
-
             activityType:
                 "production_schedule_generated",
-
             title:
                 "Production schedule generated",
-
             details:
-                `${generatedTasks.length} tasks were generated for ${orderItem.description} using the ${templateMatch.name} template.`,
-
+                `${generatedTasks.length} production tasks were generated for ${orderItem.description} using the ${template.name} template.`,
             createdAt:
                 now
         }
     );
 
-
     return jsonResponse(
         {
             success: true,
-
             message:
                 "Production schedule generated.",
-
             order: {
-                id:
-                    order.id,
-
+                id: order.id,
                 orderReference:
                     order.order_reference,
-
-                brandName:
-                    order.brand_name,
-
                 customerName:
-                    order.customer_name
+                    order.customer_name,
+                brandName:
+                    order.brand_name
             },
-
             orderItem: {
-                id:
-                    orderItem.id,
-
+                id: orderItem.id,
                 itemOrder:
                     orderItem.item_order,
-
                 description:
                     orderItem.description,
-
                 quantity:
                     Number(
-                        orderItem.quantity ||
-                        0
+                        orderItem.quantity || 0
                     )
             },
-
             template: {
-                id:
-                    templateMatch.id,
-
+                id: template.id,
                 templateKey:
-                    templateMatch.template_key,
-
+                    template.template_key,
                 name:
-                    templateMatch.name,
-
+                    template.name,
+                productCategory:
+                    template.product_category,
                 matchedBy: {
+                    ruleId:
+                        template.rule_id,
                     type:
-                        templateMatch.match_type,
-
+                        template.match_type,
                     value:
-                        templateMatch.match_value
+                        template.match_value,
+                    priority:
+                        Number(
+                            template.rule_priority || 0
+                        )
                 }
             },
-
             startDate,
-
             taskCount:
                 generatedTasks.length,
-
             tasks:
                 generatedTasks
         },
@@ -10401,6 +10777,7 @@ async function handleAdminGenerateProductionSchedule(
         env
     );
 }
+
 
 async function updateSubmissionEmailStatus(
     db,
