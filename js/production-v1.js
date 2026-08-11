@@ -15,7 +15,9 @@
 
     const state = {
         tasks: [],
-        scale: "week"
+        scale: "week",
+        timeline: null,
+        taskPanelMode: "edit",
     };
 
     const element = (id) =>
@@ -621,6 +623,14 @@
         if (!task) {
             return;
         }
+
+        state.taskPanelMode = "edit";
+
+        element("taskOrderField").hidden =
+            true;
+
+        element("deleteTaskButton").hidden =
+            false;
     
         element("taskId").value =
             task.id;
@@ -681,6 +691,129 @@
                 "false"
             );
     }
+    function openCreateTaskPanel() {
+        state.taskPanelMode = "create";
+    
+        const orders = new Map();
+    
+        state.tasks.forEach(task => {
+            if (!task.orderReference) {
+                return;
+            }
+    
+            if (!orders.has(task.orderReference)) {
+                orders.set(
+                    task.orderReference,
+                    {
+                        orderReference:
+                            task.orderReference,
+    
+                        brandName:
+                            task.brandName,
+    
+                        customerName:
+                            task.customerName
+                    }
+                );
+            }
+        });
+    
+        const orderSelect =
+            element("taskOrder");
+    
+        orderSelect.innerHTML = `
+            <option value="">
+                Select an order
+            </option>
+    
+            ${
+                Array.from(orders.values())
+                    .map(order => `
+                        <option
+                            value="${escapeHtml(
+                                order.orderReference
+                            )}"
+                        >
+                            ${escapeHtml(
+                                order.orderReference
+                            )}
+    
+                            — ${escapeHtml(
+                                order.brandName ||
+                                order.customerName ||
+                                "Customer"
+                            )}
+                        </option>
+                    `)
+                    .join("")
+            }
+        `;
+    
+        element("taskOrderField").hidden =
+            false;
+    
+        element("taskId").value =
+            "";
+    
+        element("taskOrderReference").value =
+            "";
+    
+        element("taskPanelTitle").textContent =
+            "New production task";
+    
+        element("taskPanelReference").textContent =
+            "Add work to the production schedule.";
+    
+        element("taskName").value =
+            "";
+    
+        element("taskStatus").value =
+            "not_started";
+    
+        element("taskPriority").value =
+            "normal";
+    
+        element("taskPlannedStart").value =
+            "";
+    
+        element("taskPlannedEnd").value =
+            "";
+    
+        element("taskAssignedTo").value =
+            "";
+    
+        element("taskProgress").value =
+            "0";
+    
+        element("taskProgressValue").textContent =
+            "0%";
+    
+        element("taskNotes").value =
+            "";
+    
+        element("taskFormMessage").textContent =
+            "";
+    
+        element("deleteTaskButton").hidden =
+            true;
+    
+        element("taskBackdrop").hidden =
+            false;
+    
+        element("taskPanel")
+            .classList.add("is-open");
+    
+        element("taskPanel")
+            .setAttribute(
+                "aria-hidden",
+                "false"
+            );
+    
+        window.setTimeout(
+            () => element("taskOrder").focus(),
+            50
+        );
+    }
     
     
     function closeTaskPanel() {
@@ -709,75 +842,149 @@
     async function saveTask(event) {
         event.preventDefault();
     
-        const taskId =
-            Number(
-                element("taskId").value
-            );
-    
-        const orderReference =
-            element("taskOrderReference").value;
-    
-        if (!taskId || !orderReference) {
-            return;
-        }
-    
         const message =
             element("taskFormMessage");
     
+        const taskName =
+            element("taskName")
+                .value
+                .trim();
+    
+        if (!taskName) {
+            message.textContent =
+                "Enter a task name.";
+    
+            element("taskName").focus();
+    
+            return;
+        }
+    
+        const plannedStartDate =
+            element("taskPlannedStart").value;
+    
+        const plannedEndDate =
+            element("taskPlannedEnd").value;
+    
+        if (
+            plannedStartDate &&
+            plannedEndDate &&
+            plannedEndDate < plannedStartDate
+        ) {
+            message.textContent =
+                "Planned end date cannot be before the start date.";
+    
+            element("taskPlannedEnd").focus();
+    
+            return;
+        }
+    
+        const payload = {
+            taskName,
+    
+            status:
+                element("taskStatus").value,
+    
+            priority:
+                element("taskPriority").value,
+    
+            plannedStartDate:
+                plannedStartDate || null,
+    
+            plannedEndDate:
+                plannedEndDate || null,
+    
+            assignedTo:
+                element("taskAssignedTo")
+                    .value
+                    .trim() || null,
+    
+            progress:
+                Number(
+                    element("taskProgress").value
+                ),
+    
+            notes:
+                element("taskNotes")
+                    .value
+                    .trim() || null
+        };
+    
         try {
-            message.textContent =
-                "Saving task…";
+            if (
+                state.taskPanelMode ===
+                "create"
+            ) {
+                const orderReference =
+                    element("taskOrder").value;
     
-            await api(
-                `/admin/orders/${encodeURIComponent(
-                    orderReference
-                )}/schedule/${taskId}`,
-                {
-                    method: "PATCH",
+                if (!orderReference) {
+                    message.textContent =
+                        "Select the order this task belongs to.";
     
-                    body: JSON.stringify({
-                        taskName:
-                            element("taskName")
-                                .value
-                                .trim(),
+                    element("taskOrder").focus();
     
-                        status:
-                            element("taskStatus")
-                                .value,
-    
-                        priority:
-                            element("taskPriority")
-                                .value,
-    
-                        plannedStartDate:
-                            element("taskPlannedStart")
-                                .value,
-    
-                        plannedEndDate:
-                            element("taskPlannedEnd")
-                                .value,
-    
-                        assignedTo:
-                            element("taskAssignedTo")
-                                .value
-                                .trim(),
-    
-                        progress:
-                            Number(
-                                element("taskProgress")
-                                    .value
-                            ),
-    
-                        notes:
-                            element("taskNotes")
-                                .value
-                                .trim()
-                    })
+                    return;
                 }
-            );
     
-            message.textContent =
-                "Task saved.";
+                message.textContent =
+                    "Creating task…";
+    
+                await api(
+                    `/admin/orders/${encodeURIComponent(
+                        orderReference
+                    )}/schedule`,
+                    {
+                        method: "POST",
+    
+                        body:
+                            JSON.stringify(
+                                payload
+                            )
+                    }
+                );
+    
+                message.textContent =
+                    "Task created.";
+            } else {
+                const taskId =
+                    Number(
+                        element("taskId").value
+                    );
+    
+                const orderReference =
+                    element(
+                        "taskOrderReference"
+                    ).value;
+    
+                if (
+                    !taskId ||
+                    !orderReference
+                ) {
+                    throw new Error(
+                        "Unable to identify this production task."
+                    );
+                }
+    
+                message.textContent =
+                    "Saving task…";
+    
+                await api(
+                    `/admin/orders/${encodeURIComponent(
+                        orderReference
+                    )}/schedule/${taskId}`,
+                    {
+                        method: "PATCH",
+    
+                        body:
+                            JSON.stringify(
+                                payload
+                            )
+                    }
+                );
+    
+                message.textContent =
+                    "Task saved.";
+            }
     
             await loadProductionSchedule();
     
@@ -787,8 +994,11 @@
             );
     
         } catch (error) {
+            console.error(error);
+    
             message.textContent =
-                error.message;
+                error.message ||
+                "Unable to save task.";
         }
     }
     
@@ -1000,6 +1210,12 @@
                 closeTaskPanel();
             }
         }
+    );
+
+    element("newTaskButton")
+    .addEventListener(
+        "click",
+        openCreateTaskPanel
     );
     
     element("todayButton")

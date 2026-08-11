@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
-    <link rel="stylesheet" href="/css/production-v1.css?v=7">
+    <link rel="stylesheet" href="/css/production-v1.css?v=8">
 </head>
 
 <body class="crm-app-page">
@@ -194,6 +194,13 @@
                         type="button"
                     >
                         Refresh
+                    </button>
+                    <button
+                        id="newTaskButton"
+                        class="crm-button crm-button--primary"
+                        type="button"
+                    >
+                        + New task
                     </button>
 
                 </div>
@@ -486,6 +493,21 @@
 
 
             <div class="task-form-grid">
+                <label
+                    id="taskOrderField"
+                    class="task-field task-field--wide"
+                >
+                    <span>Order</span>
+
+                    <select
+                        id="taskOrder"
+                        required
+                    >
+                        <option value="">
+                            Select an order
+                        </option>
+                    </select>
+                </label>
 
                 <label class="task-field task-field--wide">
                     <span>Task name</span>
@@ -660,7 +682,7 @@
     </div>
 
 
-    <script src="/js/production-v1.js?v=7"></script>
+    <script src="/js/production-v1.js?v=8"></script>
     <script src="/js/crm-brand.js"></script>
 
 </body>
