@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
-    <link rel="stylesheet" href="/css/production-v1.css?v=4">
+    <link rel="stylesheet" href="/css/production-v1.css?v=7">
 </head>
 
 <body class="crm-app-page">
@@ -430,10 +430,237 @@
             </section>
 
         </div>
+        <!-- ==================================================
+            TASK EDITOR DRAWER
+        =================================================== -->
+
+        <div
+        id="taskBackdrop"
+        class="task-backdrop"
+        hidden
+        ></div>
+
+        <aside
+        id="taskPanel"
+        class="task-panel"
+        aria-hidden="true"
+        aria-labelledby="taskPanelTitle"
+        >
+        <header class="task-panel__header">
+
+            <div>
+                <p class="crm-eyebrow">
+                    PRODUCTION TASK
+                </p>
+
+                <h2 id="taskPanelTitle">
+                    Edit task
+                </h2>
+
+                <p id="taskPanelReference"></p>
+            </div>
+
+            <button
+                id="closeTaskPanel"
+                class="task-panel__close"
+                type="button"
+                aria-label="Close task editor"
+            >
+                ×
+            </button>
+
+        </header>
+
+
+        <form id="taskForm">
+
+            <input
+                id="taskId"
+                type="hidden"
+            >
+
+            <input
+                id="taskOrderReference"
+                type="hidden"
+            >
+
+
+            <div class="task-form-grid">
+
+                <label class="task-field task-field--wide">
+                    <span>Task name</span>
+
+                    <input
+                        id="taskName"
+                        type="text"
+                        required
+                    >
+                </label>
+
+
+                <label class="task-field">
+                    <span>Status</span>
+
+                    <select id="taskStatus">
+                        <option value="not_started">
+                            Not started
+                        </option>
+
+                        <option value="ready">
+                            Ready
+                        </option>
+
+                        <option value="in_progress">
+                            In progress
+                        </option>
+
+                        <option value="blocked">
+                            Blocked
+                        </option>
+
+                        <option value="on_hold">
+                            On hold
+                        </option>
+
+                        <option value="completed">
+                            Completed
+                        </option>
+
+                        <option value="cancelled">
+                            Cancelled
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="task-field">
+                    <span>Priority</span>
+
+                    <select id="taskPriority">
+                        <option value="low">
+                            Low
+                        </option>
+
+                        <option value="normal">
+                            Normal
+                        </option>
+
+                        <option value="high">
+                            High
+                        </option>
+
+                        <option value="urgent">
+                            Urgent
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="task-field">
+                    <span>Planned start</span>
+
+                    <input
+                        id="taskPlannedStart"
+                        type="date"
+                    >
+                </label>
+
+
+                <label class="task-field">
+                    <span>Planned end</span>
+
+                    <input
+                        id="taskPlannedEnd"
+                        type="date"
+                    >
+                </label>
+
+
+                <label class="task-field">
+                    <span>Assigned to</span>
+
+                    <input
+                        id="taskAssignedTo"
+                        type="text"
+                        placeholder="Production Team"
+                    >
+                </label>
+
+
+                <label class="task-field">
+                    <span>Progress</span>
+
+                    <div class="task-progress-control">
+                        <input
+                            id="taskProgress"
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="5"
+                            value="0"
+                        >
+
+                        <strong id="taskProgressValue">
+                            0%
+                        </strong>
+                    </div>
+                </label>
+
+
+                <label class="task-field task-field--wide">
+                    <span>Notes</span>
+
+                    <textarea
+                        id="taskNotes"
+                        rows="5"
+                    ></textarea>
+                </label>
+
+            </div>
+
+
+            <p
+                id="taskFormMessage"
+                class="task-form-message"
+                role="status"
+            ></p>
+
+
+            <footer class="task-panel__footer">
+
+                <button
+                    id="deleteTaskButton"
+                    class="task-delete-button"
+                    type="button"
+                >
+                    Delete task
+                </button>
+
+                <div>
+                    <button
+                        id="cancelTaskButton"
+                        class="crm-button crm-button--secondary"
+                        type="button"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        class="crm-button crm-button--primary"
+                        type="submit"
+                    >
+                        Save task
+                    </button>
+                </div>
+
+            </footer>
+
+        </form>
+        </aside>
     </div>
 
 
-    <script src="/js/production-v1.js?v=6"></script>
+    <script src="/js/production-v1.js?v=7"></script>
     <script src="/js/crm-brand.js"></script>
 
 </body>

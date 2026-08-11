@@ -744,3 +744,267 @@
     font-size: 10px;
     font-weight: 600;
 }
+
+/* ==================================================
+   TASK EDITOR
+================================================== */
+
+.task-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+
+    background:
+        rgba(46, 28, 21, 0.34);
+}
+
+.task-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 90;
+
+    width: min(520px, 100vw);
+    height: 100vh;
+
+    padding: 26px;
+
+    overflow-y: auto;
+
+    background: #fffdf9;
+
+    box-shadow:
+        -18px 0 44px
+        rgba(46, 28, 21, 0.18);
+
+    transform: translateX(102%);
+
+    transition:
+        transform 220ms ease;
+}
+
+.task-panel.is-open {
+    transform: translateX(0);
+}
+
+.task-panel__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+
+    margin-bottom: 28px;
+}
+
+.task-panel__header h2 {
+    margin: 5px 0 5px;
+
+    font-family: "DM Serif Display", serif;
+    font-size: 36px;
+    font-weight: 400;
+}
+
+#taskPanelReference {
+    margin: 0;
+
+    color: var(--production-muted);
+    font-size: 12px;
+}
+
+.task-panel__close {
+    width: 42px;
+    height: 42px;
+
+    flex: none;
+
+    border: 1px solid var(--production-border);
+    border-radius: 50%;
+
+    background: transparent;
+    color: var(--production-text);
+
+    font-size: 25px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.task-form-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+.task-field {
+    display: grid;
+    gap: 7px;
+}
+
+.task-field--wide {
+    grid-column: 1 / -1;
+}
+
+.task-field > span {
+    color: var(--production-muted);
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.task-field input,
+.task-field select,
+.task-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+
+    border:
+        1px solid
+        var(--production-border);
+
+    border-radius: 8px;
+
+    background: #fff;
+    color: var(--production-text);
+
+    font: inherit;
+    font-size: 13px;
+}
+
+.task-field input,
+.task-field select {
+    min-height: 44px;
+
+    padding: 0 12px;
+}
+
+.task-field textarea {
+    padding: 12px;
+
+    resize: vertical;
+}
+
+.task-field input:focus,
+.task-field select:focus,
+.task-field textarea:focus {
+    outline: none;
+
+    border-color:
+        var(--production-accent);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(103, 54, 41, 0.08);
+}
+
+.task-progress-control {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        48px;
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.task-progress-control input {
+    padding: 0;
+}
+
+.task-progress-control strong {
+    font-size: 13px;
+
+    text-align: right;
+}
+
+.task-form-message {
+    min-height: 20px;
+
+    margin: 18px 0 0;
+
+    color: var(--production-muted);
+
+    font-size: 12px;
+}
+
+.task-panel__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    gap: 14px;
+
+    margin-top: 30px;
+    padding-top: 20px;
+
+    border-top:
+        1px solid
+        var(--production-border);
+}
+
+.task-panel__footer > div {
+    display: flex;
+    gap: 10px;
+}
+
+.task-delete-button {
+    min-height: 42px;
+
+    padding: 0 14px;
+
+    border:
+        1px solid
+        rgba(163, 58, 50, 0.25);
+
+    border-radius: 8px;
+
+    background:
+        rgba(163, 58, 50, 0.05);
+
+    color:
+        var(--production-danger);
+
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+
+@media (max-width: 620px) {
+
+    .task-panel {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .task-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .task-field--wide {
+        grid-column: auto;
+    }
+
+    .task-panel__footer {
+        align-items: stretch;
+        flex-direction: column-reverse;
+    }
+
+    .task-panel__footer > div {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .task-delete-button {
+        width: 100%;
+    }
+}

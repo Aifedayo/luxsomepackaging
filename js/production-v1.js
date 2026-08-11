@@ -617,6 +617,236 @@
             );
     }
 
+    function openTaskPanel(task) {
+        if (!task) {
+            return;
+        }
+    
+        element("taskId").value =
+            task.id;
+    
+        element("taskOrderReference").value =
+            task.orderReference;
+    
+        element("taskPanelTitle").textContent =
+            task.taskName;
+    
+        element("taskPanelReference").textContent =
+            [
+                task.orderReference,
+                task.brandName,
+                task.itemDescription
+            ]
+                .filter(Boolean)
+                .join(" · ");
+    
+        element("taskName").value =
+            task.taskName || "";
+    
+        element("taskStatus").value =
+            task.status || "not_started";
+    
+        element("taskPriority").value =
+            task.priority || "normal";
+    
+        element("taskPlannedStart").value =
+            task.plannedStartDate || "";
+    
+        element("taskPlannedEnd").value =
+            task.plannedEndDate || "";
+    
+        element("taskAssignedTo").value =
+            task.assignedTo || "";
+    
+        element("taskProgress").value =
+            Number(task.progress || 0);
+    
+        element("taskProgressValue").textContent =
+            `${Number(task.progress || 0)}%`;
+    
+        element("taskNotes").value =
+            task.notes || "";
+    
+        element("taskFormMessage").textContent =
+            "";
+    
+        element("taskBackdrop").hidden = false;
+    
+        element("taskPanel")
+            .classList.add("is-open");
+    
+        element("taskPanel")
+            .setAttribute(
+                "aria-hidden",
+                "false"
+            );
+    }
+    
+    
+    function closeTaskPanel() {
+        element("taskPanel")
+            .classList.remove("is-open");
+    
+        element("taskPanel")
+            .setAttribute(
+                "aria-hidden",
+                "true"
+            );
+    
+        element("taskBackdrop").hidden = true;
+    }
+    
+    
+    function findTask(taskId) {
+        return state.tasks.find(
+            task =>
+                Number(task.id) ===
+                Number(taskId)
+        );
+    }
+    
+    
+    async function saveTask(event) {
+        event.preventDefault();
+    
+        const taskId =
+            Number(
+                element("taskId").value
+            );
+    
+        const orderReference =
+            element("taskOrderReference").value;
+    
+        if (!taskId || !orderReference) {
+            return;
+        }
+    
+        const message =
+            element("taskFormMessage");
+    
+        try {
+            message.textContent =
+                "Saving task…";
+    
+            await api(
+                `/admin/orders/${encodeURIComponent(
+                    orderReference
+                )}/schedule/${taskId}`,
+                {
+                    method: "PATCH",
+    
+                    body: JSON.stringify({
+                        taskName:
+                            element("taskName")
+                                .value
+                                .trim(),
+    
+                        status:
+                            element("taskStatus")
+                                .value,
+    
+                        priority:
+                            element("taskPriority")
+                                .value,
+    
+                        plannedStartDate:
+                            element("taskPlannedStart")
+                                .value,
+    
+                        plannedEndDate:
+                            element("taskPlannedEnd")
+                                .value,
+    
+                        assignedTo:
+                            element("taskAssignedTo")
+                                .value
+                                .trim(),
+    
+                        progress:
+                            Number(
+                                element("taskProgress")
+                                    .value
+                            ),
+    
+                        notes:
+                            element("taskNotes")
+                                .value
+                                .trim()
+                    })
+                }
+            );
+    
+            message.textContent =
+                "Task saved.";
+    
+            await loadProductionSchedule();
+    
+            window.setTimeout(
+                closeTaskPanel,
+                250
+            );
+    
+        } catch (error) {
+            message.textContent =
+                error.message;
+        }
+    }
+    
+    
+    async function deleteTask() {
+        const taskId =
+            Number(
+                element("taskId").value
+            );
+    
+        const orderReference =
+            element("taskOrderReference").value;
+    
+        if (!taskId || !orderReference) {
+            return;
+        }
+    
+        const task =
+            findTask(taskId);
+    
+        const confirmed =
+            window.confirm(
+                `Delete "${
+                    task?.taskName ||
+                    "this production task"
+                }"?`
+            );
+    
+        if (!confirmed) {
+            return;
+        }
+    
+        const message =
+            element("taskFormMessage");
+    
+        try {
+            message.textContent =
+                "Deleting task…";
+    
+            await api(
+                `/admin/orders/${encodeURIComponent(
+                    orderReference
+                )}/schedule/${taskId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+    
+            closeTaskPanel();
+    
+            await loadProductionSchedule();
+    
+        } catch (error) {
+            message.textContent =
+                error.message;
+        }
+    }
+
     let searchTimer;
 
     element("productionSearch")
@@ -683,6 +913,94 @@
                 );
             }
         );
+    
+        element("ganttRows")
+        .addEventListener(
+            "click",
+            (event) => {
+                const bar =
+                    event.target.closest(
+                        ".gantt-bar"
+                    );
+    
+                if (!bar) {
+                    return;
+                }
+    
+                const task =
+                    findTask(
+                        bar.dataset.taskId
+                    );
+    
+                openTaskPanel(task);
+            }
+        );
+    
+    
+    element("taskProgress")
+        .addEventListener(
+            "input",
+            () => {
+                element(
+                    "taskProgressValue"
+                ).textContent =
+                    `${
+                        element(
+                            "taskProgress"
+                        ).value
+                    }%`;
+            }
+        );
+    
+    
+    element("taskForm")
+        .addEventListener(
+            "submit",
+            saveTask
+        );
+    
+    
+    element("deleteTaskButton")
+        .addEventListener(
+            "click",
+            deleteTask
+        );
+    
+    
+    element("closeTaskPanel")
+        .addEventListener(
+            "click",
+            closeTaskPanel
+        );
+    
+    
+    element("cancelTaskButton")
+        .addEventListener(
+            "click",
+            closeTaskPanel
+        );
+    
+    
+    element("taskBackdrop")
+        .addEventListener(
+            "click",
+            closeTaskPanel
+        );
+    
+    
+    document.addEventListener(
+        "keydown",
+        (event) => {
+            if (
+                event.key === "Escape" &&
+                element("taskPanel")
+                    .classList
+                    .contains("is-open")
+            ) {
+                closeTaskPanel();
+            }
+        }
+    );
     
     element("todayButton")
         .addEventListener(
