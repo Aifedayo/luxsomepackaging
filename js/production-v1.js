@@ -1160,14 +1160,60 @@
        ORDER SELECTOR
     ================================================== */
 
+    function getOrderReference(order) {
+        return (
+            order?.order_reference ||
+            order?.orderReference ||
+            ""
+        );
+    }
+
+
+    function getOrderDisplayName(order) {
+        return (
+            order?.brand_name ||
+            order?.brandName ||
+            order?.customer_name ||
+            order?.customerName ||
+            "Customer"
+        );
+    }
+
+
     function populateOrderOptions(
-        selectedReference = ""
+        selectedReference = "",
+        fallbackOrder = null
     ) {
         const select =
             element(
                 "taskOrder"
             );
 
+        const orders =
+            [...state.orders];
+
+        /*
+         * The active-order endpoint is the normal source for
+         * this selector. When editing, keep the task's linked
+         * order visible even if it is not returned by that list.
+         */
+        if (
+            selectedReference &&
+            !orders.some(
+                (order) =>
+                    getOrderReference(order) ===
+                    selectedReference
+            )
+        ) {
+            orders.unshift(
+                fallbackOrder || {
+                    order_reference:
+                        selectedReference,
+                    customer_name:
+                        "Current order"
+                }
+            );
+        }
 
         select.innerHTML = `
             <option value="">
@@ -1175,31 +1221,30 @@
             </option>
 
             ${
-                state.orders
+                orders
                     .map(
                         (order) => {
-                            const name =
-                                order.brand_name ||
-                                order.customer_name ||
-                                "Customer";
+                            const reference =
+                                getOrderReference(order);
 
+                            const name =
+                                getOrderDisplayName(order);
 
                             const selected =
-                                order.order_reference ===
+                                reference ===
                                 selectedReference
                                     ? "selected"
                                     : "";
 
-
                             return `
                                 <option
                                     value="${escapeHtml(
-                                        order.order_reference
+                                        reference
                                     )}"
                                     ${selected}
                                 >
                                     ${escapeHtml(
-                                        order.order_reference
+                                        reference
                                     )}
                                     —
                                     ${escapeHtml(
@@ -1212,6 +1257,15 @@
                     .join("")
             }
         `;
+
+        /*
+         * Setting .value after rebuilding the options protects
+         * the selected order from being lost when innerHTML is
+         * replaced.
+         */
+        select.value =
+            selectedReference ||
+            "";
     }
 
 
@@ -1431,6 +1485,11 @@
 
 
         element(
+            "taskOrder"
+        ).value = "";
+
+
+        element(
             "taskName"
         ).value = "";
 
@@ -1513,9 +1572,19 @@
             );
 
 
+        /*
+         * Show the linked order while editing, but do not let an
+         * existing task move to a different parent order.
+         */
         element(
             "taskOrderField"
         ).hidden =
+            false;
+
+
+        element(
+            "taskOrder"
+        ).disabled =
             true;
 
 
@@ -1634,6 +1703,59 @@
             "";
 
 
+        /*
+         * Build the order selector BEFORE assigning its selected
+         * value. Previously the edit flow never populated this
+         * selector, leaving it on "Select an order".
+         */
+        element(
+            "taskOrder"
+        ).innerHTML = `
+            <option value="">
+                Loading order…
+            </option>
+        `;
+
+
+        const fallbackOrder = {
+            order_reference:
+                task.orderReference,
+            brand_name:
+                task.brandName ||
+                "",
+            customer_name:
+                task.customerName ||
+                ""
+        };
+
+
+        try {
+            await loadActiveOrders();
+
+            populateOrderOptions(
+                task.orderReference,
+                fallbackOrder
+            );
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            /*
+             * Even if the active-order list fails, retain the
+             * task's known parent order in the editor.
+             */
+            state.orders =
+                [];
+
+            populateOrderOptions(
+                task.orderReference,
+                fallbackOrder
+            );
+        }
+
+
         showTaskPanel();
 
 
@@ -1641,6 +1763,7 @@
             task.orderReference,
             task.orderItemId
         );
+
 
         populateDependencyOptions(
             task.orderReference,
@@ -1677,6 +1800,12 @@
         element(
             "taskOrderField"
         ).hidden =
+            false;
+
+
+        element(
+            "taskOrder"
+        ).disabled =
             false;
 
 
