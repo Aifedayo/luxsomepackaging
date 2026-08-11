@@ -1,0 +1,35 @@
+Test ID	Area	Title	Execution	Severity	Preconditions	Steps	Expected Result
+PV1-001	API	Health endpoint	Automated	Critical	Develop API is deployed	GET /health	HTTP 200; success=true
+PV1-002	Security	Reject invalid administrator token	Automated	Critical	API reachable	GET /admin/production-templates with invalid Bearer token	HTTP 401
+PV1-003	Templates	Load template library	Automated	Critical	Template migration + seed applied	GET /admin/production-templates	HTTP 200; templates array returned
+PV1-004	Templates	Baseline template coverage	Automated	High	Seeder completed	Verify rigid box, tags, tissue, card/envelope, bag, sticker, Tier 1/2/3, Bespoke	All baseline templates active
+PV1-005	Templates	Template detail integrity	Automated	High	Baseline templates exist	GET each template detail; validate steps/rules/dependencies/durations	No missing rule/step; dependencies reference same template; durations >=1
+PV1-006	Orders	Load active orders	Automated	Critical	At least one develop order exists	GET /admin/orders?view=active&limit=100	HTTP 200
+PV1-007	Orders	Order detail retains items	Automated	High	Active order exists	GET /admin/orders/:reference	Order returned with items array
+PV1-008	Generation	Full-order schedule preview	Automated	Critical	Active order exists	POST /full-schedule-preview with startDate	HTTP 200; itemCount equals order item count
+PV1-009	Matching	Known product descriptions match correct templates	Automated	Critical	Seeded templates/rules	POST /schedule-preview for each known item	Correct template and taskCount > 0
+PV1-010	Matching	Unknown product is surfaced	Automated	Medium	Order contains unsupported description	Preview unsupported item	WARN/no-template is explicit; no server 500
+PV1-011	Validation	Unknown order rejected	Automated	High	None	Preview fake order reference	HTTP 404
+PV1-012	Validation	Foreign/unknown order item rejected	Automated	High	Active order exists	Preview item id not in order	HTTP 422
+PV1-013	Safety	Duplicate generation blocked	Automated	Critical	At least one scheduled item exists	POST generate-schedule again for already scheduled item	HTTP 409; no duplicate tasks
+PV1-014	Gantt API	Production schedule loads	Automated	Critical	Authenticated admin	GET /admin/production-schedule	HTTP 200; tasks array
+PV1-015	Task CRUD	Create temporary production task	Automated --write	Critical	Active order exists	POST /admin/orders/:ref/schedule	HTTP 201; task id returned
+PV1-016	Task CRUD	Update temporary task	Automated --write	Critical	Temporary task created	PATCH task name/status/progress/priority	HTTP 200; values persist
+PV1-017	Dependencies	Reject self dependency	Automated --write	Critical	Temporary task created	PATCH dependencyTaskId=self	HTTP 422
+PV1-018	Validation	Reject end date before start	Automated --write	High	Temporary task created	PATCH invalid planned date range	HTTP 422
+PV1-019	Task CRUD	Delete temporary task	Automated --write	Critical	Temporary task created	DELETE temporary task	HTTP 200; task removed
+PV1-UI-01	UI	Generate Schedule drawer opens	Manual	High	Production page loaded	Click Generate schedule	Drawer opens; controls visible
+PV1-UI-02	UI	Order dropdown populates	Manual	High	Active order exists	Open Generate Schedule	Active order appears with reference and brand/customer
+PV1-UI-03	UI	Order item dropdown populates	Manual	High	Order selected	Select order	Order items appear; All eligible order items available
+PV1-UI-04	UI	Tier 2 preview renders	Manual	Critical	Tier 2 order exists; template seeded	Select Tier 2 item / full order	Matched template shown; tasks previewed; no 'No template'
+PV1-UI-05	UI	Tier 3 and Bespoke preview render	Manual	Critical	Matching test orders/items exist	Select Tier 3 and Bespoke items	Correct system template shown
+PV1-UI-06	UI	Start-date change recalculates preview	Manual	High	Preview visible	Change schedule start date	All planned dates update consistently
+PV1-UI-07	UI	Already-scheduled state disables duplicate generation	Manual	Critical	Scheduled item exists	Select already scheduled item	UI shows already scheduled; Generate disabled/no duplicate
+PV1-UI-08	Gantt	Generated tasks visible after refresh	Manual	Critical	Schedule generated	Refresh Production page	Tasks persist and render in Gantt
+PV1-UI-09	Gantt	Drag task dates	Manual	High	Scheduled editable task exists	Drag task horizontally	Dates save; refresh retains position
+PV1-UI-10	Gantt	Resize task duration	Manual	High	Scheduled editable task exists	Resize left/right edge	Start/end updates and persists
+PV1-UI-11	Dependencies	Conflict warning	Manual	High	Task has dependency	Move dependent task before dependency completes	Conflict is visibly flagged
+PV1-UI-12	Dependencies	Cascade reschedule	Manual	High	Downstream chain exists	Move upstream task; preview/apply cascade	Downstream dates shift; durations preserved
+PV1-UI-13	Task editor	Linked order retained on edit	Manual	Critical	Task linked to order/item exists	Open task edit drawer	Order and order item remain selected
+PV1-UI-14	UI	Escape closes generator	Manual	Low	Generator open	Press Escape	Generator closes without page error
+PV1-UI-15	Responsive	Production page mobile layout	Manual	Medium	Browser responsive mode	Test common mobile widths	Sidebar/drawer/filters/Gantt remain usable; no critical overlap

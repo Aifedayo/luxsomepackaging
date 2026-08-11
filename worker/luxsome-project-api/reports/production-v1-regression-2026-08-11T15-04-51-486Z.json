@@ -1,0 +1,193 @@
+{
+  "apiBase": "https://api-develop.luxsomepackaging.com",
+  "writeMode": false,
+  "generatedAt": "2026-08-11T15:04:51.486Z",
+  "summary": {
+    "PASS": 15,
+    "FAIL": 1,
+    "WARN": 1,
+    "SKIP": 1
+  },
+  "results": [
+    {
+      "id": "PV1-001",
+      "area": "API",
+      "title": "Health endpoint",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "HTTP 200 and success=true",
+      "actual": "HTTP 200, {\"success\":true,\"service\":\"Luxsome Project API\",\"status\":\"running\"}",
+      "notes": ""
+    },
+    {
+      "id": "PV1-002",
+      "area": "Security",
+      "title": "Invalid admin token rejected",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "HTTP 401",
+      "actual": "HTTP 401",
+      "notes": ""
+    },
+    {
+      "id": "PV1-003",
+      "area": "Templates",
+      "title": "Template list loads",
+      "status": "FAIL",
+      "severity": "Critical",
+      "expected": "Templates endpoint succeeds",
+      "actual": "fetch failed",
+      "notes": ""
+    },
+    {
+      "id": "PV1-020",
+      "area": "Orders",
+      "title": "Active orders load",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "HTTP 200",
+      "actual": "HTTP 200, test orders=3",
+      "notes": ""
+    },
+    {
+      "id": "PV1-O-ORD-2026-0001",
+      "area": "Orders",
+      "title": "ORD-2026-0001 detail and items load",
+      "status": "PASS",
+      "severity": "High",
+      "expected": "Order detail with items array",
+      "actual": "HTTP 200, items=1",
+      "notes": ""
+    },
+    {
+      "id": "PV1-FP-ORD-2026-0001",
+      "area": "Generation",
+      "title": "ORD-2026-0001 full-order preview",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "HTTP 200 and itemCount=1",
+      "actual": "HTTP 200, itemCount=1",
+      "notes": ""
+    },
+    {
+      "id": "PV1-M-ORD-2026-0001-1",
+      "area": "Matching",
+      "title": "ssdfgh has no known baseline mapping",
+      "status": "WARN",
+      "severity": "Medium",
+      "expected": "Review whether this product needs a v1 template",
+      "actual": "No active production template matches \"ssdfgh\".",
+      "notes": ""
+    },
+    {
+      "id": "PV1-O-ORD-2026-0003",
+      "area": "Orders",
+      "title": "ORD-2026-0003 detail and items load",
+      "status": "PASS",
+      "severity": "High",
+      "expected": "Order detail with items array",
+      "actual": "HTTP 200, items=1",
+      "notes": ""
+    },
+    {
+      "id": "PV1-FP-ORD-2026-0003",
+      "area": "Generation",
+      "title": "ORD-2026-0003 full-order preview",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "HTTP 200 and itemCount=1",
+      "actual": "HTTP 200, itemCount=1",
+      "notes": ""
+    },
+    {
+      "id": "PV1-M-ORD-2026-0003-3",
+      "area": "Matching",
+      "title": "Tier 2 Packaging System matches expected template",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "/Tier 2 Packaging System/i and taskCount>0",
+      "actual": "HTTP 200, template=Tier 2 Packaging System, tasks=8",
+      "notes": ""
+    },
+    {
+      "id": "PV1-O-ORD-2026-0002",
+      "area": "Orders",
+      "title": "ORD-2026-0002 detail and items load",
+      "status": "PASS",
+      "severity": "High",
+      "expected": "Order detail with items array",
+      "actual": "HTTP 200, items=1",
+      "notes": ""
+    },
+    {
+      "id": "PV1-FP-ORD-2026-0002",
+      "area": "Generation",
+      "title": "ORD-2026-0002 full-order preview",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "HTTP 200 and itemCount=1",
+      "actual": "HTTP 200, itemCount=1",
+      "notes": ""
+    },
+    {
+      "id": "PV1-M-ORD-2026-0002-2",
+      "area": "Matching",
+      "title": "Magnetic Flap Rigid Box matches expected template",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "/Rigid Box Production/i and taskCount>0",
+      "actual": "HTTP 200, template=Rigid Box Production, tasks=8",
+      "notes": ""
+    },
+    {
+      "id": "PV1-040",
+      "area": "Validation",
+      "title": "Unknown order rejected",
+      "status": "PASS",
+      "severity": "High",
+      "expected": "HTTP 404",
+      "actual": "HTTP 404",
+      "notes": ""
+    },
+    {
+      "id": "PV1-041",
+      "area": "Validation",
+      "title": "Foreign/unknown order item rejected",
+      "status": "PASS",
+      "severity": "High",
+      "expected": "HTTP 422",
+      "actual": "HTTP 422",
+      "notes": ""
+    },
+    {
+      "id": "PV1-050",
+      "area": "Safety",
+      "title": "Duplicate generated schedule is blocked",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "HTTP 409 and no duplicate tasks",
+      "actual": "HTTP 409: This order item already has production tasks.",
+      "notes": ""
+    },
+    {
+      "id": "PV1-060",
+      "area": "Gantt API",
+      "title": "Production schedule list loads",
+      "status": "PASS",
+      "severity": "Critical",
+      "expected": "HTTP 200 and tasks array",
+      "actual": "HTTP 200, tasks=21",
+      "notes": ""
+    },
+    {
+      "id": "PV1-070",
+      "area": "Task CRUD",
+      "title": "Temporary task CRUD suite",
+      "status": "SKIP",
+      "severity": "Medium",
+      "expected": "Run with --write to enable",
+      "actual": "Safe mode",
+      "notes": ""
+    }
+  ]
+}

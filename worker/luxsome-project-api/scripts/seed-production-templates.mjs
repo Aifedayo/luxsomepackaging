@@ -71,8 +71,14 @@ const templates = [
 function q(v) { return v == null ? 'NULL' : `'${String(v).replaceAll("'", "''")}'`; }
 
 function buildSql() {
+    /*
+     * Cloudflare D1 does not allow explicit transaction-control SQL in
+     * SQL executed through Wrangler. Each statement is submitted
+     * safely by D1, so this seed intentionally avoids explicit
+     * transaction-control statements.
+     */
   const now = new Date().toISOString();
-  const s = ['PRAGMA foreign_keys = ON;','BEGIN TRANSACTION;'];
+  const s = ['PRAGMA foreign_keys = ON;'];
   for (const t of templates) {
     s.push(`INSERT OR IGNORE INTO production_task_templates (template_key,name,description,product_category,is_active,sort_order,created_at,updated_at) VALUES (${q(t.key)},${q(t.name)},${q(`Seeded Luxsome workflow for ${t.name}.`)},${q(t.category)},1,${t.sortOrder},${q(now)},${q(now)});`);
     s.push(`UPDATE production_task_templates SET name=${q(t.name)}, description=${q(`Seeded Luxsome workflow for ${t.name}.`)}, product_category=${q(t.category)}, sort_order=${t.sortOrder}, updated_at=${q(now)} WHERE template_key=${q(t.key)};`);
@@ -89,7 +95,6 @@ function buildSql() {
       s.push(`UPDATE production_template_item_rules SET priority=${priority},is_active=1,updated_at=${q(now)} WHERE template_id=(SELECT id FROM production_task_templates WHERE template_key=${q(t.key)}) AND lower(match_type)=lower(${q(type)}) AND lower(match_value)=lower(${q(value)});`);
     }
   }
-  s.push('COMMIT;');
   s.push(`SELECT template_key,name,is_active,(SELECT COUNT(*) FROM production_task_template_steps s WHERE s.template_id=t.id AND s.is_active=1) AS active_step_count,(SELECT COUNT(*) FROM production_template_item_rules r WHERE r.template_id=t.id AND r.is_active=1) AS active_rule_count FROM production_task_templates t WHERE template_key IN (${templates.map(t=>q(t.key)).join(',')}) ORDER BY sort_order,name;`);
   return s.join('\n\n') + '\n';
 }
