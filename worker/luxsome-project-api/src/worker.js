@@ -384,6 +384,92 @@ async function handleAdminRequest(request, env, url) {
             );
         }
 
+        const productionTemplateStepCreateMatch = url.pathname.match(
+            /^\/admin\/production-templates\/(\d+)\/steps$/
+        );
+
+        if (
+            productionTemplateStepCreateMatch &&
+            request.method === "POST"
+        ) {
+            return await handleAdminProductionTemplateStepCreate(
+                request,
+                env,
+                Number(productionTemplateStepCreateMatch[1])
+            );
+        }
+
+        const productionTemplateStepMatch = url.pathname.match(
+            /^\/admin\/production-templates\/(\d+)\/steps\/(\d+)$/
+        );
+
+        if (
+            productionTemplateStepMatch &&
+            request.method === "PATCH"
+        ) {
+            return await handleAdminProductionTemplateStepUpdate(
+                request,
+                env,
+                Number(productionTemplateStepMatch[1]),
+                Number(productionTemplateStepMatch[2])
+            );
+        }
+
+        if (
+            productionTemplateStepMatch &&
+            request.method === "DELETE"
+        ) {
+            return await handleAdminProductionTemplateStepDelete(
+                request,
+                env,
+                Number(productionTemplateStepMatch[1]),
+                Number(productionTemplateStepMatch[2])
+            );
+        }
+
+        const productionTemplateRuleCreateMatch = url.pathname.match(
+            /^\/admin\/production-templates\/(\d+)\/rules$/
+        );
+
+        if (
+            productionTemplateRuleCreateMatch &&
+            request.method === "POST"
+        ) {
+            return await handleAdminProductionTemplateRuleCreate(
+                request,
+                env,
+                Number(productionTemplateRuleCreateMatch[1])
+            );
+        }
+
+        const productionTemplateRuleMatch = url.pathname.match(
+            /^\/admin\/production-templates\/(\d+)\/rules\/(\d+)$/
+        );
+
+        if (
+            productionTemplateRuleMatch &&
+            request.method === "PATCH"
+        ) {
+            return await handleAdminProductionTemplateRuleUpdate(
+                request,
+                env,
+                Number(productionTemplateRuleMatch[1]),
+                Number(productionTemplateRuleMatch[2])
+            );
+        }
+
+        if (
+            productionTemplateRuleMatch &&
+            request.method === "DELETE"
+        ) {
+            return await handleAdminProductionTemplateRuleDelete(
+                request,
+                env,
+                Number(productionTemplateRuleMatch[1]),
+                Number(productionTemplateRuleMatch[2])
+            );
+        }
+
         const productionTemplateMatch = url.pathname.match(
             /^\/admin\/production-templates\/(\d+)$/
         );
@@ -1020,6 +1106,802 @@ async function handleAdminProductionTemplateDelete(
         {
             success: true,
             message: "Production template archived."
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+
+async function getProductionTemplateOrNull(db, templateId) {
+    return await db.prepare(`
+        SELECT *
+        FROM production_task_templates
+        WHERE id = ?
+        LIMIT 1
+    `).bind(templateId).first();
+}
+
+
+async function handleAdminProductionTemplateStepCreate(
+    request,
+    env,
+    templateId
+) {
+    const template = await getProductionTemplateOrNull(
+        env.DB,
+        templateId
+    );
+
+    if (!template) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const stepKey = text(body.stepKey);
+    const taskName = text(body.taskName);
+
+    if (!stepKey) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Step key is required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (!taskName) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Task name is required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const existing = await env.DB.prepare(`
+        SELECT id
+        FROM production_task_template_steps
+        WHERE template_id = ?
+          AND step_key = ?
+        LIMIT 1
+    `).bind(
+        templateId,
+        stepKey
+    ).first();
+
+    if (existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "A step with this key already exists in the template."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    const allowedPriorities = new Set([
+        "low",
+        "normal",
+        "high",
+        "urgent"
+    ]);
+
+    const defaultPriority = text(body.defaultPriority) || "normal";
+
+    if (!allowedPriorities.has(defaultPriority)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Please select a valid default priority."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const duration = Number(body.defaultDurationDays ?? 1);
+
+    if (!Number.isInteger(duration) || duration < 1) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Default duration must be a whole number of at least 1 day."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const dependencyStepId = body.dependencyStepId
+        ? Number(body.dependencyStepId)
+        : null;
+
+    if (
+        dependencyStepId !== null &&
+        !Number.isInteger(dependencyStepId)
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Invalid dependency step."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (dependencyStepId !== null) {
+        const dependency = await env.DB.prepare(`
+            SELECT id
+            FROM production_task_template_steps
+            WHERE id = ?
+              AND template_id = ?
+            LIMIT 1
+        `).bind(
+            dependencyStepId,
+            templateId
+        ).first();
+
+        if (!dependency) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message:
+                        "The selected dependency does not belong to this template."
+                },
+                422,
+                request,
+                env
+            );
+        }
+    }
+
+    const sortOrder = Number.isFinite(Number(body.sortOrder))
+        ? Math.max(0, Math.round(Number(body.sortOrder)))
+        : 0;
+
+    const now = new Date().toISOString();
+
+    const result = await env.DB.prepare(`
+        INSERT INTO production_task_template_steps (
+            template_id,
+            step_key,
+            task_name,
+            task_type,
+            description,
+            default_duration_days,
+            default_priority,
+            default_assigned_to,
+            dependency_step_id,
+            sort_order,
+            is_active,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+        templateId,
+        stepKey,
+        taskName,
+        text(body.taskType) || null,
+        text(body.description) || null,
+        duration,
+        defaultPriority,
+        text(body.defaultAssignedTo) || null,
+        dependencyStepId,
+        sortOrder,
+        body.isActive === false ? 0 : 1,
+        now,
+        now
+    ).run();
+
+    const stepId = result.meta?.last_row_id;
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template step created.",
+            step: {
+                id: stepId,
+                templateId,
+                stepKey,
+                taskName,
+                defaultDurationDays: duration,
+                defaultPriority,
+                dependencyStepId,
+                sortOrder
+            }
+        },
+        201,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateStepUpdate(
+    request,
+    env,
+    templateId,
+    stepId
+) {
+    const existing = await env.DB.prepare(`
+        SELECT *
+        FROM production_task_template_steps
+        WHERE id = ?
+          AND template_id = ?
+        LIMIT 1
+    `).bind(
+        stepId,
+        templateId
+    ).first();
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template step not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+
+    const stepKey = body.stepKey !== undefined
+        ? text(body.stepKey)
+        : existing.step_key;
+
+    const taskName = body.taskName !== undefined
+        ? text(body.taskName)
+        : existing.task_name;
+
+    if (!stepKey || !taskName) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Step key and task name are required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const duplicate = await env.DB.prepare(`
+        SELECT id
+        FROM production_task_template_steps
+        WHERE template_id = ?
+          AND step_key = ?
+          AND id <> ?
+        LIMIT 1
+    `).bind(
+        templateId,
+        stepKey,
+        stepId
+    ).first();
+
+    if (duplicate) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "A step with this key already exists in the template."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    const allowedPriorities = new Set([
+        "low",
+        "normal",
+        "high",
+        "urgent"
+    ]);
+
+    const defaultPriority = body.defaultPriority !== undefined
+        ? text(body.defaultPriority)
+        : existing.default_priority;
+
+    if (!allowedPriorities.has(defaultPriority)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Please select a valid default priority."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const duration = body.defaultDurationDays !== undefined
+        ? Number(body.defaultDurationDays)
+        : Number(existing.default_duration_days || 1);
+
+    if (!Number.isInteger(duration) || duration < 1) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Default duration must be a whole number of at least 1 day."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    let dependencyStepId = existing.dependency_step_id;
+
+    if (body.dependencyStepId !== undefined) {
+        dependencyStepId =
+            body.dependencyStepId === null ||
+            body.dependencyStepId === ""
+                ? null
+                : Number(body.dependencyStepId);
+
+        if (
+            dependencyStepId !== null &&
+            !Number.isInteger(dependencyStepId)
+        ) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message: "Invalid dependency step."
+                },
+                422,
+                request,
+                env
+            );
+        }
+
+        if (dependencyStepId === stepId) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message: "A template step cannot depend on itself."
+                },
+                422,
+                request,
+                env
+            );
+        }
+
+        if (dependencyStepId !== null) {
+            const dependency = await env.DB.prepare(`
+                SELECT id
+                FROM production_task_template_steps
+                WHERE id = ?
+                  AND template_id = ?
+                LIMIT 1
+            `).bind(
+                dependencyStepId,
+                templateId
+            ).first();
+
+            if (!dependency) {
+                return jsonResponse(
+                    {
+                        success: false,
+                        message:
+                            "The selected dependency does not belong to this template."
+                    },
+                    422,
+                    request,
+                    env
+                );
+            }
+        }
+    }
+
+    const sortOrder = body.sortOrder !== undefined
+        ? Math.max(0, Math.round(Number(body.sortOrder) || 0))
+        : Number(existing.sort_order || 0);
+
+    const isActive = body.isActive !== undefined
+        ? body.isActive ? 1 : 0
+        : Number(existing.is_active || 0);
+
+    await env.DB.prepare(`
+        UPDATE production_task_template_steps
+        SET
+            step_key = ?,
+            task_name = ?,
+            task_type = ?,
+            description = ?,
+            default_duration_days = ?,
+            default_priority = ?,
+            default_assigned_to = ?,
+            dependency_step_id = ?,
+            sort_order = ?,
+            is_active = ?,
+            updated_at = ?
+        WHERE id = ?
+          AND template_id = ?
+    `).bind(
+        stepKey,
+        taskName,
+        body.taskType !== undefined
+            ? text(body.taskType) || null
+            : existing.task_type,
+        body.description !== undefined
+            ? text(body.description) || null
+            : existing.description,
+        duration,
+        defaultPriority,
+        body.defaultAssignedTo !== undefined
+            ? text(body.defaultAssignedTo) || null
+            : existing.default_assigned_to,
+        dependencyStepId,
+        sortOrder,
+        isActive,
+        new Date().toISOString(),
+        stepId,
+        templateId
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template step updated."
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateStepDelete(
+    request,
+    env,
+    templateId,
+    stepId
+) {
+    const existing = await env.DB.prepare(`
+        SELECT id
+        FROM production_task_template_steps
+        WHERE id = ?
+          AND template_id = ?
+        LIMIT 1
+    `).bind(
+        stepId,
+        templateId
+    ).first();
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template step not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+        UPDATE production_task_template_steps
+        SET
+            dependency_step_id = NULL,
+            updated_at = ?
+        WHERE template_id = ?
+          AND dependency_step_id = ?
+    `).bind(
+        now,
+        templateId,
+        stepId
+    ).run();
+
+    await env.DB.prepare(`
+        UPDATE production_task_template_steps
+        SET
+            is_active = 0,
+            dependency_step_id = NULL,
+            updated_at = ?
+        WHERE id = ?
+          AND template_id = ?
+    `).bind(
+        now,
+        stepId,
+        templateId
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template step archived.",
+            stepId
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateRuleCreate(
+    request,
+    env,
+    templateId
+) {
+    const template = await getProductionTemplateOrNull(
+        env.DB,
+        templateId
+    );
+
+    if (!template) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const matchType = text(body.matchType) || "contains";
+    const matchValue = text(body.matchValue);
+
+    if (!["exact", "contains"].includes(matchType)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Match type must be exact or contains."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (!matchValue) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Match value is required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const priority = Number.isFinite(Number(body.priority))
+        ? Math.round(Number(body.priority))
+        : 0;
+
+    const now = new Date().toISOString();
+
+    const result = await env.DB.prepare(`
+        INSERT INTO production_template_item_rules (
+            template_id,
+            match_type,
+            match_value,
+            priority,
+            is_active,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+        templateId,
+        matchType,
+        matchValue,
+        priority,
+        body.isActive === false ? 0 : 1,
+        now,
+        now
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template matching rule created.",
+            rule: {
+                id: result.meta?.last_row_id,
+                templateId,
+                matchType,
+                matchValue,
+                priority
+            }
+        },
+        201,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateRuleUpdate(
+    request,
+    env,
+    templateId,
+    ruleId
+) {
+    const existing = await env.DB.prepare(`
+        SELECT *
+        FROM production_template_item_rules
+        WHERE id = ?
+          AND template_id = ?
+        LIMIT 1
+    `).bind(
+        ruleId,
+        templateId
+    ).first();
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template matching rule not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+
+    const matchType = body.matchType !== undefined
+        ? text(body.matchType)
+        : existing.match_type;
+
+    const matchValue = body.matchValue !== undefined
+        ? text(body.matchValue)
+        : existing.match_value;
+
+    if (!["exact", "contains"].includes(matchType)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Match type must be exact or contains."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    if (!matchValue) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Match value is required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const priority = body.priority !== undefined
+        ? (
+            Number.isFinite(Number(body.priority))
+                ? Math.round(Number(body.priority))
+                : 0
+        )
+        : Number(existing.priority || 0);
+
+    const isActive = body.isActive !== undefined
+        ? body.isActive ? 1 : 0
+        : Number(existing.is_active || 0);
+
+    await env.DB.prepare(`
+        UPDATE production_template_item_rules
+        SET
+            match_type = ?,
+            match_value = ?,
+            priority = ?,
+            is_active = ?,
+            updated_at = ?
+        WHERE id = ?
+          AND template_id = ?
+    `).bind(
+        matchType,
+        matchValue,
+        priority,
+        isActive,
+        new Date().toISOString(),
+        ruleId,
+        templateId
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template matching rule updated."
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateRuleDelete(
+    request,
+    env,
+    templateId,
+    ruleId
+) {
+    const existing = await env.DB.prepare(`
+        SELECT id
+        FROM production_template_item_rules
+        WHERE id = ?
+          AND template_id = ?
+        LIMIT 1
+    `).bind(
+        ruleId,
+        templateId
+    ).first();
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template matching rule not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    await env.DB.prepare(`
+        UPDATE production_template_item_rules
+        SET
+            is_active = 0,
+            updated_at = ?
+        WHERE id = ?
+          AND template_id = ?
+    `).bind(
+        new Date().toISOString(),
+        ruleId,
+        templateId
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template matching rule archived.",
+            ruleId
         },
         200,
         request,
