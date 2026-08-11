@@ -34,7 +34,7 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
-    <link rel="stylesheet" href="/css/production-v1.css?v=9">
+    <link rel="stylesheet" href="/css/production-v1.css?v=10">
 </head>
 
 <body class="crm-app-page">
@@ -521,6 +521,18 @@
                         </option>
                     </select>
                 </label>
+                <label
+                    id="taskDependencyField"
+                    class="task-field task-field--wide"
+                >
+                    <span>Depends on</span>
+
+                    <select id="taskDependency">
+                        <option value="">
+                            No dependency
+                        </option>
+                    </select>
+                </label>
 
                 <label class="task-field task-field--wide">
                     <span>Task name</span>
@@ -695,7 +707,7 @@
     </div>
 
 
-    <script src="/js/production-v1.js?v=9"></script>
+    <script src="/js/production-v1.js?v=10"></script>
     <script src="/js/crm-brand.js"></script>
 
 </body>

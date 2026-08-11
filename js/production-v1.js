@@ -1173,6 +1173,15 @@
             "taskFormMessage"
         ).textContent =
             "";
+
+        element("taskDependency").innerHTML = `
+            <option value="">
+                No dependency
+            </option>
+        `;
+        
+        element("taskDependency").disabled =
+            true;
     }
 
 
@@ -1322,6 +1331,12 @@
             task.orderReference,
             task.orderItemId
         );
+
+        populateDependencyOptions(
+            task.orderReference,
+            task.dependencyTaskId,
+            task.id
+        );
     }
 
 
@@ -1330,6 +1345,14 @@
     ================================================== */
 
     async function openCreateTaskPanel() {
+        element("taskDependency").innerHTML = `
+            <option value="">
+                Select an order first
+            </option>
+        `;
+
+        element("taskDependency").disabled =
+            true;
         state.taskPanelMode =
             "create";
 
@@ -1539,54 +1562,49 @@
 
             return;
         }
+        const dependencyValue =
+            element("taskDependency").value;
+
+        const dependencyTaskId =
+            dependencyValue
+                ? Number(dependencyValue)
+                : null;
 
 
         const payload = {
             taskName,
-
+        
             orderItemId:
                 selectedOrderItemId(),
-
+        
+            dependencyTaskId,
+        
             status:
-                element(
-                    "taskStatus"
-                ).value,
-
+                element("taskStatus").value,
+        
             priority:
-                element(
-                    "taskPriority"
-                ).value,
-
+                element("taskPriority").value,
+        
             plannedStartDate:
-                plannedStartDate ||
-                null,
-
+                plannedStartDate || null,
+        
             plannedEndDate:
-                plannedEndDate ||
-                null,
-
+                plannedEndDate || null,
+        
             assignedTo:
-                element(
-                    "taskAssignedTo"
-                )
+                element("taskAssignedTo")
                     .value
-                    .trim() ||
-                null,
-
+                    .trim() || null,
+        
             progress:
                 Number(
-                    element(
-                        "taskProgress"
-                    ).value
+                    element("taskProgress").value
                 ),
-
+        
             notes:
-                element(
-                    "taskNotes"
-                )
+                element("taskNotes")
                     .value
-                    .trim() ||
-                null
+                    .trim() || null
         };
 
 
@@ -1831,6 +1849,56 @@
         );
     }
 
+    function populateDependencyOptions(
+        orderReference,
+        selectedDependencyId = null,
+        currentTaskId = null
+    ) {
+        const select =
+            element("taskDependency");
+    
+        const availableTasks =
+            state.tasks.filter(
+                (task) =>
+                    task.orderReference ===
+                        orderReference &&
+                    Number(task.id) !==
+                        Number(currentTaskId)
+            );
+    
+        select.innerHTML = `
+            <option value="">
+                No dependency
+            </option>
+    
+            ${
+                availableTasks
+                    .map((task) => {
+                        const selected =
+                            Number(task.id) ===
+                            Number(selectedDependencyId)
+                                ? "selected"
+                                : "";
+    
+                        return `
+                            <option
+                                value="${task.id}"
+                                ${selected}
+                            >
+                                ${escapeHtml(
+                                    task.taskName
+                                )}
+                            </option>
+                        `;
+                    })
+                    .join("")
+            }
+        `;
+    
+        select.disabled =
+            !orderReference;
+    }
+
 
     /* ==================================================
        EVENT LISTENERS
@@ -1966,16 +2034,19 @@
      * registered each time the create
      * drawer opened.
      */
-    element(
-        "taskOrder"
-    )
+    element("taskOrder")
         .addEventListener(
             "change",
             async () => {
+                const orderReference =
+                    element("taskOrder").value;
+
                 await loadOrderItems(
-                    element(
-                        "taskOrder"
-                    ).value
+                    orderReference
+                );
+
+                populateDependencyOptions(
+                    orderReference
                 );
             }
         );
