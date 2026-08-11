@@ -364,6 +364,63 @@ async function handleAdminRequest(request, env, url) {
             );
         }
 
+        if (
+            request.method === "GET" &&
+            url.pathname === "/admin/production-templates"
+        ) {
+            return await handleAdminProductionTemplateList(
+                request,
+                env
+            );
+        }
+
+        if (
+            request.method === "POST" &&
+            url.pathname === "/admin/production-templates"
+        ) {
+            return await handleAdminProductionTemplateCreate(
+                request,
+                env
+            );
+        }
+
+        const productionTemplateMatch = url.pathname.match(
+            /^\/admin\/production-templates\/(\d+)$/
+        );
+
+        if (
+            productionTemplateMatch &&
+            request.method === "GET"
+        ) {
+            return await handleAdminProductionTemplateDetail(
+                request,
+                env,
+                Number(productionTemplateMatch[1])
+            );
+        }
+
+        if (
+            productionTemplateMatch &&
+            request.method === "PATCH"
+        ) {
+            return await handleAdminProductionTemplateUpdate(
+                request,
+                env,
+                Number(productionTemplateMatch[1])
+            );
+        }
+
+        if (
+            productionTemplateMatch &&
+            request.method === "DELETE"
+        ) {
+            return await handleAdminProductionTemplateDelete(
+                request,
+                env,
+                Number(productionTemplateMatch[1])
+            );
+        }
+
         const orderMatch = url.pathname.match(
             /^\/admin\/orders\/([A-Z0-9-]+)$/
         );
@@ -567,6 +624,409 @@ async function handleAdminRequest(request, env, url) {
         );
     }
 }
+
+/* ==========================================================
+   PRODUCTION TEMPLATE ADMIN API
+========================================================== */
+
+async function handleAdminProductionTemplateList(
+    request,
+    env
+) {
+    const result = await env.DB.prepare(`
+        SELECT
+            pt.id,
+            pt.template_key,
+            pt.name,
+            pt.description,
+            pt.product_category,
+            pt.is_active,
+            pt.sort_order,
+            pt.created_at,
+            pt.updated_at,
+            COUNT(pts.id) AS step_count
+        FROM production_task_templates pt
+        LEFT JOIN production_task_template_steps pts
+            ON pts.template_id = pt.id
+            AND pts.is_active = 1
+        GROUP BY pt.id
+        ORDER BY
+            pt.sort_order ASC,
+            pt.name ASC
+    `).all();
+
+    return jsonResponse(
+        {
+            success: true,
+            templates: (result.results || []).map(
+                template => ({
+                    id: template.id,
+                    templateKey: template.template_key,
+                    name: template.name,
+                    description: template.description,
+                    productCategory: template.product_category,
+                    isActive: Number(template.is_active) === 1,
+                    sortOrder: Number(template.sort_order || 0),
+                    stepCount: Number(template.step_count || 0),
+                    createdAt: template.created_at,
+                    updatedAt: template.updated_at
+                })
+            )
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateDetail(
+    request,
+    env,
+    templateId
+) {
+    const template = await env.DB.prepare(`
+        SELECT *
+        FROM production_task_templates
+        WHERE id = ?
+        LIMIT 1
+    `).bind(templateId).first();
+
+    if (!template) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const steps = await env.DB.prepare(`
+        SELECT
+            pts.*,
+            dependency.task_name AS dependency_task_name
+        FROM production_task_template_steps pts
+        LEFT JOIN production_task_template_steps dependency
+            ON dependency.id = pts.dependency_step_id
+        WHERE pts.template_id = ?
+        ORDER BY
+            pts.sort_order ASC,
+            pts.id ASC
+    `).bind(templateId).all();
+
+    const rules = await env.DB.prepare(`
+        SELECT *
+        FROM production_template_item_rules
+        WHERE template_id = ?
+        ORDER BY
+            priority DESC,
+            id ASC
+    `).bind(templateId).all();
+
+    return jsonResponse(
+        {
+            success: true,
+            template: {
+                id: template.id,
+                templateKey: template.template_key,
+                name: template.name,
+                description: template.description,
+                productCategory: template.product_category,
+                isActive: Number(template.is_active) === 1,
+                sortOrder: Number(template.sort_order || 0),
+                createdAt: template.created_at,
+                updatedAt: template.updated_at,
+                steps: (steps.results || []).map(
+                    step => ({
+                        id: step.id,
+                        stepKey: step.step_key,
+                        taskName: step.task_name,
+                        taskType: step.task_type,
+                        description: step.description,
+                        defaultDurationDays: Number(
+                            step.default_duration_days || 1
+                        ),
+                        defaultPriority: step.default_priority,
+                        defaultAssignedTo: step.default_assigned_to,
+                        dependencyStepId: step.dependency_step_id,
+                        dependencyTaskName: step.dependency_task_name,
+                        sortOrder: Number(step.sort_order || 0),
+                        isActive: Number(step.is_active) === 1
+                    })
+                ),
+                rules: (rules.results || []).map(
+                    rule => ({
+                        id: rule.id,
+                        matchType: rule.match_type,
+                        matchValue: rule.match_value,
+                        priority: Number(rule.priority || 0),
+                        isActive: Number(rule.is_active) === 1
+                    })
+                )
+            }
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateCreate(
+    request,
+    env
+) {
+    const body = await request.json().catch(() => ({}));
+
+    const name = text(body.name);
+    const templateKey = text(body.templateKey);
+
+    if (!name) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Template name is required."
+            },
+            400,
+            request,
+            env
+        );
+    }
+
+    if (!templateKey) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Template key is required."
+            },
+            400,
+            request,
+            env
+        );
+    }
+
+    const existing = await env.DB.prepare(`
+        SELECT id
+        FROM production_task_templates
+        WHERE template_key = ?
+        LIMIT 1
+    `).bind(templateKey).first();
+
+    if (existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "A production template with this key already exists."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    const now = new Date().toISOString();
+    const sortOrder = Number.isFinite(Number(body.sortOrder))
+        ? Math.max(0, Math.round(Number(body.sortOrder)))
+        : 0;
+
+    const result = await env.DB.prepare(`
+        INSERT INTO production_task_templates (
+            template_key,
+            name,
+            description,
+            product_category,
+            is_active,
+            sort_order,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+        templateKey,
+        name,
+        text(body.description) || null,
+        text(body.productCategory) || null,
+        body.isActive === false ? 0 : 1,
+        sortOrder,
+        now,
+        now
+    ).run();
+
+    const templateId = result.meta?.last_row_id;
+
+    if (!templateId) {
+        throw new Error(
+            "The production template could not be created."
+        );
+    }
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template created.",
+            template: {
+                id: templateId,
+                templateKey,
+                name
+            }
+        },
+        201,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateUpdate(
+    request,
+    env,
+    templateId
+) {
+    const existing = await env.DB.prepare(`
+        SELECT *
+        FROM production_task_templates
+        WHERE id = ?
+        LIMIT 1
+    `).bind(templateId).first();
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+
+    const name = body.name !== undefined
+        ? text(body.name)
+        : existing.name;
+
+    if (!name) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Template name is required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const description = body.description !== undefined
+        ? text(body.description) || null
+        : existing.description;
+
+    const productCategory = body.productCategory !== undefined
+        ? text(body.productCategory) || null
+        : existing.product_category;
+
+    const isActive = body.isActive !== undefined
+        ? body.isActive ? 1 : 0
+        : Number(existing.is_active || 0);
+
+    const sortOrder = body.sortOrder !== undefined
+        ? (
+            Number.isFinite(Number(body.sortOrder))
+                ? Math.max(0, Math.round(Number(body.sortOrder)))
+                : 0
+        )
+        : Number(existing.sort_order || 0);
+
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+        UPDATE production_task_templates
+        SET
+            name = ?,
+            description = ?,
+            product_category = ?,
+            is_active = ?,
+            sort_order = ?,
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        name,
+        description,
+        productCategory,
+        isActive,
+        sortOrder,
+        now,
+        templateId
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template updated."
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+async function handleAdminProductionTemplateDelete(
+    request,
+    env,
+    templateId
+) {
+    const existing = await env.DB.prepare(`
+        SELECT id
+        FROM production_task_templates
+        WHERE id = ?
+        LIMIT 1
+    `).bind(templateId).first();
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Production template not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    /*
+     * Archive rather than hard-delete. Generated order schedules are
+     * independent rows, and archived templates can still be inspected.
+     */
+    await env.DB.prepare(`
+        UPDATE production_task_templates
+        SET
+            is_active = 0,
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        new Date().toISOString(),
+        templateId
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Production template archived."
+        },
+        200,
+        request,
+        env
+    );
+}
+
 
 async function handleAdminOrderScheduleCreate(
     request,
