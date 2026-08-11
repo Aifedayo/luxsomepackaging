@@ -685,3 +685,62 @@
             minmax(600px, 1fr);
     }
 }
+
+.gantt-header {
+    display: flex;
+    align-items: stretch;
+
+    overflow: hidden;
+}
+
+.gantt-date-cell {
+    flex: none;
+
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 6px;
+
+    border-right:
+        1px solid
+        rgba(103, 54, 41, 0.08);
+
+    color: var(--production-muted);
+
+    font-size: 10px;
+    font-weight: 600;
+
+    text-align: center;
+
+    white-space: nowrap;
+}
+
+.gantt-date-cell.is-today {
+    color: var(--production-accent);
+
+    background:
+        rgba(103, 54, 41, 0.08);
+
+    font-weight: 700;
+}
+
+
+.gantt-unscheduled {
+    position: absolute;
+
+    top: 18px;
+    left: 14px;
+
+    padding: 6px 10px;
+
+    border-radius: 6px;
+
+    background: #efe8e3;
+    color: var(--production-muted);
+
+    font-size: 10px;
+    font-weight: 600;
+}
