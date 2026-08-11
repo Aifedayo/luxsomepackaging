@@ -252,6 +252,21 @@ async function handleAdminRequest(request, env, url) {
             /^\/admin\/submissions\/([A-Z0-9-]+)$/
         );
 
+        const orderScheduleGenerateMatch = url.pathname.match(
+            /^\/admin\/orders\/([A-Z0-9-]+)\/generate-schedule$/
+        );
+        
+        if (
+            orderScheduleGenerateMatch &&
+            request.method === "POST"
+        ) {
+            return await handleAdminGenerateProductionSchedule(
+                request,
+                env,
+                orderScheduleGenerateMatch[1]
+            );
+        }
+
         if (detailMatch && request.method === "GET") {
             return await handleAdminSubmissionDetail(
                 request,
@@ -9691,6 +9706,700 @@ async function saveSubmission(db, submission) {
         now,
         now
     ).run();
+}
+
+async function handleAdminGenerateProductionSchedule(
+    request,
+    env,
+    orderReference
+) {
+    const body =
+        await request
+            .json()
+            .catch(() => ({}));
+
+    const order = await env.DB.prepare(`
+        SELECT
+            id,
+            order_reference,
+            customer_name,
+            brand_name
+        FROM orders
+        WHERE order_reference = ?
+        LIMIT 1
+    `)
+        .bind(orderReference)
+        .first();
+
+    if (!order) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Order not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+
+    const orderItemId =
+        Number(body.orderItemId);
+
+    if (
+        !Number.isInteger(orderItemId) ||
+        orderItemId <= 0
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "A valid order item is required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+
+    const orderItem =
+        await env.DB.prepare(`
+            SELECT
+                id,
+                order_id,
+                item_order,
+                description,
+                details,
+                quantity
+            FROM order_items
+            WHERE id = ?
+              AND order_id = ?
+            LIMIT 1
+        `)
+            .bind(
+                orderItemId,
+                order.id
+            )
+            .first();
+
+    if (!orderItem) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "The selected order item does not belong to this order."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+
+    const requestedStartDate =
+        normaliseScheduleDate(
+            body.startDate
+        );
+
+    if (
+        body.startDate &&
+        !requestedStartDate
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Start date must use YYYY-MM-DD."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+
+    const startDate =
+        requestedStartDate ||
+        new Date()
+            .toISOString()
+            .slice(0, 10);
+
+
+    /*
+     * Prevent accidental duplicate generation
+     * for the same order item.
+     */
+    const existingTasks =
+        await env.DB.prepare(`
+            SELECT COUNT(*) AS total
+            FROM production_schedule_tasks
+            WHERE order_id = ?
+              AND order_item_id = ?
+        `)
+            .bind(
+                order.id,
+                orderItem.id
+            )
+            .first();
+
+    if (
+        Number(existingTasks?.total || 0) > 0 &&
+        body.force !== true
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "This order item already has production tasks. Use force=true only if you intentionally want to generate another schedule."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+
+    const description =
+        text(
+            orderItem.description
+        )
+            .toLowerCase();
+
+
+    /*
+     * Find the best active template rule.
+     *
+     * Exact matches outrank contains matches.
+     * Higher priority wins next.
+     */
+    const templateMatch =
+        await env.DB.prepare(`
+            SELECT
+                pt.id,
+                pt.template_key,
+                pt.name,
+                pt.description,
+                pt.product_category,
+
+                rule.id AS rule_id,
+                rule.match_type,
+                rule.match_value,
+                rule.priority
+
+            FROM production_task_templates pt
+
+            INNER JOIN production_template_item_rules rule
+                ON rule.template_id = pt.id
+
+            WHERE pt.is_active = 1
+              AND rule.is_active = 1
+
+              AND (
+                    (
+                        rule.match_type = 'exact'
+                        AND lower(?) = lower(rule.match_value)
+                    )
+
+                    OR
+
+                    (
+                        rule.match_type = 'contains'
+                        AND instr(
+                            lower(?),
+                            lower(rule.match_value)
+                        ) > 0
+                    )
+              )
+
+            ORDER BY
+                CASE rule.match_type
+                    WHEN 'exact' THEN 1
+                    ELSE 2
+                END ASC,
+
+                rule.priority DESC,
+
+                pt.sort_order ASC,
+
+                rule.id ASC
+
+            LIMIT 1
+        `)
+            .bind(
+                description,
+                description
+            )
+            .first();
+
+
+    if (!templateMatch) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    `No active production template matches "${orderItem.description}".`
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+
+    const stepsResult =
+        await env.DB.prepare(`
+            SELECT
+                id,
+                template_id,
+                step_key,
+                task_name,
+                task_type,
+                description,
+                default_duration_days,
+                default_priority,
+                default_assigned_to,
+                dependency_step_id,
+                sort_order
+            FROM production_task_template_steps
+            WHERE template_id = ?
+              AND is_active = 1
+            ORDER BY
+                sort_order ASC,
+                id ASC
+        `)
+            .bind(
+                templateMatch.id
+            )
+            .all();
+
+
+    const steps =
+        stepsResult.results || [];
+
+
+    if (!steps.length) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "The matched production template has no active steps."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+
+    /*
+     * Date helper.
+     */
+    function addScheduleDays(
+        dateString,
+        amount
+    ) {
+        const [
+            year,
+            month,
+            day
+        ] =
+            dateString
+                .split("-")
+                .map(Number);
+
+        const date =
+            new Date(
+                Date.UTC(
+                    year,
+                    month - 1,
+                    day
+                )
+            );
+
+        date.setUTCDate(
+            date.getUTCDate() +
+            amount
+        );
+
+        return date
+            .toISOString()
+            .slice(0, 10);
+    }
+
+
+    /*
+     * Build planned dates first.
+     *
+     * Current behaviour:
+     * - first independent step starts on startDate
+     * - dependent steps start the day after their dependency ends
+     * - duration is inclusive
+     */
+    const plannedByStepId =
+        new Map();
+
+
+    for (const step of steps) {
+        const duration =
+            Math.max(
+                1,
+                Number(
+                    step.default_duration_days ||
+                    1
+                )
+            );
+
+        let plannedStart =
+            startDate;
+
+
+        if (step.dependency_step_id) {
+            const dependencyPlan =
+                plannedByStepId.get(
+                    Number(
+                        step.dependency_step_id
+                    )
+                );
+
+            if (!dependencyPlan) {
+                return jsonResponse(
+                    {
+                        success: false,
+                        message:
+                            `Template step "${step.task_name}" depends on a step that has not been scheduled. Check template step ordering.`
+                    },
+                    409,
+                    request,
+                    env
+                );
+            }
+
+
+            plannedStart =
+                addScheduleDays(
+                    dependencyPlan.plannedEndDate,
+                    1
+                );
+        }
+
+
+        const plannedEnd =
+            addScheduleDays(
+                plannedStart,
+                duration - 1
+            );
+
+
+        plannedByStepId.set(
+            Number(step.id),
+            {
+                plannedStartDate:
+                    plannedStart,
+
+                plannedEndDate:
+                    plannedEnd
+            }
+        );
+    }
+
+
+    const now =
+        new Date().toISOString();
+
+
+    /*
+     * First pass:
+     * insert every task WITHOUT dependencies.
+     *
+     * We need the new production task IDs
+     * before we can translate dependency_step_id
+     * into dependency_task_id.
+     */
+    const generatedTasks =
+        [];
+
+    const taskIdByStepId =
+        new Map();
+
+
+    for (const step of steps) {
+        const plan =
+            plannedByStepId.get(
+                Number(step.id)
+            );
+
+
+        const result =
+            await env.DB.prepare(`
+                INSERT INTO production_schedule_tasks (
+                    order_id,
+                    order_item_id,
+                    task_key,
+                    task_name,
+                    task_type,
+                    status,
+                    priority,
+                    assigned_to,
+                    planned_start_date,
+                    planned_end_date,
+                    actual_start_date,
+                    actual_end_date,
+                    progress,
+                    dependency_task_id,
+                    sort_order,
+                    notes,
+                    created_at,
+                    updated_at
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
+            `)
+                .bind(
+                    order.id,
+                    orderItem.id,
+
+                    step.step_key,
+                    step.task_name,
+                    step.task_type || null,
+
+                    "not_started",
+
+                    step.default_priority ||
+                        "normal",
+
+                    step.default_assigned_to ||
+                        null,
+
+                    plan.plannedStartDate,
+                    plan.plannedEndDate,
+
+                    null,
+                    null,
+
+                    0,
+
+                    null,
+
+                    Number(
+                        step.sort_order ||
+                        0
+                    ),
+
+                    step.description ||
+                        null,
+
+                    now,
+                    now
+                )
+                .run();
+
+
+        const taskId =
+            result.meta?.last_row_id;
+
+
+        if (!taskId) {
+            throw new Error(
+                `Could not create production task "${step.task_name}".`
+            );
+        }
+
+
+        taskIdByStepId.set(
+            Number(step.id),
+            Number(taskId)
+        );
+
+
+        generatedTasks.push({
+            id:
+                Number(taskId),
+
+            templateStepId:
+                Number(step.id),
+
+            taskKey:
+                step.step_key,
+
+            taskName:
+                step.task_name,
+
+            plannedStartDate:
+                plan.plannedStartDate,
+
+            plannedEndDate:
+                plan.plannedEndDate,
+
+            dependencyTaskId:
+                null
+        });
+    }
+
+
+    /*
+     * Second pass:
+     * connect generated tasks.
+     */
+    for (const step of steps) {
+        if (
+            !step.dependency_step_id
+        ) {
+            continue;
+        }
+
+
+        const taskId =
+            taskIdByStepId.get(
+                Number(step.id)
+            );
+
+
+        const dependencyTaskId =
+            taskIdByStepId.get(
+                Number(
+                    step.dependency_step_id
+                )
+            );
+
+
+        if (
+            !taskId ||
+            !dependencyTaskId
+        ) {
+            throw new Error(
+                "Generated task dependencies could not be resolved."
+            );
+        }
+
+
+        await env.DB.prepare(`
+            UPDATE production_schedule_tasks
+            SET
+                dependency_task_id = ?,
+                updated_at = ?
+            WHERE id = ?
+              AND order_id = ?
+        `)
+            .bind(
+                dependencyTaskId,
+                now,
+                taskId,
+                order.id
+            )
+            .run();
+
+
+        const generated =
+            generatedTasks.find(
+                task =>
+                    task.id ===
+                    Number(taskId)
+            );
+
+
+        if (generated) {
+            generated.dependencyTaskId =
+                Number(
+                    dependencyTaskId
+                );
+        }
+    }
+
+
+    await recordOrderActivity(
+        env.DB,
+        {
+            orderId:
+                order.id,
+
+            activityType:
+                "production_schedule_generated",
+
+            title:
+                "Production schedule generated",
+
+            details:
+                `${generatedTasks.length} tasks were generated for ${orderItem.description} using the ${templateMatch.name} template.`,
+
+            createdAt:
+                now
+        }
+    );
+
+
+    return jsonResponse(
+        {
+            success: true,
+
+            message:
+                "Production schedule generated.",
+
+            order: {
+                id:
+                    order.id,
+
+                orderReference:
+                    order.order_reference,
+
+                brandName:
+                    order.brand_name,
+
+                customerName:
+                    order.customer_name
+            },
+
+            orderItem: {
+                id:
+                    orderItem.id,
+
+                itemOrder:
+                    orderItem.item_order,
+
+                description:
+                    orderItem.description,
+
+                quantity:
+                    Number(
+                        orderItem.quantity ||
+                        0
+                    )
+            },
+
+            template: {
+                id:
+                    templateMatch.id,
+
+                templateKey:
+                    templateMatch.template_key,
+
+                name:
+                    templateMatch.name,
+
+                matchedBy: {
+                    type:
+                        templateMatch.match_type,
+
+                    value:
+                        templateMatch.match_value
+                }
+            },
+
+            startDate,
+
+            taskCount:
+                generatedTasks.length,
+
+            tasks:
+                generatedTasks
+        },
+        201,
+        request,
+        env
+    );
 }
 
 async function updateSubmissionEmailStatus(
