@@ -23,7 +23,9 @@
 
         taskPanelMode: "edit",
         editingTaskId: null,
-        cascadePreview: null
+        cascadePreview: null,
+        ganttInteraction: null,
+        suppressTaskClickUntil: 0
     };
 
     const element = (id) =>
@@ -1708,6 +1710,59 @@
                 color: #2f6d49;
             }
 
+            .gantt-bar {
+                touch-action: none;
+            }
+
+            .gantt-bar:not([data-status="completed"]):not([data-status="cancelled"]) {
+                cursor: grab;
+            }
+
+            .gantt-bar.is-gantt-dragging {
+                z-index: 20;
+                cursor: grabbing;
+                opacity: 0.92;
+                box-shadow: 0 8px 22px rgba(46, 28, 21, 0.24);
+            }
+
+            .gantt-resize-handle {
+                position: absolute;
+                top: 4px;
+                bottom: 4px;
+                z-index: 7;
+                width: 9px;
+                border-radius: 5px;
+                opacity: 0;
+                background: rgba(255,255,255,0.82);
+                transition: opacity 120ms ease;
+                cursor: ew-resize;
+                touch-action: none;
+            }
+
+            .gantt-resize-handle--start {
+                left: 3px;
+            }
+
+            .gantt-resize-handle--end {
+                right: 3px;
+            }
+
+            .gantt-bar:hover .gantt-resize-handle,
+            .gantt-bar:focus-visible .gantt-resize-handle,
+            .gantt-bar.is-gantt-dragging .gantt-resize-handle {
+                opacity: 1;
+            }
+
+            .gantt-bar[data-status="completed"] .gantt-resize-handle,
+            .gantt-bar[data-status="cancelled"] .gantt-resize-handle {
+                display: none;
+            }
+
+            body.is-gantt-interacting,
+            body.is-gantt-interacting * {
+                user-select: none !important;
+            }
+
             @media (max-width: 620px) {
                 .task-cascade-panel__intro,
                 .task-cascade-preview__header {
@@ -2409,6 +2464,18 @@
                                         </small>
 
                                     </span>
+
+                                    <span
+                                        class="gantt-resize-handle gantt-resize-handle--start"
+                                        data-resize="start"
+                                        aria-hidden="true"
+                                    ></span>
+
+                                    <span
+                                        class="gantt-resize-handle gantt-resize-handle--end"
+                                        data-resize="end"
+                                        aria-hidden="true"
+                                    ></span>
 
                                 </button>
                             </div>
@@ -3642,12 +3709,558 @@
 
 
     /* ==================================================
+       GANTT DRAG + RESIZE
+    ================================================== */
+
+    function clampNumber(
+        value,
+        minimum,
+        maximum
+    ) {
+        return Math.min(
+            maximum,
+            Math.max(
+                minimum,
+                value
+            )
+        );
+    }
+
+
+    function taskDurationDays(
+        task
+    ) {
+        const start =
+            parseDate(
+                task?.plannedStartDate
+            );
+
+        const end =
+            parseDate(
+                task?.plannedEndDate
+            );
+
+        if (!start || !end) {
+            return 1;
+        }
+
+        return Math.max(
+            1,
+            differenceInDays(
+                start,
+                end
+            ) + 1
+        );
+    }
+
+
+    function canMoveTaskOnGantt(
+        task
+    ) {
+        return Boolean(
+            task &&
+            task.plannedStartDate &&
+            task.plannedEndDate &&
+            ![
+                "completed",
+                "cancelled"
+            ].includes(
+                task.status
+            )
+        );
+    }
+
+
+    async function persistGanttDates(
+        task,
+        plannedStartDate,
+        plannedEndDate
+    ) {
+        if (
+            !task?.id ||
+            !task?.orderReference
+        ) {
+            throw new Error(
+                "Unable to identify this production task."
+            );
+        }
+
+        await api(
+            `/admin/orders/${encodeURIComponent(
+                task.orderReference
+            )}/schedule/${task.id}`,
+            {
+                method: "PATCH",
+
+                body: JSON.stringify({
+                    plannedStartDate,
+                    plannedEndDate
+                })
+            }
+        );
+    }
+
+
+    function beginGanttInteraction(
+        event
+    ) {
+        if (
+            event.button !== undefined &&
+            event.button !== 0
+        ) {
+            return;
+        }
+
+        const bar =
+            event.target.closest(
+                ".gantt-bar"
+            );
+
+        if (!bar) {
+            return;
+        }
+
+        const task =
+            findTask(
+                bar.dataset.taskId
+            );
+
+        if (
+            !canMoveTaskOnGantt(
+                task
+            )
+        ) {
+            return;
+        }
+
+        const resizeHandle =
+            event.target.closest(
+                ".gantt-resize-handle"
+            );
+
+        const mode =
+            resizeHandle
+                ? resizeHandle.dataset.resize
+                : "move";
+
+        const startDate =
+            parseDate(
+                task.plannedStartDate
+            );
+
+        const endDate =
+            parseDate(
+                task.plannedEndDate
+            );
+
+        if (!startDate || !endDate) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const dayWidth =
+            state.timeline?.dayWidth ||
+            getDayWidth();
+
+        state.ganttInteraction = {
+            pointerId:
+                event.pointerId,
+
+            task,
+            bar,
+            mode,
+
+            startClientX:
+                event.clientX,
+
+            startDate,
+            endDate,
+
+            originalLeft:
+                parseFloat(
+                    bar.style.left
+                ) || 0,
+
+            originalWidth:
+                parseFloat(
+                    bar.style.width
+                ) ||
+                dayWidth,
+
+            dayWidth,
+            dayDelta: 0,
+            moved: false
+        };
+
+        bar.classList.add(
+            "is-gantt-dragging"
+        );
+
+        document.body.classList.add(
+            "is-gantt-interacting"
+        );
+
+        if (
+            typeof bar.setPointerCapture ===
+                "function" &&
+            event.pointerId !== undefined
+        ) {
+            try {
+                bar.setPointerCapture(
+                    event.pointerId
+                );
+            } catch (_) {
+                // Pointer capture is optional.
+            }
+        }
+    }
+
+
+    function updateGanttInteraction(
+        event
+    ) {
+        const interaction =
+            state.ganttInteraction;
+
+        if (!interaction) {
+            return;
+        }
+
+        if (
+            interaction.pointerId !== undefined &&
+            event.pointerId !== undefined &&
+            interaction.pointerId !==
+                event.pointerId
+        ) {
+            return;
+        }
+
+        const pixelDelta =
+            event.clientX -
+            interaction.startClientX;
+
+        const dayDelta =
+            Math.round(
+                pixelDelta /
+                interaction.dayWidth
+            );
+
+        if (
+            dayDelta ===
+            interaction.dayDelta
+        ) {
+            return;
+        }
+
+        interaction.dayDelta =
+            dayDelta;
+
+        interaction.moved =
+            interaction.moved ||
+            dayDelta !== 0;
+
+        const minimumWidth =
+            interaction.dayWidth;
+
+        if (
+            interaction.mode ===
+            "move"
+        ) {
+            interaction.bar.style.left =
+                `${
+                    interaction.originalLeft +
+                    dayDelta *
+                    interaction.dayWidth
+                }px`;
+
+            return;
+        }
+
+        if (
+            interaction.mode ===
+            "start"
+        ) {
+            const duration =
+                taskDurationDays(
+                    interaction.task
+                );
+
+            const safeDelta =
+                clampNumber(
+                    dayDelta,
+                    -(9999),
+                    duration - 1
+                );
+
+            interaction.dayDelta =
+                safeDelta;
+
+            interaction.bar.style.left =
+                `${
+                    interaction.originalLeft +
+                    safeDelta *
+                    interaction.dayWidth
+                }px`;
+
+            interaction.bar.style.width =
+                `${Math.max(
+                    minimumWidth,
+                    interaction.originalWidth -
+                    safeDelta *
+                    interaction.dayWidth
+                )}px`;
+
+            return;
+        }
+
+        if (
+            interaction.mode ===
+            "end"
+        ) {
+            const duration =
+                taskDurationDays(
+                    interaction.task
+                );
+
+            const safeDelta =
+                Math.max(
+                    -(duration - 1),
+                    dayDelta
+                );
+
+            interaction.dayDelta =
+                safeDelta;
+
+            interaction.bar.style.width =
+                `${Math.max(
+                    minimumWidth,
+                    interaction.originalWidth +
+                    safeDelta *
+                    interaction.dayWidth
+                )}px`;
+        }
+    }
+
+
+    async function finishGanttInteraction(
+        event
+    ) {
+        const interaction =
+            state.ganttInteraction;
+
+        if (!interaction) {
+            return;
+        }
+
+        if (
+            interaction.pointerId !== undefined &&
+            event.pointerId !== undefined &&
+            interaction.pointerId !==
+                event.pointerId
+        ) {
+            return;
+        }
+
+        state.ganttInteraction =
+            null;
+
+        interaction.bar.classList.remove(
+            "is-gantt-dragging"
+        );
+
+        document.body.classList.remove(
+            "is-gantt-interacting"
+        );
+
+        if (!interaction.moved) {
+            return;
+        }
+
+        state.suppressTaskClickUntil =
+            Date.now() + 350;
+
+        let newStart =
+            new Date(
+                interaction.startDate
+            );
+
+        let newEnd =
+            new Date(
+                interaction.endDate
+            );
+
+        if (
+            interaction.mode ===
+            "move"
+        ) {
+            newStart =
+                addDays(
+                    newStart,
+                    interaction.dayDelta
+                );
+
+            newEnd =
+                addDays(
+                    newEnd,
+                    interaction.dayDelta
+                );
+        }
+
+        if (
+            interaction.mode ===
+            "start"
+        ) {
+            newStart =
+                addDays(
+                    newStart,
+                    interaction.dayDelta
+                );
+
+            if (newStart > newEnd) {
+                newStart =
+                    new Date(
+                        newEnd
+                    );
+            }
+        }
+
+        if (
+            interaction.mode ===
+            "end"
+        ) {
+            newEnd =
+                addDays(
+                    newEnd,
+                    interaction.dayDelta
+                );
+
+            if (newEnd < newStart) {
+                newEnd =
+                    new Date(
+                        newStart
+                    );
+            }
+        }
+
+        const plannedStartDate =
+            localDateString(
+                newStart
+            );
+
+        const plannedEndDate =
+            localDateString(
+                newEnd
+            );
+
+        const message =
+            element(
+                "productionMessage"
+            );
+
+        try {
+            message.textContent =
+                "Saving schedule change…";
+
+            await persistGanttDates(
+                interaction.task,
+                plannedStartDate,
+                plannedEndDate
+            );
+
+            await loadProductionSchedule();
+
+            const refreshedTask =
+                findTask(
+                    interaction.task.id
+                );
+
+            const downstream =
+                refreshedTask
+                    ? state.tasks.filter(
+                        (task) =>
+                            Number(task.dependencyTaskId) ===
+                            Number(refreshedTask.id)
+                    )
+                    : [];
+
+            if (
+                downstream.length
+            ) {
+                message.textContent =
+                    "Schedule updated. Review any downstream conflicts before continuing.";
+            } else {
+                message.textContent =
+                    "Schedule updated.";
+            }
+
+            window.setTimeout(
+                () => {
+                    if (
+                        message.textContent ===
+                            "Schedule updated." ||
+                        message.textContent ===
+                            "Schedule updated. Review any downstream conflicts before continuing."
+                    ) {
+                        message.textContent =
+                            "";
+                    }
+                },
+                2200
+            );
+
+        } catch (error) {
+            console.error(
+                error
+            );
+
+            message.textContent =
+                error.message ||
+                "Unable to update the production schedule.";
+
+            renderGantt();
+        }
+    }
+
+
+    function cancelGanttInteraction() {
+        const interaction =
+            state.ganttInteraction;
+
+        if (!interaction) {
+            return;
+        }
+
+        interaction.bar.classList.remove(
+            "is-gantt-dragging"
+        );
+
+        document.body.classList.remove(
+            "is-gantt-interacting"
+        );
+
+        state.ganttInteraction =
+            null;
+
+        renderGantt();
+    }
+
+
+    /* ==================================================
        CLICK TASK
     ================================================== */
 
     function openTaskFromTarget(
         target
     ) {
+        if (
+            Date.now() <
+            state.suppressTaskClickUntil
+        ) {
+            return;
+        }
+
         const clickable =
             target.closest(
                 `
@@ -3959,6 +4572,36 @@
         );
 
 
+    element(
+        "ganttRows"
+    )
+        .addEventListener(
+            "pointerdown",
+            beginGanttInteraction
+        );
+
+
+    window.addEventListener(
+        "pointermove",
+        updateGanttInteraction,
+        {
+            passive: true
+        }
+    );
+
+
+    window.addEventListener(
+        "pointerup",
+        finishGanttInteraction
+    );
+
+
+    window.addEventListener(
+        "pointercancel",
+        cancelGanttInteraction
+    );
+
+
     /*
      * Important:
      * this listener is registered ONCE.
@@ -4090,6 +4733,15 @@
         .addEventListener(
             "keydown",
             (event) => {
+                if (
+                    event.key ===
+                    "Escape" &&
+                    state.ganttInteraction
+                ) {
+                    cancelGanttInteraction();
+                    return;
+                }
+
                 if (
                     event.key ===
                         "Escape" &&
