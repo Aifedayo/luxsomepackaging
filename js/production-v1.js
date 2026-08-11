@@ -419,6 +419,300 @@
             : 44;
     }
 
+    function renderDependencyLines(
+        rows,
+        dayWidth
+    ) {
+        const existing =
+            rows.querySelector(
+                ".gantt-dependency-layer"
+            );
+    
+        if (existing) {
+            existing.remove();
+        }
+    
+    
+        const scheduledTasks =
+            state.tasks.filter(
+                (task) =>
+                    task.plannedStartDate &&
+                    task.plannedEndDate
+            );
+    
+    
+        const taskMap =
+            new Map(
+                scheduledTasks.map(
+                    (task) => [
+                        Number(task.id),
+                        task
+                    ]
+                )
+            );
+    
+    
+        const dependentTasks =
+            scheduledTasks.filter(
+                (task) =>
+                    task.dependencyTaskId &&
+                    taskMap.has(
+                        Number(
+                            task.dependencyTaskId
+                        )
+                    )
+            );
+    
+    
+        if (!dependentTasks.length) {
+            return;
+        }
+    
+    
+        const rowHeight =
+            parseFloat(
+                getComputedStyle(
+                    document.documentElement
+                ).getPropertyValue(
+                    "--gantt-row-height"
+                )
+            ) || 70;
+    
+        const svg =
+            document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "svg"
+            );
+    
+    
+        svg.classList.add(
+            "gantt-dependency-layer"
+        );
+    
+    
+        svg.setAttribute(
+            "width",
+            rows.scrollWidth
+        );
+    
+    
+        svg.setAttribute(
+            "height",
+            rows.scrollHeight
+        );
+    
+    
+        svg.setAttribute(
+            "viewBox",
+            `0 0 ${rows.scrollWidth} ${rows.scrollHeight}`
+        );
+    
+    
+        dependentTasks.forEach(
+            (task) => {
+                const dependency =
+                    taskMap.get(
+                        Number(
+                            task.dependencyTaskId
+                        )
+                    );
+    
+    
+                if (!dependency) {
+                    return;
+                }
+    
+    
+                const dependencyRow =
+                    state.tasks.findIndex(
+                        (candidate) =>
+                            Number(candidate.id) ===
+                            Number(dependency.id)
+                    );
+    
+    
+                const taskRow =
+                    state.tasks.findIndex(
+                        (candidate) =>
+                            Number(candidate.id) ===
+                            Number(task.id)
+                    );
+    
+    
+                if (
+                    dependencyRow === -1 ||
+                    taskRow === -1
+                ) {
+                    return;
+                }
+    
+    
+                const dependencyStart =
+                    parseDate(
+                        dependency.plannedStartDate
+                    );
+    
+    
+                const dependencyEnd =
+                    parseDate(
+                        dependency.plannedEndDate
+                    );
+    
+    
+                const taskStart =
+                    parseDate(
+                        task.plannedStartDate
+                    );
+    
+    
+                if (
+                    !dependencyStart ||
+                    !dependencyEnd ||
+                    !taskStart
+                ) {
+                    return;
+                }
+    
+    
+                const dependencyEndOffset =
+                    differenceInDays(
+                        state.timeline?.start ||
+                        getTimelineRange(
+                            state.tasks
+                        ).start,
+                        dependencyEnd
+                    );
+    
+    
+                const taskStartOffset =
+                    differenceInDays(
+                        state.timeline?.start ||
+                        getTimelineRange(
+                            state.tasks
+                        ).start,
+                        taskStart
+                    );
+    
+    
+                const startX =
+                    (
+                        dependencyEndOffset +
+                        1
+                    ) *
+                    dayWidth;
+    
+    
+                const endX =
+                    taskStartOffset *
+                    dayWidth;
+    
+    
+                const startY =
+                    dependencyRow *
+                    rowHeight +
+                    rowHeight / 2;
+    
+    
+                const endY =
+                    taskRow *
+                    rowHeight +
+                    rowHeight / 2;
+    
+    
+                drawDependencyConnector(
+                    svg,
+                    {
+                        startX,
+                        startY,
+                        endX,
+                        endY
+                    }
+                );
+            }
+        );
+    
+    
+        rows.appendChild(svg);
+
+        const defs =
+            document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "defs"
+            );
+
+
+        const marker =
+            document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "marker"
+            );
+
+
+        marker.setAttribute(
+            "id",
+            "ganttDependencyArrow"
+        );
+
+        marker.setAttribute(
+            "markerWidth",
+            "7"
+        );
+
+        marker.setAttribute(
+            "markerHeight",
+            "7"
+        );
+
+        marker.setAttribute(
+            "refX",
+            "6"
+        );
+
+        marker.setAttribute(
+            "refY",
+            "3"
+        );
+
+        marker.setAttribute(
+            "orient",
+            "auto"
+        );
+
+
+        const arrow =
+            document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "path"
+            );
+
+
+        arrow.setAttribute(
+            "d",
+            "M 0 0 L 6 3 L 0 6 Z"
+        );
+
+
+        arrow.setAttribute(
+            "class",
+            "gantt-dependency-arrow"
+        );
+
+
+        marker.appendChild(
+            arrow
+        );
+
+
+        defs.appendChild(
+            marker
+        );
+
+
+        svg.appendChild(
+            defs
+        );
+            }
+
 
     /* ==================================================
        GANTT
@@ -489,7 +783,6 @@
             numberOfDays *
             dayWidth;
 
-
         document.documentElement
             .style
             .setProperty(
@@ -537,6 +830,18 @@
                                         : ""
                                 }
                             </small>
+
+                            ${
+                                task.dependencyTaskName
+                                    ? `
+                                        <small class="gantt-task-dependency">
+                                            ↳ After ${escapeHtml(
+                                                task.dependencyTaskName
+                                            )}
+                                        </small>
+                                    `
+                                    : ""
+                            }
                         </article>
                     `
                 )
@@ -741,6 +1046,11 @@
                     }
                 )
                 .join("");
+        
+        renderDependencyLines(
+            rows,
+            dayWidth
+        );
 
 
         /* ----------------------------------------------
@@ -1897,6 +2207,107 @@
     
         select.disabled =
             !orderReference;
+    }
+
+    function drawDependencyConnector(
+        svg,
+        {
+            startX,
+            startY,
+            endX,
+            endY
+        }
+    ) {
+        const namespace =
+            "http://www.w3.org/2000/svg";
+    
+    
+        const path =
+            document.createElementNS(
+                namespace,
+                "path"
+            );
+    
+    
+        const horizontalGap =
+            14;
+    
+    
+        let pathData;
+    
+    
+        if (
+            endX >
+            startX + horizontalGap * 2
+        ) {
+            const middleX =
+                startX +
+                Math.max(
+                    horizontalGap,
+                    (
+                        endX -
+                        startX
+                    ) / 2
+                );
+    
+    
+            pathData = `
+                M ${startX} ${startY}
+                H ${middleX}
+                V ${endY}
+                H ${endX}
+            `;
+        } else {
+            /*
+             * Dependency ends very close to,
+             * or after, the dependent task.
+             *
+             * Route the connector around the
+             * bars instead of directly through
+             * them.
+             */
+    
+            const routeX =
+                Math.max(
+                    startX,
+                    endX
+                ) +
+                18;
+    
+    
+            pathData = `
+                M ${startX} ${startY}
+                H ${routeX}
+                V ${endY}
+                H ${endX}
+            `;
+        }
+    
+    
+        path.setAttribute(
+            "d",
+            pathData.replace(
+                /\s+/g,
+                " "
+            ).trim()
+        );
+    
+    
+        path.setAttribute(
+            "class",
+            "gantt-dependency-line"
+        );
+    
+    
+        path.setAttribute(
+            "marker-end",
+            "url(#ganttDependencyArrow)"
+        );
+    
+    
+        svg.appendChild(
+            path
+        );
     }
 
 

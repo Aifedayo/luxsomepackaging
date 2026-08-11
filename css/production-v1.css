@@ -1019,3 +1019,58 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+.gantt-task-dependency {
+    color: var(--production-muted);
+    font-size: 10px;
+    font-style: italic;
+}
+
+/* ==================================================
+   GANTT DEPENDENCIES
+================================================== */
+
+.gantt-dependency-layer {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    z-index: 4;
+
+    overflow: visible;
+
+    pointer-events: none;
+}
+
+
+.gantt-dependency-line {
+    fill: none;
+
+    stroke: rgba(
+        103,
+        54,
+        41,
+        0.48
+    );
+
+    stroke-width: 1.5;
+
+    vector-effect:
+        non-scaling-stroke;
+}
+
+
+.gantt-dependency-arrow {
+    fill: #673629;
+}
+
+
+.gantt-bar {
+    z-index: 5;
+}
+
+
+.gantt-today-line {
+    z-index: 6;
+}
