@@ -1,9 +1,39 @@
 (() => {
     "use strict";
 
+    function resolveApiBase() {
+        if (window.LUXSOME_ENV?.apiBase) {
+            return window.LUXSOME_ENV.apiBase;
+        }
+    
+        const hostname =
+            window.location.hostname;
+    
+        if (
+            hostname ===
+            "develop.luxsomepackaging.com"
+        ) {
+            return "https://api-develop.luxsomepackaging.com";
+        }
+    
+        if (
+            hostname ===
+            "staging.luxsomepackaging.com"
+        ) {
+            return "https://api-staging.luxsomepackaging.com";
+        }
+    
+        if (
+            hostname === "luxsomepackaging.com" ||
+            hostname === "www.luxsomepackaging.com"
+        ) {
+            return "https://api.luxsomepackaging.com";
+        }
+
+    }
+    
     const API_BASE =
-        window.LUXSOME_ENV?.apiBase ||
-        "https://api-develop.luxsomepackaging.com";
+        resolveApiBase();
 
     const token =
         sessionStorage.getItem("luxsomeAdminToken");
