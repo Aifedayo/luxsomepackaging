@@ -46,6 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
             envelope_style: 'envelopeStyle',
             ribbon_style: 'ribbonStyle',
             ribbon_colour: 'ribbonColour',
+            thank_you_card_colour: 'thankYouCardColour',
+            envelope_colour: 'envelopeColour',
+            tissue_colour: 'tissueColour',
             logo_finish: 'logoFinish',
             artwork_status: 'artworkStatus',
             quantity: 'quantity',
@@ -407,6 +410,578 @@ document.addEventListener('DOMContentLoaded', () => {
     const product = document.querySelector('.product-detail');
 
     /* ==========================================================
+       BESPOKE PIECE DETAIL CONFIGURATION
+       Reveals configuration only for the packaging pieces selected
+       by the customer. Hidden controls are disabled so they do not
+       leak stale values into FormData.
+    ========================================================== */
+
+    const setupBespokePieceDetails = () => {
+        if (!form || product?.dataset.product !== 'bespoke') {
+            return;
+        }
+
+        const pieceInputs = Array.from(
+            form.querySelectorAll('input[name="packagingPieces"]')
+        );
+
+        const detailSections = Array.from(
+            form.querySelectorAll('[data-bespoke-piece-section]')
+        );
+
+        const customItemsList =
+            document.getElementById('bespokeCustomItemsList');
+
+        const addCustomItemButton =
+            document.getElementById('addBespokeCustomItem');
+
+        const colourSelects = Array.from(
+            form.querySelectorAll('[data-bespoke-colour-select]')
+        );
+
+        const normalise = value =>
+            String(value || '').trim().toLowerCase();
+
+        const updateColourField = select => {
+            const customFieldName =
+                select.dataset.customField;
+
+            if (!customFieldName) return;
+
+            const customInput =
+                form.elements.namedItem(customFieldName);
+
+            const customField =
+                document.getElementById(
+                    `${customFieldName}Field`
+                );
+
+            const isCustom =
+                select.value === 'Other';
+
+            if (customField) {
+                customField.hidden = !isCustom;
+            }
+
+            if (
+                customInput instanceof HTMLInputElement
+            ) {
+                customInput.disabled =
+                    select.disabled || !isCustom;
+
+                customInput.required =
+                    !select.disabled && isCustom;
+            }
+        };
+
+        const setSectionEnabled = (
+            section,
+            enabled
+        ) => {
+            section.hidden = !enabled;
+            section.setAttribute(
+                'aria-hidden',
+                String(!enabled)
+            );
+
+            section
+                .querySelectorAll(
+                    'input, select, textarea, button'
+                )
+                .forEach(control => {
+                    /*
+                     * Buttons do not submit values, but disabling hidden
+                     * action buttons prevents keyboard interaction with
+                     * a configuration that is currently unavailable.
+                     */
+                    control.disabled = !enabled;
+                });
+
+            if (enabled) {
+                section
+                    .querySelectorAll(
+                        'select[required], input[required], textarea[required]'
+                    )
+                    .forEach(control => {
+                        control.disabled = false;
+                    });
+            }
+
+            colourSelects
+                .filter(select =>
+                    section.contains(select)
+                )
+                .forEach(updateColourField);
+        };
+
+        const updateVisibility = () => {
+            const selectedPieces = new Set(
+                pieceInputs
+                    .filter(input => input.checked)
+                    .map(input => input.value)
+            );
+
+            detailSections.forEach(section => {
+                setSectionEnabled(
+                    section,
+                    selectedPieces.has(
+                        section.dataset.bespokePieceSection
+                    )
+                );
+            });
+
+            /*
+             * A custom-item selection must contain at least one
+             * meaningful item name.
+             */
+            const customSection =
+                document.getElementById(
+                    'bespokeCustomItemConfiguration'
+                );
+
+            const customInputs = Array.from(
+                customSection?.querySelectorAll(
+                    '[data-custom-item-input]'
+                ) || []
+            );
+
+            const customEnabled =
+                selectedPieces.has(
+                    'Other custom item'
+                );
+
+            customInputs.forEach(input => {
+                input.required = customEnabled;
+                input.disabled = !customEnabled;
+            });
+        };
+
+        const createCustomItemRow = (
+            value = '',
+            removable = true
+        ) => {
+            const row =
+                document.createElement('div');
+
+            row.className =
+                'bespoke-custom-item-row';
+
+            row.dataset.customItemRow = '';
+
+            const label =
+                document.createElement('label');
+
+            label.className =
+                'product-field';
+
+            const labelText =
+                document.createElement('span');
+
+            labelText.textContent =
+                'Custom item';
+
+            const input =
+                document.createElement('input');
+
+            input.type = 'text';
+            input.name = 'customItems';
+            input.placeholder =
+                'e.g. Product sleeve, insert card, dust bag';
+
+            input.dataset.customItemInput = '';
+            input.value = value;
+
+            label.append(
+                labelText,
+                input
+            );
+
+            const button =
+                document.createElement('button');
+
+            button.type = 'button';
+            button.className =
+                'bespoke-custom-item-action bespoke-custom-item-action--remove';
+            button.textContent =
+                removable ? 'Remove' : 'Add more';
+
+            if (removable) {
+                button.addEventListener(
+                    'click',
+                    () => {
+                        row.remove();
+                        updateVisibility();
+                    }
+                );
+            }
+
+            row.append(label, button);
+
+            return row;
+        };
+
+        addCustomItemButton?.addEventListener(
+            'click',
+            () => {
+                const row =
+                    createCustomItemRow('');
+
+                customItemsList?.appendChild(row);
+
+                updateVisibility();
+
+                row
+                    .querySelector(
+                        '[data-custom-item-input]'
+                    )
+                    ?.focus();
+            }
+        );
+
+        colourSelects.forEach(select => {
+            select.addEventListener(
+                'change',
+                () => updateColourField(select)
+            );
+        });
+
+        /*
+         * Restore bespoke detail values only when the user is explicitly
+         * returning to a saved configuration. A normal fresh visit should
+         * keep the clean defaults instead of reviving stale localStorage.
+         */
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        const shouldRestore =
+            params.get('restore_configuration') === '1';
+
+        if (shouldRestore) {
+            let stored = {};
+
+            try {
+                stored = JSON.parse(
+                    localStorage.getItem(
+                        'luxsomeShopConfiguration'
+                    ) || '{}'
+                );
+            } catch (error) {
+                console.warn(
+                    'The saved bespoke piece details could not be restored.',
+                    error
+                );
+            }
+
+            const configuration = {
+                ...stored,
+                ...Object.fromEntries(
+                    params.entries()
+                )
+            };
+
+            const restoreColour = (
+                selectName,
+                customName,
+                value
+            ) => {
+                if (!value) return;
+
+                const select =
+                    form.elements.namedItem(
+                        selectName
+                    );
+
+                const customInput =
+                    form.elements.namedItem(
+                        customName
+                    );
+
+                if (!(select instanceof HTMLSelectElement)) {
+                    return;
+                }
+
+                const matchingOption =
+                    Array.from(select.options)
+                        .find(option =>
+                            normalise(option.value) ===
+                            normalise(value)
+                        );
+
+                if (matchingOption) {
+                    select.value =
+                        matchingOption.value;
+                } else {
+                    select.value = 'Other';
+
+                    if (
+                        customInput instanceof HTMLInputElement
+                    ) {
+                        customInput.value =
+                            String(value);
+                    }
+                }
+
+                updateColourField(select);
+            };
+
+            restoreColour(
+                'thankYouCardColour',
+                'thankYouCardCustomColour',
+                configuration
+                    .thank_you_card_colour
+            );
+
+            restoreColour(
+                'envelopeColour',
+                'envelopeCustomColour',
+                configuration.envelope_colour
+            );
+
+            restoreColour(
+                'tissueColour',
+                'tissueCustomColour',
+                configuration.tissue_colour
+            );
+
+            restoreColour(
+                'ribbonColour',
+                'ribbonCustomColour',
+                configuration.ribbon_colour
+            );
+
+            const rawCustomItems =
+                configuration.custom_items ??
+                configuration.other_custom_items ??
+                '[]';
+
+            let customItems = [];
+
+            if (Array.isArray(rawCustomItems)) {
+                customItems =
+                    rawCustomItems;
+            } else {
+                try {
+                    const parsed =
+                        JSON.parse(
+                            String(
+                                rawCustomItems ||
+                                '[]'
+                            )
+                        );
+
+                    customItems =
+                        Array.isArray(parsed)
+                            ? parsed
+                            : [];
+                } catch {
+                    customItems =
+                        String(rawCustomItems || '')
+                            .split(',')
+                            .map(item => item.trim())
+                            .filter(Boolean);
+                }
+            }
+
+            if (
+                customItems.length &&
+                customItemsList
+            ) {
+                const firstInput =
+                    customItemsList.querySelector(
+                        '[data-custom-item-input]'
+                    );
+
+                if (firstInput) {
+                    firstInput.value =
+                        String(
+                            customItems[0] || ''
+                        );
+                }
+
+                customItems
+                    .slice(1)
+                    .forEach(item => {
+                        customItemsList.appendChild(
+                            createCustomItemRow(
+                                String(item || '')
+                            )
+                        );
+                    });
+            }
+        }
+
+        pieceInputs.forEach(input => {
+            input.addEventListener(
+                'change',
+                updateVisibility
+            );
+        });
+
+        updateVisibility();
+    };
+
+    const setupBespokeCollapsibleSections = () => {
+        if (!form || product?.dataset.product !== 'bespoke') {
+            return;
+        }
+
+        const sections = [
+            ...Array.from(
+                form.querySelectorAll(
+                    '[data-bespoke-piece-section]'
+                )
+            ),
+            document.getElementById(
+                'boxSpecificationSection'
+            )
+        ].filter(Boolean);
+
+        sections.forEach((section, index) => {
+            if (section.dataset.bespokeCollapsibleReady === 'true') {
+                return;
+            }
+
+            const heading = section.querySelector(
+                ':scope > .bespoke-piece-detail__heading, :scope > .configuration-section__heading'
+            );
+
+            if (!heading) {
+                return;
+            }
+
+            section.dataset.bespokeCollapsible = '';
+            section.dataset.bespokeCollapsibleReady = 'true';
+
+            const body =
+                document.createElement('div');
+
+            body.className =
+                'bespoke-collapsible-body';
+
+            body.id =
+                `${section.id || `bespokeCollapsible${index}`}Body`;
+
+            /*
+             * Everything after the heading becomes the collapsible body.
+             * Moving the existing nodes preserves their current inputs,
+             * event listeners and validation behaviour.
+             */
+            const contentNodes = [];
+
+            let sibling = heading.nextSibling;
+
+            while (sibling) {
+                const next =
+                    sibling.nextSibling;
+
+                contentNodes.push(sibling);
+                sibling = next;
+            }
+
+            contentNodes.forEach(node => {
+                body.appendChild(node);
+            });
+
+            section.appendChild(body);
+
+            const button =
+                document.createElement('button');
+
+            button.type = 'button';
+            button.className =
+                'bespoke-collapse-button';
+            button.setAttribute(
+                'aria-expanded',
+                'true'
+            );
+            button.setAttribute(
+                'aria-controls',
+                body.id
+            );
+
+            const label =
+                document.createElement('span');
+
+            label.textContent = 'Collapse';
+
+            const icon =
+                document.createElement('span');
+
+            icon.className =
+                'bespoke-collapse-button__icon';
+            icon.setAttribute(
+                'aria-hidden',
+                'true'
+            );
+            icon.textContent = '▾';
+
+            button.append(label, icon);
+            heading.appendChild(button);
+
+            const setCollapsed = collapsed => {
+                section.classList.toggle(
+                    'is-collapsed',
+                    collapsed
+                );
+
+                body.hidden = collapsed;
+
+                button.setAttribute(
+                    'aria-expanded',
+                    String(!collapsed)
+                );
+
+                label.textContent =
+                    collapsed
+                        ? 'Expand'
+                        : 'Collapse';
+            };
+
+            button.addEventListener(
+                'click',
+                () => {
+                    setCollapsed(
+                        !section.classList.contains(
+                            'is-collapsed'
+                        )
+                    );
+                }
+            );
+
+            /*
+             * Sections start expanded the first time they appear.
+             * The customer's collapse choice is retained while they
+             * continue configuring the same page.
+             */
+            setCollapsed(false);
+        });
+    };
+
+    setupBespokePieceDetails();
+    setupBespokeCollapsibleSections();
+
+    const getBespokeColourValue = (
+        data,
+        selectName,
+        customName
+    ) => {
+        const selected =
+            String(
+                data.get(selectName) || ''
+            );
+
+        if (selected !== 'Other') {
+            return selected;
+        }
+
+        return String(
+            data.get(customName) || ''
+        ).trim();
+    };
+
+    /* ==========================================================
     OPTIONAL RIBBON SELECTION
     Allows an active radio option to be clicked again to clear it.
     ========================================================== */
@@ -687,6 +1262,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const progressBar = document.getElementById(
             'artworkUploadProgressBar'
         );
+        const retryActions = document.getElementById(
+            'artworkUploadStatusActions'
+        );
+        const retryButton = document.getElementById(
+            'artworkUploadRetryButton'
+        );
         const uploadIdInput = document.getElementById('artworkUploadId');
         const objectKeysInput = document.getElementById(
             'artworkObjectKeys'
@@ -801,6 +1382,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let uploadedKeys = [];
         let uploadId = '';
 
+        /*
+         * Retry state is kept in memory so a failed network upload can
+         * continue from the failed file without asking the customer to
+         * select the artwork again or re-upload files that already succeeded.
+         */
+        let retryState = null;
+        let retryInProgress = false;
+
         const endpoint = section?.dataset.uploadEndpoint
             ?.replace(/\/+$/, '');
 
@@ -854,9 +1443,25 @@ document.addEventListener('DOMContentLoaded', () => {
             section.classList.toggle('has-error', isError);
         };
 
+        const setRetryVisible = visible => {
+            if (retryActions) {
+                retryActions.hidden = !visible;
+            }
+
+            if (retryButton && !visible) {
+                retryButton.disabled = false;
+
+                const label = retryButton.querySelector('span');
+                if (label) label.textContent = 'Retry upload';
+            }
+        };
+
         const clearUploadResult = () => {
             uploadedKeys = [];
             uploadId = '';
+            retryState = null;
+
+            setRetryVisible(false);
 
             if (uploadIdInput) uploadIdInput.value = '';
             if (objectKeysInput) objectKeysInput.value = '';
@@ -1142,7 +1747,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (heading) {
                 heading.textContent = ready
-                    ? 'Upload your final artwork'
+                    ? 'Upload your final design files'
                     : partial
                         ? 'Upload the files you already have'
                         : 'Upload optional references';
@@ -1335,34 +1940,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                reject(
-                    new Error(
-                        payload.error ||
-                        `Upload failed for ${file.name}.`
-                    )
+                const uploadError = new Error(
+                    payload.error ||
+                    `Upload failed for ${file.name}.`
                 );
+
+                uploadError.httpStatus = request.status;
+                uploadError.fileIndex = index;
+
+                reject(uploadError);
             });
 
             request.addEventListener('error', () => {
-                reject(
-                    new Error(
-                        `Network error while uploading ${file.name}.`
-                    )
+                const uploadError = new Error(
+                    `Network error while uploading ${file.name}.`
                 );
+
+                uploadError.fileIndex = index;
+                reject(uploadError);
             });
 
             request.addEventListener('abort', () => {
-                reject(
-                    new Error(
-                        `Upload cancelled for ${file.name}.`
-                    )
+                const uploadError = new Error(
+                    `Upload cancelled for ${file.name}.`
                 );
+
+                uploadError.fileIndex = index;
+                reject(uploadError);
             });
 
             request.send(file);
         });
 
-        const upload = async () => {
+        const upload = async (options = {}) => {
+            const retry = options.retry === true;
+
             if (!section || !getSelectedArtworkStatus()) {
                 return {
                     uploadId: '',
@@ -1389,31 +2001,129 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
             }
 
+            /*
+             * If a manual retry has already completed successfully, the
+             * customer can click Order Now again without uploading everything
+             * a second time.
+             */
+            const uploadComplete =
+                Boolean(uploadId) &&
+                uploadedKeys.length === files.length &&
+                uploadedKeys.every(Boolean);
+
+            if (!retry && uploadComplete) {
+                return {
+                    uploadId,
+                    keys: [...uploadedKeys]
+                };
+            }
+
+            if (retryInProgress) {
+                throw new Error(
+                    'The artwork upload is already being retried.'
+                );
+            }
+
             section.classList.add('is-uploading');
             section.classList.remove('has-error');
 
-            try {
+            if (retry) {
+                retryInProgress = true;
+
+                if (retryButton) {
+                    retryButton.disabled = true;
+
+                    const label = retryButton.querySelector('span');
+                    if (label) label.textContent = 'Retrying…';
+                }
+            } else {
                 clearUploadResult();
                 uploadId = createUploadId();
+            }
 
-                setStatus(
-                    'Creating a secure upload session…',
-                    0
-                );
+            let sessionToken = retryState?.sessionToken || '';
+            let startIndex = retry
+                ? Math.max(0, retryState?.index ?? 0)
+                : 0;
 
-                const sessionToken =
-                    await createSession(uploadId);
+            /*
+             * Keep only keys that are known to have uploaded before the
+             * failed index. This prevents successful files from being sent
+             * again during a normal network retry.
+             */
+            if (retry) {
+                uploadedKeys = uploadedKeys.slice(0, startIndex);
+            }
 
-                for (const [index, file] of files.entries()) {
-                    const key = await uploadFile(
-                        file,
-                        index,
-                        uploadId,
-                        sessionToken
+            try {
+                if (!sessionToken) {
+                    setStatus(
+                        retry
+                            ? 'Refreshing the secure upload session…'
+                            : 'Creating a secure upload session…',
+                        startIndex
+                            ? (startIndex / files.length) * 100
+                            : 0
                     );
 
-                    uploadedKeys.push(key);
+                    try {
+                        sessionToken = await createSession(uploadId);
+                    } catch (sessionError) {
+                        retryState = {
+                            index: startIndex,
+                            sessionToken: ''
+                        };
+
+                        setRetryVisible(true);
+                        resetTurnstile();
+                        throw sessionError;
+                    }
                 }
+
+                for (
+                    let index = startIndex;
+                    index < files.length;
+                    index += 1
+                ) {
+                    const file = files[index];
+
+                    try {
+                        const key = await uploadFile(
+                            file,
+                            index,
+                            uploadId,
+                            sessionToken
+                        );
+
+                        uploadedKeys[index] = key;
+                    } catch (fileError) {
+                        /*
+                         * 401/403 usually means the secure upload session is no
+                         * longer usable. The retry button will request a fresh
+                         * session after Turnstile is completed again.
+                         */
+                        const sessionExpired = [401, 403].includes(
+                            Number(fileError.httpStatus)
+                        );
+
+                        retryState = {
+                            index,
+                            sessionToken: sessionExpired
+                                ? ''
+                                : sessionToken
+                        };
+
+                        if (sessionExpired) {
+                            resetTurnstile();
+                        }
+
+                        setRetryVisible(true);
+                        throw fileError;
+                    }
+                }
+
+                retryState = null;
+                setRetryVisible(false);
 
                 if (uploadIdInput) {
                     uploadIdInput.value = uploadId;
@@ -1434,13 +2144,75 @@ document.addEventListener('DOMContentLoaded', () => {
                     keys: [...uploadedKeys]
                 };
             } catch (error) {
-                setStatus(error.message, 0, true);
-                resetTurnstile();
+                const failedFileIndex = retryState?.index;
+                const failedFile =
+                    Number.isInteger(failedFileIndex)
+                        ? files[failedFileIndex]
+                        : null;
+
+                const message = failedFile
+                    ? `${error.message} Your files are still selected — retry from ${failedFile.name}.`
+                    : `${error.message} Your files are still selected — you can retry the upload.`;
+
+                setStatus(
+                    message,
+                    failedFileIndex
+                        ? (failedFileIndex / files.length) * 100
+                        : 0,
+                    true
+                );
+
+                setRetryVisible(true);
                 throw error;
             } finally {
                 section.classList.remove('is-uploading');
+
+                if (retry) {
+                    retryInProgress = false;
+
+                    if (retryButton) {
+                        retryButton.disabled = false;
+
+                        const label = retryButton.querySelector('span');
+                        if (label) label.textContent = 'Retry upload';
+                    }
+                }
             }
         };
+
+        /*
+         * Retry only the failed portion of the artwork upload.
+         * Successfully uploaded files keep their existing object keys.
+         */
+        retryButton?.addEventListener('click', async () => {
+            if (!retryState) {
+                setRetryVisible(false);
+                return;
+            }
+
+            try {
+                await upload({
+                    retry: true
+                });
+
+                /*
+                 * The original Order Now submission stopped when the upload
+                 * failed. After a successful retry we leave the project form
+                 * intact and clearly tell the customer to submit again. The
+                 * second submit reuses the completed upload and does not send
+                 * the files a second time.
+                 */
+                setStatus(
+                    'Artwork uploaded successfully. Click Order Now again to continue your project.',
+                    100
+                );
+            } catch (error) {
+                /*
+                 * upload() already renders the useful failure message and
+                 * keeps the retry button visible.
+                 */
+            }
+        });
 
         artworkStatusInputs.forEach(input => {
             input.addEventListener('change', updateVisibility);
@@ -1661,7 +2433,50 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('sticker_style', data.get('stickerStyle') || '');
         params.set('tissue_style', data.get('tissueStyle') || '');
         params.set('ribbon_style', data.get('ribbonStyle') || '');
-        params.set('ribbon_colour', data.get('ribbonColour') || '');
+
+        const ribbonColour = isBespoke
+            ? getBespokeColourValue(
+                data,
+                'ribbonColour',
+                'ribbonCustomColour'
+            )
+            : data.get('ribbonColour') || '';
+
+        params.set('ribbon_colour', ribbonColour);
+
+        params.set(
+            'thank_you_card_colour',
+            isBespoke
+                ? getBespokeColourValue(
+                    data,
+                    'thankYouCardColour',
+                    'thankYouCardCustomColour'
+                )
+                : ''
+        );
+
+        params.set(
+            'envelope_colour',
+            isBespoke
+                ? getBespokeColourValue(
+                    data,
+                    'envelopeColour',
+                    'envelopeCustomColour'
+                )
+                : ''
+        );
+
+        params.set(
+            'tissue_colour',
+            isBespoke
+                ? getBespokeColourValue(
+                    data,
+                    'tissueColour',
+                    'tissueCustomColour'
+                )
+                : ''
+        );
+
         params.set('logo_finish', data.get('logoFinish') || '');
         params.set('artwork_status', data.get('artworkStatus') || '');
         params.set(
@@ -1684,9 +2499,17 @@ document.addEventListener('DOMContentLoaded', () => {
             data.get("thankYouCard") || "";
 
         const selectedEnvelope =
-            selectedThankYouInsert === "Thank-you note"
-                ? data.get("envelopeStyle") || ""
-                : "";
+            isBespoke
+                ? (
+                    selectedPieces.includes("Envelope")
+                        ? data.get("envelopeStyle") || ""
+                        : ""
+                )
+                : (
+                    selectedThankYouInsert === "Thank-you note"
+                        ? data.get("envelopeStyle") || ""
+                        : ""
+                );
 
         params.set(
             "thank_you_card",
@@ -1760,6 +2583,28 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('pantone_reference', data.get('pantoneReference') || '');
         params.set('comments', data.get('comments') || '');
         params.set('accessories', data.getAll('accessories').join(', '));
+
+        const customItems = isBespoke
+            ? data
+                .getAll('customItems')
+                .map(item => String(item).trim())
+                .filter(Boolean)
+            : [];
+
+        params.set(
+            'custom_items',
+            JSON.stringify(customItems)
+        );
+
+        /*
+         * Alias retained for downstream code that may use a more explicit
+         * field name when rendering the project brief.
+         */
+        params.set(
+            'other_custom_items',
+            customItems.join(', ')
+        );
+
         params.set(
             'additional_projects',
             data.get('additionalProjects') || '[]'

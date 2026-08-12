@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <meta
+        name="robots"
+        content="noindex, nofollow"
+    >
+
+    <title>Production Schedule | Luxsome CRM</title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/crm-responsive.css">
+    <link rel="stylesheet" href="/css/admin-v2.css">
+    <link rel="stylesheet" href="/css/production-v1.css?v=11">
+</head>
+
+<body class="crm-app-page">
+
+    <div class="crm-app">
+
+        <!-- ==================================================
+             SIDEBAR
+        =================================================== -->
+
+        <aside
+            class="crm-sidebar"
+            id="crmSidebar"
+        >
+            <div>
+                <div data-luxsome-crm-logo></div>
+
+                <nav
+                    class="crm-nav"
+                    aria-label="CRM navigation"
+                >
+                    <section class="crm-nav__group">
+
+                        <p class="crm-nav__label">
+                            Overview
+                        </p>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link"
+                            href="/admin/"
+                        >
+                            <span>Dashboard</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                    </section>
+
+
+                    <section class="crm-nav__group">
+
+                        <p class="crm-nav__label">
+                            Sales
+                        </p>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link"
+                            href="/admin/"
+                        >
+                            <span>Enquiries</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link"
+                            href="/admin/invoices/"
+                        >
+                            <span>Invoices</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                    </section>
+
+
+                    <section class="crm-nav__group">
+
+                        <p class="crm-nav__label">
+                            Fulfilment
+                        </p>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link"
+                            href="/admin/orders/"
+                        >
+                            <span>Orders</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a
+                            class="crm-nav__item crm-nav__item--link is-active"
+                            href="/admin/production/"
+                            aria-current="page"
+                        >
+                            <span>Production</span>
+                            <small aria-hidden="true">●</small>
+                        </a>
+
+                    </section>
+                </nav>
+            </div>
+
+
+            <div class="crm-sidebar__footer">
+
+                <button
+                    id="logout"
+                    class="crm-sidebar__logout"
+                    type="button"
+                >
+                    Lock dashboard
+                </button>
+
+            </div>
+        </aside>
+
+
+        <!-- ==================================================
+             MAIN
+        =================================================== -->
+
+        <div class="crm-main">
+
+            <!-- HEADER -->
+
+            <header class="crm-topbar production-header">
+
+                <button
+                    id="mobileMenuButton"
+                    class="crm-mobile-menu"
+                    type="button"
+                    aria-controls="crmSidebar"
+                    aria-expanded="false"
+                >
+                    Menu
+                </button>
+
+
+                <div class="production-heading">
+
+                    <p class="crm-eyebrow">
+                        PRODUCTION CONTROL
+                    </p>
+
+                    <h1>
+                        Production Schedule
+                    </h1>
+
+                    <span>
+                        Plan and track every active packaging project.
+                    </span>
+
+                </div>
+
+
+                <div class="crm-topbar__actions header-actions">
+
+                    <button
+                        id="todayButton"
+                        class="crm-button crm-button--secondary"
+                        type="button"
+                    >
+                        Today
+                    </button>
+
+                    <button
+                        id="refreshButton"
+                        class="crm-button crm-button--primary"
+                        type="button"
+                    >
+                        Refresh
+                    </button>
+                    <button
+                        id="generateScheduleButton"
+                        class="crm-button crm-button--primary"
+                        type="button"
+                    >
+                        Generate schedule
+                    </button>
+                    <button
+                        id="newTaskButton"
+                        class="crm-button crm-button--primary"
+                        type="button"
+                    >
+                        + New task
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <!-- ==================================================
+                 STATS
+            =================================================== -->
+
+            <section
+                class="production-stats"
+                aria-label="Production overview"
+            >
+
+                <article>
+                    <span>
+                        Scheduled tasks
+                    </span>
+
+                    <strong id="scheduledCount">
+                        0
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>
+                        In progress
+                    </span>
+
+                    <strong id="inProgressCount">
+                        0
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>
+                        Blocked
+                    </span>
+
+                    <strong id="blockedCount">
+                        0
+                    </strong>
+                </article>
+
+
+                <article>
+                    <span>
+                        Overdue
+                    </span>
+
+                    <strong id="overdueCount">
+                        0
+                    </strong>
+                </article>
+
+            </section>
+
+
+            <!-- ==================================================
+                 FILTERS
+            =================================================== -->
+
+            <section
+                class="production-toolbar card"
+                aria-label="Production schedule filters"
+            >
+
+                <label class="sr-only" for="productionSearch">
+                    Search production schedule
+                </label>
+
+                <input
+                    id="productionSearch"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Search brand, order, product or task"
+                >
+
+
+                <label class="sr-only" for="taskStatusFilter">
+                    Filter by task status
+                </label>
+
+                <select id="taskStatusFilter">
+
+                    <option value="">
+                        All task statuses
+                    </option>
+
+                    <option value="not_started">
+                        Not started
+                    </option>
+
+                    <option value="ready">
+                        Ready
+                    </option>
+
+                    <option value="in_progress">
+                        In progress
+                    </option>
+
+                    <option value="blocked">
+                        Blocked
+                    </option>
+
+                    <option value="on_hold">
+                        On hold
+                    </option>
+
+                    <option value="completed">
+                        Completed
+                    </option>
+
+                    <option value="cancelled">
+                        Cancelled
+                    </option>
+
+                </select>
+
+
+                <label class="sr-only" for="assigneeFilter">
+                    Filter by assigned person
+                </label>
+
+                <input
+                    id="assigneeFilter"
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Assigned person"
+                >
+
+
+                <label class="sr-only" for="timelineScale">
+                    Timeline scale
+                </label>
+
+                <select id="timelineScale">
+
+                    <option value="day">
+                        Daily
+                    </option>
+
+                    <option value="week" selected>
+                        Weekly
+                    </option>
+
+                </select>
+
+            </section>
+
+
+            <!-- STATUS / ERROR MESSAGE -->
+
+            <p
+                id="productionMessage"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+
+            <!-- ==================================================
+                 GANTT
+            =================================================== -->
+
+            <section
+                class="gantt-card card"
+                aria-label="Production Gantt schedule"
+            >
+
+                <div class="gantt-shell">
+
+                    <!-- LEFT TASK COLUMN -->
+
+                    <div class="gantt-sidebar">
+
+                        <div class="gantt-sidebar-header">
+
+                            <span>
+                                Production task
+                            </span>
+
+                        </div>
+
+                        <div id="ganttTaskRows"></div>
+
+                    </div>
+
+
+                    <!-- RIGHT TIMELINE -->
+
+                    <div
+                        id="ganttTimeline"
+                        class="gantt-timeline"
+                    >
+
+                        <div
+                            id="ganttHeader"
+                            class="gantt-header"
+                        ></div>
+
+                        <div
+                            id="ganttRows"
+                            class="gantt-rows"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- EMPTY STATE -->
+
+                <div
+                    id="ganttEmpty"
+                    class="gantt-empty"
+                    hidden
+                >
+
+                    <strong>
+                        No production tasks scheduled.
+                    </strong>
+
+                    <p>
+                        Add schedule tasks from an order to begin
+                        building the production timeline.
+                    </p>
+
+                </div>
+
+            </section>
+
+        </div>
+        <!-- ==================================================
+            TASK EDITOR DRAWER
+        =================================================== -->
+
+        <div
+        id="taskBackdrop"
+        class="task-backdrop"
+        hidden
+        ></div>
+
+        <aside
+        id="taskPanel"
+        class="task-panel"
+        aria-hidden="true"
+        aria-labelledby="taskPanelTitle"
+        >
+        <header class="task-panel__header">
+
+            <div>
+                <p class="crm-eyebrow">
+                    PRODUCTION TASK
+                </p>
+
+                <h2 id="taskPanelTitle">
+                    Edit task
+                </h2>
+
+                <p id="taskPanelReference"></p>
+            </div>
+
+            <button
+                id="closeTaskPanel"
+                class="task-panel__close"
+                type="button"
+                aria-label="Close task editor"
+            >
+                ×
+            </button>
+
+        </header>
+
+
+        <form id="taskForm">
+
+            <input
+                id="taskId"
+                type="hidden"
+            >
+
+            <input
+                id="taskOrderReference"
+                type="hidden"
+            >
+
+
+            <div class="task-form-grid">
+                <label
+                    id="taskOrderField"
+                    class="task-field task-field--wide"
+                >
+                    <span>Order</span>
+
+                    <select
+                        id="taskOrder"
+                        required
+                    >
+                        <option value="">
+                            Select an order
+                        </option>
+                    </select>
+                </label>
+
+                <label
+                    id="taskOrderItemField"
+                    class="task-field task-field--wide"
+                >
+                    <span>Order item</span>
+
+                    <select id="taskOrderItem">
+                        <option value="">
+                            Entire order / general task
+                        </option>
+                    </select>
+                </label>
+                <label
+                    id="taskDependencyField"
+                    class="task-field task-field--wide"
+                >
+                    <span>Depends on</span>
+
+                    <select id="taskDependency">
+                        <option value="">
+                            No dependency
+                        </option>
+                    </select>
+                </label>
+
+                <label class="task-field task-field--wide">
+                    <span>Task name</span>
+
+                    <input
+                        id="taskName"
+                        type="text"
+                        required
+                    >
+                </label>
+
+
+                <label class="task-field">
+                    <span>Status</span>
+
+                    <select id="taskStatus">
+                        <option value="not_started">
+                            Not started
+                        </option>
+
+                        <option value="ready">
+                            Ready
+                        </option>
+
+                        <option value="in_progress">
+                            In progress
+                        </option>
+
+                        <option value="blocked">
+                            Blocked
+                        </option>
+
+                        <option value="on_hold">
+                            On hold
+                        </option>
+
+                        <option value="completed">
+                            Completed
+                        </option>
+
+                        <option value="cancelled">
+                            Cancelled
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="task-field">
+                    <span>Priority</span>
+
+                    <select id="taskPriority">
+                        <option value="low">
+                            Low
+                        </option>
+
+                        <option value="normal">
+                            Normal
+                        </option>
+
+                        <option value="high">
+                            High
+                        </option>
+
+                        <option value="urgent">
+                            Urgent
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="task-field">
+                    <span>Planned start</span>
+
+                    <input
+                        id="taskPlannedStart"
+                        type="date"
+                    >
+                </label>
+
+
+                <label class="task-field">
+                    <span>Planned end</span>
+
+                    <input
+                        id="taskPlannedEnd"
+                        type="date"
+                    >
+                </label>
+
+
+                <label class="task-field">
+                    <span>Assigned to</span>
+
+                    <input
+                        id="taskAssignedTo"
+                        type="text"
+                        placeholder="Production Team"
+                    >
+                </label>
+
+
+                <label class="task-field">
+                    <span>Progress</span>
+
+                    <div class="task-progress-control">
+                        <input
+                            id="taskProgress"
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="5"
+                            value="0"
+                        >
+
+                        <strong id="taskProgressValue">
+                            0%
+                        </strong>
+                    </div>
+                </label>
+
+
+                <label class="task-field task-field--wide">
+                    <span>Notes</span>
+
+                    <textarea
+                        id="taskNotes"
+                        rows="5"
+                    ></textarea>
+                </label>
+
+            </div>
+
+
+            <p
+                id="taskFormMessage"
+                class="task-form-message"
+                role="status"
+            ></p>
+
+
+            <footer class="task-panel__footer">
+
+                <button
+                    id="deleteTaskButton"
+                    class="task-delete-button"
+                    type="button"
+                >
+                    Delete task
+                </button>
+
+                <div>
+                    <button
+                        id="cancelTaskButton"
+                        class="crm-button crm-button--secondary"
+                        type="button"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        class="crm-button crm-button--primary"
+                        type="submit"
+                    >
+                        Save task
+                    </button>
+                </div>
+
+            </footer>
+
+        </form>
+        </aside>
+        <div
+    id="scheduleGeneratorBackdrop"
+    class="task-backdrop"
+    hidden
+></div>
+
+    <aside
+        id="scheduleGeneratorPanel"
+        class="task-panel schedule-generator-panel"
+        aria-hidden="true"
+        aria-labelledby="scheduleGeneratorTitle"
+    >
+        <header class="task-panel__header">
+
+            <div>
+                <p class="crm-eyebrow">
+                    PRODUCTION SETUP
+                </p>
+
+                <h2 id="scheduleGeneratorTitle">
+                    Generate schedule
+                </h2>
+
+                <p>
+                    Create a production workflow from an active order item.
+                </p>
+            </div>
+
+            <button
+                id="closeScheduleGenerator"
+                class="task-panel__close"
+                type="button"
+                aria-label="Close schedule generator"
+            >
+                ×
+            </button>
+
+        </header>
+
+
+        <form id="scheduleGeneratorForm">
+
+            <div class="task-form-grid">
+
+                <label class="task-field task-field--wide">
+                    <span>Order</span>
+
+                    <select
+                        id="generatorOrder"
+                        required
+                    >
+                        <option value="">
+                            Select an active order
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="task-field task-field--wide">
+                    <span>Order item</span>
+
+                    <select
+                        id="generatorOrderItem"
+                        required
+                        disabled
+                    >
+                        <option value="">
+                            Select an order first
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="task-field task-field--wide">
+                    <span>Schedule start date</span>
+
+                    <input
+                        id="generatorStartDate"
+                        type="date"
+                        required
+                    >
+                </label>
+
+            </div>
+
+
+            <section
+                id="generatorMatchCard"
+                class="generator-match-card"
+                hidden
+            >
+                <span>
+                    Matched template
+                </span>
+
+                <strong id="generatorTemplateName">
+                    —
+                </strong>
+
+                <p id="generatorTemplateReason"></p>
+            </section>
+
+
+            <section
+                id="generatorPreview"
+                class="generator-preview"
+                hidden
+            >
+                <div class="generator-preview__header">
+                    <div>
+                        <span>
+                            Schedule preview
+                        </span>
+
+                        <strong id="generatorPreviewCount">
+                            0 tasks
+                        </strong>
+                    </div>
+                </div>
+
+                <div id="generatorPreviewList"></div>
+            </section>
+
+
+            <p
+                id="generatorMessage"
+                class="task-form-message"
+                role="status"
+            ></p>
+
+
+            <footer class="task-panel__footer">
+
+                <button
+                    id="cancelScheduleGenerator"
+                    class="crm-button crm-button--secondary"
+                    type="button"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    id="confirmGenerateSchedule"
+                    class="crm-button crm-button--primary"
+                    type="submit"
+                    disabled
+                >
+                    Generate schedule
+                </button>
+
+            </footer>
+
+        </form>
+
+    </aside>
+    </div>
+
+
+    <script src="/js/production-v1.js?v=11"></script>
+    <script src="/js/crm-brand.js"></script>
+
+</body>
+</html>

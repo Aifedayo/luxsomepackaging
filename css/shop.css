@@ -5574,3 +5574,120 @@ body.option-visual-open {
     }
 }
 
+/* =========================================
+   ARTWORK UPLOAD RETRY
+========================================= */
+
+.artwork-upload__status-actions[hidden] {
+    display: none !important;
+}
+
+.artwork-upload__status-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    margin-top: 16px;
+    padding-top: 16px;
+
+    border-top: 1px solid rgba(103, 54, 41, 0.14);
+}
+
+.artwork-upload__retry {
+    min-height: 42px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    padding: 11px 16px;
+
+    border: 1px solid #673629;
+    border-radius: 0;
+
+    background: #673629;
+    color: #ffffff;
+
+    font-family: "Montserrat", Arial, sans-serif;
+    font-size: 0.66rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.08em;
+
+    text-transform: uppercase;
+    text-decoration: none;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    cursor: pointer;
+
+    box-shadow: none;
+
+    transition:
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        transform 180ms ease,
+        opacity 180ms ease;
+}
+
+.artwork-upload__retry i {
+    font-size: 0.72rem;
+}
+
+.artwork-upload__retry:hover:not(:disabled) {
+    background: #2e1c15;
+    border-color: #2e1c15;
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+.artwork-upload__retry:focus-visible {
+    outline: 2px solid rgba(103, 54, 41, 0.35);
+    outline-offset: 3px;
+}
+
+.artwork-upload__retry:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    transform: none;
+}
+
+.artwork-upload__status-actions small {
+    max-width: 420px;
+
+    color: #7b6860;
+
+    font-size: 0.66rem;
+    line-height: 1.55;
+}
+
+/* Error state */
+.artwork-upload-section.has-error
+.artwork-upload__retry {
+    background: #673629;
+    border-color: #673629;
+    color: #ffffff;
+}
+
+/* Mobile */
+@media (max-width: 620px) {
+    .artwork-upload__status-actions {
+        align-items: stretch;
+        flex-direction: column;
+
+        gap: 10px;
+    }
+
+    .artwork-upload__retry {
+        width: 100%;
+    }
+
+    .artwork-upload__status-actions small {
+        max-width: none;
+    }
+}

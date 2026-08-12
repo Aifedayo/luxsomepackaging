@@ -1,0 +1,39 @@
+Test ID	Area	Title	Status	Severity	Expected	Actual	Notes
+PV1-001	API	Health endpoint	PASS	Critical	HTTP 200 and success=true	HTTP 200, {"success":true,"service":"Luxsome Project API","status":"running"}	
+PV1-002	Security	Invalid admin token rejected	PASS	Critical	HTTP 401	HTTP 401	
+PV1-003	Templates	Template list loads	PASS	Critical	HTTP 200 with templates array	HTTP 200, count=10	
+PV1-T-1	Templates	Rigid Box Production seeded and active	PASS	High	Active template exists	id=1, steps=8	
+PV1-T-2	Templates	Hang Tag Production seeded and active	PASS	High	Active template exists	id=2, steps=8	
+PV1-T-3	Templates	Branded Tissue Production seeded and active	PASS	High	Active template exists	id=3, steps=5	
+PV1-T-4	Templates	Thank You Card / Envelope Production seeded and active	PASS	High	Active template exists	id=4, steps=7	
+PV1-T-5	Templates	Shopping Bag Production seeded and active	PASS	High	Active template exists	id=5, steps=9	
+PV1-T-6	Templates	Sticker Production seeded and active	PASS	High	Active template exists	id=11, steps=5	
+PV1-T-7	Templates	Tier 1 Packaging System seeded and active	PASS	High	Active template exists	id=12, steps=6	
+PV1-T-8	Templates	Tier 2 Packaging System seeded and active	PASS	High	Active template exists	id=13, steps=8	
+PV1-T-9	Templates	Tier 3 Packaging System seeded and active	PASS	High	Active template exists	id=14, steps=10	
+PV1-T-10	Templates	Bespoke Packaging System seeded and active	PASS	High	Active template exists	id=15, steps=9	
+PV1-D-1	Templates	Rigid Box Production detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=8, rules=13	
+PV1-D-2	Templates	Hang Tag Production detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=8, rules=11	
+PV1-D-3	Templates	Branded Tissue Production detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=5, rules=5	
+PV1-D-4	Templates	Thank You Card / Envelope Production detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=7, rules=12	
+PV1-D-5	Templates	Shopping Bag Production detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=9, rules=6	
+PV1-D-11	Templates	Sticker Production detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=5, rules=4	
+PV1-D-12	Templates	Tier 1 Packaging System detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=6, rules=4	
+PV1-D-13	Templates	Tier 2 Packaging System detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=8, rules=4	
+PV1-D-14	Templates	Tier 3 Packaging System detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=10, rules=4	
+PV1-D-15	Templates	Bespoke Packaging System detail integrity	PASS	High	At least 1 step/rule; valid dependencies/durations	steps=9, rules=6	
+PV1-020	Orders	Active orders load	PASS	Critical	HTTP 200	HTTP 200, test orders=3	
+PV1-O-ORD-2026-0001	Orders	ORD-2026-0001 detail and items load	PASS	High	Order detail with items array	HTTP 200, items=1	
+PV1-FP-ORD-2026-0001	Generation	ORD-2026-0001 full-order preview	PASS	Critical	HTTP 200 and itemCount=1	HTTP 200, itemCount=1	
+PV1-M-ORD-2026-0001-1	Matching	ssdfgh has no known baseline mapping	WARN	Medium	Review whether this product needs a v1 template	No active production template matches "ssdfgh".	
+PV1-O-ORD-2026-0003	Orders	ORD-2026-0003 detail and items load	PASS	High	Order detail with items array	HTTP 200, items=1	
+PV1-FP-ORD-2026-0003	Generation	ORD-2026-0003 full-order preview	PASS	Critical	HTTP 200 and itemCount=1	HTTP 200, itemCount=1	
+PV1-M-ORD-2026-0003-3	Matching	Tier 2 Packaging System matches expected template	PASS	Critical	/Tier 2 Packaging System/i and taskCount>0	HTTP 200, template=Tier 2 Packaging System, tasks=8	
+PV1-O-ORD-2026-0002	Orders	ORD-2026-0002 detail and items load	PASS	High	Order detail with items array	HTTP 200, items=1	
+PV1-FP-ORD-2026-0002	Generation	ORD-2026-0002 full-order preview	PASS	Critical	HTTP 200 and itemCount=1	HTTP 200, itemCount=1	
+PV1-M-ORD-2026-0002-2	Matching	Magnetic Flap Rigid Box matches expected template	PASS	Critical	/Rigid Box Production/i and taskCount>0	HTTP 200, template=Rigid Box Production, tasks=8	
+PV1-040	Validation	Unknown order rejected	PASS	High	HTTP 404	HTTP 404	
+PV1-041	Validation	Foreign/unknown order item rejected	PASS	High	HTTP 422	HTTP 422	
+PV1-050	Safety	Duplicate generated schedule is blocked	PASS	Critical	HTTP 409 and no duplicate tasks	HTTP 409: This order item already has production tasks.	
+PV1-060	Gantt API	Production schedule list loads	PASS	Critical	HTTP 200 and tasks array	HTTP 200, tasks=21	
+PV1-070	Task CRUD	Temporary task CRUD suite	SKIP	Medium	Run with --write to enable	Safe mode	
