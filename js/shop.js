@@ -46,6 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
             envelope_style: 'envelopeStyle',
             ribbon_style: 'ribbonStyle',
             ribbon_colour: 'ribbonColour',
+            thank_you_card_colour: 'thankYouCardColour',
+            envelope_colour: 'envelopeColour',
+            tissue_colour: 'tissueColour',
             logo_finish: 'logoFinish',
             artwork_status: 'artworkStatus',
             quantity: 'quantity',
@@ -405,6 +408,578 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const form = document.getElementById('productConfigForm');
     const product = document.querySelector('.product-detail');
+
+    /* ==========================================================
+       BESPOKE PIECE DETAIL CONFIGURATION
+       Reveals configuration only for the packaging pieces selected
+       by the customer. Hidden controls are disabled so they do not
+       leak stale values into FormData.
+    ========================================================== */
+
+    const setupBespokePieceDetails = () => {
+        if (!form || product?.dataset.product !== 'bespoke') {
+            return;
+        }
+
+        const pieceInputs = Array.from(
+            form.querySelectorAll('input[name="packagingPieces"]')
+        );
+
+        const detailSections = Array.from(
+            form.querySelectorAll('[data-bespoke-piece-section]')
+        );
+
+        const customItemsList =
+            document.getElementById('bespokeCustomItemsList');
+
+        const addCustomItemButton =
+            document.getElementById('addBespokeCustomItem');
+
+        const colourSelects = Array.from(
+            form.querySelectorAll('[data-bespoke-colour-select]')
+        );
+
+        const normalise = value =>
+            String(value || '').trim().toLowerCase();
+
+        const updateColourField = select => {
+            const customFieldName =
+                select.dataset.customField;
+
+            if (!customFieldName) return;
+
+            const customInput =
+                form.elements.namedItem(customFieldName);
+
+            const customField =
+                document.getElementById(
+                    `${customFieldName}Field`
+                );
+
+            const isCustom =
+                select.value === 'Other';
+
+            if (customField) {
+                customField.hidden = !isCustom;
+            }
+
+            if (
+                customInput instanceof HTMLInputElement
+            ) {
+                customInput.disabled =
+                    select.disabled || !isCustom;
+
+                customInput.required =
+                    !select.disabled && isCustom;
+            }
+        };
+
+        const setSectionEnabled = (
+            section,
+            enabled
+        ) => {
+            section.hidden = !enabled;
+            section.setAttribute(
+                'aria-hidden',
+                String(!enabled)
+            );
+
+            section
+                .querySelectorAll(
+                    'input, select, textarea, button'
+                )
+                .forEach(control => {
+                    /*
+                     * Buttons do not submit values, but disabling hidden
+                     * action buttons prevents keyboard interaction with
+                     * a configuration that is currently unavailable.
+                     */
+                    control.disabled = !enabled;
+                });
+
+            if (enabled) {
+                section
+                    .querySelectorAll(
+                        'select[required], input[required], textarea[required]'
+                    )
+                    .forEach(control => {
+                        control.disabled = false;
+                    });
+            }
+
+            colourSelects
+                .filter(select =>
+                    section.contains(select)
+                )
+                .forEach(updateColourField);
+        };
+
+        const updateVisibility = () => {
+            const selectedPieces = new Set(
+                pieceInputs
+                    .filter(input => input.checked)
+                    .map(input => input.value)
+            );
+
+            detailSections.forEach(section => {
+                setSectionEnabled(
+                    section,
+                    selectedPieces.has(
+                        section.dataset.bespokePieceSection
+                    )
+                );
+            });
+
+            /*
+             * A custom-item selection must contain at least one
+             * meaningful item name.
+             */
+            const customSection =
+                document.getElementById(
+                    'bespokeCustomItemConfiguration'
+                );
+
+            const customInputs = Array.from(
+                customSection?.querySelectorAll(
+                    '[data-custom-item-input]'
+                ) || []
+            );
+
+            const customEnabled =
+                selectedPieces.has(
+                    'Other custom item'
+                );
+
+            customInputs.forEach(input => {
+                input.required = customEnabled;
+                input.disabled = !customEnabled;
+            });
+        };
+
+        const createCustomItemRow = (
+            value = '',
+            removable = true
+        ) => {
+            const row =
+                document.createElement('div');
+
+            row.className =
+                'bespoke-custom-item-row';
+
+            row.dataset.customItemRow = '';
+
+            const label =
+                document.createElement('label');
+
+            label.className =
+                'product-field';
+
+            const labelText =
+                document.createElement('span');
+
+            labelText.textContent =
+                'Custom item';
+
+            const input =
+                document.createElement('input');
+
+            input.type = 'text';
+            input.name = 'customItems';
+            input.placeholder =
+                'e.g. Product sleeve, insert card, dust bag';
+
+            input.dataset.customItemInput = '';
+            input.value = value;
+
+            label.append(
+                labelText,
+                input
+            );
+
+            const button =
+                document.createElement('button');
+
+            button.type = 'button';
+            button.className =
+                'bespoke-custom-item-action bespoke-custom-item-action--remove';
+            button.textContent =
+                removable ? 'Remove' : 'Add more';
+
+            if (removable) {
+                button.addEventListener(
+                    'click',
+                    () => {
+                        row.remove();
+                        updateVisibility();
+                    }
+                );
+            }
+
+            row.append(label, button);
+
+            return row;
+        };
+
+        addCustomItemButton?.addEventListener(
+            'click',
+            () => {
+                const row =
+                    createCustomItemRow('');
+
+                customItemsList?.appendChild(row);
+
+                updateVisibility();
+
+                row
+                    .querySelector(
+                        '[data-custom-item-input]'
+                    )
+                    ?.focus();
+            }
+        );
+
+        colourSelects.forEach(select => {
+            select.addEventListener(
+                'change',
+                () => updateColourField(select)
+            );
+        });
+
+        /*
+         * Restore bespoke detail values only when the user is explicitly
+         * returning to a saved configuration. A normal fresh visit should
+         * keep the clean defaults instead of reviving stale localStorage.
+         */
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        const shouldRestore =
+            params.get('restore_configuration') === '1';
+
+        if (shouldRestore) {
+            let stored = {};
+
+            try {
+                stored = JSON.parse(
+                    localStorage.getItem(
+                        'luxsomeShopConfiguration'
+                    ) || '{}'
+                );
+            } catch (error) {
+                console.warn(
+                    'The saved bespoke piece details could not be restored.',
+                    error
+                );
+            }
+
+            const configuration = {
+                ...stored,
+                ...Object.fromEntries(
+                    params.entries()
+                )
+            };
+
+            const restoreColour = (
+                selectName,
+                customName,
+                value
+            ) => {
+                if (!value) return;
+
+                const select =
+                    form.elements.namedItem(
+                        selectName
+                    );
+
+                const customInput =
+                    form.elements.namedItem(
+                        customName
+                    );
+
+                if (!(select instanceof HTMLSelectElement)) {
+                    return;
+                }
+
+                const matchingOption =
+                    Array.from(select.options)
+                        .find(option =>
+                            normalise(option.value) ===
+                            normalise(value)
+                        );
+
+                if (matchingOption) {
+                    select.value =
+                        matchingOption.value;
+                } else {
+                    select.value = 'Other';
+
+                    if (
+                        customInput instanceof HTMLInputElement
+                    ) {
+                        customInput.value =
+                            String(value);
+                    }
+                }
+
+                updateColourField(select);
+            };
+
+            restoreColour(
+                'thankYouCardColour',
+                'thankYouCardCustomColour',
+                configuration
+                    .thank_you_card_colour
+            );
+
+            restoreColour(
+                'envelopeColour',
+                'envelopeCustomColour',
+                configuration.envelope_colour
+            );
+
+            restoreColour(
+                'tissueColour',
+                'tissueCustomColour',
+                configuration.tissue_colour
+            );
+
+            restoreColour(
+                'ribbonColour',
+                'ribbonCustomColour',
+                configuration.ribbon_colour
+            );
+
+            const rawCustomItems =
+                configuration.custom_items ??
+                configuration.other_custom_items ??
+                '[]';
+
+            let customItems = [];
+
+            if (Array.isArray(rawCustomItems)) {
+                customItems =
+                    rawCustomItems;
+            } else {
+                try {
+                    const parsed =
+                        JSON.parse(
+                            String(
+                                rawCustomItems ||
+                                '[]'
+                            )
+                        );
+
+                    customItems =
+                        Array.isArray(parsed)
+                            ? parsed
+                            : [];
+                } catch {
+                    customItems =
+                        String(rawCustomItems || '')
+                            .split(',')
+                            .map(item => item.trim())
+                            .filter(Boolean);
+                }
+            }
+
+            if (
+                customItems.length &&
+                customItemsList
+            ) {
+                const firstInput =
+                    customItemsList.querySelector(
+                        '[data-custom-item-input]'
+                    );
+
+                if (firstInput) {
+                    firstInput.value =
+                        String(
+                            customItems[0] || ''
+                        );
+                }
+
+                customItems
+                    .slice(1)
+                    .forEach(item => {
+                        customItemsList.appendChild(
+                            createCustomItemRow(
+                                String(item || '')
+                            )
+                        );
+                    });
+            }
+        }
+
+        pieceInputs.forEach(input => {
+            input.addEventListener(
+                'change',
+                updateVisibility
+            );
+        });
+
+        updateVisibility();
+    };
+
+    const setupBespokeCollapsibleSections = () => {
+        if (!form || product?.dataset.product !== 'bespoke') {
+            return;
+        }
+
+        const sections = [
+            ...Array.from(
+                form.querySelectorAll(
+                    '[data-bespoke-piece-section]'
+                )
+            ),
+            document.getElementById(
+                'boxSpecificationSection'
+            )
+        ].filter(Boolean);
+
+        sections.forEach((section, index) => {
+            if (section.dataset.bespokeCollapsibleReady === 'true') {
+                return;
+            }
+
+            const heading = section.querySelector(
+                ':scope > .bespoke-piece-detail__heading, :scope > .configuration-section__heading'
+            );
+
+            if (!heading) {
+                return;
+            }
+
+            section.dataset.bespokeCollapsible = '';
+            section.dataset.bespokeCollapsibleReady = 'true';
+
+            const body =
+                document.createElement('div');
+
+            body.className =
+                'bespoke-collapsible-body';
+
+            body.id =
+                `${section.id || `bespokeCollapsible${index}`}Body`;
+
+            /*
+             * Everything after the heading becomes the collapsible body.
+             * Moving the existing nodes preserves their current inputs,
+             * event listeners and validation behaviour.
+             */
+            const contentNodes = [];
+
+            let sibling = heading.nextSibling;
+
+            while (sibling) {
+                const next =
+                    sibling.nextSibling;
+
+                contentNodes.push(sibling);
+                sibling = next;
+            }
+
+            contentNodes.forEach(node => {
+                body.appendChild(node);
+            });
+
+            section.appendChild(body);
+
+            const button =
+                document.createElement('button');
+
+            button.type = 'button';
+            button.className =
+                'bespoke-collapse-button';
+            button.setAttribute(
+                'aria-expanded',
+                'true'
+            );
+            button.setAttribute(
+                'aria-controls',
+                body.id
+            );
+
+            const label =
+                document.createElement('span');
+
+            label.textContent = 'Collapse';
+
+            const icon =
+                document.createElement('span');
+
+            icon.className =
+                'bespoke-collapse-button__icon';
+            icon.setAttribute(
+                'aria-hidden',
+                'true'
+            );
+            icon.textContent = '▾';
+
+            button.append(label, icon);
+            heading.appendChild(button);
+
+            const setCollapsed = collapsed => {
+                section.classList.toggle(
+                    'is-collapsed',
+                    collapsed
+                );
+
+                body.hidden = collapsed;
+
+                button.setAttribute(
+                    'aria-expanded',
+                    String(!collapsed)
+                );
+
+                label.textContent =
+                    collapsed
+                        ? 'Expand'
+                        : 'Collapse';
+            };
+
+            button.addEventListener(
+                'click',
+                () => {
+                    setCollapsed(
+                        !section.classList.contains(
+                            'is-collapsed'
+                        )
+                    );
+                }
+            );
+
+            /*
+             * Sections start expanded the first time they appear.
+             * The customer's collapse choice is retained while they
+             * continue configuring the same page.
+             */
+            setCollapsed(false);
+        });
+    };
+
+    setupBespokePieceDetails();
+    setupBespokeCollapsibleSections();
+
+    const getBespokeColourValue = (
+        data,
+        selectName,
+        customName
+    ) => {
+        const selected =
+            String(
+                data.get(selectName) || ''
+            );
+
+        if (selected !== 'Other') {
+            return selected;
+        }
+
+        return String(
+            data.get(customName) || ''
+        ).trim();
+    };
 
     /* ==========================================================
     OPTIONAL RIBBON SELECTION
@@ -1858,7 +2433,50 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('sticker_style', data.get('stickerStyle') || '');
         params.set('tissue_style', data.get('tissueStyle') || '');
         params.set('ribbon_style', data.get('ribbonStyle') || '');
-        params.set('ribbon_colour', data.get('ribbonColour') || '');
+
+        const ribbonColour = isBespoke
+            ? getBespokeColourValue(
+                data,
+                'ribbonColour',
+                'ribbonCustomColour'
+            )
+            : data.get('ribbonColour') || '';
+
+        params.set('ribbon_colour', ribbonColour);
+
+        params.set(
+            'thank_you_card_colour',
+            isBespoke
+                ? getBespokeColourValue(
+                    data,
+                    'thankYouCardColour',
+                    'thankYouCardCustomColour'
+                )
+                : ''
+        );
+
+        params.set(
+            'envelope_colour',
+            isBespoke
+                ? getBespokeColourValue(
+                    data,
+                    'envelopeColour',
+                    'envelopeCustomColour'
+                )
+                : ''
+        );
+
+        params.set(
+            'tissue_colour',
+            isBespoke
+                ? getBespokeColourValue(
+                    data,
+                    'tissueColour',
+                    'tissueCustomColour'
+                )
+                : ''
+        );
+
         params.set('logo_finish', data.get('logoFinish') || '');
         params.set('artwork_status', data.get('artworkStatus') || '');
         params.set(
@@ -1881,9 +2499,17 @@ document.addEventListener('DOMContentLoaded', () => {
             data.get("thankYouCard") || "";
 
         const selectedEnvelope =
-            selectedThankYouInsert === "Thank-you note"
-                ? data.get("envelopeStyle") || ""
-                : "";
+            isBespoke
+                ? (
+                    selectedPieces.includes("Envelope")
+                        ? data.get("envelopeStyle") || ""
+                        : ""
+                )
+                : (
+                    selectedThankYouInsert === "Thank-you note"
+                        ? data.get("envelopeStyle") || ""
+                        : ""
+                );
 
         params.set(
             "thank_you_card",
@@ -1957,6 +2583,28 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('pantone_reference', data.get('pantoneReference') || '');
         params.set('comments', data.get('comments') || '');
         params.set('accessories', data.getAll('accessories').join(', '));
+
+        const customItems = isBespoke
+            ? data
+                .getAll('customItems')
+                .map(item => String(item).trim())
+                .filter(Boolean)
+            : [];
+
+        params.set(
+            'custom_items',
+            JSON.stringify(customItems)
+        );
+
+        /*
+         * Alias retained for downstream code that may use a more explicit
+         * field name when rendering the project brief.
+         */
+        params.set(
+            'other_custom_items',
+            customItems.join(', ')
+        );
+
         params.set(
             'additional_projects',
             data.get('additionalProjects') || '[]'

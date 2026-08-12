@@ -401,6 +401,177 @@
                 }
             }
 
+
+            /* ==========================================================
+               BESPOKE PIECE DETAIL CONFIGURATIONS
+            ========================================================== */
+
+            .bespoke-piece-details {
+                display: grid;
+                gap: 14px;
+                margin: 20px 0 0;
+            }
+
+            .bespoke-piece-detail {
+                padding: 20px;
+                border: 1px solid #ded1ca;
+                border-left: 4px solid #673629;
+                background: #fffdf9;
+            }
+
+            .bespoke-piece-detail__heading {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 18px;
+                margin-bottom: 16px;
+            }
+
+            .bespoke-piece-detail__heading h3 {
+                margin: 2px 0 4px;
+                color: #2e1c15;
+                font-family: "Cormorant Garamond", Georgia, serif;
+                font-size: 1.45rem;
+                font-weight: 500;
+                line-height: 1.05;
+            }
+
+            .bespoke-piece-detail__heading p {
+                max-width: 390px;
+                margin: 0;
+                color: #756159;
+                font-size: 0.66rem;
+                line-height: 1.55;
+            }
+
+            .bespoke-collapse-button {
+                flex: 0 0 auto;
+                min-height: 36px;
+                padding: 8px 11px;
+                border: 1px solid #d8c7be;
+                background: transparent;
+                color: #673629;
+                font-family: "Montserrat", Arial, sans-serif;
+                font-size: 0.56rem;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                cursor: pointer;
+            }
+
+            .bespoke-collapse-button:hover,
+            .bespoke-collapse-button:focus-visible {
+                border-color: #673629;
+                background: #f8f4ef;
+            }
+
+            .bespoke-collapse-button__icon {
+                display: inline-block;
+                margin-left: 5px;
+                font-size: 0.85em;
+                transition: transform 160ms ease;
+            }
+
+            [data-bespoke-collapsible].is-collapsed
+            .bespoke-collapse-button__icon {
+                transform: rotate(-90deg);
+            }
+
+            .bespoke-collapsible-body[hidden] {
+                display: none !important;
+            }
+
+            .bespoke-piece-detail__grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 13px;
+            }
+
+            .bespoke-piece-detail__grid--single {
+                grid-template-columns: 1fr;
+            }
+
+            .bespoke-piece-detail .configuration-group {
+                margin: 0;
+            }
+
+            .bespoke-piece-detail select,
+            .bespoke-piece-detail input[type="text"] {
+                width: 100%;
+            }
+
+            .bespoke-custom-colour {
+                margin-top: 10px;
+            }
+
+            .bespoke-custom-items {
+                display: grid;
+                gap: 10px;
+            }
+
+            .bespoke-custom-item-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 10px;
+                align-items: end;
+            }
+
+            .bespoke-custom-item-row .product-field {
+                margin: 0;
+            }
+
+            .bespoke-custom-item-action {
+                min-height: 44px;
+                padding: 10px 14px;
+                border: 1px solid #673629;
+                background: #673629;
+                color: #fff;
+                font-family: "Montserrat", Arial, sans-serif;
+                font-size: 0.6rem;
+                font-weight: 600;
+                letter-spacing: 0.06em;
+                text-transform: uppercase;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+
+            .bespoke-custom-item-action--remove {
+                border-color: #d8c7be;
+                background: transparent;
+                color: #673629;
+            }
+
+            @media (max-width: 620px) {
+                .bespoke-piece-detail {
+                    padding: 17px 14px;
+                }
+
+                .bespoke-piece-detail__heading {
+                    display: block;
+                }
+
+                .bespoke-piece-detail__heading p {
+                    margin-top: 7px;
+                }
+
+                .bespoke-collapse-button {
+                    width: 100%;
+                    margin-top: 12px;
+                }
+
+                .bespoke-piece-detail__grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .bespoke-custom-item-row {
+                    grid-template-columns: 1fr;
+                }
+
+                .bespoke-custom-item-action {
+                    width: 100%;
+                }
+            }
+
         </style>
 
     </head>
@@ -608,6 +779,345 @@
             </div>
         </fieldset>
 
+
+        <div class="bespoke-piece-details" id="bespokePieceDetails">
+
+            <section
+                class="bespoke-piece-detail"
+                id="bespokeTagConfiguration"
+                data-bespoke-piece-section="Hang tag"
+                hidden
+            >
+                <div class="bespoke-piece-detail__heading">
+                    <div>
+                        <p class="configuration-section__eyebrow">Hang tag</p>
+                        <h3>Choose your tag type</h3>
+                    </div>
+                    <p>Select the tag construction you want us to produce.</p>
+                </div>
+
+                <fieldset class="configuration-group">
+                    <legend>Tag type</legend>
+                    <div class="option-grid">
+                        <label>
+                            <input type="radio" name="tagStyle" value="One-piece tag" checked>
+                            <span>One piece</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="tagStyle" value="Two-piece tag">
+                            <span>Two piece</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="tagStyle" value="Three-piece tag">
+                            <span>Three piece</span>
+                        </label>
+                    </div>
+                </fieldset>
+            </section>
+
+            <section
+                class="bespoke-piece-detail"
+                id="bespokeThankYouConfiguration"
+                data-bespoke-piece-section="Thank-you card"
+                hidden
+            >
+                <div class="bespoke-piece-detail__heading">
+                    <div>
+                        <p class="configuration-section__eyebrow">Thank-you card</p>
+                        <h3>Card style and colour</h3>
+                    </div>
+                    <p>Choose the format and main colour direction for your card.</p>
+                </div>
+
+                <div class="bespoke-piece-detail__grid">
+                    <label class="product-field">
+                        <span>Card style</span>
+                        <select name="thankYouCard" required>
+                            <option value="Single-sided card">Single-sided card</option>
+                            <option value="Double-sided card">Double-sided card</option>
+                            <option value="Folded card">Folded card</option>
+                        </select>
+                    </label>
+
+                    <label class="product-field">
+                        <span>Main colour</span>
+                        <select
+                            name="thankYouCardColour"
+                            data-bespoke-colour-select
+                            data-custom-field="thankYouCardCustomColour"
+                            required
+                        >
+                            <option value="Black">Black</option>
+                            <option value="White">White</option>
+                            <option value="Ivory">Ivory</option>
+                            <option value="Cream">Cream</option>
+                            <option value="Wine">Wine</option>
+                            <option value="Navy">Navy</option>
+                            <option value="Forest green">Forest green</option>
+                            <option value="Blush">Blush</option>
+                            <option value="Other">Other / custom</option>
+                        </select>
+                    </label>
+
+                    <label
+                        class="product-field bespoke-custom-colour"
+                        id="thankYouCardCustomColourField"
+                        hidden
+                    >
+                        <span>Custom card colour</span>
+                        <input
+                            type="text"
+                            name="thankYouCardCustomColour"
+                            id="thankYouCardCustomColour"
+                            placeholder="e.g. #673629, Pantone 7421 C, mustard"
+                        >
+                    </label>
+                </div>
+            </section>
+
+            <section
+                class="bespoke-piece-detail"
+                id="bespokeEnvelopeConfiguration"
+                data-bespoke-piece-section="Envelope"
+                hidden
+            >
+                <div class="bespoke-piece-detail__heading">
+                    <div>
+                        <p class="configuration-section__eyebrow">Envelope</p>
+                        <h3>Envelope style and colour</h3>
+                    </div>
+                    <p>Select the envelope structure and colour direction.</p>
+                </div>
+
+                <div class="bespoke-piece-detail__grid">
+                    <label class="product-field">
+                        <span>Envelope style</span>
+                        <select name="envelopeStyle" required>
+                            <option value="Wallet envelope">Wallet envelope</option>
+                            <option value="Pocket envelope">Pocket envelope</option>
+                            <option value="Custom envelope">Custom envelope</option>
+                        </select>
+                    </label>
+
+                    <label class="product-field">
+                        <span>Main colour</span>
+                        <select
+                            name="envelopeColour"
+                            data-bespoke-colour-select
+                            data-custom-field="envelopeCustomColour"
+                            required
+                        >
+                            <option value="Black">Black</option>
+                            <option value="White">White</option>
+                            <option value="Ivory">Ivory</option>
+                            <option value="Cream">Cream</option>
+                            <option value="Kraft">Kraft</option>
+                            <option value="Wine">Wine</option>
+                            <option value="Navy">Navy</option>
+                            <option value="Forest green">Forest green</option>
+                            <option value="Blush">Blush</option>
+                            <option value="Other">Other / custom</option>
+                        </select>
+                    </label>
+
+                    <label
+                        class="product-field bespoke-custom-colour"
+                        id="envelopeCustomColourField"
+                        hidden
+                    >
+                        <span>Custom envelope colour</span>
+                        <input
+                            type="text"
+                            name="envelopeCustomColour"
+                            id="envelopeCustomColour"
+                            placeholder="e.g. #f8f4ef, Pantone reference, wine"
+                        >
+                    </label>
+                </div>
+            </section>
+
+            <section
+                class="bespoke-piece-detail"
+                id="bespokeTissueConfiguration"
+                data-bespoke-piece-section="Branded tissue"
+                hidden
+            >
+                <div class="bespoke-piece-detail__heading">
+                    <div>
+                        <p class="configuration-section__eyebrow">Branded tissue</p>
+                        <h3>Print style and colour</h3>
+                    </div>
+                    <p>Choose how you want the tissue branded and its main colour direction.</p>
+                </div>
+
+                <div class="bespoke-piece-detail__grid">
+                    <label class="product-field">
+                        <span>Tissue print style</span>
+                        <select name="tissueStyle" required>
+                            <option value="Single-colour repeat print">Single-colour repeat print</option>
+                            <option value="Two-colour repeat print">Two-colour repeat print</option>
+                            <option value="Custom pattern">Custom pattern</option>
+                        </select>
+                    </label>
+
+                    <label class="product-field">
+                        <span>Main colour</span>
+                        <select
+                            name="tissueColour"
+                            data-bespoke-colour-select
+                            data-custom-field="tissueCustomColour"
+                            required
+                        >
+                            <option value="White">White</option>
+                            <option value="Ivory">Ivory</option>
+                            <option value="Cream">Cream</option>
+                            <option value="Black">Black</option>
+                            <option value="Wine">Wine</option>
+                            <option value="Navy">Navy</option>
+                            <option value="Forest green">Forest green</option>
+                            <option value="Blush">Blush</option>
+                            <option value="Other">Other / custom</option>
+                        </select>
+                    </label>
+
+                    <label
+                        class="product-field bespoke-custom-colour"
+                        id="tissueCustomColourField"
+                        hidden
+                    >
+                        <span>Custom tissue colour</span>
+                        <input
+                            type="text"
+                            name="tissueCustomColour"
+                            id="tissueCustomColour"
+                            placeholder="e.g. #F4E1C7, Pantone reference"
+                        >
+                    </label>
+                </div>
+            </section>
+
+            <section
+                class="bespoke-piece-detail"
+                id="bespokeStickerConfiguration"
+                data-bespoke-piece-section="Sticker seal"
+                hidden
+            >
+                <div class="bespoke-piece-detail__heading">
+                    <div>
+                        <p class="configuration-section__eyebrow">Sticker seal</p>
+                        <h3>Choose branded or generic</h3>
+                    </div>
+                    <p>Branded uses your artwork; generic uses a non-logo seal such as a thank-you message.</p>
+                </div>
+
+                <fieldset class="configuration-group">
+                    <legend>Sticker type</legend>
+                    <div class="option-grid">
+                        <label>
+                            <input type="radio" name="stickerStyle" value="Branded" checked>
+                            <span>Branded</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="stickerStyle" value="Generic">
+                            <span>Generic</span>
+                        </label>
+                    </div>
+                </fieldset>
+            </section>
+
+            <section
+                class="bespoke-piece-detail"
+                id="bespokeRibbonConfiguration"
+                data-bespoke-piece-section="Branded ribbon"
+                hidden
+            >
+                <input type="hidden" name="ribbonStyle" value="Branded ribbon">
+
+                <div class="bespoke-piece-detail__heading">
+                    <div>
+                        <p class="configuration-section__eyebrow">Branded ribbon</p>
+                        <h3>Choose your ribbon colour</h3>
+                    </div>
+                    <p>Select the closest colour direction. Final colour will be confirmed during production.</p>
+                </div>
+
+                <div class="bespoke-piece-detail__grid bespoke-piece-detail__grid--single">
+                    <label class="product-field">
+                        <span>Ribbon colour</span>
+                        <select
+                            name="ribbonColour"
+                            data-bespoke-colour-select
+                            data-custom-field="ribbonCustomColour"
+                            required
+                        >
+                            <option value="Black">Black</option>
+                            <option value="White">White</option>
+                            <option value="Ivory">Ivory</option>
+                            <option value="Cream">Cream</option>
+                            <option value="Gold">Gold</option>
+                            <option value="Wine">Wine</option>
+                            <option value="Navy">Navy</option>
+                            <option value="Forest green">Forest green</option>
+                            <option value="Blush">Blush</option>
+                            <option value="Other">Other / custom</option>
+                        </select>
+                    </label>
+
+                    <label
+                        class="product-field bespoke-custom-colour"
+                        id="ribbonCustomColourField"
+                        hidden
+                    >
+                        <span>Custom ribbon colour</span>
+                        <input
+                            type="text"
+                            name="ribbonCustomColour"
+                            id="ribbonCustomColour"
+                            placeholder="e.g. #673629, Pantone reference, teal"
+                        >
+                    </label>
+                </div>
+            </section>
+
+            <section
+                class="bespoke-piece-detail"
+                id="bespokeCustomItemConfiguration"
+                data-bespoke-piece-section="Other custom item"
+                hidden
+            >
+                <div class="bespoke-piece-detail__heading">
+                    <div>
+                        <p class="configuration-section__eyebrow">Custom items</p>
+                        <h3>Tell us what else you need</h3>
+                    </div>
+                    <p>Add as many custom packaging items as required for this project.</p>
+                </div>
+
+                <div class="bespoke-custom-items" id="bespokeCustomItemsList">
+                    <div class="bespoke-custom-item-row" data-custom-item-row>
+                        <label class="product-field">
+                            <span>Custom item</span>
+                            <input
+                                type="text"
+                                name="customItems"
+                                placeholder="e.g. Product sleeve, insert card, dust bag"
+                                data-custom-item-input
+                            >
+                        </label>
+
+                        <button
+                            type="button"
+                            class="bespoke-custom-item-action"
+                            id="addBespokeCustomItem"
+                        >
+                            Add more
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+
         <section
             class="bespoke-box-specification"
             id="boxSpecificationSection"
@@ -695,6 +1205,54 @@
                         <span>Custom structure</span>
                     </label>
                 </div>
+            </fieldset>
+
+            <fieldset class="configuration-group colour-selection">
+                <legend>
+                    Colour direction
+                    <span class="option-status option-status--included">Fully custom</span>
+                </legend>
+                <p class="configuration-help">
+                    Start with a main colour swatch.
+                </p>
+
+
+                <div class="colour-option-grid">
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Wine"><span><i style="--swatch:#851409"></i>Wine</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
+                    <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
+                </div>
+                <!-- comment out for now, may be referenced later -->
+
+                <!-- <div class="bespoke-colour-grid bespoke-colour-grid--additional">
+                    <label class="product-field">
+                        <span>Secondary colour</span>
+                        <input type="text" name="secondaryColour" placeholder="e.g. Ivory or #f8f4ef">
+                    </label>
+
+                    <label class="product-field">
+                        <span>Accent colour</span>
+                        <input type="text" name="accentColour" placeholder="e.g. Gold">
+                    </label>
+
+                    <label class="product-field">
+                        <span>Pantone reference</span>
+                        <input type="text" name="pantoneReference" placeholder="Available soon" disabled>
+                    </label>
+                </div> -->
+
+                <p class="colour-disclaimer">
+                    Screen colours are references only. Final colours will be confirmed according to material and production method.
+                </p>
             </fieldset>
 
             <label class="product-field bespoke-quantity-field">
@@ -1476,59 +2034,6 @@
         </label>
     </section>
 
-
-
-
-
-<fieldset class="configuration-group colour-selection">
-    <legend>
-        Colour direction
-        <span class="option-status option-status--included">Fully custom</span>
-    </legend>
-    <p class="configuration-help">
-        Start with a main colour swatch.
-    </p>
-
-
-    <div class="colour-option-grid">
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Black" checked><span><i style="--swatch:#111111"></i>Black</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="White"><span><i style="--swatch:#ffffff"></i>White</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Ivory"><span><i style="--swatch:#f4efe4"></i>Ivory</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Cream"><span><i style="--swatch:#e9dbc4"></i>Cream</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Kraft"><span><i style="--swatch:#b58a59"></i>Kraft</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Dark brown"><span><i style="--swatch:#2e1c15"></i>Dark brown</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Wine"><span><i style="--swatch:#851409"></i>Wine</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Navy"><span><i style="--swatch:#1c2c43"></i>Navy</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Forest green"><span><i style="--swatch:#314936"></i>Forest green</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Blush"><span><i style="--swatch:#d7aaa0"></i>Blush</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Grey"><span><i style="--swatch:#96908d"></i>Grey</span></label>
-        <label class="colour-option"><input type="radio" name="primaryColour" value="Other"><span><i class="colour-option__custom"></i>Other</span></label>
-    </div>
-    <!-- comment out for now, may be referenced later -->
-
-    <!-- <div class="bespoke-colour-grid bespoke-colour-grid--additional">
-        <label class="product-field">
-            <span>Secondary colour</span>
-            <input type="text" name="secondaryColour" placeholder="e.g. Ivory or #f8f4ef">
-        </label>
-
-        <label class="product-field">
-            <span>Accent colour</span>
-            <input type="text" name="accentColour" placeholder="e.g. Gold">
-        </label>
-
-        <label class="product-field">
-            <span>Pantone reference</span>
-            <input type="text" name="pantoneReference" placeholder="Available soon" disabled>
-        </label>
-    </div> -->
-
-    <p class="colour-disclaimer">
-        Screen colours are references only. Final colours will be confirmed according to material and production method.
-    </p>
-</fieldset>
-
-
     <section
         class="additional-projects"
         aria-labelledby="additionalProjectsHeading"
@@ -1906,229 +2411,233 @@
     </section>
 </main>
 
-        <footer class="site-footer">
+<footer class="site-footer">
 
-                <div class="container">
+    <div class="container">
 
-                    <!-- Footer columns -->
-                    <div class="footer-grid reveal-group">
+        <!-- Footer columns -->
+        <div class="footer-grid reveal-group">
 
-                        <!-- Brand column -->
-                        <div class="footer-brand reveal reveal--up">
+            <!-- Brand column -->
+            <div class="footer-brand reveal reveal--up">
 
-                            <a
-                                href="/"
-                                class="footer-logo"
-                                aria-label="Luxsome Packaging homepage"
-                            >
-                                <img
-                                    src="/assets/images/luxsome-logo-white.png"
-                                    alt="Luxsome Packaging"
-                                    class="logo-image"
-                                    loading="lazy"
-                                    decoding="async"
-                                >
-                            </a>
+                <a
+                    href="/"
+                    class="footer-logo"
+                    aria-label="Luxsome Packaging homepage"
+                >
+                    <img
+                        src="/assets/images/luxsome-logo-white.png"
+                        alt="Luxsome Packaging"
+                        class="logo-image"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                </a>
 
-                            <p class="footer-description">
-                                Custom packaging boxes and complete luxury packaging
-                                systems for fashion and lifestyle brands in Lagos and
-                                across Nigeria.
-                            </p>
+                <p class="footer-description">
+                    Custom packaging boxes and complete luxury packaging
+                    systems for fashion and lifestyle brands in Lagos and
+                    across Nigeria.
+                </p>
 
-                            <div class="footer-socials">
+                <div class="footer-socials">
 
-                                <a
-                                    href="https://www.instagram.com/luxsomepackaging"
-                                    aria-label="Luxsome Packaging on Instagram"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <i
-                                        class="fa-brands fa-instagram"
-                                        aria-hidden="true"
-                                    ></i>
-                                </a>
+                    <a
+                        href="https://www.instagram.com/luxsomepackaging"
+                        aria-label="Luxsome Packaging on Instagram"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <i
+                            class="fa-brands fa-instagram"
+                            aria-hidden="true"
+                        ></i>
+                    </a>
 
-                                <a
-                                    href="https://wa.me/2349068804133"
-                                    aria-label="Contact Luxsome Packaging on WhatsApp"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <i
-                                        class="fa-brands fa-whatsapp"
-                                        aria-hidden="true"
-                                    ></i>
-                                </a>
+                    <a
+                        href="https://wa.me/2349068804133"
+                        aria-label="Contact Luxsome Packaging on WhatsApp"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <i
+                            class="fa-brands fa-whatsapp"
+                            aria-hidden="true"
+                        ></i>
+                    </a>
 
-                                <a
-                                    href="https://x.com/luxsomePG"
-                                    aria-label="Luxsome Packaging on X"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <i
-                                        class="fa-brands fa-x-twitter"
-                                        aria-hidden="true"
-                                    ></i>
-                                </a>
+                    <a
+                        href="https://x.com/luxsomepackng"
+                        aria-label="Luxsome Packaging on X"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <i
+                            class="fa-brands fa-x-twitter"
+                            aria-hidden="true"
+                        ></i>
+                    </a>
 
-                                <a
-                                    href="https://www.pinterest.com/luxsomepackaging"
-                                    aria-label="Luxsome Packaging on Pinterest"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <i
-                                        class="fa-brands fa-pinterest-p"
-                                        aria-hidden="true"
-                                    ></i>
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Explore column -->
-                        <div class="footer-column reveal reveal--up">
-
-                            <h2>
-                                Explore
-                            </h2>
-
-                            <div class="footer-links">
-
-                                <a href="/">
-                                    Home
-                                </a>
-
-                                <a href="/shop/">
-                                    Shop
-                                </a>
-
-                                <a href="/pricing/">
-                                    Pricing
-                                </a>
-
-                                <a href="/gallery/">
-                                    Gallery
-                                </a>
-
-                                <a href="/our-story/">
-                                    Our Story
-                                </a>
-
-                                <a href="/contact/">
-                                    Contact Us
-                                </a>
-
-                                <a
-                                    href="https://assets.luxsomepackaging.com/catalogues/catalogue.pdf"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    Product Guide
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Information column -->
-                        <div class="footer-column reveal reveal--up">
-
-                            <h2>
-                                Information
-                            </h2>
-
-                            <div class="footer-links">
-
-                                <a href="/faq/">
-                                    Frequently Asked Questions
-                                </a>
-
-                                <a href="/shipping-production/">
-                                    Shipping &amp; Production
-                                </a>
-
-                                <a href="/refund-returns/">
-                                    Refund &amp; Returns
-                                </a>
-
-                                <a href="/privacy/">
-                                    Privacy Policy
-                                </a>
-
-                                <a href="/terms/">
-                                    Terms &amp; Conditions
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                        <!-- Contact column -->
-                        <div class="footer-column reveal reveal--up">
-
-                            <h2>
-                                Contact
-                            </h2>
-
-                            <div class="footer-links">
-
-                                <a
-                                    href="https://wa.me/2349068804133"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    WhatsApp
-                                </a>
-
-                                <a href="mailto:hello@luxsomepackaging.com">
-                                    hello@luxsomepackaging.com
-                                </a>
-
-                                <a href="/packaging-builder/">
-                                    Guide Me
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- Footer bottom -->
-                    <div class="footer-bottom">
-
-                        <span>
-                            &copy;
-                            <span id="currentYear"></span>
-                            Luxsome Packaging. All rights reserved.
-                        </span>
-
-                        <div class="footer-bottom-links">
-
-                            <a href="/privacy/">
-                                Privacy
-                            </a>
-
-                            <a href="/terms/">
-                                Terms
-                            </a>
-
-                        </div>
-
-                        <span>
-                            Packaging created to be remembered.
-                        </span>
-
-                    </div>
+                    <a
+                        href="https://www.pinterest.com/luxsomepackaging"
+                        aria-label="Luxsome Packaging on Pinterest"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <i
+                            class="fa-brands fa-pinterest-p"
+                            aria-hidden="true"
+                        ></i>
+                    </a>
 
                 </div>
 
-            </footer>
+            </div>
+
+            <!-- Explore column -->
+            <div class="footer-column reveal reveal--up">
+
+                <h2>
+                    Explore
+                </h2>
+
+                <div class="footer-links">
+
+                    <a href="/">
+                        Home
+                    </a>
+
+                    <a href="/shop/">
+                        Shop
+                    </a>
+
+                    <a href="/pricing/">
+                        Pricing
+                    </a>
+
+                    <a href="/gallery/">
+                        Gallery
+                    </a>
+
+                    <a href="/blog/">
+                        Journal
+                    </a>
+
+                    <a href="/our-story/">
+                        Our Story
+                    </a>
+
+                    <a href="/contact/">
+                        Contact Us
+                    </a>
+
+                    <a
+                        href="/assets/pdf/product-catalogue.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Product Guide
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- Information column -->
+            <div class="footer-column reveal reveal--up">
+
+                <h2>
+                    Information
+                </h2>
+
+                <div class="footer-links">
+
+                    <a href="/faq/">
+                        Frequently Asked Questions
+                    </a>
+
+                    <a href="/shipping-production/">
+                        Shipping &amp; Production
+                    </a>
+
+                    <a href="/refund-returns/">
+                        Refund &amp; Returns
+                    </a>
+
+                    <a href="/privacy/">
+                        Privacy Policy
+                    </a>
+
+                    <a href="/terms/">
+                        Terms &amp; Conditions
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- Contact column -->
+            <div class="footer-column reveal reveal--up">
+
+                <h2>
+                    Contact
+                </h2>
+
+                <div class="footer-links">
+
+                    <a
+                        href="https://wa.me/2349068804133"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        WhatsApp
+                    </a>
+
+                    <a href="mailto:hello@luxsomepackaging.com">
+                        hello@luxsomepackaging.com
+                    </a>
+
+                    <a href="/packaging-builder/">
+                        Guide Me
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Footer bottom -->
+        <div class="footer-bottom">
+
+            <span>
+                &copy;
+                <span id="currentYear"></span>
+                Luxsome Packaging. All rights reserved.
+            </span>
+
+            <div class="footer-bottom-links">
+
+                <a href="/privacy/">
+                    Privacy
+                </a>
+
+                <a href="/terms/">
+                    Terms
+                </a>
+
+            </div>
+
+            <span>
+                Packaging created to be remembered.
+            </span>
+
+        </div>
+
+    </div>
+
+</footer>
 
 
 

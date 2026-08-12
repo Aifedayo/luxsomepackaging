@@ -48,17 +48,17 @@ const templates = [
   },
   {
     key:'tier-1-packaging-system', name:'Tier 1 Packaging System', category:'packaging_system', sortOrder:100,
-    rules:[['contains','tier 1 packaging system',150],['contains','tier 1',130],['contains','foundation packaging system',125],['contains','foundation system',120]],
+    rules:[['contains','tier 1 packaging system',150],['contains','tier 1',130],['contains','foundation packaging system',125],['contains','foundation system',120],['contains','the essential',170],['exact','the essential',180]],
     steps:[['project-review','Project Review','planning',1,'normal'],['artwork-approval','Artwork / Specification Approval','design',1,'normal'],['material-preparation','Material Preparation','materials',1,'normal'],['production','Packaging Production','production',3,'normal'],['quality-control','Quality Control','quality_check',1,'high'],['packing','Packing','packing',1,'normal']]
   },
   {
     key:'tier-2-packaging-system', name:'Tier 2 Packaging System', category:'packaging_system', sortOrder:110,
-    rules:[['contains','tier 2 packaging system',150],['contains','tier 2',130],['contains','signature packaging system',125],['contains','signature system',120]],
+    rules:[['contains','tier 2 packaging system',150],['contains','tier 2',130],['contains','signature packaging system',125],['contains','signature system',120],['contains','the signature',170],['exact','the signature',180]],
     steps:[['project-review','Project Review','planning',1,'normal'],['artwork-approval','Artwork / Specification Approval','design',1,'normal'],['material-planning','Material Planning','materials',1,'normal'],['printing-branding','Printing / Branding','printing',2,'normal'],['production','Packaging Production','production',4,'normal'],['finishing','Finishing','finishing',1,'normal'],['quality-control','Quality Control','quality_check',1,'high'],['packing','Packing','packing',1,'normal']]
   },
   {
     key:'tier-3-packaging-system', name:'Tier 3 Packaging System', category:'packaging_system', sortOrder:120,
-    rules:[['contains','tier 3 packaging system',150],['contains','tier 3',130],['contains','prestige packaging system',125],['contains','prestige system',120]],
+    rules:[['contains','tier 3 packaging system',150],['contains','tier 3',130],['contains','prestige packaging system',125],['contains','prestige system',120],['contains','the prestige',170],['exact','the prestige',180]],
     steps:[['project-review','Project Review','planning',1,'normal'],['artwork-approval','Artwork / Specification Approval','design',1,'normal'],['material-planning','Material Planning','materials',1,'normal'],['sample-prototype','Sample / Prototype','sampling',2,'normal'],['sample-approval','Sample Approval','approval',1,'high'],['printing-branding','Printing / Branding','printing',2,'normal'],['production','Packaging Production','production',5,'normal'],['premium-finishing','Premium Finishing','finishing',2,'normal'],['quality-control','Quality Control','quality_check',1,'high'],['packing','Packing','packing',1,'normal']]
   },
   {
@@ -66,6 +66,23 @@ const templates = [
     rules:[['contains','bespoke packaging',160],['contains','bespoke packaging system',160],['contains','custom packaging system',150],['contains','custom packaging',145],['contains','bespoke',130],['contains','custom',80]],
     steps:[['project-review','Project Review','planning',1,'high'],['artwork-specification-approval','Artwork / Specification Approval','design',1,'normal'],['material-planning','Material Planning','materials',1,'normal'],['sample-prototype','Sampling / Prototype','sampling',2,'normal'],['customer-approval','Customer Approval','approval',1,'high'],['production','Production','production',5,'normal'],['finishing','Finishing','finishing',2,'normal'],['quality-control','Quality Control','quality_check',1,'high'],['packing','Packing','packing',1,'normal']]
   }
+,
+  {
+    key:'branded-ribbon-production', name:'Branded Ribbon Production', category:'ribbon', sortOrder:70,
+    rules:[['contains','branded ribbon',130],['contains','printed ribbon',120],['contains','logo ribbon',115],['contains','ribbon',80]],
+    steps:[['artwork-approval','Artwork Approval','design',1,'normal'],['ribbon-preparation','Ribbon Preparation','materials',1,'normal'],['printing-branding','Printing / Foil / Branding','printing',1,'normal'],['cutting','Cutting','cutting',1,'normal'],['quality-control','Quality Control','quality_check',1,'high']]
+  },
+  {
+    key:'pull-tab-production', name:'Pull Tab Production', category:'pull_tab', sortOrder:80,
+    rules:[['contains','pull tab',130],['contains','pull-tab',130]],
+    steps:[['specification-approval','Specification Approval','design',1,'normal'],['material-preparation','Material Preparation','materials',1,'normal'],['cutting','Cutting','cutting',1,'normal'],['assembly-application','Assembly / Application','assembly',1,'normal'],['quality-control','Quality Control','quality_check',1,'high']]
+  },
+  {
+    key:'product-description-card-production', name:'Product Description Card Production', category:'product_card', sortOrder:90,
+    rules:[['contains','product description card',135],['contains','product care card',130],['contains','care card',110]],
+    steps:[['artwork-approval','Artwork Approval','design',1,'normal'],['printing','Printing','printing',1,'normal'],['finishing','Finishing','finishing',1,'normal'],['cutting','Cutting','cutting',1,'normal'],['quality-control','Quality Control','quality_check',1,'high']]
+  }
+
 ];
 
 function q(v) { return v == null ? 'NULL' : `'${String(v).replaceAll("'", "''")}'`; }
