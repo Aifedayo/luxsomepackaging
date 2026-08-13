@@ -685,7 +685,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (
             product === "bespoke" ||
             system.includes("bespoke") ||
-            system.includes("made for your brand")
+            system.includes("Custom Order")
         ) {
             return "/shop/bespoke/";
         }
@@ -718,18 +718,27 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Location", valueOf("location")]
         ];
 
+        const customItems =
+            parseCustomItems(
+                shopConfiguration.custom_items ||
+                shopConfiguration.other_custom_items
+            );
+
         const packagingRows = [
             ["Packaging system", labelValue("system")],
             ["Project type", labelValue("project_type")],
             ["Packaging pieces", labelValue("packaging_pieces")],
             ["Box style", labelValue("box_style")],
-            ["Hang tag", labelValue("tag_style")],
-            ["Thank-you card", labelValue("thank_you_card")],
-            ["Sticker seal", labelValue("sticker_style")],
-            ["Tissue", labelValue("tissue_style")],
-            ["Envelope", labelValue("envelope_style")],
+            ["Hang tag type", labelValue("tag_style")],
+            ["Thank-you card type", labelValue("thank_you_card")],
+            ["Thank-you card colour", labelValue("thank_you_card_colour")],
+            ["Envelope type", labelValue("envelope_style")],
+            ["Envelope colour", labelValue("envelope_colour")],
+            ["Tissue / paper wrap type", labelValue("tissue_style")],
+            ["Sticker seal type", labelValue("sticker_style")],
             ["Ribbon", labelValue("ribbon_style")],
-            ["Ribbon colour", labelValue("ribbon_colour")]
+            ["Ribbon colour", labelValue("ribbon_colour")],
+            ["Other custom items", customItems.join(", ")]
         ];
 
         const specificationRows = [
@@ -794,6 +803,34 @@ document.addEventListener("DOMContentLoaded", () => {
         if (method === "email") return "Email";
 
         return String(value || "").trim();
+    }
+
+    function parseCustomItems(value) {
+        if (Array.isArray(value)) {
+            return value
+                .map(item => String(item || "").trim())
+                .filter(Boolean);
+        }
+
+        const raw = String(value || "").trim();
+        if (!raw || raw === "[]") return [];
+
+        try {
+            const parsed = JSON.parse(raw);
+
+            if (Array.isArray(parsed)) {
+                return parsed
+                    .map(item => String(item || "").trim())
+                    .filter(Boolean);
+            }
+        } catch (_) {
+            // Fall back to comma-separated text.
+        }
+
+        return raw
+            .split(",")
+            .map(item => item.trim())
+            .filter(Boolean);
     }
 
     function parseAdditionalProjects(value) {
@@ -911,6 +948,32 @@ document.addEventListener("DOMContentLoaded", () => {
                             )
                             : ""
                     ],
+                    [
+                        "Box colour",
+                        hasBox ? project.primary_colour : ""
+                    ],
+                    [
+                        "Logo finish",
+                        hasBox ? project.logo_finish : ""
+                    ],
+                    [
+                        "Box accessories",
+                        hasBox
+                            ? (
+                                Array.isArray(project.accessories)
+                                    ? project.accessories.join(", ")
+                                    : project.accessories
+                            )
+                            : ""
+                    ],
+                    ["Hang tag type", project.tag_style],
+                    ["Thank-you card type", project.thank_you_card],
+                    ["Thank-you card colour", project.thank_you_card_colour],
+                    ["Envelope type", project.envelope_style],
+                    ["Envelope colour", project.envelope_colour],
+                    ["Tissue / paper wrap type", project.tissue_style],
+                    ["Sticker seal type", project.sticker_style],
+                    ["Ribbon colour", project.ribbon_colour],
                     ["Notes", project.notes]
                 ];
 
@@ -1009,6 +1072,43 @@ document.addEventListener("DOMContentLoaded", () => {
                             ) ||
                             "Not supplied"
                         }`
+                        : "",
+                    hasBox && project.primary_colour
+                        ? `Box colour: ${project.primary_colour}`
+                        : "",
+                    hasBox && project.logo_finish
+                        ? `Logo finish: ${project.logo_finish}`
+                        : "",
+                    hasBox && project.accessories
+                        ? `Box accessories: ${
+                            Array.isArray(project.accessories)
+                                ? project.accessories.join(", ")
+                                : project.accessories
+                        }`
+                        : "",
+                    project.tag_style
+                        ? `Hang tag type: ${project.tag_style}`
+                        : "",
+                    project.thank_you_card
+                        ? `Thank-you card type: ${project.thank_you_card}`
+                        : "",
+                    project.thank_you_card_colour
+                        ? `Thank-you card colour: ${project.thank_you_card_colour}`
+                        : "",
+                    project.envelope_style
+                        ? `Envelope type: ${project.envelope_style}`
+                        : "",
+                    project.envelope_colour
+                        ? `Envelope colour: ${project.envelope_colour}`
+                        : "",
+                    project.tissue_style
+                        ? `Tissue / paper wrap type: ${project.tissue_style}`
+                        : "",
+                    project.sticker_style
+                        ? `Sticker seal type: ${project.sticker_style}`
+                        : "",
+                    project.ribbon_colour
+                        ? `Ribbon colour: ${project.ribbon_colour}`
                         : "",
                     project.notes
                         ? `Notes: ${project.notes}`

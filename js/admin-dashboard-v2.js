@@ -673,9 +673,25 @@ document.addEventListener("DOMContentLoaded", function () {
                 const description = document.createElement("dd");
 
                 term.textContent = formatLabel(key);
-                description.textContent = Array.isArray(value)
-                    ? value.join(", ")
-                    : String(value);
+
+                if (
+                    ["custom_items", "shop_custom_items"].includes(key)
+                ) {
+                    const customItems =
+                        parseDisplayList(value);
+
+                    description.textContent =
+                        customItems.join(", ") ||
+                        "None";
+                } else if (key === "shop_configuration") {
+                    description.textContent =
+                        "Full shop configuration saved with this project.";
+                } else {
+                    description.textContent =
+                        Array.isArray(value)
+                            ? value.join(", ")
+                            : String(value);
+                }
 
                 elements.payloadList.append(term, description);
             });
@@ -1512,27 +1528,51 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Pull tab": ["pull_tab", "pullTab"]
             };
 
+            const colourMap = {
+                "Thank-you card": [
+                    "thank_you_card_colour",
+                    "thankYouCardColour",
+                    "thank_you_card_color",
+                    "thankYouCardColor"
+                ],
+                "Branded tissue": [
+                    "tissue_colour",
+                    "tissueColour",
+                    "tissue_color",
+                    "tissueColor"
+                ],
+                "Envelope": [
+                    "envelope_colour",
+                    "envelopeColour",
+                    "envelope_color",
+                    "envelopeColor"
+                ],
+                "Branded ribbon": [
+                    "ribbon_colour",
+                    "ribbon_color",
+                    "ribbonColour",
+                    "ribbonColor"
+                ]
+            };
+
             const style = firstValue(
                 configuration,
                 styleMap[name] || []
             );
 
-            if (style) details.push(clean(style));
+            if (style) {
+                details.push(clean(style));
+            }
 
-            if (name === "Branded ribbon") {
-                const ribbonColour = firstValue(
-                    configuration,
-                    [
-                        "ribbon_colour",
-                        "ribbon_color",
-                        "ribbonColour",
-                        "ribbonColor"
-                    ]
+            const colour = firstValue(
+                configuration,
+                colourMap[name] || []
+            );
+
+            if (colour) {
+                details.push(
+                    `Colour: ${clean(colour)}`
                 );
-
-                if (ribbonColour) {
-                    details.push(`Colour: ${clean(ribbonColour)}`);
-                }
             }
 
             return details.join(" · ");
@@ -1700,6 +1740,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 ])
             );
 
+            const customItems = list(
+                firstValue(configuration, [
+                    "custom_items",
+                    "customItems",
+                    "other_custom_items",
+                    "otherCustomItems",
+                    "shop_custom_items",
+                    "shop_other_custom_items"
+                ])
+            );
+
             if (!pieces.length) {
                 const inferred = [
                     ["box_style", "Rigid box"],
@@ -1772,11 +1823,40 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
                 }
 
+                /*
+                 * "Other custom item" is only the selector used on the
+                 * Bespoke shop page. When the customer supplied actual
+                 * custom item names, quote those names instead of exposing
+                 * the placeholder as a quotation line.
+                 */
+                if (
+                    /^other custom item$/i.test(name) &&
+                    customItems.length
+                ) {
+                    return;
+                }
+
                 add(
                     prefix ? `${prefix} — ${name}` : name,
                     otherQuantity,
                     pieceDetails(name, configuration),
                     "shop_configuration.other_pieces_quantity"
+                );
+            });
+
+            customItems.forEach(function (customItem) {
+                const itemName =
+                    clean(customItem);
+
+                if (!itemName) return;
+
+                add(
+                    prefix
+                        ? `${prefix} — ${itemName}`
+                        : itemName,
+                    otherQuantity,
+                    "Custom Bespoke item",
+                    "shop_configuration.custom_items"
                 );
             });
 
@@ -2809,6 +2889,41 @@ document.addEventListener("DOMContentLoaded", function () {
     function setStatus(message, isError = false) {
         elements.dashboardStatus.textContent = message;
         elements.dashboardStatus.classList.toggle("is-error", isError);
+    }
+
+    function parseDisplayList(value) {
+        if (Array.isArray(value)) {
+            return value
+                .map(item => String(item || "").trim())
+                .filter(Boolean);
+        }
+
+        const raw =
+            String(value || "").trim();
+
+        if (!raw || raw === "[]") {
+            return [];
+        }
+
+        try {
+            const parsed =
+                JSON.parse(raw);
+
+            if (Array.isArray(parsed)) {
+                return parsed
+                    .map(item =>
+                        String(item || "").trim()
+                    )
+                    .filter(Boolean);
+            }
+        } catch (_) {
+            // Fall back to comma-separated text.
+        }
+
+        return raw
+            .split(",")
+            .map(item => item.trim())
+            .filter(Boolean);
     }
 
     function formatStatus(status) {

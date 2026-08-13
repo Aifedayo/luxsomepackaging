@@ -299,6 +299,49 @@
                 grid-column: 1 / -1;
             }
 
+            .additional-project__piece-configurations {
+                grid-column: 1 / -1;
+                display: grid;
+                gap: 12px;
+            }
+
+            .additional-project__piece-config {
+                padding: 14px;
+                border: 1px solid #ded1ca;
+                background: #fbf8f5;
+            }
+
+            .additional-project__piece-config h4 {
+                margin: 0 0 10px;
+                color: #2e1c15;
+                font-family: "Cormorant Garamond", Georgia, serif;
+                font-size: 1.15rem;
+                font-weight: 500;
+            }
+
+            .additional-project__piece-config-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+
+            .additional-project__accessories {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 7px;
+                margin-top: 10px;
+            }
+
+            .additional-project__accessories label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                min-height: 38px;
+                padding: 8px;
+                border: 1px solid #ded1ca;
+                font-size: 0.62rem;
+            }
+
             @media (max-width: 620px) {
                 .additional-projects {
                     padding: 17px 14px;
@@ -319,6 +362,11 @@
 
                 .additional-project__pieces {
                     grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+
+                .additional-project__piece-config-grid,
+                .additional-project__accessories {
+                    grid-template-columns: 1fr;
                 }
             }
         
@@ -651,7 +699,7 @@
         <a href="/shop/">Shop</a><span>/</span><span>Bespoke</span>
     </nav>
 
-    <section class="product-detail" data-product="bespoke" data-product-name="Created for Your Brand">
+    <section class="product-detail" data-product="bespoke" data-product-name="Custom">
         <div class="shop-container product-detail__grid">
             
 <div class="product-gallery" data-synchronised-gallery>
@@ -664,7 +712,7 @@
                 >
                     <img
                         src="/assets/images/our-story/hang-tag-01.webp"
-                        alt="Created for Your Brand packaging system"
+                        alt="Custom packaging system"
                         width="1200"
                         height="1400"
                     >
@@ -698,8 +746,7 @@
             <div class="product-panel">
                 <div class="product-panel__heading">
                     <p class="shop-eyebrow">Bespoke</p>
-                    <h1>Created for Your Brand</h1>
-                    <p class="product-count">Custom system</p>
+                    <h1>Custom Order</h1>
                     <p class="product-summary">Choose the pieces you need and tell us what you want to create.</p>
                 </div>
 
@@ -749,7 +796,7 @@
 
                 <label>
                     <input type="checkbox" name="packagingPieces" value="Branded tissue">
-                    <span>Branded tissue</span>
+                    <span>Tissue / paper wrap</span>
                 </label>
 
                 <label>
@@ -944,54 +991,23 @@
             >
                 <div class="bespoke-piece-detail__heading">
                     <div>
-                        <p class="configuration-section__eyebrow">Branded tissue</p>
-                        <h3>Print style and colour</h3>
+                        <p class="configuration-section__eyebrow">Tissue / paper wrap</p>
+                        <h3>Choose your wrapping type</h3>
                     </div>
-                    <p>Choose how you want the tissue branded and its main colour direction.</p>
+                    <p>
+                        Select the wrapping material you want included in this
+                        bespoke packaging system.
+                    </p>
                 </div>
 
-                <div class="bespoke-piece-detail__grid">
+                <div class="bespoke-piece-detail__grid bespoke-piece-detail__grid--single">
                     <label class="product-field">
-                        <span>Tissue print style</span>
+                        <span>Wrapping type</span>
                         <select name="tissueStyle" required>
-                            <option value="Single-colour repeat print">Single-colour repeat print</option>
-                            <option value="Two-colour repeat print">Two-colour repeat print</option>
-                            <option value="Custom pattern">Custom pattern</option>
+                            <option value="Plain tissue wrap">Plain tissue wrap</option>
+                            <option value="Branded tissue wrap">Branded tissue wrap</option>
+                            <option value="Speciality paper wrap">Speciality paper wrap</option>
                         </select>
-                    </label>
-
-                    <label class="product-field">
-                        <span>Main colour</span>
-                        <select
-                            name="tissueColour"
-                            data-bespoke-colour-select
-                            data-custom-field="tissueCustomColour"
-                            required
-                        >
-                            <option value="White">White</option>
-                            <option value="Ivory">Ivory</option>
-                            <option value="Cream">Cream</option>
-                            <option value="Black">Black</option>
-                            <option value="Wine">Wine</option>
-                            <option value="Navy">Navy</option>
-                            <option value="Forest green">Forest green</option>
-                            <option value="Blush">Blush</option>
-                            <option value="Other">Other / custom</option>
-                        </select>
-                    </label>
-
-                    <label
-                        class="product-field bespoke-custom-colour"
-                        id="tissueCustomColourField"
-                        hidden
-                    >
-                        <span>Custom tissue colour</span>
-                        <input
-                            type="text"
-                            name="tissueCustomColour"
-                            id="tissueCustomColour"
-                            placeholder="e.g. #F4E1C7, Pantone reference"
-                        >
                     </label>
                 </div>
             </section>
@@ -1897,7 +1913,11 @@
                 </section>
         </div>
 
-        <fieldset class="configuration-group">
+        <fieldset
+            class="configuration-group"
+            id="mainBoxLogoFinishSection"
+            hidden
+        >
             <legend>Logo finish</legend>
 
             <div class="finish-option-group">
@@ -1933,7 +1953,11 @@
             </div>
         </fieldset>
 
-        <fieldset class="configuration-group">
+        <fieldset
+            class="configuration-group"
+            id="mainBoxAccessoriesSection"
+            hidden
+        >
             <legend>Accessories and structure details</legend>
             <p class="configuration-help">
                 Select any construction or presentation features you would like considered.
@@ -3239,6 +3263,14 @@ hidden
                     "boxSpecificationSection"
                 );
 
+                const logoFinishSection = document.getElementById(
+                    "mainBoxLogoFinishSection"
+                );
+
+                const accessoriesSection = document.getElementById(
+                    "mainBoxAccessoriesSection"
+                );
+
                 const otherSection = document.getElementById(
                     "otherPiecesOrderSection"
                 );
@@ -3252,9 +3284,23 @@ hidden
                     "selectedOtherPiecesSummary"
                 );
 
-                const boxControlledInputs = Array.from(
-                    boxSection?.querySelectorAll("input") || []
-                );
+                const boxControlledInputs = [
+                    ...Array.from(
+                        boxSection?.querySelectorAll(
+                            "input, select, textarea, button"
+                        ) || []
+                    ),
+                    ...Array.from(
+                        logoFinishSection?.querySelectorAll(
+                            "input, select, textarea, button"
+                        ) || []
+                    ),
+                    ...Array.from(
+                        accessoriesSection?.querySelectorAll(
+                            "input, select, textarea, button"
+                        ) || []
+                    )
+                ];
 
                 const otherPieceInputs = pieceInputs.filter(
                     input => input.value !== "Rigid box"
@@ -3287,6 +3333,14 @@ hidden
                         boxSection.hidden = !hasBox;
                     }
 
+                    if (logoFinishSection) {
+                        logoFinishSection.hidden = !hasBox;
+                    }
+
+                    if (accessoriesSection) {
+                        accessoriesSection.hidden = !hasBox;
+                    }
+
                     boxControlledInputs.forEach(input => {
                         input.disabled = !hasBox;
 
@@ -3299,6 +3353,17 @@ hidden
 
                         if (!hasBox) {
                             input.setCustomValidity("");
+
+                            /*
+                             * Box-only selections must not remain attached to a
+                             * non-box Bespoke project after Rigid box is removed.
+                             */
+                            if (
+                                input instanceof HTMLInputElement &&
+                                ["radio", "checkbox"].includes(input.type)
+                            ) {
+                                input.checked = false;
+                            }
                         }
                     });
 
@@ -3317,6 +3382,36 @@ hidden
 
                     normaliseQuantity(boxQuantity, 25);
                     normaliseQuantity(otherQuantity, 100);
+
+                    if (hasBox) {
+                        const selectedBoxStyle = form.querySelector(
+                            'input[name="boxStyle"]:checked'
+                        );
+
+                        if (!selectedBoxStyle) {
+                            const defaultBoxStyle = form.querySelector(
+                                'input[name="boxStyle"][value="Recommend a structure"]'
+                            );
+
+                            if (defaultBoxStyle) {
+                                defaultBoxStyle.checked = true;
+                            }
+                        }
+
+                        const selectedPrimaryColour = form.querySelector(
+                            'input[name="primaryColour"]:checked'
+                        );
+
+                        if (!selectedPrimaryColour) {
+                            const defaultPrimaryColour = form.querySelector(
+                                'input[name="primaryColour"][value="Black"]'
+                            );
+
+                            if (defaultPrimaryColour) {
+                                defaultPrimaryColour.checked = true;
+                            }
+                        }
+                    }
 
                     if (otherSummary) {
                         otherSummary.textContent = hasOtherPieces
@@ -3409,12 +3504,66 @@ hidden
                         boxDetails.hidden = !hasBox;
                     }
 
-                    boxDetails?.querySelectorAll("input, select").forEach(
-                        input => {
-                            input.disabled = !hasBox;
+                    boxDetails?.querySelectorAll(
+                        "input, select, textarea"
+                    ).forEach(input => {
+                        input.disabled = !hasBox;
+
+                        if (
+                            input.matches(
+                                "[data-additional-box-style], [data-additional-box-colour], [data-additional-logo-finish]"
+                            )
+                        ) {
                             input.required = hasBox;
                         }
+                    });
+
+                    const boxColour = card.querySelector(
+                        "[data-additional-box-colour]"
                     );
+
+                    const customBoxColourField = card.querySelector(
+                        "[data-additional-custom-box-colour-field]"
+                    );
+
+                    const customBoxColour = card.querySelector(
+                        "[data-additional-custom-box-colour]"
+                    );
+
+                    const usesCustomBoxColour =
+                        hasBox &&
+                        boxColour?.value === "Other / custom";
+
+                    if (customBoxColourField) {
+                        customBoxColourField.hidden =
+                            !usesCustomBoxColour;
+                    }
+
+                    if (customBoxColour) {
+                        customBoxColour.disabled =
+                            !usesCustomBoxColour;
+                        customBoxColour.required =
+                            usesCustomBoxColour;
+                    }
+
+                    card.querySelectorAll(
+                        "[data-additional-config]"
+                    ).forEach(section => {
+                        const piece =
+                            section.dataset.additionalConfig;
+
+                        const active =
+                            checkedPieces.includes(piece);
+
+                        section.hidden = !active;
+
+                        section.querySelectorAll(
+                            "input, select, textarea"
+                        ).forEach(control => {
+                            control.disabled = !active;
+                            control.required = active;
+                        });
+                    });
 
                     if (boxQtyField) {
                         boxQtyField.hidden = !hasBox;
@@ -3457,24 +3606,57 @@ hidden
                             )
                         ).map(input => input.value);
 
+                        const hasBox =
+                            pieces.includes("Rigid box");
+
+                        const hasPiece =
+                            piece => pieces.includes(piece);
+
+                        const selectedBoxColour =
+                            card.querySelector(
+                                "[data-additional-box-colour]"
+                            )?.value || "";
+
+                        const customBoxColour =
+                            card.querySelector(
+                                "[data-additional-custom-box-colour]"
+                            )?.value.trim() || "";
+
                         return {
                             brand_name:
                                 card.querySelector(
                                     "[data-additional-brand]"
                                 )?.value.trim() || "",
                             packaging_pieces: pieces,
-                            box_style:
-                                pieces.includes("Rigid box")
-                                    ? card.querySelector(
-                                        "[data-additional-box-style]"
-                                    )?.value || ""
-                                    : "",
-                            box_quantity:
-                                pieces.includes("Rigid box")
-                                    ? card.querySelector(
-                                        "[data-additional-box-quantity]"
-                                    )?.value || ""
-                                    : "",
+                            box_style: hasBox
+                                ? card.querySelector(
+                                    "[data-additional-box-style]"
+                                )?.value || ""
+                                : "",
+                            primary_colour: hasBox
+                                ? (
+                                    selectedBoxColour === "Other / custom"
+                                        ? customBoxColour
+                                        : selectedBoxColour
+                                )
+                                : "",
+                            logo_finish: hasBox
+                                ? card.querySelector(
+                                    "[data-additional-logo-finish]"
+                                )?.value || ""
+                                : "",
+                            accessories: hasBox
+                                ? Array.from(
+                                    card.querySelectorAll(
+                                        "[data-additional-accessory]:checked"
+                                    )
+                                ).map(input => input.value)
+                                : [],
+                            box_quantity: hasBox
+                                ? card.querySelector(
+                                    "[data-additional-box-quantity]"
+                                )?.value || ""
+                                : "",
                             other_pieces_quantity:
                                 pieces.some(
                                     piece => piece !== "Rigid box"
@@ -3483,6 +3665,49 @@ hidden
                                         "[data-additional-other-quantity]"
                                     )?.value || ""
                                     : "",
+                            tag_style: hasPiece("Hang tag")
+                                ? card.querySelector(
+                                    "[data-additional-tag-style]"
+                                )?.value || ""
+                                : "",
+                            thank_you_card: hasPiece("Thank-you card")
+                                ? card.querySelector(
+                                    "[data-additional-thank-you-card]"
+                                )?.value || ""
+                                : "",
+                            thank_you_card_colour: hasPiece("Thank-you card")
+                                ? card.querySelector(
+                                    "[data-additional-thank-you-colour]"
+                                )?.value || ""
+                                : "",
+                            envelope_style: hasPiece("Envelope")
+                                ? card.querySelector(
+                                    "[data-additional-envelope-style]"
+                                )?.value || ""
+                                : "",
+                            envelope_colour: hasPiece("Envelope")
+                                ? card.querySelector(
+                                    "[data-additional-envelope-colour]"
+                                )?.value || ""
+                                : "",
+                            tissue_style: hasPiece("Branded tissue")
+                                ? card.querySelector(
+                                    "[data-additional-tissue-style]"
+                                )?.value || ""
+                                : "",
+                            sticker_style: hasPiece("Sticker seal")
+                                ? card.querySelector(
+                                    "[data-additional-sticker-style]"
+                                )?.value || ""
+                                : "",
+                            ribbon_style: hasPiece("Branded ribbon")
+                                ? "Branded ribbon"
+                                : "",
+                            ribbon_colour: hasPiece("Branded ribbon")
+                                ? card.querySelector(
+                                    "[data-additional-ribbon-colour]"
+                                )?.value || ""
+                                : "",
                             notes:
                                 card.querySelector(
                                     "[data-additional-notes]"
@@ -3548,17 +3773,227 @@ hidden
                                 data-additional-box-details
                                 hidden
                             >
-                                <label class="product-field">
-                                    <span>Box style</span>
+                                <div class="additional-project__piece-config">
+                                    <h4>Rigid box configuration</h4>
 
-                                    <select data-additional-box-style>
-                                        ${boxStyles.map(style => `
-                                            <option value="${escapeHtml(style)}">
-                                                ${escapeHtml(style)}
-                                            </option>
-                                        `).join("")}
-                                    </select>
-                                </label>
+                                    <div class="additional-project__piece-config-grid">
+                                        <label class="product-field">
+                                            <span>Box style</span>
+                                            <select data-additional-box-style>
+                                                ${boxStyles.map(style => `
+                                                    <option value="${escapeHtml(style)}">
+                                                        ${escapeHtml(style)}
+                                                    </option>
+                                                `).join("")}
+                                            </select>
+                                        </label>
+
+                                        <label class="product-field">
+                                            <span>Box colour</span>
+                                            <select data-additional-box-colour>
+                                                <option value="Black">Black</option>
+                                                <option value="White">White</option>
+                                                <option value="Ivory">Ivory</option>
+                                                <option value="Cream">Cream</option>
+                                                <option value="Kraft">Kraft</option>
+                                                <option value="Dark brown">Dark brown</option>
+                                                <option value="Wine">Wine</option>
+                                                <option value="Navy">Navy</option>
+                                                <option value="Forest green">Forest green</option>
+                                                <option value="Blush">Blush</option>
+                                                <option value="Grey">Grey</option>
+                                                <option value="Other / custom">Other / custom</option>
+                                            </select>
+                                        </label>
+
+                                        <label
+                                            class="product-field"
+                                            data-additional-custom-box-colour-field
+                                            hidden
+                                        >
+                                            <span>Custom box colour</span>
+                                            <input
+                                                type="text"
+                                                data-additional-custom-box-colour
+                                                placeholder="e.g. #673629, Pantone reference, teal"
+                                            >
+                                        </label>
+
+                                        <label class="product-field">
+                                            <span>Logo finish</span>
+                                            <select data-additional-logo-finish>
+                                                <option value="Matte vinyl">Matte vinyl</option>
+                                                <option value="Metallic vinyl">Metallic vinyl</option>
+                                                <option value="Foiled">Foiled</option>
+                                            </select>
+                                        </label>
+                                    </div>
+
+                                    <div class="additional-project__accessories">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Ribbon handle"
+                                                data-additional-accessory
+                                            >
+                                            <span>Ribbon handle</span>
+                                        </label>
+
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Pull tab"
+                                                data-additional-accessory
+                                            >
+                                            <span>Pull tab</span>
+                                        </label>
+
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                value="Compartment divider"
+                                                data-additional-accessory
+                                            >
+                                            <span>Compartment divider</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="additional-project__piece-configurations">
+                                <div
+                                    class="additional-project__piece-config"
+                                    data-additional-config="Hang tag"
+                                    hidden
+                                >
+                                    <h4>Hang tag</h4>
+                                    <label class="product-field">
+                                        <span>Tag type</span>
+                                        <select data-additional-tag-style>
+                                            <option value="One-piece tag">One piece</option>
+                                            <option value="Two-piece tag">Two piece</option>
+                                            <option value="Three-piece tag">Three piece</option>
+                                        </select>
+                                    </label>
+                                </div>
+
+                                <div
+                                    class="additional-project__piece-config"
+                                    data-additional-config="Thank-you card"
+                                    hidden
+                                >
+                                    <h4>Thank-you card</h4>
+                                    <div class="additional-project__piece-config-grid">
+                                        <label class="product-field">
+                                            <span>Card style</span>
+                                            <select data-additional-thank-you-card>
+                                                <option value="Single-sided card">Single-sided card</option>
+                                                <option value="Double-sided card">Double-sided card</option>
+                                                <option value="Folded card">Folded card</option>
+                                            </select>
+                                        </label>
+
+                                        <label class="product-field">
+                                            <span>Card colour</span>
+                                            <select data-additional-thank-you-colour>
+                                                <option value="Black">Black</option>
+                                                <option value="White">White</option>
+                                                <option value="Ivory">Ivory</option>
+                                                <option value="Cream">Cream</option>
+                                                <option value="Wine">Wine</option>
+                                                <option value="Navy">Navy</option>
+                                                <option value="Forest green">Forest green</option>
+                                                <option value="Blush">Blush</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="additional-project__piece-config"
+                                    data-additional-config="Envelope"
+                                    hidden
+                                >
+                                    <h4>Envelope</h4>
+                                    <div class="additional-project__piece-config-grid">
+                                        <label class="product-field">
+                                            <span>Envelope style</span>
+                                            <select data-additional-envelope-style>
+                                                <option value="Wallet envelope">Wallet envelope</option>
+                                                <option value="Pocket envelope">Pocket envelope</option>
+                                                <option value="Custom envelope">Custom envelope</option>
+                                            </select>
+                                        </label>
+
+                                        <label class="product-field">
+                                            <span>Envelope colour</span>
+                                            <select data-additional-envelope-colour>
+                                                <option value="Black">Black</option>
+                                                <option value="White">White</option>
+                                                <option value="Ivory">Ivory</option>
+                                                <option value="Cream">Cream</option>
+                                                <option value="Kraft">Kraft</option>
+                                                <option value="Wine">Wine</option>
+                                                <option value="Navy">Navy</option>
+                                                <option value="Forest green">Forest green</option>
+                                                <option value="Blush">Blush</option>
+                                            </select>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="additional-project__piece-config"
+                                    data-additional-config="Branded tissue"
+                                    hidden
+                                >
+                                    <h4>Tissue / paper wrap</h4>
+                                    <label class="product-field">
+                                        <span>Wrapping type</span>
+                                        <select data-additional-tissue-style>
+                                            <option value="Plain tissue wrap">Plain tissue wrap</option>
+                                            <option value="Branded tissue wrap">Branded tissue wrap</option>
+                                            <option value="Speciality paper wrap">Speciality paper wrap</option>
+                                        </select>
+                                    </label>
+                                </div>
+
+                                <div
+                                    class="additional-project__piece-config"
+                                    data-additional-config="Sticker seal"
+                                    hidden
+                                >
+                                    <h4>Sticker seal</h4>
+                                    <label class="product-field">
+                                        <span>Sticker type</span>
+                                        <select data-additional-sticker-style>
+                                            <option value="Branded">Branded</option>
+                                            <option value="Generic">Generic</option>
+                                        </select>
+                                    </label>
+                                </div>
+
+                                <div
+                                    class="additional-project__piece-config"
+                                    data-additional-config="Branded ribbon"
+                                    hidden
+                                >
+                                    <h4>Branded ribbon</h4>
+                                    <label class="product-field">
+                                        <span>Ribbon colour</span>
+                                        <select data-additional-ribbon-colour>
+                                            <option value="Black">Black</option>
+                                            <option value="White">White</option>
+                                            <option value="Ivory">Ivory</option>
+                                            <option value="Cream">Cream</option>
+                                            <option value="Gold">Gold</option>
+                                            <option value="Wine">Wine</option>
+                                            <option value="Navy">Navy</option>
+                                            <option value="Forest green">Forest green</option>
+                                            <option value="Blush">Blush</option>
+                                        </select>
+                                    </label>
+                                </div>
                             </div>
 
                             <div class="additional-project__quantity-grid">
@@ -3671,6 +4106,92 @@ hidden
                             boxStyle.value =
                                 initialProject.box_style;
                         }
+
+                        const restoreSelect = (
+                            selector,
+                            value
+                        ) => {
+                            const field =
+                                card.querySelector(selector);
+
+                            if (
+                                field &&
+                                value !== undefined &&
+                                value !== null &&
+                                String(value).trim() !== ""
+                            ) {
+                                field.value = String(value);
+                            }
+                        };
+
+                        restoreSelect(
+                            "[data-additional-box-colour]",
+                            initialProject.primary_colour
+                        );
+
+                        restoreSelect(
+                            "[data-additional-logo-finish]",
+                            initialProject.logo_finish
+                        );
+
+                        const initialAccessories =
+                            Array.isArray(initialProject.accessories)
+                                ? initialProject.accessories
+                                : String(
+                                    initialProject.accessories || ""
+                                )
+                                    .split(",")
+                                    .map(item => item.trim())
+                                    .filter(Boolean);
+
+                        card.querySelectorAll(
+                            "[data-additional-accessory]"
+                        ).forEach(input => {
+                            input.checked =
+                                initialAccessories.includes(
+                                    input.value
+                                );
+                        });
+
+                        restoreSelect(
+                            "[data-additional-tag-style]",
+                            initialProject.tag_style
+                        );
+
+                        restoreSelect(
+                            "[data-additional-thank-you-card]",
+                            initialProject.thank_you_card
+                        );
+
+                        restoreSelect(
+                            "[data-additional-thank-you-colour]",
+                            initialProject.thank_you_card_colour
+                        );
+
+                        restoreSelect(
+                            "[data-additional-envelope-style]",
+                            initialProject.envelope_style
+                        );
+
+                        restoreSelect(
+                            "[data-additional-envelope-colour]",
+                            initialProject.envelope_colour
+                        );
+
+                        restoreSelect(
+                            "[data-additional-tissue-style]",
+                            initialProject.tissue_style
+                        );
+
+                        restoreSelect(
+                            "[data-additional-sticker-style]",
+                            initialProject.sticker_style
+                        );
+
+                        restoreSelect(
+                            "[data-additional-ribbon-colour]",
+                            initialProject.ribbon_colour
+                        );
 
                         const boxQuantity = card.querySelector(
                             "[data-additional-box-quantity]"
