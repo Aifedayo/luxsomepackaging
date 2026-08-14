@@ -12066,11 +12066,6 @@ function validateProject(data) {
                 "Please enter your phone or WhatsApp number."
         },
         {
-            field: "preferred_contact_method",
-            message:
-                "Please select how you would like us to contact you."
-        },
-        {
             field: "business_location",
             message:
                 "Please enter your business location."
@@ -12102,37 +12097,9 @@ function validateProject(data) {
         );
     }
 
-    const preferredContactMethod = text(
-        data.preferred_contact_method
-    ).toLowerCase();
-
-    if (
-        preferredContactMethod &&
-        !["email", "whatsapp"].includes(
-            preferredContactMethod
-        )
-    ) {
-        errors.push(
-            "Please select Email or WhatsApp as your preferred contact method."
-        );
-    }
-
     return [...new Set(errors)];
 }
 
-function preferredContactLabel(value) {
-    const method = text(value).toLowerCase();
-
-    if (method === "whatsapp") {
-        return "WhatsApp";
-    }
-
-    if (method === "email") {
-        return "Email";
-    }
-
-    return "Not supplied";
-}
 
 
 function parseProjectConfiguration(data) {
@@ -12653,10 +12620,6 @@ function buildInternalEmail(data, reference) {
             row("Brand", data.brand_name),
             row("Email", data.email),
             row("Phone / WhatsApp", data.phone),
-            row(
-                "Preferred contact",
-                preferredContactLabel(data.preferred_contact_method)
-            ),
             row("Instagram", instagram || "Not supplied"),
             row("Location", data.business_location)
         ])}
@@ -12745,10 +12708,6 @@ function buildCustomerEmail(data, reference) {
             "Logo and artwork status",
             configurationValue(configuration, ["artwork_status"]) ||
             data.artwork_status
-        ),
-        row(
-            "Preferred contact",
-            preferredContactLabel(data.preferred_contact_method)
         )
     ];
 
@@ -12892,7 +12851,6 @@ function buildInternalText(data, reference) {
         `Brand: ${text(data.brand_name)}`,
         `Email: ${text(data.email)}`,
         `Phone: ${text(data.phone)}`,
-        `Preferred contact: ${preferredContactLabel(data.preferred_contact_method)}`,
         `Instagram: ${text(data.instagram_handle) || "Not supplied"}`,
         `Location: ${text(data.business_location)}`,
         "",
@@ -12929,7 +12887,6 @@ function buildCustomerText(data, reference) {
                 : line
         )),
         `Finished dimensions: ${summary.dimensions || "Not supplied"}`,
-        `Preferred contact: ${preferredContactLabel(data.preferred_contact_method)}`,
         "",
         "We will review your submitted selections and contact you to confirm any details needed before preparing your quotation.",
         "",
