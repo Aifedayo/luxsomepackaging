@@ -6892,3 +6892,117 @@ button:focus-visible {
 }
 
 
+/* =========================================================
+   MOBILE HERO SHOP CTA
+   Turns the existing "Explore The Luxsome Shop" indicator
+   into a more prominent button on mobile only.
+========================================================= */
+
+.story-scroll-indicator__button {
+    display: contents;
+}
+
+@media (max-width: 640px) {
+    .story-scroll-indicator {
+        display: flex;
+        width: 100%;
+        margin-top: 26px;
+        justify-content: center;
+    }
+
+    .story-scroll-indicator__button {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+
+        width: min(100%, 360px);
+        min-height: 56px;
+        padding: 0 18px 0 20px;
+
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 999px;
+
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.16),
+                rgba(255, 255, 255, 0.08)
+            );
+
+        box-shadow:
+            0 12px 30px rgba(24, 15, 11, 0.22);
+
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+
+        transition:
+            transform 0.2s ease,
+            background-color 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+    .story-scroll-indicator__label {
+        color: #fffaf4;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.72rem;
+        font-weight: 600;
+        line-height: 1.2;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        text-align: left;
+    }
+
+    .story-scroll-indicator__line {
+        position: relative;
+        flex: 0 0 auto;
+
+        width: 42px;
+        height: 1px;
+
+        background: rgba(255, 250, 244, 0.9);
+    }
+
+    .story-scroll-indicator__line::after {
+        position: absolute;
+        top: 50%;
+        right: 0;
+
+        width: 7px;
+        height: 7px;
+
+        border-top: 1px solid rgba(255, 250, 244, 0.9);
+        border-right: 1px solid rgba(255, 250, 244, 0.9);
+
+        content: "";
+        transform: translateY(-50%) rotate(45deg);
+    }
+
+    .story-scroll-indicator:hover
+    .story-scroll-indicator__button,
+    .story-scroll-indicator:focus-visible
+    .story-scroll-indicator__button {
+        border-color: #ffffff;
+        background: rgba(255, 255, 255, 0.18);
+        transform: translateY(-2px);
+    }
+}
+
+@media (max-width: 380px) {
+    .story-scroll-indicator__button {
+        width: 100%;
+        min-height: 54px;
+        padding-inline: 16px;
+    }
+
+    .story-scroll-indicator__label {
+        font-size: 0.66rem;
+        letter-spacing: 0.09em;
+    }
+
+    .story-scroll-indicator__line {
+        width: 34px;
+    }
+}
+
