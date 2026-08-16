@@ -120,6 +120,59 @@ document.addEventListener("DOMContentLoaded", () => {
     const movementDirection = type =>
         ["stock_in", "adjustment_in", "return_to_stock"].includes(type) ? "+" : "-";
 
+    const generateSku = itemName => {
+        const raw = String(itemName || "").trim();
+        if (!raw) return "";
+
+        return raw
+            .toUpperCase()
+            .replace(/GREYBOARD|GRAYBOARD/g, "GRB")
+            .replace(/GROSGRAIN/g, "GRG")
+            .replace(/RIBBON/g, "RIB")
+            .replace(/TISSUE/g, "TIS")
+            .replace(/PAPER/g, "PAP")
+            .replace(/MAGNET(?:IC)?/g, "MAG")
+            .replace(/DOUBLE[\s-]*SIDED\s*TAPE/g, "TAPE-DS")
+            .replace(/[^A-Z0-9.]+/g, "-")
+            .replace(/^-+|-+$/g, "")
+            .replace(/-+/g, "-")
+            .split("-")
+            .filter(Boolean)
+            .map(part => {
+                if (/^\d+(?:\.\d+)?(?:MM)?$/.test(part)) return part;
+                return part.length <= 4 ? part : part.slice(0, 4);
+            })
+            .join("-")
+            .slice(0, 32);
+    };
+
+    const bindSkuAutogeneration = () => {
+        const nameInput = els.modalBody.querySelector('[name="name"]');
+        const skuInput = els.modalBody.querySelector('[name="sku"]');
+        if (!nameInput || !skuInput) return;
+
+        let manuallyEdited = false;
+
+        skuInput.addEventListener("input", () => {
+            manuallyEdited =
+                skuInput.value.trim() !== "" &&
+                skuInput.value.trim() !== generateSku(nameInput.value);
+        });
+
+        nameInput.addEventListener("input", () => {
+            if (!manuallyEdited || !skuInput.value.trim()) {
+                skuInput.value = generateSku(nameInput.value);
+            }
+        });
+
+        skuInput.addEventListener("blur", () => {
+            if (!skuInput.value.trim()) {
+                skuInput.value = generateSku(nameInput.value);
+                manuallyEdited = false;
+            }
+        });
+    };
+
     const toast = (message, { error = false } = {}) => {
         els.toast.textContent = message;
         els.toast.hidden = false;
@@ -362,17 +415,79 @@ document.addEventListener("DOMContentLoaded", () => {
         els.modalTitle.textContent = "Add inventory item";
         els.saveModalButton.textContent = "Create item";
         els.modalBody.innerHTML = `
-            <label class="inventory-field"><span>SKU</span><input name="sku" required placeholder="e.g. MAT-GRB-25"></label>
-            <label class="inventory-field"><span>Item name</span><input name="name" required placeholder="e.g. Greyboard 2.5mm"></label>
-            <label class="inventory-field"><span>Category</span><select name="categoryId"><option value="">No category</option>${categoryOptions()}</select></label>
-            <label class="inventory-field"><span>Unit</span><select name="unit" required><option value="sheets">Sheets</option><option value="pieces">Pieces</option><option value="metres">Metres</option><option value="rolls">Rolls</option><option value="packs">Packs</option><option value="bottles">Bottles</option><option value="kilograms">Kilograms</option><option value="litres">Litres</option></select></label>
-            <label class="inventory-field"><span>Opening quantity</span><input name="quantityOnHand" type="number" min="0" step="0.01" value="0"></label>
-            <label class="inventory-field"><span>Reorder level</span><input name="reorderLevel" type="number" min="0" step="0.01" value="0"></label>
-            <label class="inventory-field"><span>Unit cost (₦)</span><input name="unitCost" type="number" min="0" step="0.01" value="0"></label>
-            <label class="inventory-field"><span>Supplier</span><input name="supplierName" placeholder="Preferred supplier"></label>
-            <label class="inventory-field inventory-field--full"><span>Storage location</span><input name="storageLocation" placeholder="e.g. Material Rack A"></label>
-            <label class="inventory-field inventory-field--full"><span>Description</span><textarea name="description" placeholder="Optional notes about this material"></textarea></label>
+            <label class="inventory-field">
+                <span>Item name *</span>
+                <input name="name" required placeholder="e.g. Greyboard 2.5mm">
+                <small class="inventory-field__help">Use the name you normally use for this material.</small>
+            </label>
+
+            <label class="inventory-field">
+                <span>SKU *</span>
+                <input name="sku" required placeholder="Generated from item name">
+                <small class="inventory-field__help">Generated automatically. You can still edit it before creating the item.</small>
+            </label>
+
+            <label class="inventory-field">
+                <span>Category *</span>
+                <select name="categoryId" required>
+                    <option value="">Select category</option>
+                    ${categoryOptions()}
+                </select>
+                <small class="inventory-field__help">Groups similar materials together for filtering and reporting.</small>
+            </label>
+
+            <label class="inventory-field">
+                <span>Unit *</span>
+                <select name="unit" required>
+                    <option value="sheets">Sheets</option>
+                    <option value="pieces">Pieces</option>
+                    <option value="metres">Metres</option>
+                    <option value="rolls">Rolls</option>
+                    <option value="packs">Packs</option>
+                    <option value="bottles">Bottles</option>
+                    <option value="kilograms">Kilograms</option>
+                    <option value="litres">Litres</option>
+                </select>
+                <small class="inventory-field__help">How this material is counted in stock.</small>
+            </label>
+
+            <label class="inventory-field">
+                <span>Opening quantity</span>
+                <input name="quantityOnHand" type="number" min="0" step="0.01" value="0">
+                <small class="inventory-field__help">The physical quantity you have right now.</small>
+            </label>
+
+            <label class="inventory-field">
+                <span>Reorder level</span>
+                <input name="reorderLevel" type="number" min="0" step="0.01" value="0">
+                <small class="inventory-field__help">At or below this quantity, the item is treated as low stock.</small>
+            </label>
+
+            <label class="inventory-field">
+                <span>Unit cost (₦)</span>
+                <input name="unitCost" type="number" min="0" step="0.01" value="0">
+                <small class="inventory-field__help">Cost of one selected unit; used to calculate inventory value.</small>
+            </label>
+
+            <label class="inventory-field">
+                <span>Supplier</span>
+                <input name="supplierName" placeholder="Preferred supplier">
+                <small class="inventory-field__help">Optional supplier or source for this material.</small>
+            </label>
+
+            <label class="inventory-field inventory-field--full">
+                <span>Storage location</span>
+                <input name="storageLocation" placeholder="e.g. Material Rack A">
+                <small class="inventory-field__help">Optional physical location so staff can find the material quickly.</small>
+            </label>
+
+            <label class="inventory-field inventory-field--full">
+                <span>Description</span>
+                <textarea name="description" placeholder="Optional notes about this material"></textarea>
+                <small class="inventory-field__help">Optional specifications, colour, thickness, size or other useful notes.</small>
+            </label>
         `;
+        bindSkuAutogeneration();
         els.modal.showModal();
     };
 
