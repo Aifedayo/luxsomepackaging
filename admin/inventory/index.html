@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Inventory | Luxsome CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/base.css">
+    <link rel="stylesheet" href="/css/admin-v2.css">
+    <link rel="stylesheet" href="/css/crm-responsive.css">
+    <link rel="stylesheet" href="/css/inventory-v1.css?v=1">
+</head>
+<body class="admin-page">
+    <main class="inventory-shell">
+        <section class="inventory-header">
+            <div>
+                <p class="inventory-eyebrow">Operations</p>
+                <h1>Inventory</h1>
+                <p class="inventory-header__copy">Track physical stock, reserved materials, available quantities, stock movements and low-stock risk.</p>
+            </div>
+            <div class="inventory-header__actions">
+                <button type="button" class="inventory-button inventory-button--secondary" id="refreshInventoryButton">Refresh</button>
+                <button type="button" class="inventory-button inventory-button--primary" id="addInventoryItemButton">+ Add item</button>
+            </div>
+        </section>
+
+        <nav class="inventory-tabs" aria-label="Inventory sections">
+            <button type="button" class="inventory-tab is-active" data-inventory-tab="overview" aria-selected="true">Overview</button>
+            <button type="button" class="inventory-tab" data-inventory-tab="materials" aria-selected="false">Materials</button>
+            <button type="button" class="inventory-tab" data-inventory-tab="movements" aria-selected="false">Movements</button>
+        </nav>
+
+        <section class="inventory-panel is-active" data-inventory-panel="overview">
+            <div class="inventory-metrics">
+                <article class="inventory-metric"><span>Total items</span><strong id="metricTotalItems">0</strong></article>
+                <article class="inventory-metric inventory-metric--warning"><span>Low stock</span><strong id="metricLowStock">0</strong></article>
+                <article class="inventory-metric inventory-metric--danger"><span>Out of stock</span><strong id="metricOutOfStock">0</strong></article>
+                <article class="inventory-metric"><span>Reserved</span><strong id="metricReserved">0</strong></article>
+                <article class="inventory-metric"><span>Estimated stock value</span><strong id="metricStockValue">₦0</strong></article>
+            </div>
+
+            <div class="inventory-overview-grid">
+                <article class="inventory-card">
+                    <div class="inventory-card__header"><div><p class="inventory-card__eyebrow">Needs attention</p><h2>Low &amp; out-of-stock items</h2></div></div>
+                    <div class="inventory-alert-list" id="inventoryAlertList"><p class="inventory-empty">No low-stock items.</p></div>
+                </article>
+
+                <article class="inventory-card">
+                    <div class="inventory-card__header"><div><p class="inventory-card__eyebrow">Recent activity</p><h2>Latest stock movements</h2></div></div>
+                    <div class="inventory-movement-list" id="recentMovementList"><p class="inventory-empty">No stock movements yet.</p></div>
+                </article>
+            </div>
+        </section>
+
+        <section class="inventory-panel" data-inventory-panel="materials" hidden>
+            <div class="inventory-toolbar">
+                <label class="inventory-field inventory-field--search"><span>Search inventory</span><input type="search" id="inventorySearch" placeholder="Search name, SKU or description"></label>
+                <label class="inventory-field"><span>Category</span><select id="inventoryCategoryFilter"><option value="">All categories</option></select></label>
+                <label class="inventory-field"><span>Status</span><select id="inventoryStatusFilter"><option value="">All statuses</option><option value="in_stock">In stock</option><option value="low_stock">Low stock</option><option value="out_of_stock">Out of stock</option></select></label>
+            </div>
+
+            <div class="inventory-table-wrap">
+                <table class="inventory-table">
+                    <thead><tr><th>Item</th><th>Category</th><th>On hand</th><th>Reserved</th><th>Available</th><th>Reorder level</th><th>Status</th><th aria-label="Actions"></th></tr></thead>
+                    <tbody id="inventoryItemsTableBody"><tr><td colspan="8" class="inventory-empty-cell">No inventory items yet.</td></tr></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="inventory-panel" data-inventory-panel="movements" hidden>
+            <div class="inventory-card">
+                <div class="inventory-card__header"><div><p class="inventory-card__eyebrow">Audit trail</p><h2>Stock movements</h2></div></div>
+                <div class="inventory-table-wrap">
+                    <table class="inventory-table">
+                        <thead><tr><th>Date</th><th>Item</th><th>Movement</th><th>Quantity</th><th>Before</th><th>After</th><th>Order</th><th>Reason</th></tr></thead>
+                        <tbody id="inventoryMovementsTableBody"><tr><td colspan="8" class="inventory-empty-cell">No stock movements yet.</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="inventory-drawer-backdrop" id="inventoryDrawerBackdrop" hidden></div>
+    <aside class="inventory-drawer" id="inventoryDrawer" aria-hidden="true" aria-labelledby="inventoryDrawerTitle">
+        <div class="inventory-drawer__header">
+            <div><p class="inventory-card__eyebrow" id="inventoryDrawerEyebrow">Inventory</p><h2 id="inventoryDrawerTitle">Inventory item</h2></div>
+            <button type="button" class="inventory-icon-button" id="closeInventoryDrawerButton" aria-label="Close inventory panel">×</button>
+        </div>
+        <div class="inventory-drawer__body" id="inventoryDrawerBody"></div>
+    </aside>
+
+    <dialog class="inventory-modal" id="inventoryModal">
+        <form method="dialog" class="inventory-modal__card" id="inventoryModalForm">
+            <div class="inventory-modal__header">
+                <div><p class="inventory-card__eyebrow" id="inventoryModalEyebrow">Inventory</p><h2 id="inventoryModalTitle">Add item</h2></div>
+                <button type="button" class="inventory-icon-button" id="closeInventoryModalButton" aria-label="Close">×</button>
+            </div>
+            <div class="inventory-modal__body" id="inventoryModalBody"></div>
+            <div class="inventory-modal__footer">
+                <button type="button" class="inventory-button inventory-button--secondary" id="cancelInventoryModalButton">Cancel</button>
+                <button type="submit" class="inventory-button inventory-button--primary" id="saveInventoryModalButton">Save</button>
+            </div>
+        </form>
+    </dialog>
+
+    <div class="inventory-toast" id="inventoryToast" role="status" aria-live="polite" hidden></div>
+    <script src="/js/inventory-v1.js?v=1"></script>
+</body>
+</html>

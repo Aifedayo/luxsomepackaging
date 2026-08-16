@@ -184,6 +184,7 @@ export default {
 
     async scheduled(controller, env, ctx) {
         ctx.waitUntil(expireCompletedClientPortals(env.DB));
+        ctx.waitUntil(runInventoryLowStockAlertScan(env));
     }
 };
 
@@ -741,6 +742,154 @@ async function handleAdminRequest(request, env, url) {
                 request,
                 env,
                 quotationMatch[1]
+            );
+        }
+
+        /* ======================================================
+           INVENTORY V1 ADMIN API
+        ====================================================== */
+
+        if (
+            request.method === "GET" &&
+            url.pathname === "/admin/inventory/overview"
+        ) {
+            return await handleAdminInventoryOverview(
+                request,
+                env
+            );
+        }
+
+        if (
+            request.method === "GET" &&
+            url.pathname === "/admin/inventory/categories"
+        ) {
+            return await handleAdminInventoryCategoryList(
+                request,
+                env
+            );
+        }
+
+        if (
+            request.method === "GET" &&
+            url.pathname === "/admin/inventory/items"
+        ) {
+            return await handleAdminInventoryItemList(
+                request,
+                env,
+                url
+            );
+        }
+
+        if (
+            request.method === "POST" &&
+            url.pathname === "/admin/inventory/items"
+        ) {
+            return await handleAdminInventoryItemCreate(
+                request,
+                env
+            );
+        }
+
+        const inventoryItemMatch =
+            url.pathname.match(
+                /^\/admin\/inventory\/items\/(\d+)$/
+            );
+
+        if (
+            inventoryItemMatch &&
+            request.method === "GET"
+        ) {
+            return await handleAdminInventoryItemDetail(
+                request,
+                env,
+                Number(inventoryItemMatch[1])
+            );
+        }
+
+        if (
+            inventoryItemMatch &&
+            request.method === "PATCH"
+        ) {
+            return await handleAdminInventoryItemUpdate(
+                request,
+                env,
+                Number(inventoryItemMatch[1])
+            );
+        }
+
+        const inventoryMovementCreateMatch =
+            url.pathname.match(
+                /^\/admin\/inventory\/items\/(\d+)\/movements$/
+            );
+
+        if (
+            inventoryMovementCreateMatch &&
+            request.method === "POST"
+        ) {
+            return await handleAdminInventoryMovementCreate(
+                request,
+                env,
+                Number(
+                    inventoryMovementCreateMatch[1]
+                )
+            );
+        }
+
+        if (
+            request.method === "GET" &&
+            url.pathname === "/admin/inventory/movements"
+        ) {
+            return await handleAdminInventoryMovementList(
+                request,
+                env,
+                url
+            );
+        }
+
+        if (
+            request.method === "POST" &&
+            url.pathname === "/admin/inventory/reservations"
+        ) {
+            return await handleAdminInventoryReservationCreate(
+                request,
+                env
+            );
+        }
+
+        const inventoryReservationMatch =
+            url.pathname.match(
+                /^\/admin\/inventory\/reservations\/(\d+)$/
+            );
+
+        if (
+            inventoryReservationMatch &&
+            request.method === "PATCH"
+        ) {
+            return await handleAdminInventoryReservationUpdate(
+                request,
+                env,
+                Number(inventoryReservationMatch[1])
+            );
+        }
+
+        if (
+            request.method === "POST" &&
+            url.pathname === "/admin/inventory/alerts/check"
+        ) {
+            const result =
+                await runInventoryLowStockAlertScan(
+                    env,
+                    { force: true }
+                );
+
+            return jsonResponse(
+                {
+                    success: true,
+                    ...result
+                },
+                200,
+                request,
+                env
             );
         }
 
@@ -11992,6 +12141,1818 @@ async function updateSubmissionEmailStatus(
         new Date().toISOString(),
         reference
     ).run();
+}
+
+
+/* ==========================================================
+   INVENTORY V1
+========================================================== */
+
+const INVENTORY_MOVEMENT_TYPES = new Set([
+    "stock_in",
+    "stock_out",
+    "adjustment_in",
+    "adjustment_out",
+    "production_usage",
+    "return_to_stock"
+]);
+
+const INVENTORY_RESERVATION_STATUSES = new Set([
+    "active",
+    "partially_consumed",
+    "consumed",
+    "released"
+]);
+
+function inventoryNumber(value, fallback = 0) {
+    const number = Number(value);
+
+    return Number.isFinite(number)
+        ? number
+        : fallback;
+}
+
+function inventoryStatus(item) {
+    const onHand =
+        inventoryNumber(item.quantity_on_hand);
+
+    const reserved =
+        inventoryNumber(item.quantity_reserved);
+
+    const available =
+        onHand - reserved;
+
+    const reorderLevel =
+        inventoryNumber(item.reorder_level);
+
+    if (available <= 0) {
+        return "out_of_stock";
+    }
+
+    if (available <= reorderLevel) {
+        return "low_stock";
+    }
+
+    return "in_stock";
+}
+
+function inventoryItemPayload(row) {
+    const quantityOnHand =
+        inventoryNumber(row.quantity_on_hand);
+
+    const quantityReserved =
+        inventoryNumber(row.quantity_reserved);
+
+    const available =
+        quantityOnHand - quantityReserved;
+
+    const unitCost =
+        inventoryNumber(row.unit_cost);
+
+    return {
+        id: Number(row.id),
+        sku: text(row.sku),
+        name: text(row.name),
+        description: text(row.description),
+        categoryId:
+            row.category_id === null
+                ? null
+                : Number(row.category_id),
+        categoryName: text(row.category_name),
+        unit: text(row.unit),
+        quantityOnHand,
+        quantityReserved,
+        quantityAvailable: available,
+        reorderLevel:
+            inventoryNumber(row.reorder_level),
+        unitCost,
+        stockValue:
+            Math.round(
+                quantityOnHand *
+                unitCost *
+                100
+            ) / 100,
+        supplierName: text(row.supplier_name),
+        storageLocation:
+            text(row.storage_location),
+        status: inventoryStatus(row),
+        isActive:
+            Number(row.is_active || 0) === 1,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+    };
+}
+
+async function getInventoryItemOrNull(
+    db,
+    itemId
+) {
+    return await db.prepare(`
+        SELECT
+            item.*,
+            category.name AS category_name
+        FROM inventory_items item
+        LEFT JOIN inventory_categories category
+            ON category.id = item.category_id
+        WHERE item.id = ?
+        LIMIT 1
+    `).bind(itemId).first();
+}
+
+async function handleAdminInventoryOverview(
+    request,
+    env
+) {
+    const items = await env.DB.prepare(`
+        SELECT
+            item.*,
+            category.name AS category_name
+        FROM inventory_items item
+        LEFT JOIN inventory_categories category
+            ON category.id = item.category_id
+        WHERE item.is_active = 1
+        ORDER BY item.name ASC
+    `).all();
+
+    const mapped =
+        (items.results || [])
+            .map(inventoryItemPayload);
+
+    const lowStock =
+        mapped.filter(
+            item =>
+                item.status === "low_stock"
+        );
+
+    const outOfStock =
+        mapped.filter(
+            item =>
+                item.status === "out_of_stock"
+        );
+
+    const totalReserved =
+        mapped.reduce(
+            (total, item) =>
+                total +
+                item.quantityReserved,
+            0
+        );
+
+    const totalStockValue =
+        mapped.reduce(
+            (total, item) =>
+                total +
+                item.stockValue,
+            0
+        );
+
+    const recentMovements =
+        await env.DB.prepare(`
+            SELECT
+                movement.*,
+                item.name AS item_name,
+                item.sku AS item_sku,
+                item.unit AS item_unit
+            FROM inventory_movements movement
+            INNER JOIN inventory_items item
+                ON item.id =
+                    movement.inventory_item_id
+            ORDER BY movement.created_at DESC,
+                     movement.id DESC
+            LIMIT 12
+        `).all();
+
+    return jsonResponse(
+        {
+            success: true,
+            overview: {
+                totalItems: mapped.length,
+                lowStockCount:
+                    lowStock.length,
+                outOfStockCount:
+                    outOfStock.length,
+                totalReserved,
+                totalStockValue:
+                    Math.round(
+                        totalStockValue * 100
+                    ) / 100,
+                lowStockItems: lowStock,
+                outOfStockItems: outOfStock,
+                recentMovements:
+                    recentMovements.results || []
+            }
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryCategoryList(
+    request,
+    env
+) {
+    const result = await env.DB.prepare(`
+        SELECT *
+        FROM inventory_categories
+        WHERE is_active = 1
+        ORDER BY sort_order ASC, name ASC
+    `).all();
+
+    return jsonResponse(
+        {
+            success: true,
+            categories:
+                result.results || []
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryItemList(
+    request,
+    env,
+    url
+) {
+    const search =
+        text(
+            url.searchParams.get("search")
+        );
+
+    const category =
+        text(
+            url.searchParams.get("category")
+        );
+
+    const status =
+        text(
+            url.searchParams.get("status")
+        ).toLowerCase();
+
+    const params = [];
+    const where = [
+        "item.is_active = 1"
+    ];
+
+    if (search) {
+        where.push(`
+            (
+                lower(item.name)
+                    LIKE lower(?)
+                OR lower(item.sku)
+                    LIKE lower(?)
+                OR lower(item.description)
+                    LIKE lower(?)
+            )
+        `);
+
+        const pattern = `%${search}%`;
+        params.push(
+            pattern,
+            pattern,
+            pattern
+        );
+    }
+
+    if (category) {
+        where.push(
+            "lower(category.slug) = lower(?)"
+        );
+        params.push(category);
+    }
+
+    const result = await env.DB.prepare(`
+        SELECT
+            item.*,
+            category.name AS category_name
+        FROM inventory_items item
+        LEFT JOIN inventory_categories category
+            ON category.id = item.category_id
+        WHERE ${where.join(" AND ")}
+        ORDER BY item.name ASC
+    `).bind(...params).all();
+
+    let items =
+        (result.results || [])
+            .map(inventoryItemPayload);
+
+    if (
+        [
+            "in_stock",
+            "low_stock",
+            "out_of_stock"
+        ].includes(status)
+    ) {
+        items = items.filter(
+            item => item.status === status
+        );
+    }
+
+    return jsonResponse(
+        {
+            success: true,
+            items
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryItemCreate(
+    request,
+    env
+) {
+    const body =
+        await request.json()
+            .catch(() => ({}));
+
+    const sku =
+        text(body.sku).toUpperCase();
+
+    const name =
+        text(body.name);
+
+    const unit =
+        text(body.unit);
+
+    if (!sku || !name || !unit) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "SKU, item name and unit are required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const quantityOnHand =
+        Math.max(
+            0,
+            inventoryNumber(
+                body.quantityOnHand
+            )
+        );
+
+    const reorderLevel =
+        Math.max(
+            0,
+            inventoryNumber(
+                body.reorderLevel
+            )
+        );
+
+    const unitCost =
+        Math.max(
+            0,
+            inventoryNumber(
+                body.unitCost
+            )
+        );
+
+    const categoryId =
+        body.categoryId
+            ? Number(body.categoryId)
+            : null;
+
+    if (
+        categoryId !== null &&
+        !Number.isInteger(categoryId)
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Invalid inventory category."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const existing =
+        await env.DB.prepare(`
+            SELECT id
+            FROM inventory_items
+            WHERE upper(sku) = upper(?)
+            LIMIT 1
+        `).bind(sku).first();
+
+    if (existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "An inventory item with this SKU already exists."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    const now =
+        new Date().toISOString();
+
+    const result =
+        await env.DB.prepare(`
+            INSERT INTO inventory_items (
+                sku,
+                name,
+                description,
+                category_id,
+                unit,
+                quantity_on_hand,
+                quantity_reserved,
+                reorder_level,
+                unit_cost,
+                supplier_name,
+                storage_location,
+                is_active,
+                created_at,
+                updated_at
+            )
+            VALUES (
+                ?, ?, ?, ?, ?,
+                ?, 0, ?, ?, ?, ?,
+                1, ?, ?
+            )
+        `).bind(
+            sku,
+            name,
+            text(body.description) || null,
+            categoryId,
+            unit,
+            quantityOnHand,
+            reorderLevel,
+            unitCost,
+            text(body.supplierName) || null,
+            text(body.storageLocation) || null,
+            now,
+            now
+        ).run();
+
+    const itemId =
+        Number(
+            result.meta?.last_row_id || 0
+        );
+
+    if (!itemId) {
+        throw new Error(
+            "Inventory item could not be created."
+        );
+    }
+
+    if (quantityOnHand > 0) {
+        await env.DB.prepare(`
+            INSERT INTO inventory_movements (
+                inventory_item_id,
+                movement_type,
+                quantity,
+                quantity_before,
+                quantity_after,
+                reference,
+                reason,
+                notes,
+                created_at
+            )
+            VALUES (
+                ?, 'stock_in', ?,
+                0, ?, ?,
+                'Opening balance',
+                ?, ?
+            )
+        `).bind(
+            itemId,
+            quantityOnHand,
+            quantityOnHand,
+            `OPENING-${itemId}`,
+            "Opening inventory balance",
+            now
+        ).run();
+    }
+
+    const item =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    await maybeSendInventoryThresholdAlert(
+        env,
+        item
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                "Inventory item created.",
+            item:
+                inventoryItemPayload(item)
+        },
+        201,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryItemDetail(
+    request,
+    env,
+    itemId
+) {
+    const item =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    if (!item) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Inventory item not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const movements =
+        await env.DB.prepare(`
+            SELECT *
+            FROM inventory_movements
+            WHERE inventory_item_id = ?
+            ORDER BY created_at DESC, id DESC
+            LIMIT 50
+        `).bind(itemId).all();
+
+    const reservations =
+        await env.DB.prepare(`
+            SELECT *
+            FROM inventory_reservations
+            WHERE inventory_item_id = ?
+            ORDER BY created_at DESC, id DESC
+            LIMIT 50
+        `).bind(itemId).all();
+
+    return jsonResponse(
+        {
+            success: true,
+            item:
+                inventoryItemPayload(item),
+            movements:
+                movements.results || [],
+            reservations:
+                reservations.results || []
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryItemUpdate(
+    request,
+    env,
+    itemId
+) {
+    const existing =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Inventory item not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body =
+        await request.json()
+            .catch(() => ({}));
+
+    const now =
+        new Date().toISOString();
+
+    const name =
+        body.name !== undefined
+            ? text(body.name)
+            : existing.name;
+
+    const description =
+        body.description !== undefined
+            ? text(body.description) || null
+            : existing.description;
+
+    const categoryId =
+        body.categoryId !== undefined
+            ? (
+                body.categoryId
+                    ? Number(body.categoryId)
+                    : null
+            )
+            : existing.category_id;
+
+    const unit =
+        body.unit !== undefined
+            ? text(body.unit)
+            : existing.unit;
+
+    const reorderLevel =
+        body.reorderLevel !== undefined
+            ? Math.max(
+                0,
+                inventoryNumber(
+                    body.reorderLevel
+                )
+            )
+            : inventoryNumber(
+                existing.reorder_level
+            );
+
+    const unitCost =
+        body.unitCost !== undefined
+            ? Math.max(
+                0,
+                inventoryNumber(
+                    body.unitCost
+                )
+            )
+            : inventoryNumber(
+                existing.unit_cost
+            );
+
+    const supplierName =
+        body.supplierName !== undefined
+            ? text(body.supplierName) || null
+            : existing.supplier_name;
+
+    const storageLocation =
+        body.storageLocation !== undefined
+            ? text(body.storageLocation) || null
+            : existing.storage_location;
+
+    const isActive =
+        body.isActive !== undefined
+            ? body.isActive ? 1 : 0
+            : Number(existing.is_active || 0);
+
+    if (!name || !unit) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Item name and unit are required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    await env.DB.prepare(`
+        UPDATE inventory_items
+        SET
+            name = ?,
+            description = ?,
+            category_id = ?,
+            unit = ?,
+            reorder_level = ?,
+            unit_cost = ?,
+            supplier_name = ?,
+            storage_location = ?,
+            is_active = ?,
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        name,
+        description,
+        categoryId,
+        unit,
+        reorderLevel,
+        unitCost,
+        supplierName,
+        storageLocation,
+        isActive,
+        now,
+        itemId
+    ).run();
+
+    const updated =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    await maybeSendInventoryThresholdAlert(
+        env,
+        updated
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                "Inventory item updated.",
+            item:
+                inventoryItemPayload(updated)
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryMovementCreate(
+    request,
+    env,
+    itemId
+) {
+    const existing =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    if (!existing) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Inventory item not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body =
+        await request.json()
+            .catch(() => ({}));
+
+    const movementType =
+        text(
+            body.movementType
+        ).toLowerCase();
+
+    if (
+        !INVENTORY_MOVEMENT_TYPES.has(
+            movementType
+        )
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Please select a valid inventory movement type."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const quantity =
+        inventoryNumber(
+            body.quantity
+        );
+
+    if (!(quantity > 0)) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Movement quantity must be greater than zero."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const increaseTypes =
+        new Set([
+            "stock_in",
+            "adjustment_in",
+            "return_to_stock"
+        ]);
+
+    const before =
+        inventoryNumber(
+            existing.quantity_on_hand
+        );
+
+    const after =
+        increaseTypes.has(movementType)
+            ? before + quantity
+            : before - quantity;
+
+    if (after < 0) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "This movement would make physical stock negative."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    const now =
+        new Date().toISOString();
+
+    await env.DB.prepare(`
+        UPDATE inventory_items
+        SET
+            quantity_on_hand = ?,
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        after,
+        now,
+        itemId
+    ).run();
+
+    await env.DB.prepare(`
+        INSERT INTO inventory_movements (
+            inventory_item_id,
+            movement_type,
+            quantity,
+            quantity_before,
+            quantity_after,
+            order_reference,
+            order_item_id,
+            production_task_id,
+            reference,
+            reason,
+            notes,
+            created_at
+        )
+        VALUES (
+            ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?
+        )
+    `).bind(
+        itemId,
+        movementType,
+        quantity,
+        before,
+        after,
+        text(body.orderReference) || null,
+        body.orderItemId
+            ? Number(body.orderItemId)
+            : null,
+        body.productionTaskId
+            ? Number(body.productionTaskId)
+            : null,
+        text(body.reference) || null,
+        text(body.reason) || null,
+        text(body.notes) || null,
+        now
+    ).run();
+
+    const updated =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    await maybeSendInventoryThresholdAlert(
+        env,
+        updated
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                "Inventory movement recorded.",
+            item:
+                inventoryItemPayload(updated)
+        },
+        201,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryMovementList(
+    request,
+    env,
+    url
+) {
+    const itemId =
+        Number(
+            url.searchParams.get(
+                "item_id"
+            ) || 0
+        );
+
+    const limit =
+        Math.min(
+            200,
+            Math.max(
+                1,
+                Number(
+                    url.searchParams.get(
+                        "limit"
+                    ) || 50
+                )
+            )
+        );
+
+    const where = [];
+    const params = [];
+
+    if (
+        Number.isInteger(itemId) &&
+        itemId > 0
+    ) {
+        where.push(
+            "movement.inventory_item_id = ?"
+        );
+        params.push(itemId);
+    }
+
+    const result =
+        await env.DB.prepare(`
+            SELECT
+                movement.*,
+                item.name AS item_name,
+                item.sku AS item_sku,
+                item.unit AS item_unit
+            FROM inventory_movements movement
+            INNER JOIN inventory_items item
+                ON item.id =
+                    movement.inventory_item_id
+            ${
+                where.length
+                    ? `WHERE ${where.join(" AND ")}`
+                    : ""
+            }
+            ORDER BY
+                movement.created_at DESC,
+                movement.id DESC
+            LIMIT ${limit}
+        `).bind(...params).all();
+
+    return jsonResponse(
+        {
+            success: true,
+            movements:
+                result.results || []
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryReservationCreate(
+    request,
+    env
+) {
+    const body =
+        await request.json()
+            .catch(() => ({}));
+
+    const itemId =
+        Number(body.inventoryItemId);
+
+    const quantity =
+        inventoryNumber(
+            body.quantity
+        );
+
+    const orderReference =
+        text(body.orderReference);
+
+    if (
+        !Number.isInteger(itemId) ||
+        itemId < 1 ||
+        !(quantity > 0) ||
+        !orderReference
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Inventory item, order reference and reservation quantity are required."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const item =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    if (!item) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Inventory item not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const available =
+        inventoryNumber(
+            item.quantity_on_hand
+        ) -
+        inventoryNumber(
+            item.quantity_reserved
+        );
+
+    if (quantity > available) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    `Only ${available} ${text(item.unit)} are currently available to reserve.`
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    const now =
+        new Date().toISOString();
+
+    const result =
+        await env.DB.prepare(`
+            INSERT INTO inventory_reservations (
+                inventory_item_id,
+                order_reference,
+                order_item_id,
+                quantity_reserved,
+                quantity_consumed,
+                status,
+                notes,
+                created_at,
+                updated_at
+            )
+            VALUES (
+                ?, ?, ?, ?, 0,
+                'active', ?, ?, ?
+            )
+        `).bind(
+            itemId,
+            orderReference,
+            body.orderItemId
+                ? Number(body.orderItemId)
+                : null,
+            quantity,
+            text(body.notes) || null,
+            now,
+            now
+        ).run();
+
+    await env.DB.prepare(`
+        UPDATE inventory_items
+        SET
+            quantity_reserved =
+                quantity_reserved + ?,
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        quantity,
+        now,
+        itemId
+    ).run();
+
+    const updated =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    await maybeSendInventoryThresholdAlert(
+        env,
+        updated
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                "Inventory reserved for order.",
+            reservationId:
+                Number(
+                    result.meta
+                        ?.last_row_id || 0
+                ),
+            item:
+                inventoryItemPayload(updated)
+        },
+        201,
+        request,
+        env
+    );
+}
+
+async function handleAdminInventoryReservationUpdate(
+    request,
+    env,
+    reservationId
+) {
+    const reservation =
+        await env.DB.prepare(`
+            SELECT *
+            FROM inventory_reservations
+            WHERE id = ?
+            LIMIT 1
+        `).bind(reservationId).first();
+
+    if (!reservation) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Inventory reservation not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const body =
+        await request.json()
+            .catch(() => ({}));
+
+    const action =
+        text(body.action)
+            .toLowerCase();
+
+    if (
+        ![
+            "consume",
+            "release"
+        ].includes(action)
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Reservation action must be consume or release."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const itemId =
+        Number(
+            reservation.inventory_item_id
+        );
+
+    const item =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    if (!item) {
+        throw new Error(
+            "Reserved inventory item no longer exists."
+        );
+    }
+
+    const reserved =
+        inventoryNumber(
+            reservation.quantity_reserved
+        );
+
+    const consumed =
+        inventoryNumber(
+            reservation.quantity_consumed
+        );
+
+    const remaining =
+        Math.max(
+            0,
+            reserved - consumed
+        );
+
+    const now =
+        new Date().toISOString();
+
+    if (action === "release") {
+        if (
+            reservation.status ===
+            "consumed"
+        ) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message:
+                        "A fully consumed reservation cannot be released."
+                },
+                409,
+                request,
+                env
+            );
+        }
+
+        await env.DB.prepare(`
+            UPDATE inventory_items
+            SET
+                quantity_reserved =
+                    max(
+                        0,
+                        quantity_reserved - ?
+                    ),
+                updated_at = ?
+            WHERE id = ?
+        `).bind(
+            remaining,
+            now,
+            itemId
+        ).run();
+
+        await env.DB.prepare(`
+            UPDATE inventory_reservations
+            SET
+                status = 'released',
+                updated_at = ?
+            WHERE id = ?
+        `).bind(
+            now,
+            reservationId
+        ).run();
+
+        const updated =
+            await getInventoryItemOrNull(
+                env.DB,
+                itemId
+            );
+
+        await maybeSendInventoryThresholdAlert(
+            env,
+            updated
+        );
+
+        return jsonResponse(
+            {
+                success: true,
+                message:
+                    "Inventory reservation released.",
+                item:
+                    inventoryItemPayload(updated)
+            },
+            200,
+            request,
+            env
+        );
+    }
+
+    const consumeQuantity =
+        inventoryNumber(
+            body.quantity
+        );
+
+    if (
+        !(consumeQuantity > 0) ||
+        consumeQuantity > remaining
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    `Consumption quantity must be greater than zero and no more than the remaining reservation (${remaining}).`
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const before =
+        inventoryNumber(
+            item.quantity_on_hand
+        );
+
+    const after =
+        before - consumeQuantity;
+
+    if (after < 0) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "There is not enough physical stock to consume this reservation."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    const newConsumed =
+        consumed + consumeQuantity;
+
+    const newStatus =
+        newConsumed >= reserved
+            ? "consumed"
+            : "partially_consumed";
+
+    await env.DB.prepare(`
+        UPDATE inventory_items
+        SET
+            quantity_on_hand = ?,
+            quantity_reserved =
+                max(
+                    0,
+                    quantity_reserved - ?
+                ),
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        after,
+        consumeQuantity,
+        now,
+        itemId
+    ).run();
+
+    await env.DB.prepare(`
+        UPDATE inventory_reservations
+        SET
+            quantity_consumed = ?,
+            status = ?,
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        newConsumed,
+        newStatus,
+        now,
+        reservationId
+    ).run();
+
+    await env.DB.prepare(`
+        INSERT INTO inventory_movements (
+            inventory_item_id,
+            movement_type,
+            quantity,
+            quantity_before,
+            quantity_after,
+            order_reference,
+            order_item_id,
+            reference,
+            reason,
+            notes,
+            created_at
+        )
+        VALUES (
+            ?,
+            'production_usage',
+            ?, ?, ?, ?, ?,
+            ?,
+            'Reserved material consumed',
+            ?,
+            ?
+        )
+    `).bind(
+        itemId,
+        consumeQuantity,
+        before,
+        after,
+        reservation.order_reference,
+        reservation.order_item_id,
+        `RESERVATION-${reservationId}`,
+        text(body.notes) || null,
+        now
+    ).run();
+
+    const updated =
+        await getInventoryItemOrNull(
+            env.DB,
+            itemId
+        );
+
+    await maybeSendInventoryThresholdAlert(
+        env,
+        updated
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                "Reserved inventory consumed.",
+            reservationStatus:
+                newStatus,
+            item:
+                inventoryItemPayload(updated)
+        },
+        200,
+        request,
+        env
+    );
+}
+
+function inventoryAlertRecipients(env) {
+    const raw =
+        text(
+            env.INVENTORY_ALERT_EMAILS
+        ) ||
+        text(env.INTERNAL_EMAIL);
+
+    return raw
+        .split(",")
+        .map(email => email.trim())
+        .filter(Boolean);
+}
+
+async function inventoryCurrentAlertItems(
+    db
+) {
+    const result =
+        await db.prepare(`
+            SELECT
+                item.*,
+                category.name AS category_name
+            FROM inventory_items item
+            LEFT JOIN inventory_categories category
+                ON category.id =
+                    item.category_id
+            WHERE item.is_active = 1
+            ORDER BY item.name ASC
+        `).all();
+
+    return (result.results || [])
+        .map(inventoryItemPayload)
+        .filter(
+            item =>
+                item.status === "low_stock" ||
+                item.status === "out_of_stock"
+        );
+}
+
+async function maybeSendInventoryThresholdAlert(
+    env,
+    rawItem
+) {
+    if (!rawItem) return;
+
+    const item =
+        inventoryItemPayload(rawItem);
+
+    if (
+        ![
+            "low_stock",
+            "out_of_stock"
+        ].includes(item.status)
+    ) {
+        return;
+    }
+
+    const existing =
+        await env.DB.prepare(`
+            SELECT id
+            FROM inventory_alert_events
+            WHERE inventory_item_id = ?
+              AND alert_status = ?
+              AND resolved_at IS NULL
+            LIMIT 1
+        `).bind(
+            item.id,
+            item.status
+        ).first();
+
+    if (existing) {
+        return;
+    }
+
+    /*
+     * Resolve previous open alerts for the same item before
+     * recording the new status transition.
+     */
+    const now =
+        new Date().toISOString();
+
+    await env.DB.prepare(`
+        UPDATE inventory_alert_events
+        SET resolved_at = ?
+        WHERE inventory_item_id = ?
+          AND resolved_at IS NULL
+    `).bind(
+        now,
+        item.id
+    ).run();
+
+    await env.DB.prepare(`
+        INSERT INTO inventory_alert_events (
+            inventory_item_id,
+            alert_status,
+            quantity_on_hand,
+            quantity_reserved,
+            quantity_available,
+            reorder_level,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+        item.id,
+        item.status,
+        item.quantityOnHand,
+        item.quantityReserved,
+        item.quantityAvailable,
+        item.reorderLevel,
+        now
+    ).run();
+
+    await sendInventoryAlertEmail(
+        env,
+        [item],
+        {
+            subjectPrefix:
+                item.status === "out_of_stock"
+                    ? "OUT OF STOCK"
+                    : "LOW INVENTORY",
+            reason:
+                "Inventory threshold crossed"
+        }
+    );
+}
+
+async function runInventoryLowStockAlertScan(
+    env,
+    { force = false } = {}
+) {
+    const items =
+        await inventoryCurrentAlertItems(
+            env.DB
+        );
+
+    if (!items.length) {
+        return {
+            alertCount: 0,
+            emailSent: false
+        };
+    }
+
+    /*
+     * Daily cron sends a consolidated safety summary.
+     * The manual /alerts/check endpoint can force a scan as well.
+     */
+    const today =
+        new Date()
+            .toISOString()
+            .slice(0, 10);
+
+    const scanKey =
+        `daily-inventory-summary:${today}`;
+
+    if (!force) {
+        const existing =
+            await env.DB.prepare(`
+                SELECT id
+                FROM inventory_alert_runs
+                WHERE run_key = ?
+                LIMIT 1
+            `).bind(scanKey).first();
+
+        if (existing) {
+            return {
+                alertCount:
+                    items.length,
+                emailSent: false,
+                skipped:
+                    "Daily summary already sent."
+            };
+        }
+    }
+
+    const sent =
+        await sendInventoryAlertEmail(
+            env,
+            items,
+            {
+                subjectPrefix:
+                    "INVENTORY ALERT",
+                reason:
+                    "Daily low-stock and out-of-stock summary"
+            }
+        );
+
+    if (sent && !force) {
+        await env.DB.prepare(`
+            INSERT OR IGNORE
+            INTO inventory_alert_runs (
+                run_key,
+                alert_count,
+                created_at
+            )
+            VALUES (?, ?, ?)
+        `).bind(
+            scanKey,
+            items.length,
+            new Date().toISOString()
+        ).run();
+    }
+
+    return {
+        alertCount:
+            items.length,
+        emailSent: sent
+    };
+}
+
+async function sendInventoryAlertEmail(
+    env,
+    items,
+    {
+        subjectPrefix =
+            "INVENTORY ALERT",
+        reason = ""
+    } = {}
+) {
+    const recipients =
+        inventoryAlertRecipients(env);
+
+    if (
+        !recipients.length ||
+        !env.RESEND_API_KEY ||
+        !env.FROM_EMAIL
+    ) {
+        console.warn(
+            "Inventory alert email skipped because email configuration is incomplete."
+        );
+
+        return false;
+    }
+
+    const outCount =
+        items.filter(
+            item =>
+                item.status ===
+                "out_of_stock"
+        ).length;
+
+    const lowCount =
+        items.filter(
+            item =>
+                item.status ===
+                "low_stock"
+        ).length;
+
+    const rows =
+        items.map(item => `
+            <tr>
+                <td style="padding:12px;border-bottom:1px solid #eadfd7;">
+                    <strong>${escapeHtml(item.name)}</strong><br>
+                    <span style="color:#756159;font-size:12px;">
+                        ${escapeHtml(item.sku)}
+                    </span>
+                </td>
+                <td style="padding:12px;border-bottom:1px solid #eadfd7;">
+                    ${escapeHtml(
+                        item.status === "out_of_stock"
+                            ? "Out of stock"
+                            : "Low stock"
+                    )}
+                </td>
+                <td style="padding:12px;border-bottom:1px solid #eadfd7;text-align:right;">
+                    ${escapeHtml(
+                        String(
+                            item.quantityAvailable
+                        )
+                    )}
+                    ${escapeHtml(item.unit)}
+                </td>
+                <td style="padding:12px;border-bottom:1px solid #eadfd7;text-align:right;">
+                    ${escapeHtml(
+                        String(
+                            item.reorderLevel
+                        )
+                    )}
+                    ${escapeHtml(item.unit)}
+                </td>
+            </tr>
+        `).join("");
+
+    const subject =
+        `${subjectPrefix} | ${outCount} out of stock · ${lowCount} low`;
+
+    const payload = {
+        from: env.FROM_EMAIL,
+        to: recipients,
+        subject,
+        html: emailShell(`
+            <p style="margin:0 0 10px;font:600 11px/1.4 Arial,sans-serif;letter-spacing:2.3px;text-transform:uppercase;color:#8d654d;">
+                Inventory control
+            </p>
+
+            <h1 style="margin:0 0 14px;font:400 34px/1.15 Georgia,serif;color:#2e1c15;">
+                Inventory needs attention.
+            </h1>
+
+            <p style="margin:0 0 24px;color:#6d574b;font:400 15px/1.75 Arial,sans-serif;">
+                ${escapeHtml(reason)}
+            </p>
+
+            <div style="display:flex;gap:12px;margin:0 0 24px;">
+                <div style="padding:14px 18px;background:#fff;border:1px solid #e3d8d0;">
+                    <strong style="display:block;font-size:22px;color:#8b1e1e;">${outCount}</strong>
+                    <span style="font-size:12px;color:#756159;">Out of stock</span>
+                </div>
+
+                <div style="padding:14px 18px;background:#fff;border:1px solid #e3d8d0;">
+                    <strong style="display:block;font-size:22px;color:#9a5b18;">${lowCount}</strong>
+                    <span style="font-size:12px;color:#756159;">Low stock</span>
+                </div>
+            </div>
+
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3d8d0;">
+                <thead>
+                    <tr style="background:#f4ece6;color:#2e1c15;">
+                        <th align="left" style="padding:12px;">Item</th>
+                        <th align="left" style="padding:12px;">Status</th>
+                        <th align="right" style="padding:12px;">Available</th>
+                        <th align="right" style="padding:12px;">Reorder level</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+
+            <p style="margin:24px 0 0;color:#6d574b;font:400 13px/1.7 Arial,sans-serif;">
+                Please review stock levels in the Luxsome CRM before new production commitments are made.
+            </p>
+        `, subject)
+    };
+
+    if (env.REPLY_TO_EMAIL) {
+        payload.reply_to =
+            env.REPLY_TO_EMAIL;
+    }
+
+    try {
+        const response =
+            await fetch(
+                RESEND_EMAIL_ENDPOINT,
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization:
+                            `Bearer ${env.RESEND_API_KEY}`,
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify(payload)
+                }
+            );
+
+        if (!response.ok) {
+            console.error(
+                "Inventory alert email failed",
+                await safeJson(response)
+            );
+
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error(
+            "Inventory alert email error",
+            error
+        );
+
+        return false;
+    }
 }
 
 function assertEnvironment(env) {
