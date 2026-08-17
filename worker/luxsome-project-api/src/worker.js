@@ -1,5 +1,7 @@
 const RESEND_BATCH_ENDPOINT = "https://api.resend.com/emails/batch";
 const RESEND_EMAIL_ENDPOINT = "https://api.resend.com/emails";
+const PAYSTACK_API_BASE = "https://api.paystack.co";
+const PAYSTACK_WEBHOOK_PATH = "/webhooks/paystack";
 const PROJECT_PATH = "/project";
 const CONTACT_PATH = "/contact";
 const HEALTH_PATH = "/health";
@@ -28,6 +30,13 @@ export default {
                     request,
                     env
                 );
+            }
+
+            if (
+                request.method === "POST" &&
+                url.pathname === PAYSTACK_WEBHOOK_PATH
+            ) {
+                return await handlePaystackWebhook(request, env);
             }
 
             if (url.pathname === ARTWORK_SESSION_PATH ||
@@ -7553,6 +7562,921 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary);
 }
 
+
+/* ==========================================================
+   PAYSTACK INVOICE PAYMENTS
+========================================================== */
+
+function paystackAmountToSubunit(amount) {
+    const numeric = Number(amount || 0);
+    return Number.isFinite(numeric) && numeric > 0
+        ? Math.round(numeric * 100)
+        : 0;
+}
+
+function paystackAmountFromSubunit(amount) {
+    return Number(amount || 0) / 100;
+}
+
+function generatePaystackInvoiceReference(invoiceReference) {
+    const clean = text(invoiceReference)
+        .replace(/[^A-Za-z0-9.-]/g, "-")
+        .slice(0, 48);
+
+    const random = crypto.randomUUID()
+        .replace(/-/g, "")
+        .slice(0, 12);
+
+    return `LUX-${clean}-${Date.now()}-${random}`;
+}
+
+async function paystackRequest(env, path, options = {}) {
+    if (!env.PAYSTACK_SECRET_KEY) {
+        throw new Error("Paystack is not configured for this environment.");
+    }
+
+    const response = await fetch(`${PAYSTACK_API_BASE}${path}`, {
+        method: options.method || "GET",
+        headers: {
+            Authorization: `Bearer ${env.PAYSTACK_SECRET_KEY}`,
+            "Content-Type": "application/json",
+            "Cache-Control": "no-cache"
+        },
+        body: options.body === undefined
+            ? undefined
+            : JSON.stringify(options.body)
+    });
+
+    const payload = await safeJson(response);
+
+    if (!response.ok || payload?.status !== true) {
+        throw new Error(
+            text(payload?.message) ||
+            `Paystack request failed with status ${response.status}.`
+        );
+    }
+
+    return payload;
+}
+
+async function initializePaystackInvoicePayment(
+    env,
+    invoice,
+    publicToken
+) {
+    const balanceDue = Number(invoice.balance_due || 0);
+    const currency = text(invoice.currency || "NGN").toUpperCase();
+    const customerEmail = text(invoice.customer_email).toLowerCase();
+
+    if (!(balanceDue > 0)) {
+        throw new Error("This invoice does not have an outstanding balance.");
+    }
+
+    if (["paid", "cancelled", "void"].includes(text(invoice.status))) {
+        throw new Error("This invoice is not available for online payment.");
+    }
+
+    if (currency !== "NGN") {
+        throw new Error(
+            "Online Paystack checkout is currently available for NGN invoices only."
+        );
+    }
+
+    if (!isValidEmail(customerEmail)) {
+        throw new Error(
+            "A valid customer email is required before online payment can be initialized."
+        );
+    }
+
+    const amountSubunit = paystackAmountToSubunit(balanceDue);
+
+    const reusable = await env.DB.prepare(`
+        SELECT *
+        FROM payment_gateway_transactions
+        WHERE invoice_id = ?
+          AND provider = 'paystack'
+          AND amount_subunit = ?
+          AND currency = ?
+          AND status IN ('initialized', 'pending')
+          AND invoice_payment_id IS NULL
+          AND authorization_url IS NOT NULL
+        ORDER BY id DESC
+        LIMIT 1
+    `).bind(
+        invoice.id,
+        amountSubunit,
+        currency
+    ).first();
+
+    if (reusable) {
+        return {
+            id: Number(reusable.id),
+            reference: reusable.provider_reference,
+            authorizationUrl: reusable.authorization_url,
+            accessCode: reusable.access_code,
+            reused: true
+        };
+    }
+
+    const reference = generatePaystackInvoiceReference(
+        invoice.invoice_reference
+    );
+
+    const publicSiteUrl = (
+        text(env.PUBLIC_SITE_URL) ||
+        "https://www.luxsomepackaging.com"
+    ).replace(/\/$/, "");
+
+    const callbackUrl =
+        `${publicSiteUrl}/invoice/?token=${encodeURIComponent(publicToken)}` +
+        `&payment=return`;
+
+    const metadata = {
+        invoice_reference: invoice.invoice_reference,
+        invoice_id: Number(invoice.id),
+        environment: text(env.ENVIRONMENT) || "unknown",
+        source: "luxsome_invoice"
+    };
+
+    const initialized = await paystackRequest(
+        env,
+        "/transaction/initialize",
+        {
+            method: "POST",
+            body: {
+                email: customerEmail,
+                amount: String(amountSubunit),
+                currency,
+                reference,
+                callback_url: callbackUrl,
+                metadata: JSON.stringify(metadata)
+            }
+        }
+    );
+
+    const authorizationUrl = text(
+        initialized?.data?.authorization_url
+    );
+    const accessCode = text(initialized?.data?.access_code);
+    const providerReference =
+        text(initialized?.data?.reference) || reference;
+
+    if (!authorizationUrl || !providerReference) {
+        throw new Error("Paystack did not return a checkout URL.");
+    }
+
+    const now = new Date().toISOString();
+
+    const result = await env.DB.prepare(`
+        INSERT INTO payment_gateway_transactions (
+            invoice_id,
+            provider,
+            provider_reference,
+            access_code,
+            authorization_url,
+            status,
+            amount,
+            amount_subunit,
+            currency,
+            customer_email,
+            metadata_json,
+            created_at,
+            updated_at
+        )
+        VALUES (
+            ?, 'paystack', ?, ?, ?,
+            'initialized', ?, ?, ?, ?, ?,
+            ?, ?
+        )
+    `).bind(
+        invoice.id,
+        providerReference,
+        accessCode || null,
+        authorizationUrl,
+        balanceDue,
+        amountSubunit,
+        currency,
+        customerEmail,
+        JSON.stringify(metadata),
+        now,
+        now
+    ).run();
+
+    const transactionId = Number(result.meta?.last_row_id || 0);
+
+    if (!transactionId) {
+        throw new Error("The Paystack checkout could not be recorded.");
+    }
+
+    await recordInvoiceActivity(env.DB, {
+        invoiceId: invoice.id,
+        activityType: "payment_checkout_created",
+        title: "Online payment checkout created",
+        details:
+            `${providerReference} for ` +
+            `${formatInvoiceMoney(balanceDue, currency)}.`,
+        actor: "system",
+        createdAt: now
+    });
+
+    return {
+        id: transactionId,
+        reference: providerReference,
+        authorizationUrl,
+        accessCode,
+        reused: false
+    };
+}
+
+async function verifyPaystackTransaction(env, reference) {
+    const safeReference = text(reference);
+
+    if (!/^[A-Za-z0-9.=:-]+$/.test(safeReference)) {
+        throw new Error("Invalid Paystack transaction reference.");
+    }
+
+    return await paystackRequest(
+        env,
+        `/transaction/verify/${encodeURIComponent(safeReference)}`
+    );
+}
+
+async function finalizeSuccessfulPaystackPayment(
+    env,
+    reference,
+    verifiedPayload
+) {
+    const attempt = await env.DB.prepare(`
+        SELECT
+            transaction.*,
+            invoice.invoice_reference
+        FROM payment_gateway_transactions transaction
+        INNER JOIN invoices invoice
+            ON invoice.id = transaction.invoice_id
+        WHERE transaction.provider = 'paystack'
+          AND transaction.provider_reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!attempt) {
+        throw new Error(
+            "The Paystack transaction does not belong to a Luxsome invoice."
+        );
+    }
+
+    if (attempt.invoice_payment_id) {
+        return {
+            alreadyProcessed: true,
+            success: true,
+            invoiceReference: attempt.invoice_reference,
+            paymentId: Number(attempt.invoice_payment_id)
+        };
+    }
+
+    const data = verifiedPayload?.data || {};
+    const providerStatus = text(data.status);
+    const providerReference = text(data.reference);
+    const providerAmountSubunit = Number(data.amount || 0);
+    const providerCurrency = text(data.currency).toUpperCase();
+    const expectedAmountSubunit = Number(attempt.amount_subunit || 0);
+    const expectedCurrency = text(attempt.currency).toUpperCase();
+    const now = new Date().toISOString();
+
+    if (providerStatus !== "success") {
+        await env.DB.prepare(`
+            UPDATE payment_gateway_transactions
+            SET status = ?,
+                gateway_response = ?,
+                provider_payload_json = ?,
+                verified_at = ?,
+                updated_at = ?
+            WHERE id = ?
+        `).bind(
+            providerStatus || "failed",
+            text(data.gateway_response || data.message) || null,
+            JSON.stringify(verifiedPayload || {}),
+            now,
+            now,
+            attempt.id
+        ).run();
+
+        return {
+            alreadyProcessed: false,
+            success: false,
+            status: providerStatus || "failed",
+            invoiceReference: attempt.invoice_reference
+        };
+    }
+
+    if (providerReference !== attempt.provider_reference) {
+        throw new Error(
+            "Paystack returned a different transaction reference."
+        );
+    }
+
+    if (providerAmountSubunit !== expectedAmountSubunit) {
+        throw new Error(
+            "Paystack payment amount does not match the invoice checkout amount."
+        );
+    }
+
+    if (providerCurrency !== expectedCurrency) {
+        throw new Error(
+            "Paystack payment currency does not match the invoice currency."
+        );
+    }
+
+    const invoice = await getInvoiceByReference(
+        env.DB,
+        attempt.invoice_reference
+    );
+
+    if (!invoice) {
+        throw new Error("Invoice not found during payment finalization.");
+    }
+
+    const amount = paystackAmountFromSubunit(providerAmountSubunit);
+    const currentBalance = Number(invoice.balance_due || 0);
+
+    if (currentBalance <= 0 || amount > currentBalance) {
+        throw new Error(
+            "This successful Paystack transaction no longer matches the current invoice balance. Manual review is required."
+        );
+    }
+
+    const existingPayment = await env.DB.prepare(`
+        SELECT id
+        FROM invoice_payments
+        WHERE provider = 'paystack'
+          AND provider_reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (existingPayment) {
+        await env.DB.prepare(`
+            UPDATE payment_gateway_transactions
+            SET status = 'success',
+                invoice_payment_id = ?,
+                provider_transaction_id = ?,
+                channel = ?,
+                fees_subunit = ?,
+                gateway_response = ?,
+                paid_at = ?,
+                verified_at = ?,
+                provider_payload_json = ?,
+                updated_at = ?
+            WHERE id = ?
+        `).bind(
+            existingPayment.id,
+            data.id ? String(data.id) : null,
+            text(data.channel) || null,
+            Number(data.fees || 0),
+            text(data.gateway_response) || null,
+            text(data.paid_at || data.paidAt) || null,
+            now,
+            JSON.stringify(verifiedPayload || {}),
+            now,
+            attempt.id
+        ).run();
+
+        return {
+            alreadyProcessed: true,
+            success: true,
+            invoiceReference: attempt.invoice_reference,
+            paymentId: Number(existingPayment.id)
+        };
+    }
+
+    const receiptReference = await generateReceiptReference(env.DB);
+    const receiptToken = generatePublicToken();
+    const paymentDate = (
+        text(data.paid_at || data.paidAt) || now
+    ).slice(0, 10);
+
+    let paymentId = 0;
+
+    try {
+        const paymentResult = await env.DB.prepare(`
+            INSERT INTO invoice_payments (
+                invoice_id,
+                receipt_reference,
+                receipt_token,
+                amount,
+                payment_date,
+                payment_method,
+                payment_reference,
+                notes,
+                recorded_by,
+                provider,
+                provider_reference,
+                provider_transaction_id,
+                provider_channel,
+                provider_fees_subunit,
+                created_at,
+                updated_at
+            )
+            VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?,
+                'paystack',
+                'paystack', ?, ?, ?, ?,
+                ?, ?
+            )
+        `).bind(
+            invoice.id,
+            receiptReference,
+            receiptToken,
+            amount,
+            paymentDate,
+            text(data.channel)
+                ? `Paystack ${text(data.channel)}`
+                : "Paystack",
+            reference,
+            "Verified automatically through Paystack.",
+            reference,
+            data.id ? String(data.id) : null,
+            text(data.channel) || null,
+            Number(data.fees || 0),
+            now,
+            now
+        ).run();
+
+        paymentId = Number(paymentResult.meta?.last_row_id || 0);
+    } catch (error) {
+        const duplicate = await env.DB.prepare(`
+            SELECT id
+            FROM invoice_payments
+            WHERE provider = 'paystack'
+              AND provider_reference = ?
+            LIMIT 1
+        `).bind(reference).first();
+
+        if (!duplicate) {
+            throw error;
+        }
+
+        paymentId = Number(duplicate.id);
+    }
+
+    if (!paymentId) {
+        throw new Error(
+            "The verified Paystack payment could not be recorded."
+        );
+    }
+
+    await recalculateInvoicePaymentTotals(
+        env.DB,
+        invoice.id,
+        now
+    );
+
+    await env.DB.prepare(`
+        UPDATE payment_gateway_transactions
+        SET status = 'success',
+            invoice_payment_id = ?,
+            provider_transaction_id = ?,
+            channel = ?,
+            fees_subunit = ?,
+            gateway_response = ?,
+            paid_at = ?,
+            verified_at = ?,
+            provider_payload_json = ?,
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        paymentId,
+        data.id ? String(data.id) : null,
+        text(data.channel) || null,
+        Number(data.fees || 0),
+        text(data.gateway_response) || null,
+        text(data.paid_at || data.paidAt) || now,
+        now,
+        JSON.stringify(verifiedPayload || {}),
+        now,
+        attempt.id
+    ).run();
+
+    await recordInvoiceActivity(env.DB, {
+        invoiceId: invoice.id,
+        activityType: "payment_recorded",
+        title: "Paystack payment received",
+        details:
+            `${formatInvoiceMoney(amount, invoice.currency)} received via Paystack` +
+            `${text(data.channel) ? ` (${text(data.channel)})` : ""}. ` +
+            `Reference: ${reference}.`,
+        actor: "system",
+        createdAt: now
+    });
+
+    await env.DB.prepare(`
+        UPDATE payment_gateway_transactions
+        SET status = 'superseded',
+            updated_at = ?
+        WHERE invoice_id = ?
+          AND provider = 'paystack'
+          AND id <> ?
+          AND status IN ('initialized', 'pending')
+          AND invoice_payment_id IS NULL
+    `).bind(
+        now,
+        invoice.id,
+        attempt.id
+    ).run();
+
+    return {
+        alreadyProcessed: false,
+        success: true,
+        invoiceReference: invoice.invoice_reference,
+        paymentId,
+        receiptReference,
+        receiptToken,
+        amount,
+        channel: text(data.channel)
+    };
+}
+
+async function handlePublicInvoicePaystackInitialize(
+    request,
+    env,
+    publicToken
+) {
+    const invoice = await env.DB.prepare(`
+        SELECT *
+        FROM invoices
+        WHERE public_token = ?
+        LIMIT 1
+    `).bind(publicToken).first();
+
+    if (!invoice || ["cancelled", "void"].includes(invoice.status)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "This invoice link is invalid or no longer available."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    if (
+        invoice.status === "paid" ||
+        Number(invoice.balance_due || 0) <= 0
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "This invoice has already been paid."
+            },
+            409,
+            request,
+            env
+        );
+    }
+
+    try {
+        const attempt = await initializePaystackInvoicePayment(
+            env,
+            invoice,
+            publicToken
+        );
+
+        return jsonResponse(
+            {
+                success: true,
+                message: "Secure checkout is ready.",
+                payment: {
+                    provider: "paystack",
+                    reference: attempt.reference,
+                    authorizationUrl: attempt.authorizationUrl,
+                    amount: Number(invoice.balance_due || 0),
+                    currency: invoice.currency || "NGN",
+                    reused: Boolean(attempt.reused)
+                }
+            },
+            200,
+            request,
+            env
+        );
+    } catch (error) {
+        console.error("Public Paystack initialization failed", error);
+
+        return jsonResponse(
+            {
+                success: false,
+                message: "Secure online payment could not be started right now.",
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : String(error)
+            },
+            502,
+            request,
+            env
+        );
+    }
+}
+
+async function handlePublicInvoicePaystackVerify(
+    request,
+    env,
+    publicToken,
+    url
+) {
+    const reference = text(url.searchParams.get("reference"));
+
+    if (!reference) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Payment reference is missing."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const invoice = await env.DB.prepare(`
+        SELECT id, invoice_reference
+        FROM invoices
+        WHERE public_token = ?
+        LIMIT 1
+    `).bind(publicToken).first();
+
+    if (!invoice) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "This invoice link is invalid."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const attempt = await env.DB.prepare(`
+        SELECT id, invoice_id
+        FROM payment_gateway_transactions
+        WHERE provider = 'paystack'
+          AND provider_reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!attempt || Number(attempt.invoice_id) !== Number(invoice.id)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "This payment reference does not belong to this invoice."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    try {
+        const verified = await verifyPaystackTransaction(env, reference);
+
+        const result = await finalizeSuccessfulPaystackPayment(
+            env,
+            reference,
+            verified
+        );
+
+        return jsonResponse(
+            {
+                success: true,
+                payment: {
+                    status:
+                        result.success === false
+                            ? result.status
+                            : "success",
+                    invoiceReference: result.invoiceReference,
+                    alreadyProcessed: Boolean(result.alreadyProcessed)
+                }
+            },
+            200,
+            request,
+            env
+        );
+    } catch (error) {
+        console.error("Paystack callback verification failed", error);
+
+        return jsonResponse(
+            {
+                success: false,
+                message: "We could not verify this payment yet.",
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : String(error)
+            },
+            502,
+            request,
+            env
+        );
+    }
+}
+
+async function sha256Hex(value) {
+    const bytes = new TextEncoder().encode(value);
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+
+    return Array.from(new Uint8Array(digest))
+        .map(byte => byte.toString(16).padStart(2, "0"))
+        .join("");
+}
+
+async function paystackSignatureHex(secret, rawBody) {
+    const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(secret),
+        {
+            name: "HMAC",
+            hash: "SHA-512"
+        },
+        false,
+        ["sign"]
+    );
+
+    const signature = await crypto.subtle.sign(
+        "HMAC",
+        key,
+        new TextEncoder().encode(rawBody)
+    );
+
+    return Array.from(new Uint8Array(signature))
+        .map(byte => byte.toString(16).padStart(2, "0"))
+        .join("");
+}
+
+function constantTimeStringEqual(left, right) {
+    const a = String(left || "");
+    const b = String(right || "");
+
+    if (a.length !== b.length) {
+        return false;
+    }
+
+    let difference = 0;
+
+    for (let index = 0; index < a.length; index += 1) {
+        difference |=
+            a.charCodeAt(index) ^
+            b.charCodeAt(index);
+    }
+
+    return difference === 0;
+}
+
+async function handlePaystackWebhook(request, env) {
+    if (!env.PAYSTACK_SECRET_KEY) {
+        return new Response(
+            "Paystack is not configured.",
+            { status: 503 }
+        );
+    }
+
+    const rawBody = await request.text();
+
+    const suppliedSignature = text(
+        request.headers.get("x-paystack-signature")
+    ).toLowerCase();
+
+    const expectedSignature = await paystackSignatureHex(
+        env.PAYSTACK_SECRET_KEY,
+        rawBody
+    );
+
+    if (
+        !suppliedSignature ||
+        !constantTimeStringEqual(
+            suppliedSignature,
+            expectedSignature
+        )
+    ) {
+        return new Response(
+            "Invalid signature.",
+            { status: 401 }
+        );
+    }
+
+    let event;
+
+    try {
+        event = JSON.parse(rawBody);
+    } catch {
+        return new Response(
+            "Invalid JSON.",
+            { status: 400 }
+        );
+    }
+
+    const eventHash = await sha256Hex(rawBody);
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+        INSERT OR IGNORE
+        INTO payment_gateway_webhook_events (
+            provider,
+            event_hash,
+            event_type,
+            provider_reference,
+            status,
+            payload_json,
+            received_at,
+            updated_at
+        )
+        VALUES (
+            'paystack',
+            ?, ?, ?,
+            'received',
+            ?, ?, ?
+        )
+    `).bind(
+        eventHash,
+        text(event?.event) || "unknown",
+        text(event?.data?.reference) || null,
+        rawBody,
+        now,
+        now
+    ).run();
+
+    const storedEvent = await env.DB.prepare(`
+        SELECT *
+        FROM payment_gateway_webhook_events
+        WHERE provider = 'paystack'
+          AND event_hash = ?
+        LIMIT 1
+    `).bind(eventHash).first();
+
+    if (storedEvent?.status === "processed") {
+        return new Response("OK", { status: 200 });
+    }
+
+    try {
+        if (event?.event === "charge.success") {
+            const reference = text(event?.data?.reference);
+
+            if (!reference) {
+                throw new Error(
+                    "Paystack charge.success event has no reference."
+                );
+            }
+
+            const verified = await verifyPaystackTransaction(
+                env,
+                reference
+            );
+
+            await finalizeSuccessfulPaystackPayment(
+                env,
+                reference,
+                verified
+            );
+        }
+
+        await env.DB.prepare(`
+            UPDATE payment_gateway_webhook_events
+            SET status = 'processed',
+                processed_at = ?,
+                error_message = NULL,
+                updated_at = ?
+            WHERE id = ?
+        `).bind(
+            now,
+            now,
+            storedEvent.id
+        ).run();
+
+        return new Response("OK", { status: 200 });
+    } catch (error) {
+        console.error("Paystack webhook processing failed", error);
+
+        await env.DB.prepare(`
+            UPDATE payment_gateway_webhook_events
+            SET status = 'failed',
+                error_message = ?,
+                updated_at = ?
+            WHERE id = ?
+        `).bind(
+            (
+                error instanceof Error
+                    ? error.message
+                    : String(error)
+            ).slice(0, 2000),
+            new Date().toISOString(),
+            storedEvent.id
+        ).run();
+
+        return new Response(
+            "Webhook processing failed.",
+            { status: 500 }
+        );
+    }
+}
+
 async function handlePublicInvoiceRequest(request, env, url) {
     const match = url.pathname.match(
         /^\/public\/invoices\/([a-f0-9]{64})(?:\/([a-z-]+))?$/
@@ -7579,6 +8503,23 @@ async function handlePublicInvoiceRequest(request, env, url) {
             request,
             env,
             token
+        );
+    }
+
+    if (request.method === "POST" && action === "paystack-initialize") {
+        return await handlePublicInvoicePaystackInitialize(
+            request,
+            env,
+            token
+        );
+    }
+
+    if (request.method === "GET" && action === "paystack-verify") {
+        return await handlePublicInvoicePaystackVerify(
+            request,
+            env,
+            token,
+            url
         );
     }
 

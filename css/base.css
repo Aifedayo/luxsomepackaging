@@ -301,40 +301,96 @@ a {
 
 }
 
-@media (max-width: 850px) {
+
+.story-hero__content h1 {
+    color: white;
+}
+
+
+/* =========================================================
+   RESPONSIVE DESKTOP HEADER
+   ========================================================= */
+
+   @media (min-width: 1051px) and (max-width: 1250px) {
+
+    .header-inner {
+        gap: 24px;
+    }
+
+    .site-logo {
+        flex-shrink: 0;
+    }
+
+    .site-logo img {
+        height: 40px;
+    }
+
+    .site-navigation {
+        gap: clamp(14px, 1.5vw, 22px);
+    }
+
+    .site-navigation a {
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    .header-contact-button {
+        min-height: 42px;
+        padding: 9px 16px;
+    }
+}
+
+
+/* =========================================================
+   TABLET / SMALL DESKTOP NAVIGATION
+   ========================================================= */
+
+@media (max-width: 1050px) {
+
     :root {
         --header-height: 70px;
     }
 
-    .container {
-        width: min(100% - 32px, var(--container-width));
+    body {
+        padding-top: var(--header-height);
     }
+
     .site-header {
         position: fixed;
         top: 0;
         right: 0;
         left: 0;
-    
+
         width: 100%;
         height: var(--header-height);
-    
+
         z-index: 1300;
-    
+
         background: rgba(248, 244, 239, 0.98);
-    
+
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
+    }
+
+    .header-inner {
+        justify-content: space-between;
+    }
+
+    .site-logo img {
+        height: 42px;
     }
 
     .mobile-menu-button {
         position: relative;
         z-index: 1300;
         display: block;
+        flex-shrink: 0;
     }
 
     .site-navigation {
         position: fixed;
         z-index: 1200;
+
         top: var(--header-height);
         right: 0;
         bottom: 0;
@@ -377,30 +433,32 @@ a {
     .site-navigation a {
         width: 100%;
         padding: 17px 0;
+
         border-bottom: 1px solid var(--border);
+
         font-size: 1rem;
+        white-space: normal;
     }
 
     .header-contact-button {
         width: 100%;
         margin-top: 24px;
+
         border: 0 !important;
+
         font-family: "Montserrat", sans-serif !important;
         font-size: 0.85rem !important;
     }
+
     .site-navigation a::after {
         right: 0;
         bottom: 14px;
         left: 0;
-        height: 1px;
+
         width: 44px;
+        height: 1px;
     }
 }
-
-.story-hero__content h1 {
-    color: white;
-}
-
 
 /* =========================
    HERO CAROUSEL
