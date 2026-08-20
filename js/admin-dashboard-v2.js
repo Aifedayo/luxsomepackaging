@@ -1124,7 +1124,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("quoteIssueDate").value = toDateInput(issue);
         document.getElementById("quoteExpiryDate").value = toDateInput(expiry);
         document.getElementById("quoteProductionTimeline").value =
-            "15–20 business days after payment and artwork approval.";
+            "10 business days after payment and artwork approval.";
         document.getElementById("quotePaymentTerms").value =
             "70% deposit to begin production. 30% before dispatch.";
         document.getElementById("quoteNotes").value =
