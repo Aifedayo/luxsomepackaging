@@ -5691,3 +5691,130 @@ body.option-visual-open {
         max-width: none;
     }
 }
+
+
+/* =========================================================
+   PRICING MODAL — 1 KG TO 7 KG SIZE GUIDE
+========================================================= */
+.pricing-summary-card__size-note {
+    display:block;
+    margin-top:.35rem;
+    color:#8b776e;
+    font-size:.58rem;
+    font-weight:600;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+}
+.pricing-modal__section-intro {
+    max-width:760px;
+    margin:-.15rem 0 1.2rem;
+    color:#78665e;
+    font-size:.74rem;
+    line-height:1.7;
+}
+.pricing-size-table-wrap {
+    overflow:hidden;
+    border:1px solid rgba(103,54,41,.13);
+    background:#fffdf9;
+}
+.pricing-size-table {
+    width:100%;
+    border-collapse:collapse;
+    table-layout:fixed;
+}
+.pricing-size-table thead {
+    background:#2e1c15;
+    color:#fffaf6;
+}
+.pricing-size-table th,
+.pricing-size-table td {
+    padding:.9rem .85rem;
+    vertical-align:middle;
+}
+.pricing-size-table thead th {
+    color:#f2dfd1;
+    font-size:.6rem;
+    font-weight:700;
+    letter-spacing:.09em;
+    text-align:center;
+    text-transform:uppercase;
+}
+.pricing-size-table thead th:first-child { text-align:left; }
+.pricing-size-table tbody tr + tr { border-top:1px solid rgba(103,54,41,.09); }
+.pricing-size-table tbody th {
+    color:#2e1c15;
+    font-size:.68rem;
+    font-weight:600;
+    text-align:left;
+}
+.pricing-size-table tbody td { text-align:center; }
+.pricing-size-table tbody td strong {
+    color:#673629;
+    font-size:.82rem;
+    font-weight:700;
+}
+.pricing-size-table tbody tr:nth-child(even) { background:#fbf6f1; }
+.pricing-size-table__note {
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    gap:.7rem;
+    margin-top:.85rem;
+    padding:.9rem 1rem;
+    border:1px solid rgba(103,54,41,.11);
+    background:#f8f4ef;
+}
+.pricing-size-table__note i { margin-top:.18rem;color:#673629;font-size:.75rem; }
+.pricing-size-table__note p { margin:0;color:#746159;font-size:.65rem;line-height:1.6; }
+.pricing-size-table__full-link {
+    display:inline-flex;
+    align-items:center;
+    gap:.55rem;
+    margin-top:.9rem;
+    padding-bottom:.22rem;
+    border-bottom:1px solid rgba(103,54,41,.55);
+    color:#673629;
+    font-size:.62rem;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-decoration:none;
+    text-transform:uppercase;
+}
+@media (max-width:700px) {
+    .pricing-size-table-wrap { overflow:visible;border:0;background:transparent; }
+    .pricing-size-table,.pricing-size-table tbody,.pricing-size-table tr,.pricing-size-table th,.pricing-size-table td { display:block;width:100%; }
+    .pricing-size-table thead {
+        position:absolute;width:1px;height:1px;overflow:hidden;
+        clip:rect(0 0 0 0);white-space:nowrap;
+    }
+    .pricing-size-table tbody { display:grid;gap:.7rem; }
+    .pricing-size-table tbody tr,
+    .pricing-size-table tbody tr:nth-child(even) {
+        border:1px solid rgba(103,54,41,.12);
+        background:#fffdf9;
+    }
+    .pricing-size-table tbody th {
+        padding:.75rem .85rem;
+        border-bottom:1px solid rgba(103,54,41,.1);
+        background:#f4ebe4;
+        font-size:.7rem;
+    }
+    .pricing-size-table tbody td {
+        display:grid;
+        grid-template-columns:minmax(0,1fr) auto;
+        gap:1rem;
+        align-items:center;
+        padding:.7rem .85rem;
+        text-align:right;
+    }
+    .pricing-size-table tbody td + td { border-top:1px solid rgba(103,54,41,.07); }
+    .pricing-size-table tbody td::before {
+        content:attr(data-label);
+        color:#79665e;
+        font-size:.58rem;
+        font-weight:700;
+        letter-spacing:.07em;
+        text-align:left;
+        text-transform:uppercase;
+    }
+    .pricing-size-table__note { grid-template-columns:1fr; }
+}
