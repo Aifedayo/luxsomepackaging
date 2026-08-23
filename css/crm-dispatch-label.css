@@ -32,5 +32,5 @@
 .dispatch-label-sheet__fragile{margin-top:auto;padding:8px;border:2px solid #2e1c15;font-size:.76rem;font-weight:900;letter-spacing:.04em;text-align:center}
 .dispatch-label-sheet__footer{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:9px;padding-top:8px;border-top:1px solid #b9ada6}
 .dispatch-label-sheet__footer strong,.dispatch-label-sheet__footer small{display:block;margin-top:2px}.dispatch-label-sheet__footer strong{font-size:.62rem}.dispatch-label-sheet__footer small{font-size:.5rem}
-.dispatch-label-sheet__reference{max-width:120px;font-size:.55rem;font-weight:900;text-align:right;overflow-wrap:anywhere}
+.dispatch-label-sheet__reference{max-width:140px;font-size:.55rem;font-weight:900;text-align:right;overflow-wrap:anywhere}.dispatch-label-sheet__reference small{display:block;margin-top:3px;font-size:.46rem;font-weight:600}
 @media(max-width:700px){.crm-dispatch-grid,.crm-dispatch-grid--three{grid-template-columns:1fr}.crm-dispatch-actions{flex-direction:column}.crm-dispatch-actions .crm-button{width:100%}.crm-dispatch-preview-modal{width:calc(100% - 16px);max-height:calc(100svh - 16px)}.crm-dispatch-preview-modal__body{grid-template-columns:1fr;padding:12px}}

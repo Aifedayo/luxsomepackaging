@@ -221,6 +221,21 @@ async function handleAdminRequest(request, env, url) {
             return await handleAdminSubmissionList(request, env, url);
         }
 
+        const dispatchEligibilityMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/dispatch-eligibility$/
+        );
+
+        if (
+            dispatchEligibilityMatch &&
+            request.method === "GET"
+        ) {
+            return await handleAdminDispatchEligibility(
+                request,
+                env,
+                dispatchEligibilityMatch[1]
+            );
+        }
+
         const artworkFileMatch = url.pathname.match(
             /^\/admin\/submissions\/([A-Z0-9-]+)\/artwork\/file$/
         );
@@ -3955,6 +3970,143 @@ async function handleAdminSubmissionDetail(request, env, reference) {
             submission: {
                 ...submission,
                 payload
+            }
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
+
+async function handleAdminDispatchEligibility(
+    request,
+    env,
+    reference
+) {
+    const submission = await env.DB.prepare(`
+        SELECT
+            reference,
+            submission_type
+        FROM submissions
+        WHERE reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    if (text(submission.submission_type) !== "project") {
+        return jsonResponse(
+            {
+                success: true,
+                dispatch: {
+                    eligible: false,
+                    reason: "not_project"
+                }
+            },
+            200,
+            request,
+            env
+        );
+    }
+
+    /*
+     * A payment row is also a receipt record in the current CRM:
+     * invoice_payments.receipt_reference is generated as soon as a verified
+     * payment is recorded. Follow the project chain:
+     *
+     * submission -> quotation -> invoice -> invoice_payment/receipt
+     *
+     * LEFT JOIN orders so an existing operational delivery address can be
+     * used, but do not require an order just to establish receipt eligibility.
+     */
+    const receipt = await env.DB.prepare(`
+        SELECT
+            p.id AS payment_id,
+            p.receipt_reference,
+            p.payment_date,
+            p.amount,
+            p.receipt_sent_at,
+
+            i.invoice_reference,
+            i.status AS invoice_status,
+
+            o.order_reference,
+            o.delivery_address,
+            o.delivery_method
+
+        FROM quotations q
+
+        INNER JOIN invoices i
+            ON i.quotation_id = q.id
+
+        INNER JOIN invoice_payments p
+            ON p.invoice_id = i.id
+
+        LEFT JOIN orders o
+            ON o.invoice_id = i.id
+
+        WHERE q.submission_reference = ?
+          AND i.status NOT IN ('cancelled', 'void')
+          AND p.receipt_reference IS NOT NULL
+          AND trim(p.receipt_reference) <> ''
+
+        ORDER BY
+            p.payment_date DESC,
+            p.id DESC
+
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!receipt) {
+        return jsonResponse(
+            {
+                success: true,
+                dispatch: {
+                    eligible: false,
+                    reason: "receipt_required"
+                }
+            },
+            200,
+            request,
+            env
+        );
+    }
+
+    return jsonResponse(
+        {
+            success: true,
+            dispatch: {
+                eligible: true,
+                receiptReference:
+                    text(receipt.receipt_reference),
+                receiptSentAt:
+                    text(receipt.receipt_sent_at) || null,
+                paymentDate:
+                    text(receipt.payment_date) || null,
+                amount:
+                    Number(receipt.amount || 0),
+                invoiceReference:
+                    text(receipt.invoice_reference),
+                invoiceStatus:
+                    text(receipt.invoice_status),
+                orderReference:
+                    text(receipt.order_reference) || null,
+                deliveryAddress:
+                    text(receipt.delivery_address) || null,
+                deliveryMethod:
+                    text(receipt.delivery_method) || null
             }
         },
         200,

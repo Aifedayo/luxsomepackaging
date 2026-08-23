@@ -656,7 +656,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             elements.detailStatus.value = submission.status;
             renderPayload(submission.payload || {});
-            setupDispatchLabelForSubmission(submission);
+            await setupDispatchLabelForSubmission(submission);
             await loadSubmissionArtwork(submission);
 
             elements.detailBackdrop.hidden = false;
@@ -759,14 +759,52 @@ document.addEventListener("DOMContentLoaded", function () {
         return "";
     }
 
-    function setupDispatchLabelForSubmission(submission) {
+    async function setupDispatchLabelForSubmission(submission) {
         if (!elements.dispatchSection || !elements.dispatchLabelForm) return;
 
         const isProject = submission?.submission_type === "project";
-        elements.dispatchSection.hidden = !isProject;
+
+        /*
+         * Fail closed. The dispatch controls stay hidden unless the Worker
+         * confirms that this project is connected to a recorded payment
+         * receipt.
+         */
+        elements.dispatchSection.hidden = true;
+        state.dispatchLabelData = null;
 
         if (!isProject) {
-            state.dispatchLabelData = null;
+            return;
+        }
+
+        if (elements.dispatchLabelStatus) {
+            elements.dispatchLabelStatus.textContent =
+                "Checking payment receipt…";
+        }
+
+        let eligibility;
+
+        try {
+            const response = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(
+                    submission.reference
+                )}/dispatch-eligibility`
+            );
+
+            eligibility = response.dispatch || null;
+        } catch (error) {
+            console.error(
+                "[Luxsome CRM] dispatch eligibility check failed",
+                error
+            );
+
+            /*
+             * Do not expose the print controls if receipt verification could
+             * not be completed.
+             */
+            return;
+        }
+
+        if (!eligibility?.eligible || !eligibility?.receiptReference) {
             return;
         }
 
@@ -780,23 +818,40 @@ document.addEventListener("DOMContentLoaded", function () {
         setValue(
             "dispatchRecipientName",
             submission.customer_name ||
-            dispatchFirstValue(payload, ["recipient_name", "delivery_name", "name"])
+            dispatchFirstValue(payload, [
+                "recipient_name",
+                "delivery_name",
+                "name"
+            ])
         );
 
         setValue(
             "dispatchBrandName",
             submission.brand_name ||
-            dispatchFirstValue(payload, ["brand_name", "brandName", "business_name"])
+            dispatchFirstValue(payload, [
+                "brand_name",
+                "brandName",
+                "business_name"
+            ])
         );
 
         setValue(
             "dispatchPhone",
             submission.phone ||
-            dispatchFirstValue(payload, ["delivery_phone", "recipient_phone", "phone"])
+            dispatchFirstValue(payload, [
+                "delivery_phone",
+                "recipient_phone",
+                "phone"
+            ])
         );
 
+        /*
+         * Prefer the operational delivery address already saved on the order.
+         * If no order exists yet, fall back to the project submission.
+         */
         setValue(
             "dispatchAddress",
+            eligibility.deliveryAddress ||
             dispatchFirstValue(payload, [
                 "delivery_address",
                 "deliveryAddress",
@@ -836,12 +891,34 @@ document.addEventListener("DOMContentLoaded", function () {
         const fragile = document.getElementById("dispatchFragile");
         if (fragile) fragile.checked = true;
 
-        if (elements.dispatchLabelStatus) {
-            elements.dispatchLabelStatus.textContent =
-                "Confirm the delivery details before printing.";
-        }
+        /*
+         * Save verified payment/order context for the printed label.
+         */
+        state.dispatchLabelData = {
+            receiptReference: eligibility.receiptReference || "",
+            invoiceReference: eligibility.invoiceReference || "",
+            orderReference: eligibility.orderReference || "",
+            paymentDate: eligibility.paymentDate || "",
+            deliveryMethod: eligibility.deliveryMethod || ""
+        };
 
-        state.dispatchLabelData = null;
+        elements.dispatchSection.hidden = false;
+
+        if (elements.dispatchLabelStatus) {
+            const context = [
+                `Receipt ${eligibility.receiptReference} verified.`,
+                eligibility.orderReference
+                    ? `Order ${eligibility.orderReference}.`
+                    : "",
+                eligibility.deliveryAddress
+                    ? "Delivery address loaded from the order."
+                    : "Confirm the delivery address before printing."
+            ]
+                .filter(Boolean)
+                .join(" ");
+
+            elements.dispatchLabelStatus.textContent = context;
+        }
     }
 
     function collectDispatchLabelData() {
@@ -856,8 +933,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const packageCount = Number(value("dispatchPackageCount"));
 
+        const verifiedDispatch = state.dispatchLabelData || {};
+
+        if (!verifiedDispatch.receiptReference) {
+            throw new Error(
+                "A verified payment receipt is required before a dispatch label can be generated."
+            );
+        }
+
         const data = {
-            reference: submission.reference || "",
+            reference:
+                verifiedDispatch.orderReference ||
+                submission.reference ||
+                "",
+            projectReference: submission.reference || "",
+            receiptReference: verifiedDispatch.receiptReference || "",
+            invoiceReference: verifiedDispatch.invoiceReference || "",
+            orderReference: verifiedDispatch.orderReference || "",
             recipientName: value("dispatchRecipientName"),
             brandName: value("dispatchBrandName"),
             phone: value("dispatchPhone"),
@@ -940,8 +1032,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         <strong>Luxsome Packaging</strong>
                         <small>Lagos, Nigeria</small>
                     </div>
+
                     <div class="dispatch-label-sheet__reference">
                         ${escapeHtml(data.reference)}
+                        <small>
+                            Receipt ${escapeHtml(data.receiptReference)}
+                        </small>
                     </div>
                 </footer>
             </article>
@@ -1023,7 +1119,8 @@ html, body { margin:0; padding:0; background:#fff; color:#1d1714; font-family:Ar
 .dispatch-label-sheet__footer strong,.dispatch-label-sheet__footer small { display:block; margin-top:2px; }
 .dispatch-label-sheet__footer strong { font-size:9pt; }
 .dispatch-label-sheet__footer small { font-size:7.5pt; }
-.dispatch-label-sheet__reference { max-width:1.6in; font-size:8pt; font-weight:800; text-align:right; overflow-wrap:anywhere; }
+.dispatch-label-sheet__reference { max-width:1.7in; font-size:8pt; font-weight:800; text-align:right; overflow-wrap:anywhere; }
+.dispatch-label-sheet__reference small { display:block; margin-top:3px; font-size:6.5pt; font-weight:600; }
 </style>
 </head>
 <body>
