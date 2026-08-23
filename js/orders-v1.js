@@ -11,7 +11,8 @@
 
     const state = {
         orders: [],
-        selected: null
+        selected: null,
+        dispatchEligibility: null
     };
 
     const element = (id) => document.getElementById(id);
@@ -342,6 +343,24 @@
             );
 
             state.selected = data.order;
+            state.dispatchEligibility = null;
+
+            try {
+                const dispatchData = await api(
+                    `/admin/orders/${encodeURIComponent(
+                        reference
+                    )}/dispatch-eligibility`
+                );
+
+                state.dispatchEligibility =
+                    dispatchData.dispatch || null;
+            } catch (error) {
+                console.warn(
+                    "[Luxsome CRM] Dispatch eligibility unavailable",
+                    error
+                );
+            }
+
             fillOrderPanel();
             openPanel("orderPanel");
         } catch (error) {
@@ -438,6 +457,8 @@
         element("clientPortalLinkArea").hidden = !portalLink;
         element("formMessage").textContent = "";
 
+        setupOrderDispatchSection(order);
+
         element("orderItems").innerHTML =
             (order.items || []).map((item) => `
                 <article
@@ -478,6 +499,351 @@
                 </article>
             `).join("");
     }
+
+
+    function setupOrderDispatchSection(order) {
+        const section = element("orderDispatchSection");
+        const eligibility = state.dispatchEligibility;
+
+        if (!section) return;
+
+        section.hidden = !eligibility?.eligible;
+
+        if (!eligibility?.eligible) {
+            return;
+        }
+
+        element("orderDispatchReceiptBadge").textContent =
+            eligibility.receipt_reference
+                ? `Receipt ${eligibility.receipt_reference}`
+                : "Receipt verified";
+
+        element("orderDispatchRecipient").value =
+            order.customer_name || "";
+
+        element("orderDispatchBrand").value =
+            order.brand_name || "";
+
+        element("orderDispatchPhone").value =
+            order.customer_phone || "";
+
+        element("orderDispatchAddress").value =
+            order.delivery_address || "";
+
+        element("orderDispatchCity").value = "";
+        element("orderDispatchState").value = "";
+        element("orderDispatchWeight").value = "";
+        element("orderDispatchPackageCount").value = "1";
+        element("orderDispatchDescription").value =
+            "Luxury packaging systems";
+        element("orderDispatchFragile").checked = true;
+
+        element("orderDispatchMessage").textContent =
+            "Receipt verified. Confirm the dispatch details before printing.";
+    }
+
+    function collectOrderDispatchData() {
+        const order = state.selected;
+        const eligibility = state.dispatchEligibility;
+
+        if (!order) {
+            throw new Error("Open an order first.");
+        }
+
+        if (!eligibility?.eligible) {
+            throw new Error(
+                "A verified payment receipt is required before printing a dispatch label."
+            );
+        }
+
+        const value = id =>
+            String(element(id)?.value || "").trim();
+
+        const packageCount = Number(
+            value("orderDispatchPackageCount")
+        );
+
+        if (!value("orderDispatchRecipient")) {
+            throw new Error("Enter the recipient name.");
+        }
+
+        if (!value("orderDispatchPhone")) {
+            throw new Error("Enter the phone number.");
+        }
+
+        if (!value("orderDispatchAddress")) {
+            throw new Error("Enter the delivery address.");
+        }
+
+        if (
+            !Number.isInteger(packageCount) ||
+            packageCount < 1 ||
+            packageCount > 50
+        ) {
+            throw new Error(
+                "Package count must be between 1 and 50."
+            );
+        }
+
+        return {
+            orderReference: order.order_reference,
+            invoiceReference: order.invoice_reference,
+            receiptReference:
+                eligibility.receipt_reference || "",
+            recipientName:
+                value("orderDispatchRecipient"),
+            brandName:
+                value("orderDispatchBrand"),
+            phone:
+                value("orderDispatchPhone"),
+            address:
+                value("orderDispatchAddress"),
+            city:
+                value("orderDispatchCity"),
+            state:
+                value("orderDispatchState"),
+            weight:
+                value("orderDispatchWeight"),
+            description:
+                value("orderDispatchDescription") ||
+                "Luxury packaging systems",
+            packageCount,
+            fragile:
+                Boolean(
+                    element("orderDispatchFragile")
+                        ?.checked
+                ),
+            dispatchDate:
+                new Date().toLocaleDateString(
+                    "en-NG",
+                    {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit"
+                    }
+                )
+        };
+    }
+
+    function orderDispatchLocation(data) {
+        return [
+            data.address,
+            data.city,
+            data.state
+        ]
+            .filter(Boolean)
+            .join(", ");
+    }
+
+    function orderDispatchLabelMarkup(
+        data,
+        packageNumber
+    ) {
+        return `
+            <article class="dispatch-label-sheet">
+                <header class="dispatch-label-sheet__header">
+                    <img
+                        src="/assets/images/luxsome-logo.png"
+                        alt="Luxsome Packaging"
+                    >
+
+                    <div>
+                        <span>DISPATCH LABEL</span>
+                        <strong>
+                            ${escapeHtml(data.orderReference)}
+                        </strong>
+                    </div>
+                </header>
+
+                <section class="dispatch-label-sheet__package">
+                    <span>PACKAGE</span>
+                    <strong>
+                        ${packageNumber} OF ${data.packageCount}
+                    </strong>
+                </section>
+
+                <section class="dispatch-label-sheet__to">
+                    <span class="dispatch-label-sheet__eyebrow">
+                        DELIVER TO
+                    </span>
+
+                    <h3>
+                        ${escapeHtml(data.recipientName)}
+                    </h3>
+
+                    ${
+                        data.brandName
+                            ? `
+                                <p class="dispatch-label-sheet__brand">
+                                    ${escapeHtml(data.brandName)}
+                                </p>
+                            `
+                            : ""
+                    }
+
+                    <p class="dispatch-label-sheet__phone">
+                        ${escapeHtml(data.phone)}
+                    </p>
+
+                    <address>
+                        ${escapeHtml(orderDispatchLocation(data))}
+                    </address>
+                </section>
+
+                <section class="dispatch-label-sheet__meta">
+                    <div>
+                        <span>Contents</span>
+                        <strong>
+                            ${escapeHtml(data.description)}
+                        </strong>
+                    </div>
+
+                    ${
+                        data.weight
+                            ? `
+                                <div>
+                                    <span>Weight</span>
+                                    <strong>
+                                        ${escapeHtml(data.weight)}
+                                    </strong>
+                                </div>
+                            `
+                            : ""
+                    }
+
+                    <div>
+                        <span>Dispatch date</span>
+                        <strong>
+                            ${escapeHtml(data.dispatchDate)}
+                        </strong>
+                    </div>
+                </section>
+
+                ${
+                    data.fragile
+                        ? `
+                            <div class="dispatch-label-sheet__fragile">
+                                FRAGILE · HANDLE WITH CARE
+                            </div>
+                        `
+                        : ""
+                }
+
+                <footer class="dispatch-label-sheet__footer">
+                    <div>
+                        <span>FROM</span>
+                        <strong>Luxsome Packaging</strong>
+                        <small>Lagos, Nigeria</small>
+                    </div>
+
+                    <div class="dispatch-label-sheet__reference">
+                        ${escapeHtml(data.orderReference)}
+                        <small>
+                            ${escapeHtml(data.receiptReference)}
+                        </small>
+                    </div>
+                </footer>
+            </article>
+        `;
+    }
+
+    function buildOrderDispatchLabels(data) {
+        return Array.from(
+            { length: data.packageCount },
+            (_, index) =>
+                orderDispatchLabelMarkup(
+                    data,
+                    index + 1
+                )
+        ).join("");
+    }
+
+    function previewOrderDispatch() {
+        try {
+            const data = collectOrderDispatchData();
+
+            element("dispatchPreviewBody").innerHTML =
+                buildOrderDispatchLabels(data);
+
+            openPanel("dispatchPreviewPanel");
+
+            element("orderDispatchMessage").textContent =
+                `${data.packageCount} dispatch label${data.packageCount === 1 ? "" : "s"} ready.`;
+        } catch (error) {
+            element("orderDispatchMessage").textContent =
+                error.message;
+        }
+    }
+
+    function printOrderDispatch() {
+        try {
+            const data = collectOrderDispatchData();
+
+            const printWindow = window.open("", "_blank");
+
+            if (!printWindow) {
+                throw new Error(
+                    "Allow pop-ups for the CRM and try again."
+                );
+            }
+
+            printWindow.document.open();
+            printWindow.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dispatch Label · ${escapeHtml(data.orderReference)}</title>
+<style>
+@page { size: 4in 6in; margin: 0; }
+* { box-sizing: border-box; }
+html,body { margin:0;padding:0;background:#fff;color:#1d1714;font-family:Arial,Helvetica,sans-serif; }
+.dispatch-label-sheet { width:4in;height:6in;display:flex;flex-direction:column;overflow:hidden;padding:.22in;background:#fff;page-break-after:always;break-after:page; }
+.dispatch-label-sheet:last-child { page-break-after:auto;break-after:auto; }
+.dispatch-label-sheet__header { display:flex;align-items:center;justify-content:space-between;gap:.15in;padding-bottom:.14in;border-bottom:2px solid #2e1c15; }
+.dispatch-label-sheet__header img { width:1.32in;max-height:.42in;object-fit:contain;object-position:left center; }
+.dispatch-label-sheet__header>div { text-align:right; }
+.dispatch-label-sheet__header span,.dispatch-label-sheet__eyebrow,.dispatch-label-sheet__meta span,.dispatch-label-sheet__footer span,.dispatch-label-sheet__package span { display:block;font-size:7.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase; }
+.dispatch-label-sheet__header strong { display:block;margin-top:2px;font-size:9pt; }
+.dispatch-label-sheet__package { display:flex;align-items:center;justify-content:space-between;margin:.12in 0;padding:.09in .11in;background:#2e1c15;color:#fff; }
+.dispatch-label-sheet__package strong { font-size:14pt; }
+.dispatch-label-sheet__to { padding:.08in 0 .14in;border-bottom:1px solid #b9ada6; }
+.dispatch-label-sheet__to h3 { margin:.07in 0 0;font-size:20pt;line-height:1;text-transform:uppercase; }
+.dispatch-label-sheet__brand { margin:.05in 0 0;font-size:10pt;font-weight:700; }
+.dispatch-label-sheet__phone { margin:.1in 0 0;font-size:14pt;font-weight:800; }
+.dispatch-label-sheet__to address { margin-top:.09in;font-size:12.5pt;font-style:normal;font-weight:700;line-height:1.3; }
+.dispatch-label-sheet__meta { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.1in;padding:.13in 0; }
+.dispatch-label-sheet__meta strong { display:block;margin-top:3px;font-size:9pt;line-height:1.2; }
+.dispatch-label-sheet__fragile { margin-top:auto;padding:.1in;border:2px solid #2e1c15;font-size:12pt;font-weight:900;letter-spacing:.04em;text-align:center; }
+.dispatch-label-sheet__footer { display:flex;align-items:flex-end;justify-content:space-between;gap:.15in;margin-top:.12in;padding-top:.1in;border-top:1px solid #b9ada6; }
+.dispatch-label-sheet__footer strong,.dispatch-label-sheet__footer small { display:block;margin-top:2px; }
+.dispatch-label-sheet__footer strong { font-size:9pt; }
+.dispatch-label-sheet__footer small { font-size:7pt; }
+.dispatch-label-sheet__reference { max-width:1.7in;font-size:8pt;font-weight:800;text-align:right;overflow-wrap:anywhere; }
+</style>
+</head>
+<body>
+${buildOrderDispatchLabels(data)}
+<script>
+window.addEventListener("load", function () {
+    window.setTimeout(function () {
+        window.print();
+    }, 250);
+});
+<\/script>
+</body>
+</html>
+            `);
+            printWindow.document.close();
+
+            element("orderDispatchMessage").textContent =
+                "Print dialog opened.";
+        } catch (error) {
+            element("orderDispatchMessage").textContent =
+                error.message;
+        }
+    }
+
 
     async function saveOrder(event) {
         event.preventDefault();
@@ -630,6 +996,21 @@
     element("activityButton").addEventListener(
         "click",
         showActivity
+    );
+
+    element("previewOrderDispatchLabel").addEventListener(
+        "click",
+        previewOrderDispatch
+    );
+
+    element("printOrderDispatchLabel").addEventListener(
+        "click",
+        printOrderDispatch
+    );
+
+    element("dispatchPreviewPrint").addEventListener(
+        "click",
+        printOrderDispatch
     );
 
     element("copyClientPortalLink").addEventListener(

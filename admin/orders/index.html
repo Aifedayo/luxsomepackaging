@@ -278,6 +278,126 @@
                 <textarea id="internalNotes"></textarea>
             </label>
 
+            <section
+                class="order-dispatch"
+                id="orderDispatchSection"
+                hidden
+            >
+                <div class="order-dispatch__heading">
+                    <div>
+                        <p>DISPATCH</p>
+                        <h3>Dispatch label</h3>
+                    </div>
+
+                    <span id="orderDispatchReceiptBadge">
+                        Receipt verified
+                    </span>
+                </div>
+
+                <p class="order-dispatch__help">
+                    This label is available because a payment receipt exists for
+                    the invoice linked to this order.
+                </p>
+
+                <div class="order-dispatch__grid">
+                    <label>
+                        Recipient name
+                        <input id="orderDispatchRecipient">
+                    </label>
+
+                    <label>
+                        Brand / business
+                        <input id="orderDispatchBrand">
+                    </label>
+
+                    <label>
+                        Phone number
+                        <input id="orderDispatchPhone">
+                    </label>
+
+                    <label>
+                        Number of packages
+                        <input
+                            id="orderDispatchPackageCount"
+                            type="number"
+                            min="1"
+                            max="50"
+                            value="1"
+                        >
+                    </label>
+                </div>
+
+                <label>
+                    Delivery address
+                    <textarea
+                        id="orderDispatchAddress"
+                        rows="3"
+                    ></textarea>
+                </label>
+
+                <div class="order-dispatch__grid order-dispatch__grid--three">
+                    <label>
+                        City
+                        <input id="orderDispatchCity">
+                    </label>
+
+                    <label>
+                        State
+                        <input id="orderDispatchState">
+                    </label>
+
+                    <label>
+                        Weight
+                        <input
+                            id="orderDispatchWeight"
+                            placeholder="e.g. 4.5 kg"
+                        >
+                    </label>
+                </div>
+
+                <label>
+                    Package description
+                    <input
+                        id="orderDispatchDescription"
+                        value="Luxury packaging systems"
+                    >
+                </label>
+
+                <label class="order-dispatch__check">
+                    <input
+                        id="orderDispatchFragile"
+                        type="checkbox"
+                        checked
+                    >
+                    <span>
+                        Mark as <strong>FRAGILE — HANDLE WITH CARE</strong>
+                    </span>
+                </label>
+
+                <p
+                    id="orderDispatchMessage"
+                    class="order-dispatch__message"
+                ></p>
+
+                <div class="order-dispatch__actions">
+                    <button
+                        id="previewOrderDispatchLabel"
+                        type="button"
+                    >
+                        Preview label
+                    </button>
+
+                    <button
+                        id="printOrderDispatchLabel"
+                        class="primary"
+                        type="button"
+                    >
+                        Print / Save PDF
+                    </button>
+                </div>
+            </section>
+
+
             <section class="client-portal-admin">
                 <div class="client-portal-admin__heading">
                     <div>
@@ -395,6 +515,33 @@
                 </button>
             </footer>
         </form>
+    </section>
+
+    <section
+        id="dispatchPreviewPanel"
+        class="panel dispatch-preview-panel"
+        aria-hidden="true"
+    >
+        <header>
+            <div>
+                <p>DISPATCH LABEL</p>
+                <h2>Preview</h2>
+            </div>
+
+            <button type="button" data-close>×</button>
+        </header>
+
+        <div id="dispatchPreviewBody" class="dispatch-preview-body"></div>
+
+        <footer class="dispatch-preview-footer">
+            <button
+                id="dispatchPreviewPrint"
+                class="primary"
+                type="button"
+            >
+                Print / Save PDF
+            </button>
+        </footer>
     </section>
 
     <section
