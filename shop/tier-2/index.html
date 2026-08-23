@@ -302,7 +302,7 @@
 
                 <details class="product-accordion">
                     <summary>Included</summary>
-                    <ul class="included-list"><li>Custom rigid box</li><li>Plain tissue wrap</li><li>One- or two-piece hang tag</li><li>Flat or folded thank-you card</li><li>Standard Sticker</li></ul>
+                    <ul class="included-list"><li>Custom rigid box</li><li>Plain tissue wrap or single-colour speciality paper</li><li>One- or two-piece hang tag</li><li>Flat or folded thank-you card</li><li>Standard Sticker</li></ul>
                 </details>
             <form class="product-config" id="productConfigForm">
                 <section class="configuration-section" aria-labelledby="tierTwoIncludedHeading">
@@ -389,11 +389,95 @@
 
                     <fieldset class="configuration-group">
                         <legend>Tissue Wrap <span class="option-status option-status--included">Included</span></legend>
-                        <p class="configuration-help">Choose how your logo should be arranged on the tissue.</p>
-                        <div class="option-grid">
-                            <label><input type="radio" name="tissueStyle" value="Single logo placement" checked><span>Unbranded<small>Included</small></span></label>
-                            <label class="option-disabled"><input type="radio" name="tissueStyle" value="Repeating logo pattern" disabled><span>Branded<small>Available in Higher Tier</small></span></label>
+                        <p class="configuration-help">
+                            Choose the wrap style you prefer. Speciality paper is a solid-colour
+                            alternative to tissue and can be selected from our standard colours.
+                        </p>
+
+                        <div class="option-grid option-grid--three">
+                            <label>
+                                <input type="radio" name="tissueStyle" value="Single logo placement" checked>
+                                <span>Unbranded tissue<small>Included</small></span>
+                            </label>
+
+                            <label class="option-disabled">
+                                <input type="radio" name="tissueStyle" value="Repeating logo pattern" disabled>
+                                <span>Branded tissue<small>Available in Higher Tier</small></span>
+                            </label>
+
+                            <label class="option-disabled">
+                                <input type="radio" name="tissueStyle" value="Speciality paper" disabled>
+                                <span>Speciality paper<small>Single solid colour</small></span>
+                            </label>
                         </div>
+
+                        <div
+                            class="tissue-colour-selection"
+                            id="tissueColourSelection"
+                            hidden
+                            aria-hidden="true"
+                        >
+                            <p class="configuration-subheading">
+                                Speciality paper colour
+                            </p>
+
+                            <p class="configuration-help">
+                                Choose one standard solid colour for the speciality paper wrap.
+                            </p>
+
+                            <div class="colour-option-grid">
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Black">
+                                    <span><i style="--swatch:#111111"></i>Black</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="White">
+                                    <span><i style="--swatch:#ffffff"></i>White</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Ivory">
+                                    <span><i style="--swatch:#f4efe4"></i>Ivory</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Cream">
+                                    <span><i style="--swatch:#e9dbc4"></i>Cream</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Dark brown">
+                                    <span><i style="--swatch:#2e1c15"></i>Dark brown</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Wine">
+                                    <span><i style="--swatch:#851409"></i>Wine</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Navy">
+                                    <span><i style="--swatch:#1c2c43"></i>Navy</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Forest green">
+                                    <span><i style="--swatch:#314936"></i>Forest green</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Blush">
+                                    <span><i style="--swatch:#d7aaa0"></i>Blush</span>
+                                </label>
+
+                                <label class="colour-option">
+                                    <input type="radio" name="tissueColour" value="Grey">
+                                    <span><i style="--swatch:#96908d"></i>Grey</span>
+                                </label>
+                            </div>
+                        </div>
+
                     </fieldset>
                 </section>
 

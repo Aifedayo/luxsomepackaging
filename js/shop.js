@@ -265,6 +265,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupThankYouEnvelopeSelection();
 
+    /*
+     * TISSUE / SPECIALITY PAPER WRAP
+     *
+     * Existing tissue options remain unchanged. The speciality-paper choice is
+     * an additional solid-colour wrap option. Its colour swatches are shown
+     * only while "Speciality paper" is selected.
+     */
+    const setupTissueSpecialityPaperSelection = () => {
+        const form = document.getElementById('productConfigForm');
+        const colourSection = document.getElementById('tissueColourSelection');
+
+        if (!form || !colourSection) {
+            return;
+        }
+
+        const styleInputs = Array.from(
+            form.querySelectorAll('input[name="tissueStyle"]')
+        );
+
+        const colourInputs = Array.from(
+            colourSection.querySelectorAll('input[name="tissueColour"]')
+        );
+
+        if (!styleInputs.length || !colourInputs.length) {
+            return;
+        }
+
+        const updateTissueColourVisibility = () => {
+            const selectedStyle = form.querySelector(
+                'input[name="tissueStyle"]:checked'
+            );
+
+            const showColours =
+                selectedStyle?.value === 'Speciality paper';
+
+            colourSection.hidden = !showColours;
+            colourSection.setAttribute(
+                'aria-hidden',
+                String(!showColours)
+            );
+
+            colourInputs.forEach(input => {
+                input.disabled = !showColours;
+                input.required = showColours;
+            });
+
+            if (showColours) {
+                /*
+                 * Keep a restored colour when returning to a saved project.
+                 * Otherwise select Black as the first standard default.
+                 */
+                if (!colourInputs.some(input => input.checked)) {
+                    colourInputs[0].checked = true;
+                }
+            } else {
+                /*
+                 * Do not allow a hidden speciality-paper colour to leak into
+                 * a tissue configuration.
+                 */
+                colourInputs.forEach(input => {
+                    input.checked = false;
+                });
+            }
+        };
+
+        styleInputs.forEach(input => {
+            input.addEventListener(
+                'change',
+                updateTissueColourVisibility
+            );
+        });
+
+        updateTissueColourVisibility();
+    };
+
+    setupTissueSpecialityPaperSelection();
+
     const sort = document.getElementById('shopSort');
     const grid = document.getElementById('productGrid');
 
@@ -2474,7 +2551,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     'tissueColour',
                     'tissueCustomColour'
                 )
-                : ''
+                : (
+                    data.get('tissueStyle') === 'Speciality paper'
+                        ? data.get('tissueColour') || ''
+                        : ''
+                )
         );
 
         params.set('logo_finish', data.get('logoFinish') || '');
