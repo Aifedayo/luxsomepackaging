@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
+    <link rel="stylesheet" href="/css/crm-dispatch-label.css">
 </head>
 <body class="crm-app-page">
     <div class="crm-app">
@@ -285,6 +286,82 @@
             </section>
 
             <section
+                class="crm-dispatch-section"
+                id="dispatchSection"
+                hidden
+            >
+                <div class="crm-section-heading crm-section-heading--row">
+                    <div>
+                        <p class="crm-eyebrow">DISPATCH</p>
+                        <h3>Dispatch label</h3>
+                    </div>
+                    <span class="crm-dispatch-badge">4 × 6 in</span>
+                </div>
+
+                <p class="crm-dispatch-intro">
+                    Confirm delivery details, then preview or print a courier-ready label.
+                    Multiple packages generate one label per package.
+                </p>
+
+                <form class="crm-dispatch-form" id="dispatchLabelForm" novalidate>
+                    <div class="crm-dispatch-grid">
+                        <label>Recipient name
+                            <input id="dispatchRecipientName" type="text" maxlength="160" required>
+                        </label>
+                        <label>Brand / business
+                            <input id="dispatchBrandName" type="text" maxlength="160">
+                        </label>
+                        <label>Phone number
+                            <input id="dispatchPhone" type="tel" maxlength="60" required>
+                        </label>
+                        <label>Number of packages
+                            <input id="dispatchPackageCount" type="number" min="1" max="50" step="1" value="1" required>
+                        </label>
+                    </div>
+
+                    <label class="crm-dispatch-field--full">Delivery address
+                        <textarea id="dispatchAddress" rows="3" maxlength="600" required
+                            placeholder="Street address, area or landmark"></textarea>
+                    </label>
+
+                    <div class="crm-dispatch-grid crm-dispatch-grid--three">
+                        <label>City
+                            <input id="dispatchCity" type="text" maxlength="120">
+                        </label>
+                        <label>State
+                            <input id="dispatchState" type="text" maxlength="120">
+                        </label>
+                        <label>Package weight
+                            <input id="dispatchWeight" type="text" maxlength="80" placeholder="e.g. 4.5 kg">
+                        </label>
+                    </div>
+
+                    <label class="crm-dispatch-field--full">Package description
+                        <input id="dispatchDescription" type="text" maxlength="180"
+                            value="Luxury packaging systems">
+                    </label>
+
+                    <label class="crm-dispatch-check">
+                        <input id="dispatchFragile" type="checkbox" checked>
+                        <span>Mark package as <strong>FRAGILE — HANDLE WITH CARE</strong></span>
+                    </label>
+
+                    <p id="dispatchLabelStatus" class="crm-form-status" role="status"></p>
+
+                    <div class="crm-dispatch-actions">
+                        <button class="crm-button crm-button--secondary"
+                            id="previewDispatchLabelButton" type="button">
+                            Preview label
+                        </button>
+                        <button class="crm-button crm-button--primary"
+                            id="printDispatchLabelButton" type="submit">
+                            Print / Save PDF
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section
                 class="crm-artwork-section"
                 id="artworkSection"
                 hidden
@@ -389,6 +466,34 @@
         </div>
     </aside>
 
+
+    <div id="dispatchPreviewBackdrop" class="crm-detail-backdrop" hidden></div>
+
+    <section id="dispatchPreviewModal"
+        class="crm-dispatch-preview-modal"
+        aria-hidden="true"
+        aria-labelledby="dispatchPreviewTitle">
+        <header class="crm-dispatch-preview-modal__header">
+            <div>
+                <p class="crm-eyebrow">DISPATCH LABEL PREVIEW</p>
+                <h2 id="dispatchPreviewTitle">Ready to print</h2>
+            </div>
+            <button id="closeDispatchPreviewButton"
+                class="crm-detail-close"
+                type="button"
+                aria-label="Close dispatch label preview">×</button>
+        </header>
+
+        <div id="dispatchPreviewBody" class="crm-dispatch-preview-modal__body"></div>
+
+        <footer class="crm-dispatch-preview-modal__footer">
+            <button id="dispatchPreviewPrintButton"
+                class="crm-button crm-button--primary"
+                type="button">
+                Print / Save PDF
+            </button>
+        </footer>
+    </section>
 
     <div id="quotationBackdrop" class="crm-detail-backdrop" hidden></div>
 

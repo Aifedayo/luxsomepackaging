@@ -1,0 +1,36 @@
+/* LUXSOME CRM — DISPATCH LABEL */
+.crm-dispatch-section{margin-top:26px;padding-top:26px;border-top:1px solid rgba(46,28,21,.12)}
+.crm-dispatch-badge{display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;border:1px solid rgba(103,54,41,.2);background:#f8f4ef;color:#673629;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.crm-dispatch-intro{max-width:690px;margin:0 0 18px;color:#756159;font-size:.74rem;line-height:1.65}
+.crm-dispatch-form{display:grid;gap:16px}
+.crm-dispatch-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.crm-dispatch-grid--three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.crm-dispatch-form label{min-width:0;color:#5f4c44;font-size:.66rem;font-weight:600;letter-spacing:.04em}
+.crm-dispatch-form input,.crm-dispatch-form textarea{width:100%;margin-top:7px;border:1px solid #d8cdc6;border-radius:0;background:#fff;color:#2e1c15;font:500 .76rem/1.45 "Montserrat",Arial,sans-serif;outline:none}
+.crm-dispatch-form input{min-height:44px;padding:0 12px}.crm-dispatch-form textarea{padding:11px 12px;resize:vertical}
+.crm-dispatch-form input:focus,.crm-dispatch-form textarea:focus{border-color:#673629;box-shadow:0 0 0 2px rgba(103,54,41,.08)}
+.crm-dispatch-check{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;background:#f8f4ef}
+.crm-dispatch-check input{width:16px;height:16px;min-height:0;flex:0 0 16px;margin:2px 0 0;accent-color:#673629}
+.crm-dispatch-check span{color:#66534a;font-size:.68rem;line-height:1.5}
+.crm-dispatch-actions{display:flex;justify-content:flex-end;gap:10px}
+.crm-dispatch-preview-modal{position:fixed;z-index:10020;top:50%;left:50%;width:min(760px,calc(100% - 32px));max-height:calc(100svh - 40px);display:none;overflow:hidden;background:#f3ece7;box-shadow:0 30px 100px rgba(28,17,13,.35);transform:translate(-50%,-50%)}
+.crm-dispatch-preview-modal.is-open{display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.crm-dispatch-preview-modal__header,.crm-dispatch-preview-modal__footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;background:#fffdf9}
+.crm-dispatch-preview-modal__header{border-bottom:1px solid #e4dad3}.crm-dispatch-preview-modal__footer{justify-content:flex-end;border-top:1px solid #e4dad3}
+.crm-dispatch-preview-modal__header h2{margin:2px 0 0;color:#2e1c15;font-family:"DM Serif Display",Georgia,serif;font-size:1.45rem;font-weight:400}
+.crm-dispatch-preview-modal__body{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;overflow:auto;padding:20px}
+.dispatch-label-sheet{min-width:0;aspect-ratio:2/3;display:flex;flex-direction:column;padding:18px;background:#fff;color:#1d1714;box-shadow:0 8px 28px rgba(46,28,21,.12);font-family:Arial,Helvetica,sans-serif}
+.dispatch-label-sheet__header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:2px solid #2e1c15}
+.dispatch-label-sheet__header img{width:110px;max-height:38px;object-fit:contain;object-position:left center}.dispatch-label-sheet__header>div{text-align:right}
+.dispatch-label-sheet__header span,.dispatch-label-sheet__eyebrow,.dispatch-label-sheet__meta span,.dispatch-label-sheet__footer span,.dispatch-label-sheet__package span{display:block;font-size:.52rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.dispatch-label-sheet__header strong{display:block;margin-top:2px;font-size:.62rem}
+.dispatch-label-sheet__package{display:flex;align-items:center;justify-content:space-between;margin:10px 0;padding:8px 10px;background:#2e1c15;color:#fff}.dispatch-label-sheet__package strong{font-size:1rem}
+.dispatch-label-sheet__to{padding:6px 0 11px;border-bottom:1px solid #b9ada6}.dispatch-label-sheet__to h3{margin:5px 0 0;font-size:clamp(1.1rem,4vw,1.55rem);line-height:1;text-transform:uppercase}
+.dispatch-label-sheet__brand{margin:4px 0 0;font-size:.7rem;font-weight:700}.dispatch-label-sheet__phone{margin:7px 0 0;font-size:.92rem;font-weight:900}
+.dispatch-label-sheet__to address{margin-top:7px;font-size:.78rem;font-style:normal;font-weight:700;line-height:1.3}
+.dispatch-label-sheet__meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:10px 0}.dispatch-label-sheet__meta strong{display:block;margin-top:2px;font-size:.62rem;line-height:1.3}
+.dispatch-label-sheet__fragile{margin-top:auto;padding:8px;border:2px solid #2e1c15;font-size:.76rem;font-weight:900;letter-spacing:.04em;text-align:center}
+.dispatch-label-sheet__footer{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:9px;padding-top:8px;border-top:1px solid #b9ada6}
+.dispatch-label-sheet__footer strong,.dispatch-label-sheet__footer small{display:block;margin-top:2px}.dispatch-label-sheet__footer strong{font-size:.62rem}.dispatch-label-sheet__footer small{font-size:.5rem}
+.dispatch-label-sheet__reference{max-width:120px;font-size:.55rem;font-weight:900;text-align:right;overflow-wrap:anywhere}
+@media(max-width:700px){.crm-dispatch-grid,.crm-dispatch-grid--three{grid-template-columns:1fr}.crm-dispatch-actions{flex-direction:column}.crm-dispatch-actions .crm-button{width:100%}.crm-dispatch-preview-modal{width:calc(100% - 16px);max-height:calc(100svh - 16px)}.crm-dispatch-preview-modal__body{grid-template-columns:1fr;padding:12px}}

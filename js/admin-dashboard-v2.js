@@ -15,7 +15,8 @@ document.addEventListener("DOMContentLoaded", function () {
         selectedQuotation: null,
         artworkFiles: [],
         selectedArtwork: null,
-        artworkObjectUrls: []
+        artworkObjectUrls: [],
+        dispatchLabelData: null
     };
 
     if (!state.token) {
@@ -58,6 +59,15 @@ document.addEventListener("DOMContentLoaded", function () {
         artworkReviewNotes: document.getElementById("artworkReviewNotes"),
         artworkReviewMessage: document.getElementById("artworkReviewMessage"),
         saveArtworkReviewButton: document.getElementById("saveArtworkReviewButton"),
+        dispatchSection: document.getElementById("dispatchSection"),
+        dispatchLabelForm: document.getElementById("dispatchLabelForm"),
+        dispatchLabelStatus: document.getElementById("dispatchLabelStatus"),
+        previewDispatchLabelButton: document.getElementById("previewDispatchLabelButton"),
+        dispatchPreviewBackdrop: document.getElementById("dispatchPreviewBackdrop"),
+        dispatchPreviewModal: document.getElementById("dispatchPreviewModal"),
+        dispatchPreviewBody: document.getElementById("dispatchPreviewBody"),
+        closeDispatchPreviewButton: document.getElementById("closeDispatchPreviewButton"),
+        dispatchPreviewPrintButton: document.getElementById("dispatchPreviewPrintButton"),
         artworkPreviewBackdrop: document.getElementById("artworkPreviewBackdrop"),
         artworkPreviewModal: document.getElementById("artworkPreviewModal"),
         artworkPreviewTitle: document.getElementById("artworkPreviewTitle"),
@@ -173,6 +183,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.artworkGrid?.addEventListener("click", handleArtworkGridClick);
     elements.artworkReviewForm?.addEventListener("submit", saveArtworkReview);
+
+    elements.dispatchLabelForm?.addEventListener("submit", function (event) {
+        event.preventDefault();
+        printDispatchLabels();
+    });
+    elements.previewDispatchLabelButton?.addEventListener("click", openDispatchPreview);
+    elements.closeDispatchPreviewButton?.addEventListener("click", closeDispatchPreview);
+    elements.dispatchPreviewBackdrop?.addEventListener("click", closeDispatchPreview);
+    elements.dispatchPreviewPrintButton?.addEventListener("click", printDispatchLabels);
     elements.closeArtworkPreviewButton?.addEventListener(
         "click",
         closeArtworkPreview
@@ -320,7 +339,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("keydown", function (event) {
         if (event.key !== "Escape") return;
 
-        if (elements.artworkPreviewModal?.classList.contains("is-open")) {
+        if (elements.dispatchPreviewModal?.classList.contains("is-open")) {
+            closeDispatchPreview();
+        } else if (elements.artworkPreviewModal?.classList.contains("is-open")) {
             closeArtworkPreview();
         } else if (elements.sendQuotationModal.classList.contains("is-open")) {
             closeSendQuotationModal();
@@ -635,6 +656,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             elements.detailStatus.value = submission.status;
             renderPayload(submission.payload || {});
+            setupDispatchLabelForSubmission(submission);
             await loadSubmissionArtwork(submission);
 
             elements.detailBackdrop.hidden = false;
@@ -697,6 +719,331 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
+
+
+    function dispatchFirstValue(payload, keys) {
+        const source = payload && typeof payload === "object" ? payload : {};
+
+        for (const key of keys) {
+            const value = source[key];
+            if (value !== null && value !== undefined && String(value).trim()) {
+                return String(value).trim();
+            }
+        }
+
+        for (const candidate of [
+            source.shop_configuration,
+            source.configuration,
+            source.project_configuration
+        ]) {
+            let parsed = candidate;
+
+            if (typeof parsed === "string") {
+                try {
+                    parsed = JSON.parse(parsed);
+                } catch (_) {
+                    parsed = null;
+                }
+            }
+
+            if (!parsed || typeof parsed !== "object") continue;
+
+            for (const key of keys) {
+                const value = parsed[key];
+                if (value !== null && value !== undefined && String(value).trim()) {
+                    return String(value).trim();
+                }
+            }
+        }
+
+        return "";
+    }
+
+    function setupDispatchLabelForSubmission(submission) {
+        if (!elements.dispatchSection || !elements.dispatchLabelForm) return;
+
+        const isProject = submission?.submission_type === "project";
+        elements.dispatchSection.hidden = !isProject;
+
+        if (!isProject) {
+            state.dispatchLabelData = null;
+            return;
+        }
+
+        const payload = normaliseSubmissionPayload(submission.payload);
+
+        const setValue = (id, value) => {
+            const input = document.getElementById(id);
+            if (input) input.value = value || "";
+        };
+
+        setValue(
+            "dispatchRecipientName",
+            submission.customer_name ||
+            dispatchFirstValue(payload, ["recipient_name", "delivery_name", "name"])
+        );
+
+        setValue(
+            "dispatchBrandName",
+            submission.brand_name ||
+            dispatchFirstValue(payload, ["brand_name", "brandName", "business_name"])
+        );
+
+        setValue(
+            "dispatchPhone",
+            submission.phone ||
+            dispatchFirstValue(payload, ["delivery_phone", "recipient_phone", "phone"])
+        );
+
+        setValue(
+            "dispatchAddress",
+            dispatchFirstValue(payload, [
+                "delivery_address",
+                "deliveryAddress",
+                "shipping_address",
+                "shippingAddress",
+                "dispatch_address",
+                "business_location"
+            ])
+        );
+
+        setValue(
+            "dispatchCity",
+            dispatchFirstValue(payload, [
+                "delivery_city",
+                "deliveryCity",
+                "shipping_city",
+                "shippingCity",
+                "city"
+            ])
+        );
+
+        setValue(
+            "dispatchState",
+            dispatchFirstValue(payload, [
+                "delivery_state",
+                "deliveryState",
+                "shipping_state",
+                "shippingState",
+                "state"
+            ])
+        );
+
+        setValue("dispatchPackageCount", "1");
+        setValue("dispatchWeight", "");
+        setValue("dispatchDescription", "Luxury packaging systems");
+
+        const fragile = document.getElementById("dispatchFragile");
+        if (fragile) fragile.checked = true;
+
+        if (elements.dispatchLabelStatus) {
+            elements.dispatchLabelStatus.textContent =
+                "Confirm the delivery details before printing.";
+        }
+
+        state.dispatchLabelData = null;
+    }
+
+    function collectDispatchLabelData() {
+        const submission = state.selectedSubmission;
+
+        if (!submission || submission.submission_type !== "project") {
+            throw new Error("Open a project brief before generating a dispatch label.");
+        }
+
+        const value = id =>
+            String(document.getElementById(id)?.value || "").trim();
+
+        const packageCount = Number(value("dispatchPackageCount"));
+
+        const data = {
+            reference: submission.reference || "",
+            recipientName: value("dispatchRecipientName"),
+            brandName: value("dispatchBrandName"),
+            phone: value("dispatchPhone"),
+            address: value("dispatchAddress"),
+            city: value("dispatchCity"),
+            state: value("dispatchState"),
+            weight: value("dispatchWeight"),
+            description: value("dispatchDescription") || "Luxury packaging systems",
+            packageCount,
+            fragile: Boolean(document.getElementById("dispatchFragile")?.checked),
+            dispatchDate: new Date().toLocaleDateString("en-NG", {
+                year: "numeric",
+                month: "short",
+                day: "2-digit"
+            })
+        };
+
+        if (!data.recipientName) throw new Error("Enter the recipient name.");
+        if (!data.phone) throw new Error("Enter the recipient phone number.");
+        if (!data.address) throw new Error("Enter the delivery address.");
+        if (!Number.isInteger(packageCount) || packageCount < 1 || packageCount > 50) {
+            throw new Error("Package count must be between 1 and 50.");
+        }
+
+        return data;
+    }
+
+    function dispatchLocation(data) {
+        return [data.address, data.city, data.state].filter(Boolean).join(", ");
+    }
+
+    function dispatchLabelMarkup(data, packageNumber) {
+        return `
+            <article class="dispatch-label-sheet">
+                <header class="dispatch-label-sheet__header">
+                    <img src="/assets/images/luxsome-logo.png" alt="Luxsome Packaging">
+                    <div>
+                        <span>DISPATCH LABEL</span>
+                        <strong>${escapeHtml(data.reference)}</strong>
+                    </div>
+                </header>
+
+                <section class="dispatch-label-sheet__package">
+                    <span>PACKAGE</span>
+                    <strong>${packageNumber} OF ${data.packageCount}</strong>
+                </section>
+
+                <section class="dispatch-label-sheet__to">
+                    <span class="dispatch-label-sheet__eyebrow">DELIVER TO</span>
+                    <h3>${escapeHtml(data.recipientName)}</h3>
+                    ${data.brandName ? `<p class="dispatch-label-sheet__brand">${escapeHtml(data.brandName)}</p>` : ""}
+                    <p class="dispatch-label-sheet__phone">${escapeHtml(data.phone)}</p>
+                    <address>${escapeHtml(dispatchLocation(data))}</address>
+                </section>
+
+                <section class="dispatch-label-sheet__meta">
+                    <div>
+                        <span>Contents</span>
+                        <strong>${escapeHtml(data.description)}</strong>
+                    </div>
+                    ${data.weight ? `
+                        <div>
+                            <span>Weight</span>
+                            <strong>${escapeHtml(data.weight)}</strong>
+                        </div>` : ""}
+                    <div>
+                        <span>Dispatch date</span>
+                        <strong>${escapeHtml(data.dispatchDate)}</strong>
+                    </div>
+                </section>
+
+                ${data.fragile ? `
+                    <div class="dispatch-label-sheet__fragile">
+                        FRAGILE · HANDLE WITH CARE
+                    </div>` : ""}
+
+                <footer class="dispatch-label-sheet__footer">
+                    <div>
+                        <span>FROM</span>
+                        <strong>Luxsome Packaging</strong>
+                        <small>Lagos, Nigeria</small>
+                    </div>
+                    <div class="dispatch-label-sheet__reference">
+                        ${escapeHtml(data.reference)}
+                    </div>
+                </footer>
+            </article>
+        `;
+    }
+
+    function buildDispatchPreviewMarkup(data) {
+        return Array.from(
+            { length: data.packageCount },
+            (_, index) => dispatchLabelMarkup(data, index + 1)
+        ).join("");
+    }
+
+    function openDispatchPreview() {
+        try {
+            const data = collectDispatchLabelData();
+            state.dispatchLabelData = data;
+            elements.dispatchPreviewBody.innerHTML = buildDispatchPreviewMarkup(data);
+            elements.dispatchPreviewBackdrop.hidden = false;
+            elements.dispatchPreviewModal.classList.add("is-open");
+            elements.dispatchPreviewModal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("crm-lock-scroll");
+            elements.dispatchLabelStatus.textContent =
+                `${data.packageCount} dispatch label${data.packageCount === 1 ? "" : "s"} ready to print.`;
+        } catch (error) {
+            elements.dispatchLabelStatus.textContent =
+                error.message || "The dispatch label could not be prepared.";
+        }
+    }
+
+    function closeDispatchPreview() {
+        if (!elements.dispatchPreviewModal) return;
+        elements.dispatchPreviewModal.classList.remove("is-open");
+        elements.dispatchPreviewModal.setAttribute("aria-hidden", "true");
+        elements.dispatchPreviewBackdrop.hidden = true;
+    }
+
+    function printDispatchLabels() {
+        try {
+            const data = collectDispatchLabelData();
+            state.dispatchLabelData = data;
+
+            const printWindow = window.open("", "_blank");
+            if (!printWindow) {
+                throw new Error(
+                    "Your browser blocked the print window. Allow pop-ups for the CRM and try again."
+                );
+            }
+
+            printWindow.document.open();
+            printWindow.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dispatch Label · ${escapeHtml(data.reference)}</title>
+<style>
+@page { size: 4in 6in; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin:0; padding:0; background:#fff; color:#1d1714; font-family:Arial,Helvetica,sans-serif; }
+.dispatch-label-sheet { width:4in; height:6in; display:flex; flex-direction:column; overflow:hidden; padding:.22in; background:#fff; break-after:page; page-break-after:always; }
+.dispatch-label-sheet:last-child { break-after:auto; page-break-after:auto; }
+.dispatch-label-sheet__header { display:flex; align-items:center; justify-content:space-between; gap:.15in; padding-bottom:.14in; border-bottom:2px solid #2e1c15; }
+.dispatch-label-sheet__header img { width:1.32in; max-height:.42in; object-fit:contain; object-position:left center; }
+.dispatch-label-sheet__header>div { text-align:right; }
+.dispatch-label-sheet__header span,.dispatch-label-sheet__eyebrow,.dispatch-label-sheet__meta span,.dispatch-label-sheet__footer span,.dispatch-label-sheet__package span { display:block; font-size:7.5pt; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.dispatch-label-sheet__header strong { display:block; margin-top:2px; font-size:9pt; }
+.dispatch-label-sheet__package { display:flex; align-items:center; justify-content:space-between; margin:.12in 0; padding:.09in .11in; background:#2e1c15; color:#fff; }
+.dispatch-label-sheet__package strong { font-size:14pt; }
+.dispatch-label-sheet__to { padding:.08in 0 .14in; border-bottom:1px solid #b9ada6; }
+.dispatch-label-sheet__to h3 { margin:.07in 0 0; font-size:20pt; line-height:1; text-transform:uppercase; }
+.dispatch-label-sheet__brand { margin:.05in 0 0; font-size:10pt; font-weight:700; }
+.dispatch-label-sheet__phone { margin:.1in 0 0; font-size:14pt; font-weight:800; }
+.dispatch-label-sheet__to address { margin-top:.09in; font-size:12.5pt; font-style:normal; font-weight:700; line-height:1.3; }
+.dispatch-label-sheet__meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.1in; padding:.13in 0; }
+.dispatch-label-sheet__meta strong { display:block; margin-top:3px; font-size:9pt; line-height:1.2; }
+.dispatch-label-sheet__fragile { margin-top:auto; padding:.1in; border:2px solid #2e1c15; font-size:12pt; font-weight:900; letter-spacing:.04em; text-align:center; }
+.dispatch-label-sheet__footer { display:flex; align-items:flex-end; justify-content:space-between; gap:.15in; margin-top:.12in; padding-top:.1in; border-top:1px solid #b9ada6; }
+.dispatch-label-sheet__footer strong,.dispatch-label-sheet__footer small { display:block; margin-top:2px; }
+.dispatch-label-sheet__footer strong { font-size:9pt; }
+.dispatch-label-sheet__footer small { font-size:7.5pt; }
+.dispatch-label-sheet__reference { max-width:1.6in; font-size:8pt; font-weight:800; text-align:right; overflow-wrap:anywhere; }
+</style>
+</head>
+<body>
+${buildDispatchPreviewMarkup(data)}
+<script>
+window.addEventListener("load", function () {
+    window.setTimeout(function () { window.print(); }, 250);
+});
+<\/script>
+</body>
+</html>`);
+            printWindow.document.close();
+
+            elements.dispatchLabelStatus.textContent =
+                "Print dialog opened. Choose your printer or Save as PDF.";
+        } catch (error) {
+            elements.dispatchLabelStatus.textContent =
+                error.message || "The dispatch label could not be printed.";
+        }
+    }
 
     async function loadSubmissionArtwork(submission) {
         if (!elements.artworkSection) return;
