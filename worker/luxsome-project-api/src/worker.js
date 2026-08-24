@@ -258,6 +258,43 @@ async function handleAdminRequest(request, env, url) {
             );
         }
 
+        const structureFileMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/structure-files\/file$/
+        );
+
+        if (structureFileMatch && request.method === "GET") {
+            return await handleAdminStructureFile(
+                request,
+                env,
+                url,
+                structureFileMatch[1]
+            );
+        }
+
+        const structureListMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/structure-files$/
+        );
+
+        if (structureListMatch && request.method === "GET") {
+            return await handleAdminStructureList(
+                request,
+                env,
+                structureListMatch[1]
+            );
+        }
+
+        const structureReviewMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/structure-review$/
+        );
+
+        if (structureReviewMatch && request.method === "PATCH") {
+            return await handleAdminStructureReviewUpdate(
+                request,
+                env,
+                structureReviewMatch[1]
+            );
+        }
+
         const detailMatch = url.pathname.match(
             /^\/admin\/submissions\/([A-Z0-9-]+)$/
         );
@@ -3788,6 +3825,7 @@ async function handleAdminStats(request, env) {
         SELECT
             COUNT(*) AS total,
             SUM(CASE WHEN submission_type = 'project' THEN 1 ELSE 0 END) AS projects,
+            SUM(CASE WHEN submission_type = 'sample_request' THEN 1 ELSE 0 END) AS samples,
             SUM(CASE WHEN submission_type = 'contact' THEN 1 ELSE 0 END) AS contacts,
             SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) AS new_count,
             SUM(CASE WHEN status = 'reviewing' THEN 1 ELSE 0 END) AS reviewing,
@@ -3818,6 +3856,7 @@ async function handleAdminStats(request, env) {
             stats: {
                 total: Number(totals?.total || 0),
                 projects: Number(totals?.projects || 0),
+                samples: Number(totals?.samples || 0),
                 contacts: Number(totals?.contacts || 0),
                 new: Number(totals?.new_count || 0),
                 reviewing: Number(totals?.reviewing || 0),
@@ -3843,10 +3882,17 @@ async function handleAdminSubmissionList(request, env, url) {
         "follow_up",
         "won",
         "lost",
-        "archived"
+        "archived",
+        "sample_requested",
+        "sample_quoted",
+        "sample_paid",
+        "sample_in_production",
+        "sample_ready",
+        "sample_approved",
+        "sample_revision"
     ]);
 
-    const allowedTypes = new Set(["project", "contact"]);
+    const allowedTypes = new Set(["project", "sample_request", "contact"]);
     const requestedStatus = text(url.searchParams.get("status"));
     const requestedType = text(url.searchParams.get("type"));
     const search = text(url.searchParams.get("search")).slice(0, 100);
@@ -4437,6 +4483,666 @@ function getSubmissionArtworkObjectKeys(payload) {
     );
 }
 
+
+function getSubmissionStructureContext(payload) {
+    const configuration =
+        parseProjectConfiguration(payload);
+
+    const uploadId =
+        normaliseArtworkUploadId(
+            payload?.custom_box_upload_id ||
+            configuration?.custom_box_upload_id
+        );
+
+    const rawKeys =
+        payload?.custom_box_object_keys ||
+        configuration?.custom_box_object_keys ||
+        "";
+
+    const keys =
+        Array.isArray(rawKeys)
+            ? rawKeys
+            : String(rawKeys)
+                .split(",")
+                .map(item => item.trim())
+                .filter(Boolean);
+
+    const objectKeys =
+        new Set(
+            keys.filter(
+                key =>
+                    key.startsWith(
+                        "incoming/"
+                    )
+            )
+        );
+
+    const boxStyle =
+        text(
+            payload?.box_style ||
+            configuration?.box_style ||
+            payload?.custom_box_style ||
+            configuration?.custom_box_style
+        );
+
+    const notes =
+        text(
+            payload?.custom_box_structure_notes ||
+            configuration?.custom_box_structure_notes
+        );
+
+    return {
+        uploadId,
+        objectKeys,
+        boxStyle,
+        notes,
+        hasCustomStructure:
+            boxStyle
+                .trim()
+                .toLowerCase() ===
+                "custom box structure" ||
+            Boolean(uploadId)
+    };
+}
+
+async function ensureStructureReviewTable(db) {
+    await db.prepare(`
+        CREATE TABLE IF NOT EXISTS project_structure_reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_reference TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'pending_review',
+            notes TEXT,
+            reviewed_by TEXT,
+            reviewed_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (project_reference)
+                REFERENCES submissions(reference)
+                ON DELETE CASCADE
+        )
+    `).run();
+
+    await db.prepare(`
+        CREATE INDEX IF NOT EXISTS
+            idx_project_structure_reviews_reference
+        ON project_structure_reviews(project_reference)
+    `).run();
+}
+
+function normaliseStructureReviewRow(row) {
+    return {
+        status:
+            text(row?.status) ||
+            "pending_review",
+        notes:
+            text(row?.notes),
+        reviewedBy:
+            text(row?.reviewed_by),
+        reviewedAt:
+            row?.reviewed_at || null,
+        updatedAt:
+            row?.updated_at || null
+    };
+}
+
+function serialiseArtworkObject(object) {
+    const extension =
+        getArtworkExtension(object.key);
+
+    const originalName =
+        text(
+            object.customMetadata
+                ?.originalName
+        ) ||
+        object.key.split("/").pop() ||
+        "Uploaded file";
+
+    return {
+        key: object.key,
+        name: originalName,
+        extension,
+        size:
+            Number(object.size || 0),
+        uploadedAt:
+            text(
+                object.customMetadata
+                    ?.uploadedAt
+            ) ||
+            object.uploaded
+                ?.toISOString?.() ||
+            null,
+        contentType:
+            text(
+                object.httpMetadata
+                    ?.contentType
+            ) ||
+            artworkContentTypeFromExtension(
+                extension
+            ),
+        kind:
+            artworkFileKind(
+                extension
+            ),
+        previewable:
+            [
+                "jpg",
+                "jpeg",
+                "png",
+                "webp",
+                "pdf"
+            ].includes(
+                extension
+            ),
+        thumbnailable:
+            [
+                "jpg",
+                "jpeg",
+                "png",
+                "webp"
+            ].includes(
+                extension
+            )
+    };
+}
+
+async function listArtworkObjectsByUploadId(
+    bucket,
+    uploadId,
+    allowedKeys
+) {
+    const prefix =
+        `incoming/${uploadId}/`;
+
+    const listedObjects = [];
+    let cursor;
+
+    do {
+        const result =
+            await bucket.list({
+                prefix,
+                cursor,
+                limit: 1000,
+                include: [
+                    "httpMetadata",
+                    "customMetadata"
+                ]
+            });
+
+        listedObjects.push(
+            ...(result.objects || [])
+        );
+
+        cursor =
+            result.truncated
+                ? result.cursor
+                : undefined;
+    } while (cursor);
+
+    return listedObjects
+        .filter(object => (
+            !allowedKeys.size ||
+            allowedKeys.has(object.key)
+        ))
+        .map(serialiseArtworkObject)
+        .sort((left, right) => (
+            String(left.name)
+                .localeCompare(
+                    String(right.name)
+                )
+        ));
+}
+
+async function handleAdminStructureList(
+    request,
+    env,
+    reference
+) {
+    if (!env.ARTWORK_BUCKET) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Artwork storage is not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    const submission =
+        await getSubmissionWithPayload(
+            env.DB,
+            reference
+        );
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const structure =
+        getSubmissionStructureContext(
+            submission.payload
+        );
+
+    await ensureStructureReviewTable(
+        env.DB
+    );
+
+    const reviewRow =
+        await env.DB.prepare(`
+            SELECT
+                status,
+                notes,
+                reviewed_by,
+                reviewed_at,
+                updated_at
+            FROM project_structure_reviews
+            WHERE project_reference = ?
+            LIMIT 1
+        `).bind(reference).first();
+
+    if (!structure.uploadId) {
+        return jsonResponse(
+            {
+                success: true,
+                files: [],
+                structure: {
+                    boxStyle:
+                        structure.boxStyle,
+                    notes:
+                        structure.notes,
+                    hasCustomStructure:
+                        structure.hasCustomStructure
+                },
+                review:
+                    normaliseStructureReviewRow(
+                        reviewRow
+                    )
+            },
+            200,
+            request,
+            env
+        );
+    }
+
+    const files =
+        await listArtworkObjectsByUploadId(
+            env.ARTWORK_BUCKET,
+            structure.uploadId,
+            structure.objectKeys
+        );
+
+    return jsonResponse(
+        {
+            success: true,
+            files,
+            structure: {
+                boxStyle:
+                    structure.boxStyle,
+                notes:
+                    structure.notes,
+                hasCustomStructure:
+                    structure.hasCustomStructure
+            },
+            review:
+                normaliseStructureReviewRow(
+                    reviewRow
+                )
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminStructureFile(
+    request,
+    env,
+    url,
+    reference
+) {
+    if (!env.ARTWORK_BUCKET) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Artwork storage is not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    const submission =
+        await getSubmissionWithPayload(
+            env.DB,
+            reference
+        );
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const structure =
+        getSubmissionStructureContext(
+            submission.payload
+        );
+
+    const key =
+        text(
+            url.searchParams.get(
+                "key"
+            )
+        );
+
+    if (
+        !structure.uploadId ||
+        !key ||
+        !key.startsWith(
+            `incoming/${structure.uploadId}/`
+        ) ||
+        key.includes("..") ||
+        key.includes("\\")
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "The requested structural file is invalid."
+            },
+            400,
+            request,
+            env
+        );
+    }
+
+    if (
+        structure.objectKeys.size &&
+        !structure.objectKeys.has(key)
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "This structural file does not belong to the project."
+            },
+            403,
+            request,
+            env
+        );
+    }
+
+    const object =
+        await env.ARTWORK_BUCKET.get(
+            key
+        );
+
+    if (!object) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Structural file not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const extension =
+        getArtworkExtension(key);
+
+    const originalName =
+        text(
+            object.customMetadata
+                ?.originalName
+        ) ||
+        key.split("/").pop() ||
+        "structural-file";
+
+    const requestedDisposition =
+        text(
+            url.searchParams.get(
+                "disposition"
+            )
+        ).toLowerCase();
+
+    const disposition =
+        requestedDisposition ===
+        "attachment"
+            ? "attachment"
+            : "inline";
+
+    const headers =
+        new Headers();
+
+    object.writeHttpMetadata(
+        headers
+    );
+
+    headers.set(
+        "Content-Type",
+        headers.get(
+            "Content-Type"
+        ) ||
+        artworkContentTypeFromExtension(
+            extension
+        )
+    );
+
+    headers.set(
+        "Content-Disposition",
+        `${disposition}; filename="${safeDownloadName(originalName)}"`
+    );
+
+    headers.set(
+        "Cache-Control",
+        "private, no-store"
+    );
+
+    const origin =
+        request.headers.get(
+            "Origin"
+        );
+
+    if (
+        isAllowedOrigin(
+            origin,
+            env
+        )
+    ) {
+        for (
+            const [
+                header,
+                value
+            ] of Object.entries(
+                corsHeaders(origin)
+            )
+        ) {
+            headers.set(
+                header,
+                value
+            );
+        }
+    }
+
+    return new Response(
+        object.body,
+        {
+            status: 200,
+            headers
+        }
+    );
+}
+
+async function handleAdminStructureReviewUpdate(
+    request,
+    env,
+    reference
+) {
+    const submission =
+        await getSubmissionWithPayload(
+            env.DB,
+            reference
+        );
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const structure =
+        getSubmissionStructureContext(
+            submission.payload
+        );
+
+    if (
+        !structure.hasCustomStructure
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Structural feasibility review is only available for bespoke custom box structures."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const body =
+        await request
+            .json()
+            .catch(() => ({}));
+
+    const allowedStatuses =
+        new Set([
+            "pending_review",
+            "can_produce",
+            "needs_clarification",
+            "cannot_produce"
+        ]);
+
+    const status =
+        text(body.status);
+
+    if (
+        !allowedStatuses.has(
+            status
+        )
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Please select a valid structural review status."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const notes =
+        text(body.notes)
+            .slice(0, 4000);
+
+    const reviewedBy =
+        text(body.reviewedBy)
+            .slice(0, 120);
+
+    const now =
+        new Date()
+            .toISOString();
+
+    const reviewedAt =
+        status ===
+        "pending_review"
+            ? null
+            : now;
+
+    await ensureStructureReviewTable(
+        env.DB
+    );
+
+    await env.DB.prepare(`
+        INSERT INTO project_structure_reviews (
+            project_reference,
+            status,
+            notes,
+            reviewed_by,
+            reviewed_at,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(project_reference) DO UPDATE SET
+            status = excluded.status,
+            notes = excluded.notes,
+            reviewed_by = excluded.reviewed_by,
+            reviewed_at = excluded.reviewed_at,
+            updated_at = excluded.updated_at
+    `).bind(
+        reference,
+        status,
+        notes || null,
+        reviewedBy || null,
+        reviewedAt,
+        now,
+        now
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                "Structural assessment saved.",
+            review: {
+                status,
+                notes,
+                reviewedBy,
+                reviewedAt,
+                updatedAt:
+                    now
+            }
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
 async function ensureArtworkReviewTable(db) {
     await db.prepare(`
         CREATE TABLE IF NOT EXISTS project_artwork_reviews (
@@ -4511,7 +5217,14 @@ async function handleAdminSubmissionUpdate(request, env, reference) {
         "follow_up",
         "won",
         "lost",
-        "archived"
+        "archived",
+        "sample_requested",
+        "sample_quoted",
+        "sample_paid",
+        "sample_in_production",
+        "sample_ready",
+        "sample_approved",
+        "sample_revision"
     ]);
     const status = text(body.status);
 

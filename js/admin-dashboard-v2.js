@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
         selectedSubmission: null,
         selectedQuotation: null,
         artworkFiles: [],
+        structureFiles: [],
         selectedArtwork: null,
         artworkObjectUrls: [],
         dispatchLabelData: null
@@ -59,6 +60,20 @@ document.addEventListener("DOMContentLoaded", function () {
         artworkReviewNotes: document.getElementById("artworkReviewNotes"),
         artworkReviewMessage: document.getElementById("artworkReviewMessage"),
         saveArtworkReviewButton: document.getElementById("saveArtworkReviewButton"),
+        structureSection: document.getElementById("structureSection"),
+        structureBoxStyle: document.getElementById("structureBoxStyle"),
+        structureCustomerNotes: document.getElementById("structureCustomerNotes"),
+        structureReviewBadge: document.getElementById("structureReviewBadge"),
+        structureFileGrid: document.getElementById("structureFileGrid"),
+        structureFileCount: document.getElementById("structureFileCount"),
+        structureFileStatus: document.getElementById("structureFileStatus"),
+        structureFileEmpty: document.getElementById("structureFileEmpty"),
+        structureReviewForm: document.getElementById("structureReviewForm"),
+        structureReviewStatus: document.getElementById("structureReviewStatus"),
+        structureReviewedBy: document.getElementById("structureReviewedBy"),
+        structureReviewNotes: document.getElementById("structureReviewNotes"),
+        structureReviewMessage: document.getElementById("structureReviewMessage"),
+        saveStructureReviewButton: document.getElementById("saveStructureReviewButton"),
         dispatchSection: document.getElementById("dispatchSection"),
         dispatchLabelForm: document.getElementById("dispatchLabelForm"),
         dispatchLabelStatus: document.getElementById("dispatchLabelStatus"),
@@ -121,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             button.classList.add("is-active");
             state.view = button.dataset.view;
-            state.type = ["project", "contact"].includes(state.view)
+            state.type = ["project", "sample_request", "contact"].includes(state.view)
                 ? state.view
                 : "";
             state.status = "";
@@ -183,6 +198,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.artworkGrid?.addEventListener("click", handleArtworkGridClick);
     elements.artworkReviewForm?.addEventListener("submit", saveArtworkReview);
+    elements.structureFileGrid?.addEventListener("click", handleStructureGridClick);
+    elements.structureReviewForm?.addEventListener("submit", saveStructureReview);
 
     elements.dispatchLabelForm?.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -381,6 +398,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById("navAllCount").textContent = data.stats.total;
         document.getElementById("navProjectCount").textContent = data.stats.projects;
+        document.getElementById("navSampleCount").textContent = data.stats.samples || 0;
         document.getElementById("navContactCount").textContent = data.stats.contacts;
 
         try {
@@ -461,11 +479,13 @@ document.addEventListener("DOMContentLoaded", function () {
         elements.viewTitle.textContent =
             state.view === "project"
                 ? "Project briefs"
-                : state.view === "contact"
-                    ? "Contact messages"
-                    : isQuotationView
-                        ? "Quotations"
-                        : "All enquiries";
+                : state.view === "sample_request"
+                    ? "Sample requests"
+                    : state.view === "contact"
+                        ? "Contact messages"
+                        : isQuotationView
+                            ? "Quotations"
+                            : "All enquiries";
 
         elements.createQuotationButton.hidden = false;
 
@@ -487,7 +507,14 @@ document.addEventListener("DOMContentLoaded", function () {
             ["follow_up", "Follow up"],
             ["won", "Won"],
             ["lost", "Lost"],
-            ["archived", "Archived"]
+            ["archived", "Archived"],
+            ["sample_requested", "Sample requested"],
+            ["sample_quoted", "Sample quoted"],
+            ["sample_paid", "Sample paid"],
+            ["sample_in_production", "Sample in production"],
+            ["sample_ready", "Sample ready"],
+            ["sample_approved", "Sample approved"],
+            ["sample_revision", "Sample revision"]
         ];
 
         const options = isQuotationView
@@ -533,7 +560,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     <span class="crm-type-badge">
                         ${submission.submission_type === "project"
                             ? "Project"
-                            : "Contact"}
+                            : submission.submission_type === "sample_request"
+                                ? "Sample"
+                                : "Contact"}
                     </span>
                 </td>
                 <td>
@@ -618,9 +647,11 @@ document.addEventListener("DOMContentLoaded", function () {
             state.selectedSubmission = submission;
 
             document.getElementById("detailType").textContent =
-                submission.submission_type === "project"
-                    ? "PROJECT BRIEF"
-                    : "CONTACT ENQUIRY";
+                submission.submission_type === "sample_request"
+                    ? "SAMPLE REQUEST"
+                    : submission.submission_type === "project"
+                        ? "PROJECT BRIEF"
+                        : "CONTACT ENQUIRY";
 
             document.getElementById("detailReference").textContent =
                 submission.reference;
@@ -657,6 +688,7 @@ document.addEventListener("DOMContentLoaded", function () {
             elements.detailStatus.value = submission.status;
             renderPayload(submission.payload || {});
             await setupDispatchLabelForSubmission(submission);
+            await loadSubmissionStructure(submission);
             await loadSubmissionArtwork(submission);
 
             elements.detailBackdrop.hidden = false;
@@ -683,7 +715,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     ![
                         "artwork_upload_id",
                         "artwork_object_keys",
-                        "artwork_uploaded"
+                        "artwork_uploaded",
+                        "custom_box_upload_id",
+                        "custom_box_object_keys",
+                        "custom_box_file_names"
                     ].includes(key) &&
                     value !== "" &&
                     value !== null &&
@@ -1142,13 +1177,362 @@ window.addEventListener("load", function () {
         }
     }
 
+    function submissionConfiguration(payload) {
+        const source =
+            payload && typeof payload === "object"
+                ? payload
+                : {};
+
+        const candidate =
+            source.shop_configuration ||
+            source.configuration ||
+            source.project_configuration ||
+            {};
+
+        if (
+            candidate &&
+            typeof candidate === "object" &&
+            !Array.isArray(candidate)
+        ) {
+            return candidate;
+        }
+
+        try {
+            const parsed = JSON.parse(
+                String(candidate || "{}")
+            );
+
+            return (
+                parsed &&
+                typeof parsed === "object" &&
+                !Array.isArray(parsed)
+            )
+                ? parsed
+                : {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    function structureReviewLabel(status) {
+        return {
+            pending_review: "Pending review",
+            can_produce: "Can produce",
+            needs_clarification: "Needs clarification",
+            cannot_produce: "Cannot produce"
+        }[status] || "Pending review";
+    }
+
+    function renderStructureReview(review) {
+        const status =
+            review.status || "pending_review";
+
+        elements.structureReviewStatus.value =
+            status;
+
+        elements.structureReviewedBy.value =
+            review.reviewedBy || "";
+
+        elements.structureReviewNotes.value =
+            review.notes || "";
+
+        elements.structureReviewBadge.textContent =
+            structureReviewLabel(status);
+
+        elements.structureReviewBadge.dataset.status =
+            status;
+    }
+
+    async function loadSubmissionStructure(submission) {
+        if (!elements.structureSection) return;
+
+        const payload = submission.payload || {};
+        const configuration =
+            submissionConfiguration(payload);
+
+        const boxStyle =
+            configuration.custom_box_style ||
+            configuration.box_style ||
+            payload.custom_box_style ||
+            payload.box_style ||
+            "";
+
+        const uploadId =
+            configuration.custom_box_upload_id ||
+            payload.custom_box_upload_id ||
+            "";
+
+        const hasCustomStructure =
+            String(boxStyle)
+                .trim()
+                .toLowerCase() ===
+                "custom box structure" ||
+            Boolean(String(uploadId || "").trim());
+
+        elements.structureSection.hidden =
+            !hasCustomStructure;
+
+        if (!hasCustomStructure) {
+            state.structureFiles = [];
+            return;
+        }
+
+        elements.structureBoxStyle.textContent =
+            boxStyle || "Custom box structure";
+
+        elements.structureCustomerNotes.textContent =
+            configuration.custom_box_structure_notes ||
+            payload.custom_box_structure_notes ||
+            "No structural notes supplied.";
+
+        elements.structureFileGrid.replaceChildren();
+        elements.structureFileEmpty.hidden = true;
+        elements.structureFileStatus.textContent =
+            "Loading structural design files...";
+        elements.structureFileCount.textContent =
+            "0 files";
+        elements.structureReviewMessage.textContent =
+            "";
+        state.structureFiles = [];
+
+        try {
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(
+                    submission.reference
+                )}/structure-files`
+            );
+
+            state.structureFiles =
+                Array.isArray(data.files)
+                    ? data.files.map(file => ({
+                        ...file,
+                        source: "structure"
+                    }))
+                    : [];
+
+            if (data.structure) {
+                elements.structureBoxStyle.textContent =
+                    data.structure.boxStyle ||
+                    elements.structureBoxStyle.textContent;
+
+                elements.structureCustomerNotes.textContent =
+                    data.structure.notes ||
+                    "No structural notes supplied.";
+            }
+
+            renderStructureFiles(
+                state.structureFiles
+            );
+
+            renderStructureReview(
+                data.review || {}
+            );
+
+            elements.structureFileStatus.textContent =
+                "";
+            elements.structureFileStatus.classList.remove(
+                "is-error"
+            );
+        } catch (error) {
+            elements.structureFileStatus.textContent =
+                error.message ||
+                "Structural design files could not be loaded.";
+
+            elements.structureFileStatus.classList.add(
+                "is-error"
+            );
+
+            elements.structureFileEmpty.hidden =
+                false;
+        }
+    }
+
+    function renderStructureFiles(files) {
+        elements.structureFileGrid.replaceChildren();
+
+        const count = files.length;
+
+        elements.structureFileCount.textContent =
+            `${count} ${count === 1 ? "file" : "files"}`;
+
+        elements.structureFileEmpty.hidden =
+            count > 0;
+
+        files.forEach(function (file) {
+            const card =
+                document.createElement("article");
+
+            card.className =
+                "crm-artwork-card crm-structure-file-card";
+
+            const previewable =
+                Boolean(file.previewable);
+
+            const typeLabel =
+                file.extension
+                    ? file.extension.toUpperCase()
+                    : "FILE";
+
+            card.innerHTML = `
+                <div class="crm-artwork-card__preview" data-structure-preview-area>
+                    <span class="crm-artwork-card__type">
+                        ${escapeHtml(typeLabel)}
+                    </span>
+                    <span class="crm-artwork-card__icon" aria-hidden="true">
+                        ${escapeHtml(artworkTypeIcon(file.extension))}
+                    </span>
+                </div>
+
+                <div class="crm-artwork-card__content">
+                    <strong title="${escapeHtml(file.name)}">
+                        ${escapeHtml(file.name)}
+                    </strong>
+
+                    <p>
+                        ${escapeHtml(formatFileSize(file.size))}
+                        ${file.uploadedAt
+                            ? ` · ${escapeHtml(formatDate(file.uploadedAt))}`
+                            : ""}
+                    </p>
+
+                    <div class="crm-artwork-card__actions">
+                        ${previewable
+                            ? `<button
+                                    type="button"
+                                    data-structure-action="preview"
+                                    data-structure-key="${escapeHtml(file.key)}"
+                               >
+                                    Preview
+                               </button>`
+                            : ""}
+
+                        <button
+                            type="button"
+                            data-structure-action="download"
+                            data-structure-key="${escapeHtml(file.key)}"
+                        >
+                            Download
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            elements.structureFileGrid.appendChild(
+                card
+            );
+
+            if (file.thumbnailable) {
+                loadArtworkThumbnail(
+                    file,
+                    card.querySelector(
+                        "[data-structure-preview-area]"
+                    )
+                );
+            }
+        });
+    }
+
+    function handleStructureGridClick(event) {
+        const button = event.target.closest(
+            "[data-structure-action]"
+        );
+
+        if (!button) return;
+
+        const file =
+            state.structureFiles.find(
+                item =>
+                    item.key ===
+                    button.dataset.structureKey
+            );
+
+        if (!file) return;
+
+        if (
+            button.dataset.structureAction ===
+            "preview"
+        ) {
+            previewArtwork(file);
+        } else {
+            downloadArtwork(file);
+        }
+    }
+
+    async function saveStructureReview(event) {
+        event.preventDefault();
+
+        if (!state.selectedReference) return;
+
+        const button =
+            elements.saveStructureReviewButton;
+
+        elements.structureReviewMessage.textContent =
+            "Saving assessment...";
+
+        button.disabled = true;
+
+        try {
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(
+                    state.selectedReference
+                )}/structure-review`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        status:
+                            elements.structureReviewStatus.value,
+                        reviewedBy:
+                            elements.structureReviewedBy.value.trim(),
+                        notes:
+                            elements.structureReviewNotes.value.trim()
+                    })
+                }
+            );
+
+            renderStructureReview(
+                data.review || {}
+            );
+
+            elements.structureReviewMessage.textContent =
+                "Structural assessment saved.";
+        } catch (error) {
+            elements.structureReviewMessage.textContent =
+                error.message ||
+                "The structural assessment could not be saved.";
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+
     async function loadSubmissionArtwork(submission) {
         if (!elements.artworkSection) return;
 
-        const isProject = submission.submission_type === "project";
-        elements.artworkSection.hidden = !isProject;
+        const payload = submission.payload || {};
 
-        if (!isProject) {
+        const configuration = submissionConfiguration(payload);
+
+        const artworkEligible = (
+            ["project", "sample_request"].includes(
+                submission.submission_type
+            ) ||
+            String(submission.status || "")
+                .startsWith("sample_") ||
+            String(
+                payload.project_intent ||
+                configuration.project_intent ||
+                ""
+            ).toLowerCase() === "sample_first" ||
+            String(
+                payload.request_type ||
+                configuration.request_type ||
+                ""
+            ).toLowerCase() === "sample request"
+        );
+
+        elements.artworkSection.hidden = !artworkEligible;
+
+        if (!artworkEligible) {
             return;
         }
 
@@ -1159,6 +1543,7 @@ window.addEventListener("load", function () {
         elements.artworkGrid.replaceChildren();
         elements.artworkEmpty.hidden = true;
         elements.artworkStatus.textContent = "Loading artwork files...";
+        elements.artworkStatus.classList.remove("is-error");
         elements.artworkCount.textContent = "0 files";
         elements.artworkReviewMessage.textContent = "";
 
@@ -1170,9 +1555,13 @@ window.addEventListener("load", function () {
             );
 
             state.artworkFiles = Array.isArray(data.files)
-                ? data.files
+                ? data.files.map(file => ({
+                    ...file,
+                    source: "artwork"
+                }))
                 : [];
 
+            elements.artworkSection.hidden = false;
             renderArtworkFiles(state.artworkFiles);
             renderArtworkReview(data.review || {});
             elements.artworkStatus.textContent = "";
@@ -1396,10 +1785,15 @@ window.addEventListener("load", function () {
             disposition
         });
 
+        const fileRoute =
+            file.source === "structure"
+                ? "structure-files/file"
+                : "artwork/file";
+
         const response = await fetch(
             `${API_BASE}/admin/submissions/${encodeURIComponent(
                 state.selectedReference
-            )}/artwork/file?${params.toString()}`,
+            )}/${fileRoute}?${params.toString()}`,
             {
                 headers: {
                     Authorization: `Bearer ${state.token}`

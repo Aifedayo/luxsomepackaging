@@ -1,0 +1,105 @@
+/* Luxsome CRM — structural design & sample request additions */
+
+.crm-structure-section {
+    margin-top: 28px;
+    padding: 24px;
+    border: 1px solid rgba(46, 28, 21, 0.12);
+    background: #fffdf9;
+}
+
+.crm-structure-section[hidden] {
+    display: none !important;
+}
+
+.crm-structure-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #f2e7dd;
+    color: #6b4e3d;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    white-space: nowrap;
+}
+
+.crm-structure-badge[data-status="can_produce"] {
+    background: #e6f2e8;
+    color: #32633d;
+}
+
+.crm-structure-badge[data-status="needs_clarification"] {
+    background: #fff2d8;
+    color: #7d5a16;
+}
+
+.crm-structure-badge[data-status="cannot_produce"] {
+    background: #f8e5e2;
+    color: #8f3d35;
+}
+
+.crm-structure-summary {
+    display: grid;
+    grid-template-columns: minmax(180px, .7fr) minmax(0, 1.6fr);
+    gap: 14px;
+    margin: 18px 0 26px;
+}
+
+.crm-structure-summary > div {
+    padding: 16px;
+    border: 1px solid rgba(46, 28, 21, 0.10);
+    background: #f8f4ef;
+}
+
+.crm-structure-summary span {
+    display: block;
+    margin-bottom: 7px;
+    color: #8b7163;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.crm-structure-summary strong,
+.crm-structure-summary p {
+    margin: 0;
+    color: #2e1c15;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.crm-structure-files-heading {
+    margin-top: 6px;
+}
+
+.crm-structure-file-card .crm-artwork-card__preview {
+    background: #f8f4ef;
+}
+
+.crm-structure-review {
+    margin-top: 24px;
+    border-top: 1px solid rgba(46, 28, 21, 0.12);
+    padding-top: 22px;
+}
+
+.crm-type-badge {
+    white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+    .crm-structure-section {
+        padding: 18px 14px;
+    }
+
+    .crm-structure-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .crm-section-heading--row {
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
