@@ -45,7 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
         "luxsomeStartProjectDraft";
 
     let currentStep = 1;
-    const shopConfiguration = readShopConfiguration();
+
+    const shopConfiguration =
+        normaliseSampleRequestQuantities(
+            readShopConfiguration()
+        );
 
     addConfigurationFields(shopConfiguration);
     configureProjectIntent(shopConfiguration);
@@ -499,6 +503,114 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function normaliseSampleRequestQuantities(configuration) {
+        const source =
+            configuration &&
+            typeof configuration === "object"
+                ? { ...configuration }
+                : {};
+
+        const intent = String(
+            source.project_intent || ""
+        )
+            .trim()
+            .toLowerCase();
+
+        if (intent !== "sample_first") {
+            return source;
+        }
+
+        /*
+         * Preserve the quantities originally selected in the Shop.
+         * These values remain available later when Luxsome prepares
+         * the customer's bulk-production quotation after sample approval.
+         */
+        const preserveBulkQuantity = (
+            target,
+            sourceKey,
+            bulkKey
+        ) => {
+            const currentValue =
+                String(target[sourceKey] || "")
+                    .trim();
+
+            if (
+                currentValue &&
+                !String(target[bulkKey] || "").trim()
+            ) {
+                target[bulkKey] = currentValue;
+            }
+
+            if (currentValue) {
+                target[sourceKey] = "1";
+            }
+        };
+
+        preserveBulkQuantity(
+            source,
+            "quantity",
+            "bulk_quantity"
+        );
+
+        preserveBulkQuantity(
+            source,
+            "box_quantity",
+            "bulk_box_quantity"
+        );
+
+        preserveBulkQuantity(
+            source,
+            "other_pieces_quantity",
+            "bulk_other_pieces_quantity"
+        );
+
+        /*
+         * Additional Bespoke brand projects follow the same rule:
+         * one physical sample of each selected packaging piece while
+         * retaining the planned bulk quantities for later quotation.
+         */
+        const additionalProjects =
+            parseAdditionalProjects(
+                source.additional_projects
+            );
+
+        if (additionalProjects.length) {
+            source.additional_projects =
+                JSON.stringify(
+                    additionalProjects.map(project => {
+                        const normalised = {
+                            ...project
+                        };
+
+                        preserveBulkQuantity(
+                            normalised,
+                            "box_quantity",
+                            "bulk_box_quantity"
+                        );
+
+                        preserveBulkQuantity(
+                            normalised,
+                            "other_pieces_quantity",
+                            "bulk_other_pieces_quantity"
+                        );
+
+                        preserveBulkQuantity(
+                            normalised,
+                            "quantity",
+                            "bulk_quantity"
+                        );
+
+                        return normalised;
+                    })
+                );
+        }
+
+        source.sample_quantity = "1";
+
+        return source;
+    }
+
+
     function normaliseProjectIntent(value) {
         const intent = String(value || "").trim().toLowerCase();
 
@@ -857,8 +969,32 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Other custom items", customItems.join(", ")]
         ];
 
+        const isSampleRequest =
+            normaliseProjectIntent(
+                shopConfiguration.project_intent
+            ) === "sample_first";
+
         const specificationRows = [
-            ["Quantity", unitValue("quantity", "pieces")],
+            [
+                isSampleRequest
+                    ? "Sample quantity"
+                    : "Quantity",
+                unitValue(
+                    "quantity",
+                    isSampleRequest
+                        ? "sample"
+                        : "pieces"
+                )
+            ],
+            [
+                "Planned bulk quantity",
+                isSampleRequest
+                    ? unitValue(
+                        "bulk_quantity",
+                        "pieces"
+                    )
+                    : ""
+            ],
             ["Finished dimensions", dimensionsValue()],
             ["Measurement unit", dimensionUnitLabel()],
             ["Volumetric weight", unitValue("volumetric_weight_kg", "kg")],
