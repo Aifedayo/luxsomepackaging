@@ -1188,7 +1188,7 @@
                         you want Luxsome to assess. This upload is separate from your normal branding artwork.
                     </p>
 
-                    <div class="artwork-upload artwork-upload--structure" id="customBoxArtworkUpload">
+                    <div class="artwork-upload artwork-upload--structure" id="customBoxArtworkUpload" data-upload-endpoint="https://api.luxsomepackaging.com/artwork">
                         <input type="file" id="customBoxArtworkFiles" class="artwork-upload__input custom-structure-upload__input" multiple
                             accept=".pdf,.ai,.eps,.svg,.psd,.tif,.tiff,.png,.jpg,.jpeg,.webp,.zip">
 
@@ -1201,6 +1201,16 @@
 
                         <div class="artwork-upload__files" id="customBoxArtworkFileList" aria-live="polite"></div>
                         <p class="artwork-upload__status" id="customBoxArtworkStatus" role="status"></p>
+
+                        <div class="custom-structure-upload__verification">
+                            <div
+                                class="cf-turnstile"
+                                data-sitekey="0x4AAAAAAEHXVhHvzepUlY8B"
+                                data-theme="light"
+                                data-size="flexible"
+                                data-action="artwork-upload"
+                            ></div>
+                        </div>
                     </div>
 
                     <label class="product-field">
