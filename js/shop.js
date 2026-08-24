@@ -1942,7 +1942,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 request.open(
                     'PUT',
-                    `${endpoint}/upload/${keyPath}`
+                    `${endpoint}/upload/incoming/${keyPath}`
                 );
 
                 request.setRequestHeader(
