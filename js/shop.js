@@ -66,7 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             accent_colour: 'accentColour',
             pantone_reference: 'pantoneReference',
             comments: 'comments',
-            project_intent: 'projectIntent'
+            project_intent: 'projectIntent',
+            custom_box_structure_notes: 'customBoxStructureNotes'
         };
 
         const setFieldValue = (fieldName, value) => {
@@ -489,23 +490,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setupProjectIntentSelection = () => {
         if (!form) return;
-        const inputs = [...form.querySelectorAll('input[name="projectIntent"]')];
-        const button = document.getElementById('projectIntentSubmitButton');
-        if (!inputs.length) return;
-        const update = () => {
-            const selected = inputs.find(input => input.checked);
-            inputs.forEach(input => input.closest('.project-intent-option')?.classList.toggle('is-selected', input.checked));
-            if (!button) return;
-            button.textContent = selected?.value === 'sample_first'
-                ? 'Continue with Sample Request'
-                : selected?.value === 'bulk_quotation'
-                    ? 'Continue for Bulk Quotation'
-                    : 'Continue to Project Details';
+
+        const intentInputs = Array.from(
+            form.querySelectorAll('input[name="projectIntent"]')
+        );
+        const submitButton = document.getElementById(
+            'projectIntentSubmitButton'
+        );
+
+        if (!intentInputs.length) return;
+
+        const updateIntentInterface = () => {
+            const selected = intentInputs.find(input => input.checked);
+
+            intentInputs.forEach(input => {
+                input.closest('.project-intent-option')
+                    ?.classList.toggle('is-selected', input.checked);
+            });
+
+            if (!submitButton) return;
+
+            submitButton.textContent =
+                selected?.value === 'sample_first'
+                    ? 'Continue with Sample Request'
+                    : selected?.value === 'bulk_quotation'
+                        ? 'Continue for Bulk Quotation'
+                        : 'Continue to Project Details';
         };
-        inputs.forEach(input => input.addEventListener('change', update));
-        update();
+
+        intentInputs.forEach(input => {
+            input.addEventListener('change', updateIntentInterface);
+        });
+
+        updateIntentInterface();
     };
+
     setupProjectIntentSelection();
+
 
     /* ==========================================================
        BESPOKE PIECE DETAIL CONFIGURATION
@@ -1333,6 +1354,287 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupOptionalRibbonSelection();
 
+
+    /*
+     * BESPOKE CUSTOM BOX STRUCTURE
+     *
+     * Tier 1, Tier 2 and Tier 3 are restricted to the same five approved
+     * Luxsome structures. Bespoke alone can submit a different structure.
+     * When selected, the customer must describe it and upload a design or
+     * structural reference through the existing private R2 artwork uploader.
+     */
+    const customBoxStructure = (() => {
+        const panel = document.getElementById(
+            'customBoxStructurePanel'
+        );
+        const notes = document.getElementById(
+            'customBoxStructureNotes'
+        );
+        const inputs = Array.from(
+            form?.querySelectorAll(
+                'input[name="boxStyle"]'
+            ) || []
+        );
+
+        const CUSTOM_VALUE = 'Custom box structure';
+
+        const isSelected = () => (
+            inputs.some(
+                input =>
+                    input.checked &&
+                    input.value === CUSTOM_VALUE
+            )
+        );
+
+        const update = () => {
+            if (!panel) return;
+
+            const custom = isSelected();
+
+            panel.hidden = !custom;
+            panel.setAttribute(
+                'aria-hidden',
+                String(!custom)
+            );
+
+            if (notes) {
+                notes.disabled = !custom;
+                notes.required = custom;
+
+                if (!custom) {
+                    notes.setCustomValidity('');
+                }
+            }
+
+            /*
+             * Notify the artwork component because a custom structure turns
+             * its upload from optional into required.
+             */
+            document.dispatchEvent(
+                new CustomEvent(
+                    'luxsome:custom-box-structure-change',
+                    {
+                        detail: {
+                            selected: custom
+                        }
+                    }
+                )
+            );
+        };
+
+        inputs.forEach(input => {
+            input.addEventListener('change', update);
+        });
+
+        update();
+
+        return {
+            isSelected,
+            value: CUSTOM_VALUE
+        };
+    })();
+
+
+
+    const customStructureArtwork = (() => {
+        const root = document.getElementById('customBoxArtworkUpload');
+        if (!root) {
+            return {
+                hasFiles: () => false,
+                upload: async () => ({ uploadId: '', keys: [], fileNames: [] })
+            };
+        }
+
+        const input = document.getElementById('customBoxArtworkFiles');
+        const dropzone = document.getElementById('customBoxArtworkDropzone');
+        const fileList = document.getElementById('customBoxArtworkFileList');
+        const status = document.getElementById('customBoxArtworkStatus');
+        let files = [];
+
+        const allowed = new Set(['pdf','ai','eps','svg','psd','tif','tiff','png','jpg','jpeg','webp','zip']);
+        const maxFiles = 10;
+        const maxSize = 20 * 1024 * 1024;
+
+        const ext = file => {
+            const parts = String(file?.name || '').split('.');
+            return parts.length > 1 ? parts.pop().toLowerCase() : '';
+        };
+
+        const setStatus = (message, type = '') => {
+            if (!status) return;
+            status.textContent = message || '';
+            status.dataset.status = type;
+        };
+
+        const render = () => {
+            if (!fileList) return;
+
+            /*
+             * Revoke old preview URLs before rebuilding the list.
+             * This prevents browser memory from accumulating as files
+             * are added and removed.
+             */
+            fileList
+                .querySelectorAll('img[data-preview-url]')
+                .forEach(image => {
+                    URL.revokeObjectURL(image.dataset.previewUrl);
+                });
+
+            fileList.innerHTML = '';
+
+            files.forEach((file, index) => {
+                const row = document.createElement('div');
+                row.className = 'artwork-upload__file';
+
+                const details = document.createElement('div');
+                details.className = 'artwork-upload__file-details';
+
+                const isPreviewable =
+                    file.type?.startsWith('image/') ||
+                    ['png', 'jpg', 'jpeg', 'webp'].includes(ext(file));
+
+                if (isPreviewable) {
+                    const previewUrl = URL.createObjectURL(file);
+                    const preview = document.createElement('img');
+
+                    preview.className = 'artwork-upload__thumbnail';
+                    preview.src = previewUrl;
+                    preview.alt = `Preview of ${file.name}`;
+                    preview.dataset.previewUrl = previewUrl;
+
+                    details.appendChild(preview);
+                } else {
+                    const icon = document.createElement('span');
+                    icon.className = 'artwork-upload__file-type';
+                    icon.setAttribute('aria-hidden', 'true');
+                    icon.innerHTML =
+                        '<i class="fa-regular fa-file"></i>';
+
+                    details.appendChild(icon);
+                }
+
+                const name = document.createElement('span');
+                name.className = 'artwork-upload__file-name';
+                name.textContent = file.name;
+
+                details.appendChild(name);
+
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'artwork-upload__remove';
+                remove.dataset.index = String(index);
+                remove.setAttribute(
+                    'aria-label',
+                    `Remove ${file.name}`
+                );
+                remove.innerHTML =
+                    '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+
+                row.append(details, remove);
+                fileList.appendChild(row);
+            });
+        };
+
+        const addFiles = incoming => {
+            const next = [...(incoming || [])];
+
+            if (files.length + next.length > maxFiles) {
+                setStatus(`You can upload up to ${maxFiles} structural files.`, 'error');
+                return;
+            }
+
+            for (const file of next) {
+                if (!allowed.has(ext(file))) {
+                    setStatus(`${file.name}: unsupported file type.`, 'error');
+                    return;
+                }
+                if (file.size > maxSize) {
+                    setStatus(`${file.name}: file is larger than 20 MB.`, 'error');
+                    return;
+                }
+            }
+
+            files = [...files, ...next];
+            render();
+            setStatus(`${files.length} structural file${files.length === 1 ? '' : 's'} selected.`, 'ready');
+        };
+
+        input?.addEventListener('change', event => {
+            addFiles(event.target.files);
+            event.target.value = '';
+        });
+
+        fileList?.addEventListener('click', event => {
+            const button = event.target.closest('.artwork-upload__remove');
+            if (!button) return;
+            const index = Number(button.dataset.index);
+            if (!Number.isInteger(index) || index < 0 || index >= files.length) return;
+            files.splice(index, 1);
+            render();
+            setStatus(files.length ? `${files.length} structural file${files.length === 1 ? '' : 's'} selected.` : '', files.length ? 'ready' : '');
+        });
+
+        ['dragenter','dragover'].forEach(type => {
+            dropzone?.addEventListener(type, event => {
+                event.preventDefault();
+                dropzone.classList.add('is-dragging');
+            });
+        });
+
+        ['dragleave','drop'].forEach(type => {
+            dropzone?.addEventListener(type, event => {
+                event.preventDefault();
+                dropzone.classList.remove('is-dragging');
+            });
+        });
+
+        dropzone?.addEventListener('drop', event => addFiles(event.dataTransfer?.files));
+
+        const upload = async () => {
+            if (!customBoxStructure?.isSelected?.()) {
+                return { uploadId: '', keys: [], fileNames: [] };
+            }
+
+            if (!files.length) {
+                throw new Error('Upload at least one box design, dieline, sketch or structural reference.');
+            }
+
+            const uploadId = `STRUCT-${Date.now()}-${Math.random().toString(36).slice(2,10).toUpperCase()}`;
+            const keys = [];
+            const fileNames = [];
+
+            setStatus('Uploading structural design files…', 'uploading');
+
+            for (const file of files) {
+                const body = new FormData();
+                body.append('file', file);
+                body.append('upload_id', uploadId);
+                body.append('upload_context', 'custom_box_structure');
+
+                const response = await fetch(`${API_BASE}/artwork/upload`, {
+                    method: 'POST',
+                    body
+                });
+
+                const result = await response.json().catch(() => ({}));
+
+                if (!response.ok || !result.success) {
+                    setStatus(result.message || `Unable to upload ${file.name}.`, 'error');
+                    throw new Error(result.message || `Unable to upload ${file.name}.`);
+                }
+
+                const key = result.objectKey || result.key || result.object_key || '';
+                if (key) keys.push(key);
+                fileNames.push(file.name);
+            }
+
+            setStatus('Structural design files uploaded.', 'success');
+            return { uploadId, keys, fileNames };
+        };
+
+        return { hasFiles: () => files.length > 0, upload };
+    })();
+
     /*
      * Artwork upload
      *
@@ -1499,6 +1801,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isReadySelected = () => (
             getSelectedArtworkStatus() === READY_VALUE
+        );
+
+        const isCustomBoxStructureSelected = () => (
+            Boolean(
+                customBoxStructure?.isSelected?.()
+            )
+        );
+
+        const requiresFileUpload = () => (
+            isReadySelected()
         );
 
         const needsSupportChecklist = () => (
@@ -1821,7 +2133,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (confirmation) {
                 confirmation.disabled = !visible;
-                confirmation.required = ready;
+                confirmation.required = requiresFileUpload();
 
                 const confirmationText =
                     confirmation.closest('label')
@@ -1843,20 +2155,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 '.configuration-help'
             );
 
+            const customStructure =
+                isCustomBoxStructureSelected();
+
             if (heading) {
-                heading.textContent = ready
-                    ? 'Upload your final design files'
-                    : partial
-                        ? 'Upload the files you already have'
-                        : 'Upload optional references';
+                heading.textContent = customStructure
+                    ? 'Upload your custom box design or reference'
+                    : ready
+                        ? 'Upload your final design files'
+                        : partial
+                            ? 'Upload the files you already have'
+                            : 'Upload optional references';
             }
 
             if (helper) {
-                helper.textContent = ready
-                    ? 'Upload the final files Luxsome should review for production.'
-                    : partial
-                        ? 'Upload any completed or incomplete files currently available.'
-                        : 'You may upload an old logo, sketch, moodboard or visual references. This is optional.';
+                helper.textContent = customStructure
+                    ? 'Because you selected a custom box structure, upload at least one dieline, drawing, sketch, PDF or reference image for Luxsome to assess.'
+                    : ready
+                        ? 'Upload the final files Luxsome should review for production.'
+                        : partial
+                            ? 'Upload any completed or incomplete files currently available.'
+                            : 'You may upload an old logo, sketch, moodboard or visual references. This is optional.';
             }
 
             if (!visible) {
@@ -2080,9 +2399,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
-            if (isReadySelected() && !files.length) {
+            if (requiresFileUpload() && !files.length) {
                 throw new Error(
-                    'Upload at least one final artwork file.'
+                    isCustomBoxStructureSelected()
+                        ? 'Upload at least one box design, dieline, sketch or reference file for the custom structure.'
+                        : 'Upload at least one final artwork file.'
                 );
             }
 
@@ -2434,10 +2755,15 @@ document.addEventListener('DOMContentLoaded', () => {
             event.currentTarget.value = '';
         });
 
+        document.addEventListener(
+            'luxsome:custom-box-structure-change',
+            updateVisibility
+        );
+
         updateVisibility();
 
         return {
-            isRequired: isReadySelected,
+            isRequired: requiresFileUpload,
             validateSupportSelection,
             upload
         };
@@ -2446,6 +2772,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const submitConfiguration = async () => {
         if (!form || !product) return;
+
+        if (customBoxStructure?.isSelected?.() && !customStructureArtwork.hasFiles()) {
+            const structureStatus = document.getElementById('customBoxArtworkStatus');
+            if (structureStatus) {
+                structureStatus.textContent = 'Upload at least one custom box design or structural reference before continuing.';
+                structureStatus.dataset.status = 'error';
+            }
+            document.getElementById('customBoxArtworkUpload')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            return;
+        }
+
 
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -2471,6 +2811,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     block: 'center'
                 });
 
+            return;
+        }
+
+        let structuralUploadResult = { uploadId: '', keys: [], fileNames: [] };
+
+        try {
+            structuralUploadResult = await customStructureArtwork.upload();
+        } catch (error) {
+            document.getElementById('customBoxArtworkUpload')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
             return;
         }
 
@@ -2528,6 +2880,15 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('project_type', data.get('projectType') || '');
         params.set('packaging_pieces', data.getAll('packagingPieces').join(', '));
         params.set('box_style', data.get('boxStyle') || '');
+        params.set(
+            'custom_box_structure_notes',
+            data.get('boxStyle') === 'Custom box structure'
+                ? data.get('customBoxStructureNotes') || ''
+                : ''
+        );
+        params.set('custom_box_upload_id', structuralUploadResult.uploadId || '');
+        params.set('custom_box_object_keys', structuralUploadResult.keys.join(', '));
+        params.set('custom_box_file_names', structuralUploadResult.fileNames.join(', '));
         params.set('tag_style', data.get('tagStyle') || '');
         params.set('sticker_style', data.get('stickerStyle') || '');
         params.set('tissue_style', data.get('tissueStyle') || '');

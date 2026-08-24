@@ -100,6 +100,7 @@
         <link rel="stylesheet" href="/css/base.css">
         <link rel="stylesheet" href="/css/shop.css">
         <link rel="stylesheet" href="/css/shop-sample-request.css">
+        <link rel="stylesheet" href="/css/shop-five-standard-boxes.css">
         <link rel="stylesheet" href="/css/shop-artwork-support.css">
         <script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js"
@@ -1162,65 +1163,56 @@
                 <legend>Box style</legend>
 
                 <p class="configuration-help">
-                    Choose a preferred structure, or leave us to recommend one
-                    after reviewing your product.
+                    Choose one of Luxsome’s five standard box structures, or select
+                    Custom box structure if you already have a different design
+                    you want us to assess.
                 </p>
 
-                <div class="option-grid option-grid--box-styles">
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Recommend a structure"
-                            checked
-                        >
-                        <span>Recommend for me</span>
+                <div class="option-grid option-grid--box-styles standard-box-style-grid">
+                    <label><input type="radio" name="boxStyle" value="Magnetic flap box" checked><span>Magnetic flap box</span></label>
+                    <label><input type="radio" name="boxStyle" value="Shoulder box"><span>Shoulder box</span></label>
+                    <label><input type="radio" name="boxStyle" value="Tray-in-bed box"><span>Tray-in-bed box</span></label>
+                    <label><input type="radio" name="boxStyle" value="Door-style box"><span>Door-style box</span></label>
+                    <label><input type="radio" name="boxStyle" value="Tray-in-tray box"><span>Tray-in-tray box</span></label>
+                    <label class="custom-box-structure-option">
+                        <input type="radio" name="boxStyle" value="Custom box structure">
+                        <span>Custom box structure<small>Upload your own box design or structural reference</small></span>
+                    </label>
+                </div>
+
+                <div class="custom-box-structure-panel" id="customBoxStructurePanel" hidden aria-hidden="true">
+                    <p class="configuration-section__eyebrow">BESPOKE STRUCTURE</p>
+                    <h3>Upload your custom box design</h3>
+                    <p>
+                        Upload the box design, dieline, technical drawing, sketch or reference image
+                        you want Luxsome to assess. This upload is separate from your normal branding artwork.
+                    </p>
+
+                    <div class="artwork-upload artwork-upload--structure" id="customBoxArtworkUpload">
+                        <input type="file" id="customBoxArtworkFiles" class="artwork-upload__input custom-structure-upload__input" multiple
+                            accept=".pdf,.ai,.eps,.svg,.psd,.tif,.tiff,.png,.jpg,.jpeg,.webp,.zip">
+
+                        <label class="artwork-upload__dropzone" id="customBoxArtworkDropzone" for="customBoxArtworkFiles">
+                            <span class="artwork-upload__icon" aria-hidden="true"><i class="fa-solid fa-arrow-up-from-bracket"></i></span>
+                            <strong>Drop your box design files here</strong>
+                            <small>or click to browse</small>
+                            <em>PDF, AI, EPS, SVG, PSD, TIFF, PNG, JPG, WEBP or ZIP</em>
+                        </label>
+
+                        <div class="artwork-upload__files" id="customBoxArtworkFileList" aria-live="polite"></div>
+                        <p class="artwork-upload__status" id="customBoxArtworkStatus" role="status"></p>
+                    </div>
+
+                    <label class="product-field">
+                        <span>Describe the custom box structure</span>
+                        <textarea name="customBoxStructureNotes" id="customBoxStructureNotes" rows="4" maxlength="800"
+                            placeholder="e.g. Hexagonal rigid box with hinged lid and internal platform..."></textarea>
                     </label>
 
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Magnetic flap"
-                        >
-                        <span>Collapsible box</span>
-                    </label>
-
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Shoulder box"
-                        >
-                        <span>Shoulder box</span>
-                    </label>
-
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Tray-in-bed"
-                        >
-                        <span>Tray-in-bed</span>
-                    </label>
-
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Door style"
-                        >
-                        <span>Door style</span>
-                    </label>
-
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Custom structure"
-                        >
-                        <span>Custom structure</span>
-                    </label>
+                    <p class="custom-box-structure-panel__upload-note">
+                        At least one structural design or reference file is required when Custom box structure
+                        is selected. Luxsome will review feasibility before a sample quotation is issued.
+                    </p>
                 </div>
             </fieldset>
 

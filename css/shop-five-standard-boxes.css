@@ -1,0 +1,395 @@
+
+/* =========================================================
+   LUXSOME — FIVE STANDARD BOX STRUCTURES
+========================================================= */
+
+.standard-box-style-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.standard-box-style-grid label span {
+    min-height: 100%;
+}
+
+.custom-box-structure-option span {
+    border-style: dashed !important;
+}
+
+.custom-box-structure-option small {
+    display: block;
+    margin-top: 6px;
+    color: #806b60;
+    font-size: 0.58rem;
+    line-height: 1.45;
+}
+
+.custom-box-structure-panel {
+    margin-top: 16px;
+    padding: 22px;
+    border: 1px solid rgba(103, 54, 41, 0.2);
+    background: #f8f4ef;
+}
+
+.custom-box-structure-panel h3 {
+    margin: 5px 0 8px;
+    color: #2e1c15;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: 1.35rem;
+    font-weight: 400;
+}
+
+.custom-box-structure-panel > p:not(.configuration-section__eyebrow) {
+    margin: 0 0 16px;
+    color: #725f55;
+    font-size: 0.7rem;
+    line-height: 1.65;
+}
+
+.custom-box-structure-panel textarea {
+    width: 100%;
+    min-height: 108px;
+    margin-top: 7px;
+    padding: 12px 13px;
+    border: 1px solid #d8cbc3;
+    background: #ffffff;
+    color: #2e1c15;
+    font: 500 0.74rem/1.55 "Montserrat", Arial, sans-serif;
+    resize: vertical;
+}
+
+.custom-box-structure-panel__upload-note {
+    margin-top: 13px !important;
+    padding-top: 13px;
+    border-top: 1px solid rgba(103, 54, 41, 0.12);
+    font-size: 0.62rem !important;
+}
+
+@media (max-width: 820px) {
+    .standard-box-style-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .standard-box-style-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .custom-box-structure-panel {
+        padding: 17px;
+    }
+}
+
+.artwork-upload--structure{margin:18px 0 20px}
+.artwork-upload--structure .artwork-upload__dropzone{min-height:180px;border:1px dashed #9b7867;background:#fffdf9}
+.artwork-upload--structure .artwork-upload__dropzone.is-dragging{border-color:#673629;background:#f2e8df}
+.artwork-upload--structure .artwork-upload__dropzone em{display:block;margin-top:8px;color:#8a7469;font-size:.58rem;font-style:normal;line-height:1.45}
+.artwork-upload--structure .artwork-upload__files{display:grid;gap:8px;margin-top:10px}
+.artwork-upload--structure .artwork-upload__file{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid rgba(103,54,41,.12);background:#fff;color:#5f4c44;font-size:.66rem}
+.artwork-upload--structure .artwork-upload__remove{flex:0 0 auto;border:0;background:transparent;color:#673629;cursor:pointer}
+.artwork-upload--structure .artwork-upload__status{min-height:18px;margin:9px 0 0;color:#725f55;font-size:.62rem}
+.artwork-upload--structure .artwork-upload__status[data-status="error"]{color:#9b3d32}
+.artwork-upload--structure .artwork-upload__status[data-status="success"]{color:#486348}
+
+
+
+/* =========================================================
+   BESPOKE CUSTOM STRUCTURE UPLOADER — POLISHED
+========================================================= */
+
+.custom-box-structure-panel {
+    margin-top: 18px;
+    padding: 28px;
+    border: 1px solid rgba(103, 54, 41, 0.16);
+    background: #f8f4ef;
+}
+
+.custom-box-structure-panel .configuration-section__eyebrow {
+    margin: 0 0 8px;
+    color: #8d654d;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.custom-box-structure-panel > h3 {
+    margin: 0;
+    color: #2e1c15;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: clamp(1.45rem, 2vw, 1.85rem);
+    font-weight: 400;
+    line-height: 1.15;
+}
+
+.custom-box-structure-panel > h3 + p {
+    max-width: 700px;
+    margin: 10px 0 20px;
+    color: #756159;
+    font-size: 0.72rem;
+    line-height: 1.7;
+}
+
+/* Hide the browser's native file control. */
+.custom-box-structure-panel .custom-structure-upload__input {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+.custom-box-structure-panel .artwork-upload--structure {
+    margin: 0 0 22px;
+}
+
+.custom-box-structure-panel .artwork-upload__dropzone {
+    min-height: 190px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 28px 22px;
+    border: 1.5px dashed #9f7a68;
+    background: #fffdf9;
+    color: #2e1c15;
+    cursor: pointer;
+    text-align: center;
+    transition:
+        border-color 160ms ease,
+        background 160ms ease,
+        transform 160ms ease;
+}
+
+.custom-box-structure-panel .artwork-upload__dropzone:hover,
+.custom-box-structure-panel .artwork-upload__dropzone.is-dragging {
+    border-color: #673629;
+    background: #f3ebe4;
+    transform: translateY(-1px);
+}
+
+.custom-box-structure-panel .artwork-upload__icon {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 4px;
+    border: 1px solid rgba(103, 54, 41, 0.18);
+    border-radius: 50%;
+    background: #f8f4ef;
+    color: #673629;
+    font-size: 1rem;
+}
+
+.custom-box-structure-panel .artwork-upload__dropzone strong {
+    display: block;
+    color: #2e1c15;
+    font-family: "Montserrat", Arial, sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.custom-box-structure-panel .artwork-upload__dropzone small {
+    display: block;
+    color: #806b60;
+    font-size: 0.68rem;
+    line-height: 1.35;
+}
+
+.custom-box-structure-panel .artwork-upload__dropzone em {
+    display: block;
+    margin-top: 5px;
+    color: #9a8478;
+    font-size: 0.56rem;
+    font-style: normal;
+    line-height: 1.45;
+}
+
+.custom-box-structure-panel .artwork-upload__files {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.custom-box-structure-panel .artwork-upload__file {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(103, 54, 41, 0.12);
+    background: #ffffff;
+}
+
+.custom-box-structure-panel .artwork-upload__file > span {
+    min-width: 0;
+    color: #5f4c44;
+    font-size: 0.66rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.custom-box-structure-panel .artwork-upload__remove {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: #673629;
+    cursor: pointer;
+}
+
+.custom-box-structure-panel .artwork-upload__remove:hover {
+    background: #f4ebe4;
+}
+
+.custom-box-structure-panel .artwork-upload__status {
+    min-height: 0;
+    margin: 9px 0 0;
+    padding: 0;
+    background: transparent;
+    color: #756159;
+    font-size: 0.62rem;
+    line-height: 1.45;
+}
+
+.custom-box-structure-panel .artwork-upload__status:not(:empty) {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid rgba(103, 54, 41, 0.1);
+    background: #f1e8e0;
+}
+
+.custom-box-structure-panel .artwork-upload__status[data-status="error"] {
+    border-color: rgba(155, 61, 50, 0.22);
+    background: #fbefed;
+    color: #9b3d32;
+}
+
+.custom-box-structure-panel .artwork-upload__status[data-status="success"] {
+    border-color: rgba(72, 99, 72, 0.2);
+    background: #eef5ee;
+    color: #486348;
+}
+
+.custom-box-structure-panel .product-field {
+    display: block;
+    margin-top: 22px;
+}
+
+.custom-box-structure-panel .product-field > span {
+    display: block;
+    margin-bottom: 8px;
+    color: #5f4c44;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.custom-box-structure-panel textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 13px 14px;
+    border: 1px solid #d8cbc3;
+    background: #ffffff;
+    color: #2e1c15;
+    font: 500 0.74rem/1.55 "Montserrat", Arial, sans-serif;
+    outline: none;
+    resize: vertical;
+}
+
+.custom-box-structure-panel textarea:focus {
+    border-color: #673629;
+    box-shadow: 0 0 0 2px rgba(103, 54, 41, 0.08);
+}
+
+.custom-box-structure-panel__upload-note {
+    margin: 14px 0 0 !important;
+    padding-top: 14px;
+    border-top: 1px solid rgba(103, 54, 41, 0.12);
+    color: #806b60 !important;
+    font-size: 0.6rem !important;
+    line-height: 1.55 !important;
+}
+
+@media (max-width: 640px) {
+    .custom-box-structure-panel {
+        padding: 20px 16px;
+    }
+
+    .custom-box-structure-panel .artwork-upload__dropzone {
+        min-height: 165px;
+        padding: 24px 16px;
+    }
+
+    .custom-box-structure-panel .artwork-upload__dropzone strong {
+        font-size: 0.82rem;
+    }
+}
+
+
+/* =========================================================
+   CUSTOM STRUCTURE — SELECTED FILE PREVIEWS
+========================================================= */
+
+.custom-box-structure-panel .artwork-upload__file-details {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.custom-box-structure-panel .artwork-upload__thumbnail,
+.custom-box-structure-panel .artwork-upload__file-type {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    border: 1px solid rgba(103, 54, 41, 0.14);
+    background: #f8f4ef;
+}
+
+.custom-box-structure-panel .artwork-upload__thumbnail {
+    display: block;
+    object-fit: cover;
+}
+
+.custom-box-structure-panel .artwork-upload__file-type {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #806b60;
+    font-size: 0.95rem;
+}
+
+.custom-box-structure-panel .artwork-upload__file-name {
+    min-width: 0;
+    color: #5f4c44;
+    font-size: 0.66rem;
+    line-height: 1.45;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+    .custom-box-structure-panel .artwork-upload__thumbnail,
+    .custom-box-structure-panel .artwork-upload__file-type {
+        width: 38px;
+        height: 38px;
+        flex-basis: 38px;
+    }
+}
