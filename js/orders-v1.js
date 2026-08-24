@@ -534,6 +534,8 @@
         element("orderDispatchState").value = "";
         element("orderDispatchWeight").value = "";
         element("orderDispatchPackageCount").value = "1";
+        element("orderDispatchTrackingId").value =
+            order.order_reference || "";
         element("orderDispatchDescription").value =
             "Luxury packaging systems";
         element("orderDispatchFragile").checked = true;
@@ -590,6 +592,9 @@
             invoiceReference: order.invoice_reference,
             receiptReference:
                 eligibility.receipt_reference || "",
+            trackingId:
+                value("orderDispatchTrackingId") ||
+                order.order_reference,
             recipientName:
                 value("orderDispatchRecipient"),
             brandName:
@@ -641,56 +646,88 @@
     ) {
         return `
             <article class="dispatch-label-sheet">
-                <header class="dispatch-label-sheet__header">
-                    <img
-                        src="/assets/images/luxsome-logo.png"
-                        alt="Luxsome Packaging"
-                    >
+                <header class="dispatch-label-sheet__top">
+                    <div class="dispatch-label-sheet__brandmark">
+                        <img
+                            src="/assets/images/luxsome-logo.png"
+                            alt="Luxsome Packaging"
+                        >
+                    </div>
 
-                    <div>
-                        <span>DISPATCH LABEL</span>
-                        <strong>
-                            ${escapeHtml(data.orderReference)}
-                        </strong>
+                    <div class="dispatch-label-sheet__fragile-block">
+                        ${
+                            data.fragile
+                                ? `
+                                    <strong>FRAGILE</strong>
+                                    <span>PLEASE HANDLE WITH CARE</span>
+                                `
+                                : `
+                                    <strong>DISPATCH</strong>
+                                    <span>LUXSOME PACKAGING</span>
+                                `
+                        }
                     </div>
                 </header>
 
-                <section class="dispatch-label-sheet__package">
-                    <span>PACKAGE</span>
-                    <strong>
-                        ${packageNumber} OF ${data.packageCount}
-                    </strong>
+                <section class="dispatch-label-sheet__service">
+                    <strong>PRIORITY DISPATCH</strong>
+
+                    <div>
+                        <span>Date</span>
+                        <b>${escapeHtml(data.dispatchDate)}</b>
+                    </div>
                 </section>
 
-                <section class="dispatch-label-sheet__to">
-                    <span class="dispatch-label-sheet__eyebrow">
-                        DELIVER TO
-                    </span>
+                <section class="dispatch-label-sheet__route">
+                    <div class="dispatch-label-sheet__from">
+                        <span class="dispatch-label-sheet__section-title">
+                            FROM
+                        </span>
 
-                    <h3>
-                        ${escapeHtml(data.recipientName)}
-                    </h3>
+                        <strong>Luxsome Packaging</strong>
+                        <p>Lagos, Nigeria</p>
+                        <small>
+                            Order ${escapeHtml(data.orderReference)}
+                        </small>
+                    </div>
 
-                    ${
-                        data.brandName
-                            ? `
-                                <p class="dispatch-label-sheet__brand">
-                                    ${escapeHtml(data.brandName)}
-                                </p>
-                            `
-                            : ""
-                    }
+                    <div class="dispatch-label-sheet__to">
+                        <span class="dispatch-label-sheet__section-title">
+                            TO
+                        </span>
 
-                    <p class="dispatch-label-sheet__phone">
-                        ${escapeHtml(data.phone)}
-                    </p>
+                        <h3>
+                            ${escapeHtml(data.recipientName)}
+                        </h3>
 
-                    <address>
-                        ${escapeHtml(orderDispatchLocation(data))}
-                    </address>
+                        ${
+                            data.brandName
+                                ? `
+                                    <strong class="dispatch-label-sheet__recipient-brand">
+                                        ${escapeHtml(data.brandName)}
+                                    </strong>
+                                `
+                                : ""
+                        }
+
+                        <address>
+                            ${escapeHtml(orderDispatchLocation(data))}
+                        </address>
+
+                        <p class="dispatch-label-sheet__phone">
+                            ${escapeHtml(data.phone)}
+                        </p>
+                    </div>
                 </section>
 
-                <section class="dispatch-label-sheet__meta">
+                <section class="dispatch-label-sheet__information">
+                    <div>
+                        <span>Package</span>
+                        <strong>
+                            ${packageNumber} of ${data.packageCount}
+                        </strong>
+                    </div>
+
                     <div>
                         <span>Contents</span>
                         <strong>
@@ -712,37 +749,26 @@
                     }
 
                     <div>
-                        <span>Dispatch date</span>
+                        <span>Receipt</span>
                         <strong>
-                            ${escapeHtml(data.dispatchDate)}
+                            ${escapeHtml(data.receiptReference)}
                         </strong>
                     </div>
                 </section>
 
-                ${
-                    data.fragile
-                        ? `
-                            <div class="dispatch-label-sheet__fragile">
-                                FRAGILE · HANDLE WITH CARE
-                            </div>
-                        `
-                        : ""
-                }
-
-                <footer class="dispatch-label-sheet__footer">
+                <section class="dispatch-label-sheet__tracking">
                     <div>
-                        <span>FROM</span>
-                        <strong>Luxsome Packaging</strong>
-                        <small>Lagos, Nigeria</small>
+                        <span>TRACKING ID</span>
+                        <strong>
+                            ${escapeHtml(data.trackingId)}
+                        </strong>
                     </div>
 
-                    <div class="dispatch-label-sheet__reference">
-                        ${escapeHtml(data.orderReference)}
-                        <small>
-                            ${escapeHtml(data.receiptReference)}
-                        </small>
+                    <div class="dispatch-label-sheet__tracking-meta">
+                        <span>INVOICE</span>
+                        <b>${escapeHtml(data.invoiceReference)}</b>
                     </div>
-                </footer>
+                </section>
             </article>
         `;
     }
@@ -797,29 +823,189 @@
 <style>
 @page { size: 4in 6in; margin: 0; }
 * { box-sizing: border-box; }
-html,body { margin:0;padding:0;background:#fff;color:#1d1714;font-family:Arial,Helvetica,sans-serif; }
-.dispatch-label-sheet { width:4in;height:6in;display:flex;flex-direction:column;overflow:hidden;padding:.22in;background:#fff;page-break-after:always;break-after:page; }
-.dispatch-label-sheet:last-child { page-break-after:auto;break-after:auto; }
-.dispatch-label-sheet__header { display:flex;align-items:center;justify-content:space-between;gap:.15in;padding-bottom:.14in;border-bottom:2px solid #2e1c15; }
-.dispatch-label-sheet__header img { width:1.32in;max-height:.42in;object-fit:contain;object-position:left center; }
-.dispatch-label-sheet__header>div { text-align:right; }
-.dispatch-label-sheet__header span,.dispatch-label-sheet__eyebrow,.dispatch-label-sheet__meta span,.dispatch-label-sheet__footer span,.dispatch-label-sheet__package span { display:block;font-size:7.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase; }
-.dispatch-label-sheet__header strong { display:block;margin-top:2px;font-size:9pt; }
-.dispatch-label-sheet__package { display:flex;align-items:center;justify-content:space-between;margin:.12in 0;padding:.09in .11in;background:#2e1c15;color:#fff; }
-.dispatch-label-sheet__package strong { font-size:14pt; }
-.dispatch-label-sheet__to { padding:.08in 0 .14in;border-bottom:1px solid #b9ada6; }
-.dispatch-label-sheet__to h3 { margin:.07in 0 0;font-size:20pt;line-height:1;text-transform:uppercase; }
-.dispatch-label-sheet__brand { margin:.05in 0 0;font-size:10pt;font-weight:700; }
-.dispatch-label-sheet__phone { margin:.1in 0 0;font-size:14pt;font-weight:800; }
-.dispatch-label-sheet__to address { margin-top:.09in;font-size:12.5pt;font-style:normal;font-weight:700;line-height:1.3; }
-.dispatch-label-sheet__meta { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.1in;padding:.13in 0; }
-.dispatch-label-sheet__meta strong { display:block;margin-top:3px;font-size:9pt;line-height:1.2; }
-.dispatch-label-sheet__fragile { margin-top:auto;padding:.1in;border:2px solid #2e1c15;font-size:12pt;font-weight:900;letter-spacing:.04em;text-align:center; }
-.dispatch-label-sheet__footer { display:flex;align-items:flex-end;justify-content:space-between;gap:.15in;margin-top:.12in;padding-top:.1in;border-top:1px solid #b9ada6; }
-.dispatch-label-sheet__footer strong,.dispatch-label-sheet__footer small { display:block;margin-top:2px; }
-.dispatch-label-sheet__footer strong { font-size:9pt; }
-.dispatch-label-sheet__footer small { font-size:7pt; }
-.dispatch-label-sheet__reference { max-width:1.7in;font-size:8pt;font-weight:800;text-align:right;overflow-wrap:anywhere; }
+html,body { margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif; }
+
+.dispatch-label-sheet {
+    width:4in;
+    height:6in;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border:2px solid #111;
+    background:#fff;
+    page-break-after:always;
+    break-after:page;
+}
+.dispatch-label-sheet:last-child { page-break-after:auto; break-after:auto; }
+
+.dispatch-label-sheet__top {
+    display:grid;
+    grid-template-columns:1.05fr 1fr;
+    min-height:.78in;
+    border-bottom:2px solid #111;
+}
+.dispatch-label-sheet__brandmark {
+    display:flex;
+    align-items:center;
+    padding:.12in .16in;
+    border-right:2px solid #111;
+}
+.dispatch-label-sheet__brandmark img {
+    width:1.42in;
+    max-height:.42in;
+    object-fit:contain;
+    object-position:left center;
+}
+.dispatch-label-sheet__fragile-block {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.08in .13in;
+}
+.dispatch-label-sheet__fragile-block strong {
+    font-size:27pt;
+    font-weight:900;
+    line-height:.9;
+    letter-spacing:-.035em;
+}
+.dispatch-label-sheet__fragile-block span {
+    margin-top:4px;
+    font-size:7.5pt;
+    font-weight:700;
+    letter-spacing:.13em;
+}
+
+.dispatch-label-sheet__service {
+    display:grid;
+    grid-template-columns:1fr auto;
+    min-height:.48in;
+    border-bottom:2px solid #111;
+}
+.dispatch-label-sheet__service > strong {
+    display:flex;
+    align-items:center;
+    padding:.08in .13in;
+    font-size:18pt;
+    font-weight:900;
+}
+.dispatch-label-sheet__service > div {
+    min-width:1.15in;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.05in .11in;
+    border-left:2px solid #111;
+}
+.dispatch-label-sheet__service span,
+.dispatch-label-sheet__section-title,
+.dispatch-label-sheet__information span,
+.dispatch-label-sheet__tracking span {
+    display:block;
+    font-size:7pt;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+.dispatch-label-sheet__service b { margin-top:2px; font-size:8.5pt; }
+
+.dispatch-label-sheet__route {
+    display:grid;
+    grid-template-columns:.9fr 1.25fr;
+    min-height:2.35in;
+    border-bottom:2px solid #111;
+}
+.dispatch-label-sheet__from,
+.dispatch-label-sheet__to { padding:.14in .13in; }
+.dispatch-label-sheet__from { border-right:2px solid #111; }
+.dispatch-label-sheet__from > strong {
+    display:block;
+    margin-top:.08in;
+    font-size:11pt;
+}
+.dispatch-label-sheet__from p,
+.dispatch-label-sheet__from small {
+    display:block;
+    margin:.05in 0 0;
+    font-size:8.5pt;
+    line-height:1.35;
+}
+.dispatch-label-sheet__to h3 {
+    margin:.08in 0 0;
+    font-size:19pt;
+    line-height:1;
+    font-weight:900;
+    text-transform:uppercase;
+}
+.dispatch-label-sheet__recipient-brand {
+    display:block;
+    margin-top:.06in;
+    font-size:9.5pt;
+}
+.dispatch-label-sheet__to address {
+    margin-top:.1in;
+    font-size:11.5pt;
+    font-style:normal;
+    font-weight:700;
+    line-height:1.28;
+}
+.dispatch-label-sheet__phone {
+    margin:.1in 0 0;
+    font-size:13pt;
+    font-weight:900;
+}
+
+.dispatch-label-sheet__information {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    min-height:.84in;
+    border-bottom:2px solid #111;
+}
+.dispatch-label-sheet__information > div {
+    padding:.09in .11in;
+    border-right:1px solid #111;
+    border-bottom:1px solid #111;
+}
+.dispatch-label-sheet__information > div:nth-child(2n) { border-right:0; }
+.dispatch-label-sheet__information strong {
+    display:block;
+    margin-top:3px;
+    font-size:8.5pt;
+    line-height:1.2;
+}
+
+.dispatch-label-sheet__tracking {
+    margin-top:auto;
+    display:grid;
+    grid-template-columns:1fr 1.02in;
+    min-height:.76in;
+}
+.dispatch-label-sheet__tracking > div:first-child {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.1in .14in;
+}
+.dispatch-label-sheet__tracking strong {
+    display:block;
+    margin-top:4px;
+    font-size:16pt;
+    font-weight:900;
+    letter-spacing:.025em;
+    overflow-wrap:anywhere;
+}
+.dispatch-label-sheet__tracking-meta {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.08in .1in;
+    border-left:2px solid #111;
+}
+.dispatch-label-sheet__tracking-meta b {
+    display:block;
+    margin-top:4px;
+    font-size:7.5pt;
+    overflow-wrap:anywhere;
+}
 </style>
 </head>
 <body>
