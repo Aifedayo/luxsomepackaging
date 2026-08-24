@@ -99,6 +99,7 @@
 
         <link rel="stylesheet" href="/css/base.css">
         <link rel="stylesheet" href="/css/shop.css">
+        <link rel="stylesheet" href="/css/shop-sample-request.css">
         <link rel="stylesheet" href="/css/shop-artwork-support.css">
         <script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js"
@@ -1241,13 +1242,35 @@
         ></textarea>
     </label>
 
-    <div class="order-summary-note">
+    <fieldset class="configuration-group project-intent-group">
+    <legend>How would you like to proceed? <span class="option-status option-status--included">Next step</span></legend>
+    <p class="configuration-help">Choose whether you would like Luxsome to prepare a physical sample before your intended bulk order, or review the project for a bulk production quotation.</p>
+    <div class="project-intent-options">
+        <label class="project-intent-option">
+            <input type="radio" name="projectIntent" value="sample_first" required>
+            <span class="project-intent-option__content">
+                <strong>I’d like a physical sample first <em>Recommended</em></strong>
+                <small>We’ll review your configuration and artwork, confirm feasibility, and send a separate quotation for producing your physical sample before bulk production.</small>
+            </span>
+        </label>
+        <label class="project-intent-option">
+            <input type="radio" name="projectIntent" value="bulk_quotation" required>
+            <span class="project-intent-option__content">
+                <strong>I’d like a quotation for bulk production</strong>
+                <small>We’ll review your project and prepare a quotation based on your selected production quantity. You can still request a physical sample before production begins.</small>
+            </span>
+        </label>
+    </div>
+    <p class="project-intent-note">Selecting bulk quotation does not waive Luxsome’s recommended physical sample approval process.</p>
+</fieldset>
+
+<div class="order-summary-note">
         <strong>What happens next?</strong>
         <span>Your selections will be saved. Next, you will only provide your customer details and review the complete order request.</span>
     </div>
 
-    <button type="submit" class="buy-now-button">Order Now</button>
-    <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
+    <button type="submit" class="buy-now-button" id="projectIntentSubmitButton">Continue to Project Details</button>
+    <p class="buy-note">No payment is collected on this page. Luxsome will review your request before any quotation is issued.</p>
 </section>
 </form>
             </div>

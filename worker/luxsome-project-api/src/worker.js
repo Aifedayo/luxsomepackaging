@@ -11028,6 +11028,87 @@ function constantTimeEqual(left, right) {
     return result === 0;
 }
 
+
+function projectRequestIntent(data) {
+    const configuration = parseProjectConfiguration(data);
+    const rawIntent = text(
+        data.project_intent ||
+        data.shop_project_intent ||
+        configuration.project_intent
+    ).toLowerCase();
+
+    if (rawIntent === "sample_first") return "sample_first";
+    if (rawIntent === "bulk_quotation") return "bulk_quotation";
+
+    return "";
+}
+
+function projectRequestType(data) {
+    const intent = projectRequestIntent(data);
+
+    if (intent === "sample_first") return "Sample Request";
+    if (intent === "bulk_quotation") return "Bulk Quotation Request";
+
+    return text(data.request_type) || "Project Request";
+}
+
+function projectSubmissionType(data) {
+    return projectRequestIntent(data) === "sample_first"
+        ? "sample_request"
+        : "project";
+}
+
+function projectSubmissionStatus(data) {
+    return projectRequestIntent(data) === "sample_first"
+        ? "sample_requested"
+        : "new";
+}
+
+function projectInternalSubject(data, reference, brandName) {
+    const intent = projectRequestIntent(data);
+
+    if (intent === "sample_first") {
+        return `New Sample Request | ${reference} | ${brandName}`;
+    }
+
+    if (intent === "bulk_quotation") {
+        return `New Bulk Quotation Request | ${reference} | ${brandName}`;
+    }
+
+    return `New Project Brief | ${reference} | ${brandName}`;
+}
+
+function projectCustomerSubject(data, reference) {
+    const intent = projectRequestIntent(data);
+
+    if (intent === "sample_first") {
+        return `We’ve received your sample request — ${reference}`;
+    }
+
+    if (intent === "bulk_quotation") {
+        return `We’ve received your quotation request — ${reference}`;
+    }
+
+    return `We’ve received your project — ${reference}`;
+}
+
+function projectEmailTypeTag(data, audience) {
+    const intent = projectRequestIntent(data);
+    const prefix = audience === "internal" ? "internal" : "customer";
+
+    if (intent === "sample_first") {
+        return `${prefix}_sample_request`;
+    }
+
+    if (intent === "bulk_quotation") {
+        return `${prefix}_bulk_quotation_request`;
+    }
+
+    return audience === "internal"
+        ? "internal_project_brief"
+        : "customer_confirmation";
+}
+
 async function handleProjectSubmission(request, env) {
     try {
         assertEnvironment(env);
@@ -11079,11 +11160,16 @@ async function handleProjectSubmission(request, env) {
         const customerEmail = text(data.email).toLowerCase();
         const brandName = text(data.brand_name) || "Unnamed Brand";
         const customerName = text(data.name);
+        const requestIntent = projectRequestIntent(data);
+        const requestType = projectRequestType(data);
+
+        data.project_intent = requestIntent;
+        data.request_type = requestType;
 
         await saveSubmission(env.DB, {
             reference: projectReference,
-            submissionType: "project",
-            status: "new",
+            submissionType: projectSubmissionType(data),
+            status: projectSubmissionStatus(data),
             customerName,
             brandName,
             email: customerEmail,
@@ -11100,18 +11186,18 @@ async function handleProjectSubmission(request, env) {
             headers: {
                 Authorization: `Bearer ${env.RESEND_API_KEY}`,
                 "Content-Type": "application/json",
-                "Idempotency-Key": `luxsome-project/${projectReference}`
+                "Idempotency-Key": `luxsome-${requestIntent || "project"}/${projectReference}`
             },
             body: JSON.stringify([
                 {
                     from: env.FROM_EMAIL,
                     to: [env.INTERNAL_EMAIL],
                     reply_to: customerEmail,
-                    subject: `New Project Brief | ${projectReference} | ${brandName}`,
+                    subject: projectInternalSubject(data, projectReference, brandName),
                     html: internalEmail,
                     text: buildInternalText(data, projectReference),
                     tags: [
-                        { name: "email_type", value: "internal_project_brief" },
+                        { name: "email_type", value: projectEmailTypeTag(data, "internal") },
                         { name: "project_reference", value: tagValue(projectReference) }
                     ]
                 },
@@ -11119,11 +11205,11 @@ async function handleProjectSubmission(request, env) {
                     from: env.FROM_EMAIL,
                     to: [customerEmail],
                     reply_to: env.REPLY_TO_EMAIL,
-                    subject: `We’ve received your project — ${projectReference}`,
+                    subject: projectCustomerSubject(data, projectReference),
                     html: customerEmailHtml,
                     text: buildCustomerText(data, projectReference),
                     tags: [
-                        { name: "email_type", value: "customer_confirmation" },
+                        { name: "email_type", value: projectEmailTypeTag(data, "customer") },
                         { name: "project_reference", value: tagValue(projectReference) }
                     ]
                 }
@@ -11167,8 +11253,15 @@ async function handleProjectSubmission(request, env) {
         return jsonResponse(
             {
                 success: true,
-                message: "Project brief submitted successfully.",
+                message:
+                    requestIntent === "sample_first"
+                        ? "Sample request submitted successfully."
+                        : requestIntent === "bulk_quotation"
+                            ? "Bulk quotation request submitted successfully."
+                            : "Project brief submitted successfully.",
                 reference: projectReference,
+                projectIntent: requestIntent,
+                requestType,
                 customer: {
                     name: customerName,
                     email: customerEmail
@@ -15083,7 +15176,7 @@ function validateProject(data) {
         {
             field: "contact_consent",
             message:
-                "Please agree to be contacted about this order request."
+                "Please agree to be contacted about this project request."
         }
     ];
 
@@ -15597,6 +15690,20 @@ function additionalProjectsText(projects) {
 function buildInternalEmail(data, reference) {
     const summary = projectEmailSummary(data);
     const { configuration } = summary;
+    const intent = projectRequestIntent(data);
+    const requestType = projectRequestType(data);
+    const emailLabel =
+        intent === "sample_first"
+            ? "New sample request"
+            : intent === "bulk_quotation"
+                ? "New bulk quotation request"
+                : "New project enquiry";
+    const emailHeading =
+        intent === "sample_first"
+            ? "A physical sample request is ready for review."
+            : intent === "bulk_quotation"
+                ? "A bulk quotation request is ready for review."
+                : "A new packaging request is ready for review.";
 
     const additionalProjects = parseAdditionalProjects(
         configuration.additional_projects || data.additional_projects
@@ -15611,11 +15718,11 @@ function buildInternalEmail(data, reference) {
 
     return emailShell(`
         <p style="margin:0 0 10px;font:600 11px/1.4 Arial,sans-serif;letter-spacing:2.3px;text-transform:uppercase;color:#8d654d;">
-            New project enquiry
+            ${escapeHtml(emailLabel)}
         </p>
 
         <h1 style="margin:0 0 14px;font:400 34px/1.15 Georgia,serif;color:#2e1c15;">
-            A new packaging request is ready for review.
+            ${escapeHtml(emailHeading)}
         </h1>
 
         <p style="margin:0;color:#6d574b;font:400 15px/1.75 Arial,sans-serif;">
@@ -15636,7 +15743,10 @@ function buildInternalEmail(data, reference) {
 
         ${section(
             "Packaging system",
-            projectPackagingRows(summary)
+            [
+                row("Request type", requestType),
+                ...projectPackagingRows(summary)
+            ]
         )}
 
         ${
@@ -15701,12 +15811,46 @@ function buildInternalEmail(data, reference) {
 function buildCustomerEmail(data, reference) {
     const summary = projectEmailSummary(data);
     const { configuration } = summary;
+    const intent = projectRequestIntent(data);
+    const requestType = projectRequestType(data);
+
+    const receivedLabel =
+        intent === "sample_first"
+            ? "Sample request received"
+            : intent === "bulk_quotation"
+                ? "Bulk quotation request received"
+                : "Project request received";
+
+    const introCopy =
+        intent === "sample_first"
+            ? "Your physical sample request is now with the Luxsome team. We will review the submitted selections and artwork for sample feasibility, then contact you with the next step."
+            : intent === "bulk_quotation"
+                ? "Your bulk production quotation request is now with the Luxsome team. We will review the submitted selections and contact you to confirm any details needed for your quotation."
+                : "Your packaging request is now with the Luxsome team. We will review the submitted selections and contact you within the next 24 hours through your preferred communication method.";
+
+    const nextSteps =
+        intent === "sample_first"
+            ? `
+                <p style="margin:0 0 10px;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;"><strong>1.</strong> We review your packaging selections, dimensions and artwork for sample feasibility.</p>
+                <p style="margin:0 0 10px;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;"><strong>2.</strong> If the sample can proceed, we send a separate sample-production quotation for approval and payment.</p>
+                <p style="margin:0;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;"><strong>3.</strong> After the physical sample is produced and approved, your bulk-production quotation can be finalised.</p>
+            `
+            : intent === "bulk_quotation"
+                ? `
+                    <p style="margin:0 0 10px;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;"><strong>1.</strong> We review your selected packaging pieces, specifications and artwork status.</p>
+                    <p style="margin:0 0 10px;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;"><strong>2.</strong> We contact you to confirm any details needed before preparing the bulk-production quotation.</p>
+                    <p style="margin:0;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;"><strong>3.</strong> You may still request a physical sample before bulk production is authorised.</p>
+                `
+                : `
+                    ${nextSteps}
+                `;
 
     const firstName = escapeHtml(
         text(data.name).split(/\s+/)[0] || "there"
     );
 
     const requestRows = [
+        row("Request type", requestType),
         row("Brand", data.brand_name),
         ...projectPackagingRows(summary).map((value, index) => {
             if (index !== 0) return value;
@@ -15728,7 +15872,7 @@ function buildCustomerEmail(data, reference) {
             </div>
 
             <p style="margin:0 0 10px;font:600 11px/1.4 Arial,sans-serif;letter-spacing:2.3px;text-transform:uppercase;color:#8d654d;">
-                Project request received
+                ${escapeHtml(receivedLabel)}
             </p>
 
             <h1 style="margin:0 0 15px;font:400 36px/1.15 Georgia,serif;color:#2e1c15;">
@@ -15736,9 +15880,7 @@ function buildCustomerEmail(data, reference) {
             </h1>
 
             <p style="max-width:520px;margin:0 auto;color:#6d574b;font:400 15px/1.8 Arial,sans-serif;">
-                Your packaging request is now with the Luxsome team.
-                We will review the submitted selections and contact you
-                within the next 24 hours through your preferred communication method.
+${escapeHtml(introCopy)}
             </p>
         </div>
 
@@ -15853,8 +15995,9 @@ function buildInternalText(data, reference) {
     );
 
     return [
-        "LUXSOME PACKAGING — NEW PROJECT REQUEST",
+        `LUXSOME PACKAGING — ${projectRequestType(data).toUpperCase()}`,
         `Reference: ${reference}`,
+        `Request type: ${projectRequestType(data)}`,
         "",
         "CLIENT INFORMATION",
         `Contact: ${text(data.name)}`,
@@ -15883,12 +16026,21 @@ function buildInternalText(data, reference) {
 
 function buildCustomerText(data, reference) {
     const summary = projectEmailSummary(data);
+    const intent = projectRequestIntent(data);
+
+    const nextStep =
+        intent === "sample_first"
+            ? "We will review the project for sample feasibility. If approved, we will send a separate quotation for producing the physical sample before bulk production."
+            : intent === "bulk_quotation"
+                ? "We will review your submitted selections and contact you to confirm any details needed before preparing your bulk-production quotation. You may still request a physical sample before production."
+                : "We will review your submitted selections and contact you to confirm any details needed before preparing your quotation.";
 
     return [
         `Thank you, ${text(data.name)}.`,
         "",
-        "We have received your Luxsome Packaging request.",
+        `We have received your ${projectRequestType(data).toLowerCase()}.`,
         `Project reference: ${reference}`,
+        `Request type: ${projectRequestType(data)}`,
         "",
         `Brand: ${text(data.brand_name)}`,
         ...projectPackagingTextLines(summary).map((line, index) => (
@@ -15898,7 +16050,7 @@ function buildCustomerText(data, reference) {
         )),
         `Finished dimensions: ${summary.dimensions || "Not supplied"}`,
         "",
-        "We will review your submitted selections and contact you to confirm any details needed before preparing your quotation.",
+        nextStep,
         "",
         "Luxsome Packaging",
         "hello@luxsomepackaging.com"

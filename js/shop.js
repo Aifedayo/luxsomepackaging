@@ -65,7 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
             secondary_colour: 'secondaryColour',
             accent_colour: 'accentColour',
             pantone_reference: 'pantoneReference',
-            comments: 'comments'
+            comments: 'comments',
+            project_intent: 'projectIntent'
         };
 
         const setFieldValue = (fieldName, value) => {
@@ -485,6 +486,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const form = document.getElementById('productConfigForm');
     const product = document.querySelector('.product-detail');
+
+    const setupProjectIntentSelection = () => {
+        if (!form) return;
+        const inputs = [...form.querySelectorAll('input[name="projectIntent"]')];
+        const button = document.getElementById('projectIntentSubmitButton');
+        if (!inputs.length) return;
+        const update = () => {
+            const selected = inputs.find(input => input.checked);
+            inputs.forEach(input => input.closest('.project-intent-option')?.classList.toggle('is-selected', input.checked));
+            if (!button) return;
+            button.textContent = selected?.value === 'sample_first'
+                ? 'Continue with Sample Request'
+                : selected?.value === 'bulk_quotation'
+                    ? 'Continue for Bulk Quotation'
+                    : 'Continue to Project Details';
+        };
+        inputs.forEach(input => input.addEventListener('change', update));
+        update();
+    };
+    setupProjectIntentSelection();
 
     /* ==========================================================
        BESPOKE PIECE DETAIL CONFIGURATION
@@ -2503,6 +2524,7 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('source', 'shop');
         params.set('product', product.dataset.product || '');
         params.set('system', product.dataset.productName || '');
+        params.set('project_intent', data.get('projectIntent') || '');
         params.set('project_type', data.get('projectType') || '');
         params.set('packaging_pieces', data.getAll('packagingPieces').join(', '));
         params.set('box_style', data.get('boxStyle') || '');
