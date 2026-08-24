@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
+    <link rel="stylesheet" href="/css/crm-sidebar.css">
     <link rel="stylesheet" href="/css/crm-dispatch-label.css">
     <link rel="stylesheet" href="/css/crm-structure-review.css">
     <link rel="stylesheet" href="/css/crm-sample-review.css">
@@ -22,7 +23,7 @@
 <body class="crm-app-page">
     <div class="crm-app">
         <aside class="crm-sidebar" id="crmSidebar">
-            <div>
+            <div class="crm-sidebar__inner">
                 <div data-luxsome-crm-logo></div>
 
                 <nav class="crm-nav" aria-label="CRM navigation">
@@ -58,11 +59,26 @@
                             <small id="navQuotationCount">0</small>
                         </button>
 
-                        <a class="crm-nav__item crm-nav__item--link" href="/admin/invoices/">
+                        <a class="crm-nav__item" href="/admin/invoices/">
                             <span>Invoices</span>
                             <small aria-hidden="true">→</small>
                         </a>
-                        <a class="crm-nav__item crm-nav__item--link" href="/admin/inventory/">
+                    </section>
+
+                    <section class="crm-nav__group" aria-labelledby="navOperationsLabel">
+                        <p id="navOperationsLabel" class="crm-nav__label">Operations</p>
+
+                        <a class="crm-nav__item" href="/admin/orders/">
+                            <span>Orders</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a class="crm-nav__item" href="/admin/production/">
+                            <span>Production</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a class="crm-nav__item" href="/admin/inventory/">
                             <span>Inventory</span>
                             <small aria-hidden="true">→</small>
                         </a>
