@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="/css/admin-v2.css">
     <link rel="stylesheet" href="/css/crm-dispatch-label.css">
     <link rel="stylesheet" href="/css/crm-structure-review.css">
+    <link rel="stylesheet" href="/css/crm-sample-review.css">
 </head>
 <body class="crm-app-page">
     <div class="crm-app">
@@ -300,6 +301,134 @@
                 </div>
 
                 <dl id="payloadList" class="crm-payload-list"></dl>
+            </section>
+
+            <section
+                class="crm-sample-review-section"
+                id="sampleReviewSection"
+                hidden
+            >
+                <div class="crm-section-heading crm-section-heading--row">
+                    <div>
+                        <p class="crm-eyebrow">SAMPLE REQUEST DECISION</p>
+                        <h3>Review outcome & customer notification</h3>
+                    </div>
+                    <span
+                        class="crm-sample-review-badge"
+                        id="sampleReviewBadge"
+                        data-decision="pending_review"
+                    >
+                        Pending review
+                    </span>
+                </div>
+
+                <p class="crm-sample-review-intro">
+                    Record Luxsome's decision separately from artwork approval.
+                    Internal notes are never included in the customer email.
+                </p>
+
+                <form id="sampleReviewForm" class="crm-sample-review-form">
+                    <div class="crm-sample-review-grid">
+                        <label>
+                            Decision
+                            <select id="sampleReviewDecision">
+                                <option value="pending_review">Pending review</option>
+                                <option value="ready_for_sample_quote">Ready for sample quotation</option>
+                                <option value="needs_clarification">Needs clarification</option>
+                                <option value="cannot_proceed_production">Cannot proceed — production limitation</option>
+                                <option value="cannot_proceed_scope">Cannot proceed — outside Luxsome scope</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Reviewed by
+                            <input
+                                id="sampleReviewedBy"
+                                type="text"
+                                maxlength="120"
+                                placeholder="Team member name"
+                            >
+                        </label>
+                    </div>
+
+                    <label class="crm-sample-review-field">
+                        Internal review notes
+                        <textarea
+                            id="sampleInternalNotes"
+                            rows="4"
+                            maxlength="4000"
+                            placeholder="Internal production or review notes. These are never sent to the customer."
+                        ></textarea>
+                        <small>Luxsome team only — never included in customer communication.</small>
+                    </label>
+
+                    <div id="sampleScopeReasonWrap" class="crm-sample-scope-reason" hidden>
+                        <label>
+                            Internal scope classification
+                            <select id="sampleScopeReason">
+                                <option value="">Select internal reason</option>
+                                <option value="excluded_product">Haraam / excluded product</option>
+                                <option value="outside_service_scope">Outside current service scope</option>
+                                <option value="other_internal_scope">Other internal scope reason</option>
+                            </select>
+                        </label>
+                        <p>
+                            This classification is private. The customer email only says
+                            that the request falls outside the scope of projects Luxsome currently undertakes.
+                        </p>
+                    </div>
+
+                    <label
+                        id="sampleCustomerMessageWrap"
+                        class="crm-sample-review-field"
+                    >
+                        Customer message
+                        <textarea
+                            id="sampleCustomerMessage"
+                            rows="4"
+                            maxlength="2000"
+                            placeholder="Add the information the customer needs to see in the email."
+                        ></textarea>
+                        <small id="sampleCustomerMessageHelp">
+                            This message will be included in the customer email.
+                        </small>
+                    </label>
+
+                    <div class="crm-sample-email-preview">
+                        <div class="crm-section-heading">
+                            <p class="crm-eyebrow">CUSTOMER EMAIL</p>
+                            <h3 id="sampleEmailPreviewTitle">No email selected yet</h3>
+                        </div>
+                        <div id="sampleEmailPreviewBody" class="crm-sample-email-preview__body">
+                            Choose a decision to preview the customer-facing message.
+                        </div>
+                    </div>
+
+                    <div class="crm-sample-notification-status">
+                        <strong id="sampleEmailStatusLabel">Customer not notified</strong>
+                        <span id="sampleEmailStatusMeta"></span>
+                    </div>
+
+                    <p id="sampleReviewMessage" class="crm-form-status" role="status"></p>
+
+                    <div class="crm-sample-review-actions">
+                        <button
+                            id="saveSampleReviewButton"
+                            class="crm-button crm-button--secondary"
+                            type="submit"
+                        >
+                            Save decision
+                        </button>
+
+                        <button
+                            id="sendSampleReviewEmailButton"
+                            class="crm-button crm-button--primary"
+                            type="button"
+                        >
+                            Save & send customer email
+                        </button>
+                    </div>
+                </form>
             </section>
 
             <section
@@ -1190,7 +1319,7 @@
     </section>
 
     <script src="/js/environment.js"></script>
-    <script src="/js/admin-dashboard-v2.js?v=5"></script>
+    <script src="/js/admin-dashboard-v2.js?v=6"></script>
     <script src="/js/crm-brand.js"></script>
 </body>
 </html>

@@ -17,7 +17,8 @@ document.addEventListener("DOMContentLoaded", function () {
         structureFiles: [],
         selectedArtwork: null,
         artworkObjectUrls: [],
-        dispatchLabelData: null
+        dispatchLabelData: null,
+        sampleReview: null
     };
 
     if (!state.token) {
@@ -74,6 +75,24 @@ document.addEventListener("DOMContentLoaded", function () {
         structureReviewNotes: document.getElementById("structureReviewNotes"),
         structureReviewMessage: document.getElementById("structureReviewMessage"),
         saveStructureReviewButton: document.getElementById("saveStructureReviewButton"),
+        sampleReviewSection: document.getElementById("sampleReviewSection"),
+        sampleReviewForm: document.getElementById("sampleReviewForm"),
+        sampleReviewDecision: document.getElementById("sampleReviewDecision"),
+        sampleReviewedBy: document.getElementById("sampleReviewedBy"),
+        sampleInternalNotes: document.getElementById("sampleInternalNotes"),
+        sampleScopeReasonWrap: document.getElementById("sampleScopeReasonWrap"),
+        sampleScopeReason: document.getElementById("sampleScopeReason"),
+        sampleCustomerMessageWrap: document.getElementById("sampleCustomerMessageWrap"),
+        sampleCustomerMessage: document.getElementById("sampleCustomerMessage"),
+        sampleCustomerMessageHelp: document.getElementById("sampleCustomerMessageHelp"),
+        sampleReviewBadge: document.getElementById("sampleReviewBadge"),
+        sampleEmailPreviewTitle: document.getElementById("sampleEmailPreviewTitle"),
+        sampleEmailPreviewBody: document.getElementById("sampleEmailPreviewBody"),
+        sampleEmailStatusLabel: document.getElementById("sampleEmailStatusLabel"),
+        sampleEmailStatusMeta: document.getElementById("sampleEmailStatusMeta"),
+        sampleReviewMessage: document.getElementById("sampleReviewMessage"),
+        saveSampleReviewButton: document.getElementById("saveSampleReviewButton"),
+        sendSampleReviewEmailButton: document.getElementById("sendSampleReviewEmailButton"),
         dispatchSection: document.getElementById("dispatchSection"),
         dispatchLabelForm: document.getElementById("dispatchLabelForm"),
         dispatchLabelStatus: document.getElementById("dispatchLabelStatus"),
@@ -200,6 +219,10 @@ document.addEventListener("DOMContentLoaded", function () {
     elements.artworkReviewForm?.addEventListener("submit", saveArtworkReview);
     elements.structureFileGrid?.addEventListener("click", handleStructureGridClick);
     elements.structureReviewForm?.addEventListener("submit", saveStructureReview);
+    elements.sampleReviewForm?.addEventListener("submit", saveSampleReview);
+    elements.sampleReviewDecision?.addEventListener("change", updateSampleReviewDecisionUi);
+    elements.sampleCustomerMessage?.addEventListener("input", renderSampleEmailPreview);
+    elements.sendSampleReviewEmailButton?.addEventListener("click", sendSampleReviewEmail);
 
     elements.dispatchLabelForm?.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -252,6 +275,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.detailCreateQuoteButton.addEventListener("click", function () {
         const submission = state.selectedSubmission;
+
+        if (
+            submission?.submission_type === "sample_request" &&
+            state.sampleReview?.decision !== "ready_for_sample_quote"
+        ) {
+            window.alert(
+                "This sample request must be marked Ready for sample quotation before a quotation can be created."
+            );
+            return;
+        }
+
         closeDetail();
         openQuotationBuilder(submission);
     });
@@ -687,6 +721,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             elements.detailStatus.value = submission.status;
             renderPayload(submission.payload || {});
+            await loadSampleReview(submission);
             await setupDispatchLabelForSubmission(submission);
             await loadSubmissionStructure(submission);
             await loadSubmissionArtwork(submission);
@@ -704,6 +739,275 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         }
     }
+
+    function sampleDecisionLabel(decision) {
+        return {
+            pending_review: "Pending review",
+            ready_for_sample_quote: "Ready for sample quotation",
+            needs_clarification: "Needs clarification",
+            cannot_proceed_production: "Cannot proceed — production limitation",
+            cannot_proceed_scope: "Cannot proceed — outside Luxsome scope"
+        }[decision] || "Pending review";
+    }
+
+    function isSampleSubmission(submission) {
+        return submission?.submission_type === "sample_request" ||
+            String(submission?.status || "").startsWith("sample_");
+    }
+
+    async function loadSampleReview(submission) {
+        if (!elements.sampleReviewSection) return;
+
+        const isSample = isSampleSubmission(submission);
+        elements.sampleReviewSection.hidden = !isSample;
+        state.sampleReview = null;
+
+        if (!isSample) {
+            elements.detailCreateQuoteButton.disabled = false;
+            elements.detailCreateQuoteButton.title = "";
+            return;
+        }
+
+        elements.sampleReviewMessage.textContent = "Loading sample review...";
+
+        try {
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(submission.reference)}/sample-review`
+            );
+
+            state.sampleReview = data.review || {
+                decision: "pending_review"
+            };
+
+            renderSampleReview(state.sampleReview);
+            elements.sampleReviewMessage.textContent = "";
+        } catch (error) {
+            elements.sampleReviewMessage.textContent =
+                error.message || "The sample review could not be loaded.";
+            renderSampleReview({ decision: "pending_review" });
+        }
+    }
+
+    function renderSampleReview(review) {
+        const decision = review.decision || "pending_review";
+
+        elements.sampleReviewDecision.value = decision;
+        elements.sampleReviewedBy.value = review.reviewedBy || "";
+        elements.sampleInternalNotes.value = review.internalNotes || "";
+        elements.sampleScopeReason.value = review.scopeReason || "";
+        elements.sampleCustomerMessage.value = review.customerMessage || "";
+
+        elements.sampleReviewBadge.textContent = sampleDecisionLabel(decision);
+        elements.sampleReviewBadge.dataset.decision = decision;
+
+        if (review.emailStatus === "sent" && review.emailSentAt) {
+            elements.sampleEmailStatusLabel.textContent = "Customer notified";
+            elements.sampleEmailStatusMeta.textContent =
+                `${formatDate(review.emailSentAt)}${review.emailSendCount > 1
+                    ? ` · sent ${review.emailSendCount} times`
+                    : ""}`;
+        } else if (review.emailStatus === "failed") {
+            elements.sampleEmailStatusLabel.textContent = "Email failed";
+            elements.sampleEmailStatusMeta.textContent =
+                review.emailError || "Use Save & send customer email to retry.";
+        } else {
+            elements.sampleEmailStatusLabel.textContent = "Customer not notified";
+            elements.sampleEmailStatusMeta.textContent = "";
+        }
+
+        updateSampleReviewDecisionUi();
+        updateSampleQuoteGate();
+    }
+
+    function updateSampleQuoteGate() {
+        if (!isSampleSubmission(state.selectedSubmission)) {
+            elements.detailCreateQuoteButton.disabled = false;
+            elements.detailCreateQuoteButton.title = "";
+            return;
+        }
+
+        const allowed =
+            state.sampleReview?.decision === "ready_for_sample_quote";
+
+        elements.detailCreateQuoteButton.disabled = !allowed;
+        elements.detailCreateQuoteButton.title = allowed
+            ? "Create the sample production quotation."
+            : "Mark this request Ready for sample quotation first.";
+
+        elements.detailCreateQuoteButton.textContent =
+            allowed ? "Create sample quotation" : "Sample quotation locked";
+    }
+
+    function updateSampleReviewDecisionUi() {
+        const decision = elements.sampleReviewDecision.value;
+        const outsideScope = decision === "cannot_proceed_scope";
+        const pending = decision === "pending_review";
+
+        elements.sampleScopeReasonWrap.hidden = !outsideScope;
+        elements.sampleCustomerMessageWrap.hidden = outsideScope || pending;
+
+        if (outsideScope) {
+            elements.sampleCustomerMessage.value = "";
+        }
+
+        if (decision === "needs_clarification") {
+            elements.sampleCustomerMessageHelp.textContent =
+                "Required: tell the customer exactly what information or clarification is needed.";
+        } else if (decision === "cannot_proceed_production") {
+            elements.sampleCustomerMessageHelp.textContent =
+                "Required: give the customer a clear production-related reason. You may mention an alternative only if appropriate.";
+        } else {
+            elements.sampleCustomerMessageHelp.textContent =
+                "Optional: add a short note that will appear in the customer email.";
+        }
+
+        renderSampleEmailPreview();
+    }
+
+    function renderSampleEmailPreview() {
+        const decision = elements.sampleReviewDecision.value;
+        const customerName =
+            state.selectedSubmission?.customer_name ||
+            state.selectedSubmission?.brand_name ||
+            "there";
+        const reference = state.selectedReference || "—";
+        const message = elements.sampleCustomerMessage.value.trim();
+
+        const templates = {
+            pending_review: {
+                title: "No customer email",
+                body: "Save the review internally. No decision email is sent while the request is pending."
+            },
+            ready_for_sample_quote: {
+                title: `Your Luxsome sample request can proceed — ${reference}`,
+                body:
+                    `Hi ${customerName},\n\n` +
+                    `We’ve completed our review of your sample request and are pleased to confirm that it can proceed to the sample-production quotation stage.` +
+                    (message ? `\n\n${message}` : "") +
+                    `\n\nOur team will prepare the sample quotation. Once it is approved and payment is confirmed, the sample can be scheduled for production.`
+            },
+            needs_clarification: {
+                title: `We need a few details for your sample request — ${reference}`,
+                body:
+                    `Hi ${customerName},\n\n` +
+                    `We’ve reviewed your sample request and need some additional information before we can confirm it for sample production.` +
+                    (message ? `\n\nWhat we need:\n${message}` : "")
+            },
+            cannot_proceed_production: {
+                title: `Update on your Luxsome sample request — ${reference}`,
+                body:
+                    `Hi ${customerName},\n\n` +
+                    `After reviewing your sample request, we’re unable to proceed with the requested specification in its current form.` +
+                    (message ? `\n\n${message}` : "")
+            },
+            cannot_proceed_scope: {
+                title: `Update on your Luxsome Packaging request — ${reference}`,
+                body:
+                    `Hi ${customerName},\n\n` +
+                    `Thank you for your interest in Luxsome Packaging and for submitting your packaging request.\n\n` +
+                    `After reviewing your request, we’re unable to proceed with this project as it falls outside the scope of projects we currently undertake.\n\n` +
+                    `We appreciate your interest in working with Luxsome Packaging.`
+            }
+        };
+
+        const template = templates[decision] || templates.pending_review;
+        elements.sampleEmailPreviewTitle.textContent = template.title;
+        elements.sampleEmailPreviewBody.textContent = template.body;
+    }
+
+    function validateSampleReviewForm(forEmail) {
+        const decision = elements.sampleReviewDecision.value;
+        const customerMessage = elements.sampleCustomerMessage.value.trim();
+        const scopeReason = elements.sampleScopeReason.value;
+
+        if (forEmail && decision === "pending_review") {
+            throw new Error("Choose a review decision before sending an email.");
+        }
+
+        if (
+            ["needs_clarification", "cannot_proceed_production"].includes(decision) &&
+            !customerMessage
+        ) {
+            throw new Error("Add the customer-facing message for this decision.");
+        }
+
+        if (decision === "cannot_proceed_scope" && !scopeReason) {
+            throw new Error("Select the private internal scope classification.");
+        }
+
+        return {
+            decision,
+            reviewedBy: elements.sampleReviewedBy.value.trim(),
+            internalNotes: elements.sampleInternalNotes.value.trim(),
+            customerMessage: decision === "cannot_proceed_scope"
+                ? ""
+                : customerMessage,
+            scopeReason
+        };
+    }
+
+    async function saveSampleReview(event) {
+        event.preventDefault();
+
+        if (!state.selectedReference) return;
+
+        try {
+            const payload = validateSampleReviewForm(false);
+            elements.saveSampleReviewButton.disabled = true;
+            elements.sampleReviewMessage.textContent = "Saving decision...";
+
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(state.selectedReference)}/sample-review`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            state.sampleReview = data.review;
+            renderSampleReview(data.review);
+            elements.sampleReviewMessage.textContent = "Sample review decision saved.";
+        } catch (error) {
+            elements.sampleReviewMessage.textContent =
+                error.message || "The sample review could not be saved.";
+        } finally {
+            elements.saveSampleReviewButton.disabled = false;
+        }
+    }
+
+    async function sendSampleReviewEmail() {
+        if (!state.selectedReference) return;
+
+        try {
+            const payload = validateSampleReviewForm(true);
+            elements.sendSampleReviewEmailButton.disabled = true;
+            elements.saveSampleReviewButton.disabled = true;
+            elements.sampleReviewMessage.textContent =
+                "Saving decision and sending customer email...";
+
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(state.selectedReference)}/sample-review/send-email`,
+                {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            state.sampleReview = data.review;
+            renderSampleReview(data.review);
+            elements.sampleReviewMessage.textContent =
+                "Decision saved and customer email sent.";
+
+            await Promise.all([loadStats(), loadSubmissions()]);
+        } catch (error) {
+            elements.sampleReviewMessage.textContent =
+                error.message || "The customer email could not be sent.";
+        } finally {
+            elements.sendSampleReviewEmailButton.disabled = false;
+            elements.saveSampleReviewButton.disabled = false;
+        }
+    }
+
 
     function renderPayload(payload) {
         elements.payloadList.replaceChildren();
