@@ -1,0 +1,211 @@
+/* =====================================================
+   LUXSOME JOURNAL — ARTICLE PAGES
+   Shared with /css/base.css and /css/blog.css
+===================================================== */
+
+:root {
+    --journal-ink: #171411;
+    --journal-muted: #6e675f;
+    --journal-cream: #f8f4ef;
+    --journal-paper: #fffdf9;
+    --journal-line: rgba(23, 20, 17, 0.14);
+    --journal-accent: #673629;
+    --journal-dark: #1d1916;
+}
+
+.article-hero {
+    padding: clamp(4.5rem, 8vw, 8.5rem) 0 clamp(3rem, 6vw, 5.5rem);
+    background: var(--journal-cream);
+    border-bottom: 1px solid var(--journal-line);
+}
+
+.article-hero__inner {
+    width: min(900px, 100%);
+}
+
+.article-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    font-family: "Montserrat", sans-serif;
+    font-size: .74rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.article-breadcrumbs a { color: inherit; text-decoration: none; }
+.article-breadcrumbs a:hover { text-decoration: underline; }
+
+.article-kicker {
+    margin: 0 0 1rem;
+    font-family: "Montserrat", sans-serif;
+    font-size: .76rem;
+    font-weight: 600;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--journal-accent);
+}
+
+.article-hero h1 {
+    max-width: 900px;
+    margin: 0;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(2.7rem, 6vw, 5.8rem);
+    line-height: .98;
+    letter-spacing: -.025em;
+    color: var(--journal-ink);
+}
+
+.article-deck {
+    max-width: 760px;
+    margin: 1.65rem 0 0;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(1.3rem, 2vw, 1.65rem);
+    line-height: 1.45;
+    color: #4d4741;
+}
+
+.article-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .8rem 1.5rem;
+    margin-top: 2rem;
+    font-family: "Montserrat", sans-serif;
+    font-size: .78rem;
+    color: var(--journal-muted);
+}
+
+.article-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: clamp(2.5rem, 6vw, 6rem);
+    align-items: start;
+    padding: clamp(3.5rem, 6vw, 6.5rem) 0;
+}
+
+.article-content {
+    max-width: 780px;
+    font-family: "Montserrat", sans-serif;
+    color: #302b27;
+}
+
+.article-content > p:first-of-type {
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: clamp(1.35rem, 2vw, 1.65rem);
+    line-height: 1.52;
+    color: var(--journal-ink);
+}
+
+.article-content p,
+.article-content li {
+    font-size: 1rem;
+    line-height: 1.85;
+}
+
+.article-content h2 {
+    margin: 3.2rem 0 1rem;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    line-height: 1.08;
+    font-weight: 400;
+    color: var(--journal-ink);
+}
+
+.article-content h3 {
+    margin: 2.2rem 0 .7rem;
+    font-family: "Montserrat", sans-serif;
+    font-size: 1rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--journal-ink);
+}
+
+.article-content ul,
+.article-content ol { padding-left: 1.25rem; }
+.article-content li + li { margin-top: .55rem; }
+.article-content a { color: var(--journal-accent); text-underline-offset: .2em; }
+
+.article-callout {
+    margin: 2.5rem 0;
+    padding: 1.65rem 1.8rem;
+    background: var(--journal-cream);
+    border-left: 3px solid var(--journal-accent);
+}
+.article-callout strong { color: var(--journal-ink); }
+
+.article-sidebar {
+    position: sticky;
+    top: 110px;
+    padding: 1.4rem;
+    border: 1px solid var(--journal-line);
+    background: var(--journal-paper);
+}
+.article-sidebar__label {
+    margin: 0 0 .8rem;
+    font: 600 .72rem/1.2 "Montserrat", sans-serif;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--journal-accent);
+}
+.article-sidebar h2 {
+    margin: 0 0 .8rem;
+    font: 400 1.55rem/1.1 "DM Serif Display", Georgia, serif;
+}
+.article-sidebar p { margin: 0 0 1rem; font: .86rem/1.65 "Montserrat", sans-serif; color: var(--journal-muted); }
+.article-sidebar a { display: inline-block; font: 600 .8rem/1.2 "Montserrat", sans-serif; color: var(--journal-ink); text-decoration: none; border-bottom: 1px solid currentColor; }
+
+.article-faq {
+    margin-top: 4rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--journal-line);
+}
+.article-faq details { padding: 1rem 0; border-bottom: 1px solid var(--journal-line); }
+.article-faq summary { cursor: pointer; font: 600 .95rem/1.5 "Montserrat", sans-serif; color: var(--journal-ink); }
+.article-faq details p { margin-bottom: .35rem; }
+
+.preferred-source {
+    margin-top: 4rem;
+    padding: clamp(1.7rem, 4vw, 2.5rem);
+    background: var(--journal-dark);
+    color: #fff;
+}
+.preferred-source p { margin: .45rem 0 1.25rem; color: rgba(255,255,255,.78); }
+.preferred-source h2 { margin: 0; color: #fff; }
+.preferred-source a {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .85rem 1.05rem;
+    color: #111;
+    background: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: .82rem;
+}
+
+.article-end-cta {
+    padding: clamp(3.5rem, 7vw, 6rem) 0;
+    background: var(--journal-cream);
+    border-top: 1px solid var(--journal-line);
+}
+.article-end-cta__inner { max-width: 850px; }
+.article-end-cta h2 { margin: .4rem 0 .9rem; font: 400 clamp(2.3rem,4vw,4rem)/1 "DM Serif Display",Georgia,serif; color
+: var(--journal-ink); }
+.article-end-cta p { max-width: 680px; font: 1rem/1.7 "Montserrat",sans-serif; color: var(--journal-muted); }
+.article-end-cta__actions { display:flex; flex-wrap:wrap; gap:.8rem; margin-top:1.5rem; }
+.article-end-cta__actions a { display:inline-block; padding:.9rem 1.15rem; text-decoration:none; font:600 .78rem/1 "Montserrat",sans-serif; }
+.article-end-cta__primary { background:#171411; color:#fff; }
+.article-end-cta__secondary { border:1px solid #171411; color:#171411; }
+
+@media (max-width: 900px) {
+    .article-layout { grid-template-columns: 1fr; }
+    .article-sidebar { position: static; max-width: 600px; }
+}
+@media (max-width: 600px) {
+    .article-hero { padding-top: 3.2rem; }
+    .article-content p, .article-content li { font-size: .95rem; line-height: 1.78; }
+    .article-meta-row { font-size: .72rem; }
+}
