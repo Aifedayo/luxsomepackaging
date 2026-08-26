@@ -10,7 +10,9 @@ document.addEventListener("DOMContentLoaded", function () {
     initHeroCarousel();
     initPackagingSystemCarousel();
     initScrollReveal();
-    initWhatsAppContact();
+    if (window.location.pathname.toLowerCase().includes("/contact")) {
+        initWhatsAppContact();
+    }
     initTagTierCarousel();
 });
 
