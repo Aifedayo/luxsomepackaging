@@ -1,13 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    <url><loc>https://www.luxsomepackaging.com/blog/</loc><lastmod>2026-08-05</lastmod><changefreq>weekly</changefreq><priority>0.90</priority></url>
 
-    <!-- Add each published article below:
+    <!-- Journal -->
     <url>
-        <loc>https://www.luxsomepackaging.com/blog/article-slug/</loc>
-        <lastmod>YYYY-MM-DD</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.75</priority>
+        <loc>https://www.luxsomepackaging.com/blog/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.90</priority>
     </url>
-    -->
+
+    <!-- Luxury Packaging for Fashion Brands -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/luxury-packaging-for-fashion-brands-nigeria/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.85</priority>
+    </url>
+
+    <!-- Magnetic Flap vs Shoulder Box -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/magnetic-flap-vs-shoulder-box/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+
+    <!-- Complete Unboxing Experience -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/how-to-build-a-complete-unboxing-experience/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+
+    <!-- Rigid Boxes in Nigeria -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/rigid-boxes-in-nigeria/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.85</priority>
+    </url>
+
+    <!-- Custom Packaging Cost -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/custom-packaging-cost-in-nigeria/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.85</priority>
+    </url>
+
+    <!-- Clothing Hang Tags -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/clothing-hang-tags-guide/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+
+    <!-- Custom Packaging MOQ -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/custom-packaging-moq/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+
+    <!-- Custom Packaging Production Time -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/custom-packaging-production-time-nigeria/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+
+    <!-- Custom Packaging Sample Approval -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/custom-packaging-sample-approval/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+
+    <!-- Packaging Finishes -->
+    <url>
+        <loc>https://www.luxsomepackaging.com/blog/embossing-vs-debossing-vs-foil-stamping/</loc>
+        <lastmod>2026-08-26</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.80</priority>
+    </url>
+
 </urlset>
