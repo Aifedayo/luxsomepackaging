@@ -1,0 +1,177 @@
+/* Luxsome CRM — Sample review decision and email workflow */
+
+.crm-sample-review-section {
+    margin-top: 28px;
+    padding: 24px;
+    border: 1px solid rgba(46, 28, 21, .12);
+    background: #fff;
+}
+
+.crm-sample-review-section[hidden],
+.crm-sample-scope-reason[hidden],
+#sampleCustomerMessageWrap[hidden] {
+    display: none !important;
+}
+
+.crm-sample-review-intro {
+    margin: 10px 0 22px;
+    max-width: 720px;
+    color: #6f5a4e;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.crm-sample-review-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #f2e7dd;
+    color: #6b4e3d;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.crm-sample-review-badge[data-decision="ready_for_sample_quote"] {
+    background: #e6f2e8;
+    color: #32633d;
+}
+
+.crm-sample-review-badge[data-decision="needs_clarification"] {
+    background: #fff2d8;
+    color: #7d5a16;
+}
+
+.crm-sample-review-badge[data-decision^="cannot_proceed"] {
+    background: #f8e5e2;
+    color: #8f3d35;
+}
+
+.crm-sample-review-form {
+    display: grid;
+    gap: 18px;
+}
+
+.crm-sample-review-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+}
+
+.crm-sample-review-form label {
+    display: grid;
+    gap: 8px;
+    color: #2e1c15;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.crm-sample-review-form input,
+.crm-sample-review-form select,
+.crm-sample-review-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid rgba(46, 28, 21, .18);
+    background: #fff;
+    color: #2e1c15;
+    font: inherit;
+}
+
+.crm-sample-review-form input,
+.crm-sample-review-form select {
+    min-height: 44px;
+    padding: 0 12px;
+}
+
+.crm-sample-review-form textarea {
+    resize: vertical;
+    padding: 12px;
+    line-height: 1.6;
+}
+
+.crm-sample-review-field small {
+    color: #8b7163;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.crm-sample-scope-reason {
+    padding: 16px;
+    border: 1px solid #ead9d4;
+    background: #fff8f6;
+}
+
+.crm-sample-scope-reason p {
+    margin: 10px 0 0;
+    color: #76564d;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.crm-sample-email-preview {
+    padding: 18px;
+    border: 1px solid rgba(46, 28, 21, .12);
+    background: #f8f4ef;
+}
+
+.crm-sample-email-preview__body {
+    margin-top: 12px;
+    padding: 16px;
+    background: #fff;
+    white-space: pre-wrap;
+    color: #4d3a31;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.crm-sample-notification-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    border: 1px solid rgba(46, 28, 21, .1);
+}
+
+.crm-sample-notification-status strong {
+    font-size: 12px;
+    color: #2e1c15;
+}
+
+.crm-sample-notification-status span {
+    font-size: 11px;
+    color: #8b7163;
+}
+
+.crm-sample-review-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#detailCreateQuoteButton:disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+
+@media (max-width: 720px) {
+    .crm-sample-review-section {
+        padding: 18px 14px;
+    }
+
+    .crm-sample-review-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .crm-sample-review-actions {
+        justify-content: stretch;
+    }
+
+    .crm-sample-review-actions .crm-button {
+        width: 100%;
+    }
+}

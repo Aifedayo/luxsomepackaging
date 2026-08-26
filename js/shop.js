@@ -1437,202 +1437,724 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const customStructureArtwork = (() => {
-        const root = document.getElementById('customBoxArtworkUpload');
+        const root = document.getElementById(
+            'customBoxArtworkUpload'
+        );
+
         if (!root) {
             return {
                 hasFiles: () => false,
-                upload: async () => ({ uploadId: '', keys: [], fileNames: [] })
+                upload: async () => ({
+                    uploadId: '',
+                    keys: [],
+                    fileNames: []
+                })
             };
         }
 
-        const input = document.getElementById('customBoxArtworkFiles');
-        const dropzone = document.getElementById('customBoxArtworkDropzone');
-        const fileList = document.getElementById('customBoxArtworkFileList');
-        const status = document.getElementById('customBoxArtworkStatus');
+        const input = document.getElementById(
+            'customBoxArtworkFiles'
+        );
+        const dropzone = document.getElementById(
+            'customBoxArtworkDropzone'
+        );
+        const fileList = document.getElementById(
+            'customBoxArtworkFileList'
+        );
+        const status = document.getElementById(
+            'customBoxArtworkStatus'
+        );
+
+        const endpoint = root.dataset.uploadEndpoint
+            ?.replace(/\/+$/, '');
+
         let files = [];
+        let uploadId = '';
+        let uploadedKeys = [];
 
-        const allowed = new Set(['pdf','ai','eps','svg','psd','tif','tiff','png','jpg','jpeg','webp','zip']);
-        const maxFiles = 10;
-        const maxSize = 20 * 1024 * 1024;
+        const MAX_FILES = 10;
+        const MAX_FILE_BYTES = 95 * 1024 * 1024;
+        const MAX_TOTAL_BYTES = 250 * 1024 * 1024;
 
-        const ext = file => {
-            const parts = String(file?.name || '').split('.');
-            return parts.length > 1 ? parts.pop().toLowerCase() : '';
+        const ALLOWED_EXTENSIONS = new Set([
+            'pdf', 'ai', 'eps', 'svg', 'psd',
+            'tif', 'tiff', 'png', 'jpg',
+            'jpeg', 'webp', 'zip'
+        ]);
+
+        const getExtension = filename =>
+            String(filename || '')
+                .split('.')
+                .pop()
+                ?.toLowerCase() || '';
+
+        const formatBytes = value => {
+            if (value < 1024) return `${value} B`;
+
+            if (value < 1024 ** 2) {
+                return `${(value / 1024).toFixed(1)} KB`;
+            }
+
+            return `${(value / (1024 ** 2)).toFixed(1)} MB`;
         };
 
         const setStatus = (message, type = '') => {
             if (!status) return;
+
             status.textContent = message || '';
             status.dataset.status = type;
+        };
+
+        const revokePreviews = () => {
+            fileList
+                ?.querySelectorAll(
+                    'img[data-preview-url]'
+                )
+                .forEach(image => {
+                    URL.revokeObjectURL(
+                        image.dataset.previewUrl
+                    );
+                });
         };
 
         const render = () => {
             if (!fileList) return;
 
-            /*
-             * Revoke old preview URLs before rebuilding the list.
-             * This prevents browser memory from accumulating as files
-             * are added and removed.
-             */
-            fileList
-                .querySelectorAll('img[data-preview-url]')
-                .forEach(image => {
-                    URL.revokeObjectURL(image.dataset.previewUrl);
-                });
-
-            fileList.innerHTML = '';
+            revokePreviews();
+            fileList.replaceChildren();
 
             files.forEach((file, index) => {
-                const row = document.createElement('div');
-                row.className = 'artwork-upload__file';
+                const row =
+                    document.createElement('div');
 
-                const details = document.createElement('div');
-                details.className = 'artwork-upload__file-details';
+                row.className =
+                    'artwork-upload__file';
 
-                const isPreviewable =
+                const details =
+                    document.createElement('div');
+
+                details.className =
+                    'artwork-upload__file-details';
+
+                const extension =
+                    getExtension(file.name);
+
+                const previewable =
                     file.type?.startsWith('image/') ||
-                    ['png', 'jpg', 'jpeg', 'webp'].includes(ext(file));
+                    [
+                        'png',
+                        'jpg',
+                        'jpeg',
+                        'webp'
+                    ].includes(extension);
 
-                if (isPreviewable) {
-                    const previewUrl = URL.createObjectURL(file);
-                    const preview = document.createElement('img');
+                if (previewable) {
+                    const previewUrl =
+                        URL.createObjectURL(file);
 
-                    preview.className = 'artwork-upload__thumbnail';
-                    preview.src = previewUrl;
-                    preview.alt = `Preview of ${file.name}`;
-                    preview.dataset.previewUrl = previewUrl;
+                    const image =
+                        document.createElement('img');
 
-                    details.appendChild(preview);
+                    image.className =
+                        'artwork-upload__thumbnail';
+
+                    image.src = previewUrl;
+
+                    image.alt =
+                        `Preview of ${file.name}`;
+
+                    image.dataset.previewUrl =
+                        previewUrl;
+
+                    details.appendChild(image);
                 } else {
-                    const icon = document.createElement('span');
-                    icon.className = 'artwork-upload__file-type';
-                    icon.setAttribute('aria-hidden', 'true');
+                    const icon =
+                        document.createElement('span');
+
+                    icon.className =
+                        'artwork-upload__file-type';
+
                     icon.innerHTML =
-                        '<i class="fa-regular fa-file"></i>';
+                        '<i class="fa-regular fa-file" aria-hidden="true"></i>';
 
                     details.appendChild(icon);
                 }
 
-                const name = document.createElement('span');
-                name.className = 'artwork-upload__file-name';
+                const textWrap =
+                    document.createElement('span');
+
+                textWrap.className =
+                    'artwork-upload__file-text';
+
+                const name =
+                    document.createElement('strong');
+
+                name.className =
+                    'artwork-upload__file-name';
+
                 name.textContent = file.name;
 
-                details.appendChild(name);
+                const meta =
+                    document.createElement('small');
 
-                const remove = document.createElement('button');
+                meta.textContent =
+                    formatBytes(file.size);
+
+                textWrap.append(name, meta);
+                details.appendChild(textWrap);
+
+                const remove =
+                    document.createElement('button');
+
                 remove.type = 'button';
-                remove.className = 'artwork-upload__remove';
-                remove.dataset.index = String(index);
+
+                remove.className =
+                    'artwork-upload__remove';
+
+                remove.dataset.index =
+                    String(index);
+
                 remove.setAttribute(
                     'aria-label',
                     `Remove ${file.name}`
                 );
+
                 remove.innerHTML =
                     '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
 
-                row.append(details, remove);
+                row.append(
+                    details,
+                    remove
+                );
+
                 fileList.appendChild(row);
             });
         };
 
-        const addFiles = incoming => {
-            const next = [...(incoming || [])];
+        const validateIncoming = incoming => {
+            const next =
+                Array.from(incoming || []);
 
-            if (files.length + next.length > maxFiles) {
-                setStatus(`You can upload up to ${maxFiles} structural files.`, 'error');
-                return;
+            if (
+                files.length +
+                next.length >
+                MAX_FILES
+            ) {
+                throw new Error(
+                    `Choose no more than ${MAX_FILES} structural files.`
+                );
             }
 
-            for (const file of next) {
-                if (!allowed.has(ext(file))) {
-                    setStatus(`${file.name}: unsupported file type.`, 'error');
-                    return;
+            next.forEach(file => {
+                const extension =
+                    getExtension(file.name);
+
+                if (
+                    !ALLOWED_EXTENSIONS.has(
+                        extension
+                    )
+                ) {
+                    throw new Error(
+                        `${file.name} is not an accepted structural file format.`
+                    );
                 }
-                if (file.size > maxSize) {
-                    setStatus(`${file.name}: file is larger than 20 MB.`, 'error');
-                    return;
+
+                if (file.size <= 0) {
+                    throw new Error(
+                        `${file.name} is empty.`
+                    );
                 }
+
+                if (
+                    file.size >
+                    MAX_FILE_BYTES
+                ) {
+                    throw new Error(
+                        `${file.name} is larger than 95 MB.`
+                    );
+                }
+            });
+
+            const total = [
+                ...files,
+                ...next
+            ].reduce(
+                (sum, file) =>
+                    sum + file.size,
+                0
+            );
+
+            if (
+                total >
+                MAX_TOTAL_BYTES
+            ) {
+                throw new Error(
+                    'The combined structural files cannot exceed 250 MB.'
+                );
             }
 
-            files = [...files, ...next];
-            render();
-            setStatus(`${files.length} structural file${files.length === 1 ? '' : 's'} selected.`, 'ready');
+            return next;
         };
 
-        input?.addEventListener('change', event => {
-            addFiles(event.target.files);
-            event.target.value = '';
+        const addFiles = incoming => {
+            try {
+                const next =
+                    validateIncoming(incoming);
+
+                const existing =
+                    new Set(
+                        files.map(file =>
+                            `${file.name}-${file.size}-${file.lastModified}`
+                        )
+                    );
+
+                files = [
+                    ...files,
+                    ...next.filter(file => {
+                        const key =
+                            `${file.name}-${file.size}-${file.lastModified}`;
+
+                        return !existing.has(key);
+                    })
+                ];
+
+                uploadId = '';
+                uploadedKeys = [];
+
+                render();
+
+                setStatus(
+                    files.length
+                        ? `${files.length} structural file${files.length === 1 ? '' : 's'} selected.`
+                        : '',
+                    files.length
+                        ? 'ready'
+                        : ''
+                );
+            } catch (error) {
+                setStatus(
+                    error instanceof Error
+                        ? error.message
+                        : 'The structural files could not be added.',
+                    'error'
+                );
+            }
+        };
+
+        input?.addEventListener(
+            'change',
+            event => {
+                addFiles(
+                    event.target.files
+                );
+
+                event.target.value = '';
+            }
+        );
+
+        fileList?.addEventListener(
+            'click',
+            event => {
+                const button =
+                    event.target.closest(
+                        '.artwork-upload__remove'
+                    );
+
+                if (!button) return;
+
+                const index =
+                    Number(
+                        button.dataset.index
+                    );
+
+                if (
+                    !Number.isInteger(index) ||
+                    index < 0 ||
+                    index >= files.length
+                ) {
+                    return;
+                }
+
+                files.splice(index, 1);
+
+                uploadId = '';
+                uploadedKeys = [];
+
+                render();
+
+                setStatus(
+                    files.length
+                        ? `${files.length} structural file${files.length === 1 ? '' : 's'} selected.`
+                        : '',
+                    files.length
+                        ? 'ready'
+                        : ''
+                );
+            }
+        );
+
+        [
+            'dragenter',
+            'dragover'
+        ].forEach(type => {
+            dropzone?.addEventListener(
+                type,
+                event => {
+                    event.preventDefault();
+
+                    dropzone.classList.add(
+                        'is-dragging'
+                    );
+                }
+            );
         });
 
-        fileList?.addEventListener('click', event => {
-            const button = event.target.closest('.artwork-upload__remove');
-            if (!button) return;
-            const index = Number(button.dataset.index);
-            if (!Number.isInteger(index) || index < 0 || index >= files.length) return;
-            files.splice(index, 1);
-            render();
-            setStatus(files.length ? `${files.length} structural file${files.length === 1 ? '' : 's'} selected.` : '', files.length ? 'ready' : '');
+        [
+            'dragleave',
+            'drop'
+        ].forEach(type => {
+            dropzone?.addEventListener(
+                type,
+                event => {
+                    event.preventDefault();
+
+                    dropzone.classList.remove(
+                        'is-dragging'
+                    );
+                }
+            );
         });
 
-        ['dragenter','dragover'].forEach(type => {
-            dropzone?.addEventListener(type, event => {
-                event.preventDefault();
-                dropzone.classList.add('is-dragging');
-            });
-        });
+        dropzone?.addEventListener(
+            'drop',
+            event => {
+                addFiles(
+                    event.dataTransfer?.files
+                );
+            }
+        );
 
-        ['dragleave','drop'].forEach(type => {
-            dropzone?.addEventListener(type, event => {
-                event.preventDefault();
-                dropzone.classList.remove('is-dragging');
-            });
-        });
+        const getTurnstileToken = () =>
+            root.querySelector(
+                'input[name="cf-turnstile-response"]'
+            )?.value?.trim() || '';
 
-        dropzone?.addEventListener('drop', event => addFiles(event.dataTransfer?.files));
+        const resetTurnstile = () => {
+            if (
+                window.turnstile &&
+                typeof window.turnstile.reset ===
+                    'function'
+            ) {
+                const widget =
+                    root.querySelector(
+                        '.cf-turnstile'
+                    );
+
+                if (widget) {
+                    window.turnstile.reset(
+                        widget
+                    );
+                }
+            }
+        };
+
+        const createUploadId = () => {
+            const random =
+                crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : `${Date.now()}-${Math.random()
+                        .toString(16)
+                        .slice(2)}`;
+
+            return `structure-${random}`;
+        };
+
+        const createSession =
+            async currentUploadId => {
+                if (!endpoint) {
+                    throw new Error(
+                        'Structural upload storage is not connected.'
+                    );
+                }
+
+                const turnstileToken =
+                    getTurnstileToken();
+
+                if (!turnstileToken) {
+                    throw new Error(
+                        'Complete the security verification in the custom box design section.'
+                    );
+                }
+
+                const response =
+                    await fetch(
+                        `${endpoint}/session`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
+                            },
+                            body: JSON.stringify({
+                                turnstileToken,
+                                uploadId:
+                                    currentUploadId,
+                                product:
+                                    'bespoke-structure'
+                            })
+                        }
+                    );
+
+                const payload =
+                    await response
+                        .json()
+                        .catch(() => ({}));
+
+                if (
+                    !response.ok ||
+                    !payload.sessionToken
+                ) {
+                    throw new Error(
+                        payload.error ||
+                        payload.message ||
+                        'The secure structural upload session could not be created.'
+                    );
+                }
+
+                return payload.sessionToken;
+            };
+
+        const uploadFile = (
+            file,
+            index,
+            currentUploadId,
+            sessionToken
+        ) => new Promise(
+            (resolve, reject) => {
+                const request =
+                    new XMLHttpRequest();
+
+                const keyPath = [
+                    currentUploadId,
+                    `${String(index + 1)
+                        .padStart(2, '0')}-${encodeURIComponent(file.name)}`
+                ].join('/');
+
+                request.open(
+                    'PUT',
+                    `${endpoint}/upload/incoming/${keyPath}`
+                );
+
+                request.setRequestHeader(
+                    'Authorization',
+                    `Bearer ${sessionToken}`
+                );
+
+                request.setRequestHeader(
+                    'Content-Type',
+                    file.type ||
+                    'application/octet-stream'
+                );
+
+                request.setRequestHeader(
+                    'X-Luxsome-Original-Name',
+                    encodeURIComponent(
+                        file.name
+                    )
+                );
+
+                request.upload.addEventListener(
+                    'progress',
+                    event => {
+                        if (
+                            !event.lengthComputable
+                        ) {
+                            return;
+                        }
+
+                        const progress =
+                            (
+                                (
+                                    index +
+                                    (
+                                        event.loaded /
+                                        event.total
+                                    )
+                                ) /
+                                files.length
+                            ) *
+                            100;
+
+                        setStatus(
+                            `Uploading structural design files… ${Math.round(progress)}%`,
+                            'uploading'
+                        );
+                    }
+                );
+
+                request.addEventListener(
+                    'load',
+                    () => {
+                        let payload = {};
+
+                        try {
+                            payload =
+                                JSON.parse(
+                                    request.responseText ||
+                                    '{}'
+                                );
+                        } catch (_) {
+                            payload = {};
+                        }
+
+                        if (
+                            request.status >= 200 &&
+                            request.status < 300 &&
+                            payload.key
+                        ) {
+                            resolve(
+                                payload.key
+                            );
+
+                            return;
+                        }
+
+                        const error =
+                            new Error(
+                                payload.error ||
+                                payload.message ||
+                                `Upload failed for ${file.name}.`
+                            );
+
+                        error.httpStatus =
+                            request.status;
+
+                        reject(error);
+                    }
+                );
+
+                request.addEventListener(
+                    'error',
+                    () => {
+                        reject(
+                            new Error(
+                                `Network error while uploading ${file.name}.`
+                            )
+                        );
+                    }
+                );
+
+                request.send(file);
+            }
+        );
 
         const upload = async () => {
-            if (!customBoxStructure?.isSelected?.()) {
-                return { uploadId: '', keys: [], fileNames: [] };
+            if (
+                !customBoxStructure
+                    ?.isSelected?.()
+            ) {
+                return {
+                    uploadId: '',
+                    keys: [],
+                    fileNames: []
+                };
             }
 
             if (!files.length) {
-                throw new Error('Upload at least one box design, dieline, sketch or structural reference.');
+                throw new Error(
+                    'Upload at least one box design, dieline, sketch or structural reference.'
+                );
             }
 
-            const uploadId = `STRUCT-${Date.now()}-${Math.random().toString(36).slice(2,10).toUpperCase()}`;
-            const keys = [];
-            const fileNames = [];
+            const complete =
+                Boolean(uploadId) &&
+                uploadedKeys.length ===
+                    files.length &&
+                uploadedKeys.every(Boolean);
 
-            setStatus('Uploading structural design files…', 'uploading');
+            if (complete) {
+                return {
+                    uploadId,
+                    keys: [
+                        ...uploadedKeys
+                    ],
+                    fileNames:
+                        files.map(
+                            file =>
+                                file.name
+                        )
+                };
+            }
 
-            for (const file of files) {
-                const body = new FormData();
-                body.append('file', file);
-                body.append('upload_id', uploadId);
-                body.append('upload_context', 'custom_box_structure');
+            uploadId =
+                createUploadId();
 
-                const response = await fetch(`${API_BASE}/artwork/upload`, {
-                    method: 'POST',
-                    body
-                });
+            uploadedKeys = [];
 
-                const result = await response.json().catch(() => ({}));
+            setStatus(
+                'Creating secure structural upload session…',
+                'uploading'
+            );
 
-                if (!response.ok || !result.success) {
-                    setStatus(result.message || `Unable to upload ${file.name}.`, 'error');
-                    throw new Error(result.message || `Unable to upload ${file.name}.`);
+            try {
+                const sessionToken =
+                    await createSession(
+                        uploadId
+                    );
+
+                for (
+                    let index = 0;
+                    index < files.length;
+                    index += 1
+                ) {
+                    uploadedKeys[index] =
+                        await uploadFile(
+                            files[index],
+                            index,
+                            uploadId,
+                            sessionToken
+                        );
                 }
 
-                const key = result.objectKey || result.key || result.object_key || '';
-                if (key) keys.push(key);
-                fileNames.push(file.name);
-            }
+                setStatus(
+                    `${files.length} structural file${files.length === 1 ? '' : 's'} uploaded securely.`,
+                    'success'
+                );
 
-            setStatus('Structural design files uploaded.', 'success');
-            return { uploadId, keys, fileNames };
+                return {
+                    uploadId,
+                    keys: [
+                        ...uploadedKeys
+                    ],
+                    fileNames:
+                        files.map(
+                            file =>
+                                file.name
+                        )
+                };
+            } catch (error) {
+                resetTurnstile();
+
+                uploadId = '';
+                uploadedKeys = [];
+
+                setStatus(
+                    error instanceof Error
+                        ? error.message
+                        : 'The structural design upload failed.',
+                    'error'
+                );
+
+                throw error;
+            }
         };
 
-        return { hasFiles: () => files.length > 0, upload };
+        return {
+            hasFiles: () =>
+                files.length > 0,
+
+            upload
+        };
     })();
 
     /*

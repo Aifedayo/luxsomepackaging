@@ -14,9 +14,11 @@ document.addEventListener("DOMContentLoaded", function () {
         selectedSubmission: null,
         selectedQuotation: null,
         artworkFiles: [],
+        structureFiles: [],
         selectedArtwork: null,
         artworkObjectUrls: [],
-        dispatchLabelData: null
+        dispatchLabelData: null,
+        sampleReview: null
     };
 
     if (!state.token) {
@@ -59,6 +61,38 @@ document.addEventListener("DOMContentLoaded", function () {
         artworkReviewNotes: document.getElementById("artworkReviewNotes"),
         artworkReviewMessage: document.getElementById("artworkReviewMessage"),
         saveArtworkReviewButton: document.getElementById("saveArtworkReviewButton"),
+        structureSection: document.getElementById("structureSection"),
+        structureBoxStyle: document.getElementById("structureBoxStyle"),
+        structureCustomerNotes: document.getElementById("structureCustomerNotes"),
+        structureReviewBadge: document.getElementById("structureReviewBadge"),
+        structureFileGrid: document.getElementById("structureFileGrid"),
+        structureFileCount: document.getElementById("structureFileCount"),
+        structureFileStatus: document.getElementById("structureFileStatus"),
+        structureFileEmpty: document.getElementById("structureFileEmpty"),
+        structureReviewForm: document.getElementById("structureReviewForm"),
+        structureReviewStatus: document.getElementById("structureReviewStatus"),
+        structureReviewedBy: document.getElementById("structureReviewedBy"),
+        structureReviewNotes: document.getElementById("structureReviewNotes"),
+        structureReviewMessage: document.getElementById("structureReviewMessage"),
+        saveStructureReviewButton: document.getElementById("saveStructureReviewButton"),
+        sampleReviewSection: document.getElementById("sampleReviewSection"),
+        sampleReviewForm: document.getElementById("sampleReviewForm"),
+        sampleReviewDecision: document.getElementById("sampleReviewDecision"),
+        sampleReviewedBy: document.getElementById("sampleReviewedBy"),
+        sampleInternalNotes: document.getElementById("sampleInternalNotes"),
+        sampleScopeReasonWrap: document.getElementById("sampleScopeReasonWrap"),
+        sampleScopeReason: document.getElementById("sampleScopeReason"),
+        sampleCustomerMessageWrap: document.getElementById("sampleCustomerMessageWrap"),
+        sampleCustomerMessage: document.getElementById("sampleCustomerMessage"),
+        sampleCustomerMessageHelp: document.getElementById("sampleCustomerMessageHelp"),
+        sampleReviewBadge: document.getElementById("sampleReviewBadge"),
+        sampleEmailPreviewTitle: document.getElementById("sampleEmailPreviewTitle"),
+        sampleEmailPreviewBody: document.getElementById("sampleEmailPreviewBody"),
+        sampleEmailStatusLabel: document.getElementById("sampleEmailStatusLabel"),
+        sampleEmailStatusMeta: document.getElementById("sampleEmailStatusMeta"),
+        sampleReviewMessage: document.getElementById("sampleReviewMessage"),
+        saveSampleReviewButton: document.getElementById("saveSampleReviewButton"),
+        sendSampleReviewEmailButton: document.getElementById("sendSampleReviewEmailButton"),
         dispatchSection: document.getElementById("dispatchSection"),
         dispatchLabelForm: document.getElementById("dispatchLabelForm"),
         dispatchLabelStatus: document.getElementById("dispatchLabelStatus"),
@@ -121,7 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             button.classList.add("is-active");
             state.view = button.dataset.view;
-            state.type = ["project", "contact"].includes(state.view)
+            state.type = ["project", "sample_request", "contact"].includes(state.view)
                 ? state.view
                 : "";
             state.status = "";
@@ -183,6 +217,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.artworkGrid?.addEventListener("click", handleArtworkGridClick);
     elements.artworkReviewForm?.addEventListener("submit", saveArtworkReview);
+    elements.structureFileGrid?.addEventListener("click", handleStructureGridClick);
+    elements.structureReviewForm?.addEventListener("submit", saveStructureReview);
+    elements.sampleReviewForm?.addEventListener("submit", saveSampleReview);
+    elements.sampleReviewDecision?.addEventListener("change", updateSampleReviewDecisionUi);
+    elements.sampleCustomerMessage?.addEventListener("input", renderSampleEmailPreview);
+    elements.sendSampleReviewEmailButton?.addEventListener("click", sendSampleReviewEmail);
 
     elements.dispatchLabelForm?.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -235,6 +275,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     elements.detailCreateQuoteButton.addEventListener("click", function () {
         const submission = state.selectedSubmission;
+
+        if (
+            submission?.submission_type === "sample_request" &&
+            state.sampleReview?.decision !== "ready_for_sample_quote"
+        ) {
+            window.alert(
+                "This sample request must be marked Ready for sample quotation before a quotation can be created."
+            );
+            return;
+        }
+
         closeDetail();
         openQuotationBuilder(submission);
     });
@@ -381,6 +432,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById("navAllCount").textContent = data.stats.total;
         document.getElementById("navProjectCount").textContent = data.stats.projects;
+        document.getElementById("navSampleCount").textContent = data.stats.samples || 0;
         document.getElementById("navContactCount").textContent = data.stats.contacts;
 
         try {
@@ -461,11 +513,13 @@ document.addEventListener("DOMContentLoaded", function () {
         elements.viewTitle.textContent =
             state.view === "project"
                 ? "Project briefs"
-                : state.view === "contact"
-                    ? "Contact messages"
-                    : isQuotationView
-                        ? "Quotations"
-                        : "All enquiries";
+                : state.view === "sample_request"
+                    ? "Sample requests"
+                    : state.view === "contact"
+                        ? "Contact messages"
+                        : isQuotationView
+                            ? "Quotations"
+                            : "All enquiries";
 
         elements.createQuotationButton.hidden = false;
 
@@ -487,7 +541,14 @@ document.addEventListener("DOMContentLoaded", function () {
             ["follow_up", "Follow up"],
             ["won", "Won"],
             ["lost", "Lost"],
-            ["archived", "Archived"]
+            ["archived", "Archived"],
+            ["sample_requested", "Sample requested"],
+            ["sample_quoted", "Sample quoted"],
+            ["sample_paid", "Sample paid"],
+            ["sample_in_production", "Sample in production"],
+            ["sample_ready", "Sample ready"],
+            ["sample_approved", "Sample approved"],
+            ["sample_revision", "Sample revision"]
         ];
 
         const options = isQuotationView
@@ -533,7 +594,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     <span class="crm-type-badge">
                         ${submission.submission_type === "project"
                             ? "Project"
-                            : "Contact"}
+                            : submission.submission_type === "sample_request"
+                                ? "Sample"
+                                : "Contact"}
                     </span>
                 </td>
                 <td>
@@ -618,9 +681,11 @@ document.addEventListener("DOMContentLoaded", function () {
             state.selectedSubmission = submission;
 
             document.getElementById("detailType").textContent =
-                submission.submission_type === "project"
-                    ? "PROJECT BRIEF"
-                    : "CONTACT ENQUIRY";
+                submission.submission_type === "sample_request"
+                    ? "SAMPLE REQUEST"
+                    : submission.submission_type === "project"
+                        ? "PROJECT BRIEF"
+                        : "CONTACT ENQUIRY";
 
             document.getElementById("detailReference").textContent =
                 submission.reference;
@@ -656,7 +721,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             elements.detailStatus.value = submission.status;
             renderPayload(submission.payload || {});
+            await loadSampleReview(submission);
             await setupDispatchLabelForSubmission(submission);
+            await loadSubmissionStructure(submission);
             await loadSubmissionArtwork(submission);
 
             elements.detailBackdrop.hidden = false;
@@ -673,6 +740,275 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function sampleDecisionLabel(decision) {
+        return {
+            pending_review: "Pending review",
+            ready_for_sample_quote: "Ready for sample quotation",
+            needs_clarification: "Needs clarification",
+            cannot_proceed_production: "Cannot proceed — production limitation",
+            cannot_proceed_scope: "Cannot proceed — outside Luxsome scope"
+        }[decision] || "Pending review";
+    }
+
+    function isSampleSubmission(submission) {
+        return submission?.submission_type === "sample_request" ||
+            String(submission?.status || "").startsWith("sample_");
+    }
+
+    async function loadSampleReview(submission) {
+        if (!elements.sampleReviewSection) return;
+
+        const isSample = isSampleSubmission(submission);
+        elements.sampleReviewSection.hidden = !isSample;
+        state.sampleReview = null;
+
+        if (!isSample) {
+            elements.detailCreateQuoteButton.disabled = false;
+            elements.detailCreateQuoteButton.title = "";
+            return;
+        }
+
+        elements.sampleReviewMessage.textContent = "Loading sample review...";
+
+        try {
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(submission.reference)}/sample-review`
+            );
+
+            state.sampleReview = data.review || {
+                decision: "pending_review"
+            };
+
+            renderSampleReview(state.sampleReview);
+            elements.sampleReviewMessage.textContent = "";
+        } catch (error) {
+            elements.sampleReviewMessage.textContent =
+                error.message || "The sample review could not be loaded.";
+            renderSampleReview({ decision: "pending_review" });
+        }
+    }
+
+    function renderSampleReview(review) {
+        const decision = review.decision || "pending_review";
+
+        elements.sampleReviewDecision.value = decision;
+        elements.sampleReviewedBy.value = review.reviewedBy || "";
+        elements.sampleInternalNotes.value = review.internalNotes || "";
+        elements.sampleScopeReason.value = review.scopeReason || "";
+        elements.sampleCustomerMessage.value = review.customerMessage || "";
+
+        elements.sampleReviewBadge.textContent = sampleDecisionLabel(decision);
+        elements.sampleReviewBadge.dataset.decision = decision;
+
+        if (review.emailStatus === "sent" && review.emailSentAt) {
+            elements.sampleEmailStatusLabel.textContent = "Customer notified";
+            elements.sampleEmailStatusMeta.textContent =
+                `${formatDate(review.emailSentAt)}${review.emailSendCount > 1
+                    ? ` · sent ${review.emailSendCount} times`
+                    : ""}`;
+        } else if (review.emailStatus === "failed") {
+            elements.sampleEmailStatusLabel.textContent = "Email failed";
+            elements.sampleEmailStatusMeta.textContent =
+                review.emailError || "Use Save & send customer email to retry.";
+        } else {
+            elements.sampleEmailStatusLabel.textContent = "Customer not notified";
+            elements.sampleEmailStatusMeta.textContent = "";
+        }
+
+        updateSampleReviewDecisionUi();
+        updateSampleQuoteGate();
+    }
+
+    function updateSampleQuoteGate() {
+        if (!isSampleSubmission(state.selectedSubmission)) {
+            elements.detailCreateQuoteButton.disabled = false;
+            elements.detailCreateQuoteButton.title = "";
+            return;
+        }
+
+        const allowed =
+            state.sampleReview?.decision === "ready_for_sample_quote";
+
+        elements.detailCreateQuoteButton.disabled = !allowed;
+        elements.detailCreateQuoteButton.title = allowed
+            ? "Create the sample production quotation."
+            : "Mark this request Ready for sample quotation first.";
+
+        elements.detailCreateQuoteButton.textContent =
+            allowed ? "Create sample quotation" : "Sample quotation locked";
+    }
+
+    function updateSampleReviewDecisionUi() {
+        const decision = elements.sampleReviewDecision.value;
+        const outsideScope = decision === "cannot_proceed_scope";
+        const pending = decision === "pending_review";
+
+        elements.sampleScopeReasonWrap.hidden = !outsideScope;
+        elements.sampleCustomerMessageWrap.hidden = outsideScope || pending;
+
+        if (outsideScope) {
+            elements.sampleCustomerMessage.value = "";
+        }
+
+        if (decision === "needs_clarification") {
+            elements.sampleCustomerMessageHelp.textContent =
+                "Required: tell the customer exactly what information or clarification is needed.";
+        } else if (decision === "cannot_proceed_production") {
+            elements.sampleCustomerMessageHelp.textContent =
+                "Required: give the customer a clear production-related reason. You may mention an alternative only if appropriate.";
+        } else {
+            elements.sampleCustomerMessageHelp.textContent =
+                "Optional: add a short note that will appear in the customer email.";
+        }
+
+        renderSampleEmailPreview();
+    }
+
+    function renderSampleEmailPreview() {
+        const decision = elements.sampleReviewDecision.value;
+        const customerName =
+            state.selectedSubmission?.customer_name ||
+            state.selectedSubmission?.brand_name ||
+            "there";
+        const reference = state.selectedReference || "—";
+        const message = elements.sampleCustomerMessage.value.trim();
+
+        const templates = {
+            pending_review: {
+                title: "No customer email",
+                body: "Save the review internally. No decision email is sent while the request is pending."
+            },
+            ready_for_sample_quote: {
+                title: `Your Luxsome sample request can proceed — ${reference}`,
+                body:
+                    `Hi ${customerName},\n\n` +
+                    `We’ve completed our review of your sample request and are pleased to confirm that it can proceed to the sample-production quotation stage.` +
+                    (message ? `\n\n${message}` : "") +
+                    `\n\nOur team will prepare the sample quotation. Once it is approved and payment is confirmed, the sample can be scheduled for production.`
+            },
+            needs_clarification: {
+                title: `We need a few details for your sample request — ${reference}`,
+                body:
+                    `Hi ${customerName},\n\n` +
+                    `We’ve reviewed your sample request and need some additional information before we can confirm it for sample production.` +
+                    (message ? `\n\nWhat we need:\n${message}` : "")
+            },
+            cannot_proceed_production: {
+                title: `Update on your Luxsome sample request — ${reference}`,
+                body:
+                    `Hi ${customerName},\n\n` +
+                    `After reviewing your sample request, we’re unable to proceed with the requested specification in its current form.` +
+                    (message ? `\n\n${message}` : "")
+            },
+            cannot_proceed_scope: {
+                title: `Update on your Luxsome Packaging request — ${reference}`,
+                body:
+                    `Hi ${customerName},\n\n` +
+                    `Thank you for your interest in Luxsome Packaging and for submitting your packaging request.\n\n` +
+                    `After reviewing your request, we’re unable to proceed with this project as it falls outside the scope of projects we currently undertake.\n\n` +
+                    `We appreciate your interest in working with Luxsome Packaging.`
+            }
+        };
+
+        const template = templates[decision] || templates.pending_review;
+        elements.sampleEmailPreviewTitle.textContent = template.title;
+        elements.sampleEmailPreviewBody.textContent = template.body;
+    }
+
+    function validateSampleReviewForm(forEmail) {
+        const decision = elements.sampleReviewDecision.value;
+        const customerMessage = elements.sampleCustomerMessage.value.trim();
+        const scopeReason = elements.sampleScopeReason.value;
+
+        if (forEmail && decision === "pending_review") {
+            throw new Error("Choose a review decision before sending an email.");
+        }
+
+        if (
+            ["needs_clarification", "cannot_proceed_production"].includes(decision) &&
+            !customerMessage
+        ) {
+            throw new Error("Add the customer-facing message for this decision.");
+        }
+
+        if (decision === "cannot_proceed_scope" && !scopeReason) {
+            throw new Error("Select the private internal scope classification.");
+        }
+
+        return {
+            decision,
+            reviewedBy: elements.sampleReviewedBy.value.trim(),
+            internalNotes: elements.sampleInternalNotes.value.trim(),
+            customerMessage: decision === "cannot_proceed_scope"
+                ? ""
+                : customerMessage,
+            scopeReason
+        };
+    }
+
+    async function saveSampleReview(event) {
+        event.preventDefault();
+
+        if (!state.selectedReference) return;
+
+        try {
+            const payload = validateSampleReviewForm(false);
+            elements.saveSampleReviewButton.disabled = true;
+            elements.sampleReviewMessage.textContent = "Saving decision...";
+
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(state.selectedReference)}/sample-review`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            state.sampleReview = data.review;
+            renderSampleReview(data.review);
+            elements.sampleReviewMessage.textContent = "Sample review decision saved.";
+        } catch (error) {
+            elements.sampleReviewMessage.textContent =
+                error.message || "The sample review could not be saved.";
+        } finally {
+            elements.saveSampleReviewButton.disabled = false;
+        }
+    }
+
+    async function sendSampleReviewEmail() {
+        if (!state.selectedReference) return;
+
+        try {
+            const payload = validateSampleReviewForm(true);
+            elements.sendSampleReviewEmailButton.disabled = true;
+            elements.saveSampleReviewButton.disabled = true;
+            elements.sampleReviewMessage.textContent =
+                "Saving decision and sending customer email...";
+
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(state.selectedReference)}/sample-review/send-email`,
+                {
+                    method: "POST",
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            state.sampleReview = data.review;
+            renderSampleReview(data.review);
+            elements.sampleReviewMessage.textContent =
+                "Decision saved and customer email sent.";
+
+            await Promise.all([loadStats(), loadSubmissions()]);
+        } catch (error) {
+            elements.sampleReviewMessage.textContent =
+                error.message || "The customer email could not be sent.";
+        } finally {
+            elements.sendSampleReviewEmailButton.disabled = false;
+            elements.saveSampleReviewButton.disabled = false;
+        }
+    }
+
+
     function renderPayload(payload) {
         elements.payloadList.replaceChildren();
 
@@ -683,7 +1019,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     ![
                         "artwork_upload_id",
                         "artwork_object_keys",
-                        "artwork_uploaded"
+                        "artwork_uploaded",
+                        "custom_box_upload_id",
+                        "custom_box_object_keys",
+                        "custom_box_file_names"
                     ].includes(key) &&
                     value !== "" &&
                     value !== null &&
@@ -1142,13 +1481,362 @@ window.addEventListener("load", function () {
         }
     }
 
+    function submissionConfiguration(payload) {
+        const source =
+            payload && typeof payload === "object"
+                ? payload
+                : {};
+
+        const candidate =
+            source.shop_configuration ||
+            source.configuration ||
+            source.project_configuration ||
+            {};
+
+        if (
+            candidate &&
+            typeof candidate === "object" &&
+            !Array.isArray(candidate)
+        ) {
+            return candidate;
+        }
+
+        try {
+            const parsed = JSON.parse(
+                String(candidate || "{}")
+            );
+
+            return (
+                parsed &&
+                typeof parsed === "object" &&
+                !Array.isArray(parsed)
+            )
+                ? parsed
+                : {};
+        } catch (_) {
+            return {};
+        }
+    }
+
+    function structureReviewLabel(status) {
+        return {
+            pending_review: "Pending review",
+            can_produce: "Can produce",
+            needs_clarification: "Needs clarification",
+            cannot_produce: "Cannot produce"
+        }[status] || "Pending review";
+    }
+
+    function renderStructureReview(review) {
+        const status =
+            review.status || "pending_review";
+
+        elements.structureReviewStatus.value =
+            status;
+
+        elements.structureReviewedBy.value =
+            review.reviewedBy || "";
+
+        elements.structureReviewNotes.value =
+            review.notes || "";
+
+        elements.structureReviewBadge.textContent =
+            structureReviewLabel(status);
+
+        elements.structureReviewBadge.dataset.status =
+            status;
+    }
+
+    async function loadSubmissionStructure(submission) {
+        if (!elements.structureSection) return;
+
+        const payload = submission.payload || {};
+        const configuration =
+            submissionConfiguration(payload);
+
+        const boxStyle =
+            configuration.custom_box_style ||
+            configuration.box_style ||
+            payload.custom_box_style ||
+            payload.box_style ||
+            "";
+
+        const uploadId =
+            configuration.custom_box_upload_id ||
+            payload.custom_box_upload_id ||
+            "";
+
+        const hasCustomStructure =
+            String(boxStyle)
+                .trim()
+                .toLowerCase() ===
+                "custom box structure" ||
+            Boolean(String(uploadId || "").trim());
+
+        elements.structureSection.hidden =
+            !hasCustomStructure;
+
+        if (!hasCustomStructure) {
+            state.structureFiles = [];
+            return;
+        }
+
+        elements.structureBoxStyle.textContent =
+            boxStyle || "Custom box structure";
+
+        elements.structureCustomerNotes.textContent =
+            configuration.custom_box_structure_notes ||
+            payload.custom_box_structure_notes ||
+            "No structural notes supplied.";
+
+        elements.structureFileGrid.replaceChildren();
+        elements.structureFileEmpty.hidden = true;
+        elements.structureFileStatus.textContent =
+            "Loading structural design files...";
+        elements.structureFileCount.textContent =
+            "0 files";
+        elements.structureReviewMessage.textContent =
+            "";
+        state.structureFiles = [];
+
+        try {
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(
+                    submission.reference
+                )}/structure-files`
+            );
+
+            state.structureFiles =
+                Array.isArray(data.files)
+                    ? data.files.map(file => ({
+                        ...file,
+                        source: "structure"
+                    }))
+                    : [];
+
+            if (data.structure) {
+                elements.structureBoxStyle.textContent =
+                    data.structure.boxStyle ||
+                    elements.structureBoxStyle.textContent;
+
+                elements.structureCustomerNotes.textContent =
+                    data.structure.notes ||
+                    "No structural notes supplied.";
+            }
+
+            renderStructureFiles(
+                state.structureFiles
+            );
+
+            renderStructureReview(
+                data.review || {}
+            );
+
+            elements.structureFileStatus.textContent =
+                "";
+            elements.structureFileStatus.classList.remove(
+                "is-error"
+            );
+        } catch (error) {
+            elements.structureFileStatus.textContent =
+                error.message ||
+                "Structural design files could not be loaded.";
+
+            elements.structureFileStatus.classList.add(
+                "is-error"
+            );
+
+            elements.structureFileEmpty.hidden =
+                false;
+        }
+    }
+
+    function renderStructureFiles(files) {
+        elements.structureFileGrid.replaceChildren();
+
+        const count = files.length;
+
+        elements.structureFileCount.textContent =
+            `${count} ${count === 1 ? "file" : "files"}`;
+
+        elements.structureFileEmpty.hidden =
+            count > 0;
+
+        files.forEach(function (file) {
+            const card =
+                document.createElement("article");
+
+            card.className =
+                "crm-artwork-card crm-structure-file-card";
+
+            const previewable =
+                Boolean(file.previewable);
+
+            const typeLabel =
+                file.extension
+                    ? file.extension.toUpperCase()
+                    : "FILE";
+
+            card.innerHTML = `
+                <div class="crm-artwork-card__preview" data-structure-preview-area>
+                    <span class="crm-artwork-card__type">
+                        ${escapeHtml(typeLabel)}
+                    </span>
+                    <span class="crm-artwork-card__icon" aria-hidden="true">
+                        ${escapeHtml(artworkTypeIcon(file.extension))}
+                    </span>
+                </div>
+
+                <div class="crm-artwork-card__content">
+                    <strong title="${escapeHtml(file.name)}">
+                        ${escapeHtml(file.name)}
+                    </strong>
+
+                    <p>
+                        ${escapeHtml(formatFileSize(file.size))}
+                        ${file.uploadedAt
+                            ? ` · ${escapeHtml(formatDate(file.uploadedAt))}`
+                            : ""}
+                    </p>
+
+                    <div class="crm-artwork-card__actions">
+                        ${previewable
+                            ? `<button
+                                    type="button"
+                                    data-structure-action="preview"
+                                    data-structure-key="${escapeHtml(file.key)}"
+                               >
+                                    Preview
+                               </button>`
+                            : ""}
+
+                        <button
+                            type="button"
+                            data-structure-action="download"
+                            data-structure-key="${escapeHtml(file.key)}"
+                        >
+                            Download
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            elements.structureFileGrid.appendChild(
+                card
+            );
+
+            if (file.thumbnailable) {
+                loadArtworkThumbnail(
+                    file,
+                    card.querySelector(
+                        "[data-structure-preview-area]"
+                    )
+                );
+            }
+        });
+    }
+
+    function handleStructureGridClick(event) {
+        const button = event.target.closest(
+            "[data-structure-action]"
+        );
+
+        if (!button) return;
+
+        const file =
+            state.structureFiles.find(
+                item =>
+                    item.key ===
+                    button.dataset.structureKey
+            );
+
+        if (!file) return;
+
+        if (
+            button.dataset.structureAction ===
+            "preview"
+        ) {
+            previewArtwork(file);
+        } else {
+            downloadArtwork(file);
+        }
+    }
+
+    async function saveStructureReview(event) {
+        event.preventDefault();
+
+        if (!state.selectedReference) return;
+
+        const button =
+            elements.saveStructureReviewButton;
+
+        elements.structureReviewMessage.textContent =
+            "Saving assessment...";
+
+        button.disabled = true;
+
+        try {
+            const data = await apiRequest(
+                `/admin/submissions/${encodeURIComponent(
+                    state.selectedReference
+                )}/structure-review`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        status:
+                            elements.structureReviewStatus.value,
+                        reviewedBy:
+                            elements.structureReviewedBy.value.trim(),
+                        notes:
+                            elements.structureReviewNotes.value.trim()
+                    })
+                }
+            );
+
+            renderStructureReview(
+                data.review || {}
+            );
+
+            elements.structureReviewMessage.textContent =
+                "Structural assessment saved.";
+        } catch (error) {
+            elements.structureReviewMessage.textContent =
+                error.message ||
+                "The structural assessment could not be saved.";
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+
     async function loadSubmissionArtwork(submission) {
         if (!elements.artworkSection) return;
 
-        const isProject = submission.submission_type === "project";
-        elements.artworkSection.hidden = !isProject;
+        const payload = submission.payload || {};
 
-        if (!isProject) {
+        const configuration = submissionConfiguration(payload);
+
+        const artworkEligible = (
+            ["project", "sample_request"].includes(
+                submission.submission_type
+            ) ||
+            String(submission.status || "")
+                .startsWith("sample_") ||
+            String(
+                payload.project_intent ||
+                configuration.project_intent ||
+                ""
+            ).toLowerCase() === "sample_first" ||
+            String(
+                payload.request_type ||
+                configuration.request_type ||
+                ""
+            ).toLowerCase() === "sample request"
+        );
+
+        elements.artworkSection.hidden = !artworkEligible;
+
+        if (!artworkEligible) {
             return;
         }
 
@@ -1159,6 +1847,7 @@ window.addEventListener("load", function () {
         elements.artworkGrid.replaceChildren();
         elements.artworkEmpty.hidden = true;
         elements.artworkStatus.textContent = "Loading artwork files...";
+        elements.artworkStatus.classList.remove("is-error");
         elements.artworkCount.textContent = "0 files";
         elements.artworkReviewMessage.textContent = "";
 
@@ -1170,9 +1859,13 @@ window.addEventListener("load", function () {
             );
 
             state.artworkFiles = Array.isArray(data.files)
-                ? data.files
+                ? data.files.map(file => ({
+                    ...file,
+                    source: "artwork"
+                }))
                 : [];
 
+            elements.artworkSection.hidden = false;
             renderArtworkFiles(state.artworkFiles);
             renderArtworkReview(data.review || {});
             elements.artworkStatus.textContent = "";
@@ -1396,10 +2089,15 @@ window.addEventListener("load", function () {
             disposition
         });
 
+        const fileRoute =
+            file.source === "structure"
+                ? "structure-files/file"
+                : "artwork/file";
+
         const response = await fetch(
             `${API_BASE}/admin/submissions/${encodeURIComponent(
                 state.selectedReference
-            )}/artwork/file?${params.toString()}`,
+            )}/${fileRoute}?${params.toString()}`,
             {
                 headers: {
                     Authorization: `Bearer ${state.token}`

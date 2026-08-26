@@ -258,6 +258,75 @@ async function handleAdminRequest(request, env, url) {
             );
         }
 
+        const sampleReviewEmailMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/sample-review\/send-email$/
+        );
+
+        if (sampleReviewEmailMatch && request.method === "POST") {
+            return await handleAdminSampleReviewEmail(
+                request,
+                env,
+                sampleReviewEmailMatch[1]
+            );
+        }
+
+        const sampleReviewMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/sample-review$/
+        );
+
+        if (sampleReviewMatch && request.method === "GET") {
+            return await handleAdminSampleReviewGet(
+                request,
+                env,
+                sampleReviewMatch[1]
+            );
+        }
+
+        if (sampleReviewMatch && request.method === "PATCH") {
+            return await handleAdminSampleReviewUpdate(
+                request,
+                env,
+                sampleReviewMatch[1]
+            );
+        }
+
+        const structureFileMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/structure-files\/file$/
+        );
+
+        if (structureFileMatch && request.method === "GET") {
+            return await handleAdminStructureFile(
+                request,
+                env,
+                url,
+                structureFileMatch[1]
+            );
+        }
+
+        const structureListMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/structure-files$/
+        );
+
+        if (structureListMatch && request.method === "GET") {
+            return await handleAdminStructureList(
+                request,
+                env,
+                structureListMatch[1]
+            );
+        }
+
+        const structureReviewMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/structure-review$/
+        );
+
+        if (structureReviewMatch && request.method === "PATCH") {
+            return await handleAdminStructureReviewUpdate(
+                request,
+                env,
+                structureReviewMatch[1]
+            );
+        }
+
         const detailMatch = url.pathname.match(
             /^\/admin\/submissions\/([A-Z0-9-]+)$/
         );
@@ -3788,6 +3857,7 @@ async function handleAdminStats(request, env) {
         SELECT
             COUNT(*) AS total,
             SUM(CASE WHEN submission_type = 'project' THEN 1 ELSE 0 END) AS projects,
+            SUM(CASE WHEN submission_type = 'sample_request' THEN 1 ELSE 0 END) AS samples,
             SUM(CASE WHEN submission_type = 'contact' THEN 1 ELSE 0 END) AS contacts,
             SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) AS new_count,
             SUM(CASE WHEN status = 'reviewing' THEN 1 ELSE 0 END) AS reviewing,
@@ -3818,6 +3888,7 @@ async function handleAdminStats(request, env) {
             stats: {
                 total: Number(totals?.total || 0),
                 projects: Number(totals?.projects || 0),
+                samples: Number(totals?.samples || 0),
                 contacts: Number(totals?.contacts || 0),
                 new: Number(totals?.new_count || 0),
                 reviewing: Number(totals?.reviewing || 0),
@@ -3843,10 +3914,17 @@ async function handleAdminSubmissionList(request, env, url) {
         "follow_up",
         "won",
         "lost",
-        "archived"
+        "archived",
+        "sample_requested",
+        "sample_quoted",
+        "sample_paid",
+        "sample_in_production",
+        "sample_ready",
+        "sample_approved",
+        "sample_revision"
     ]);
 
-    const allowedTypes = new Set(["project", "contact"]);
+    const allowedTypes = new Set(["project", "sample_request", "contact"]);
     const requestedStatus = text(url.searchParams.get("status"));
     const requestedType = text(url.searchParams.get("type"));
     const search = text(url.searchParams.get("search")).slice(0, 100);
@@ -4437,6 +4515,1228 @@ function getSubmissionArtworkObjectKeys(payload) {
     );
 }
 
+
+function getSubmissionStructureContext(payload) {
+    const configuration =
+        parseProjectConfiguration(payload);
+
+    const uploadId =
+        normaliseArtworkUploadId(
+            payload?.custom_box_upload_id ||
+            configuration?.custom_box_upload_id
+        );
+
+    const rawKeys =
+        payload?.custom_box_object_keys ||
+        configuration?.custom_box_object_keys ||
+        "";
+
+    const keys =
+        Array.isArray(rawKeys)
+            ? rawKeys
+            : String(rawKeys)
+                .split(",")
+                .map(item => item.trim())
+                .filter(Boolean);
+
+    const objectKeys =
+        new Set(
+            keys.filter(
+                key =>
+                    key.startsWith(
+                        "incoming/"
+                    )
+            )
+        );
+
+    const boxStyle =
+        text(
+            payload?.box_style ||
+            configuration?.box_style ||
+            payload?.custom_box_style ||
+            configuration?.custom_box_style
+        );
+
+    const notes =
+        text(
+            payload?.custom_box_structure_notes ||
+            configuration?.custom_box_structure_notes
+        );
+
+    return {
+        uploadId,
+        objectKeys,
+        boxStyle,
+        notes,
+        hasCustomStructure:
+            boxStyle
+                .trim()
+                .toLowerCase() ===
+                "custom box structure" ||
+            Boolean(uploadId)
+    };
+}
+
+async function ensureStructureReviewTable(db) {
+    await db.prepare(`
+        CREATE TABLE IF NOT EXISTS project_structure_reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_reference TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'pending_review',
+            notes TEXT,
+            reviewed_by TEXT,
+            reviewed_at TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (project_reference)
+                REFERENCES submissions(reference)
+                ON DELETE CASCADE
+        )
+    `).run();
+
+    await db.prepare(`
+        CREATE INDEX IF NOT EXISTS
+            idx_project_structure_reviews_reference
+        ON project_structure_reviews(project_reference)
+    `).run();
+}
+
+function normaliseStructureReviewRow(row) {
+    return {
+        status:
+            text(row?.status) ||
+            "pending_review",
+        notes:
+            text(row?.notes),
+        reviewedBy:
+            text(row?.reviewed_by),
+        reviewedAt:
+            row?.reviewed_at || null,
+        updatedAt:
+            row?.updated_at || null
+    };
+}
+
+function serialiseArtworkObject(object) {
+    const extension =
+        getArtworkExtension(object.key);
+
+    const originalName =
+        text(
+            object.customMetadata
+                ?.originalName
+        ) ||
+        object.key.split("/").pop() ||
+        "Uploaded file";
+
+    return {
+        key: object.key,
+        name: originalName,
+        extension,
+        size:
+            Number(object.size || 0),
+        uploadedAt:
+            text(
+                object.customMetadata
+                    ?.uploadedAt
+            ) ||
+            object.uploaded
+                ?.toISOString?.() ||
+            null,
+        contentType:
+            text(
+                object.httpMetadata
+                    ?.contentType
+            ) ||
+            artworkContentTypeFromExtension(
+                extension
+            ),
+        kind:
+            artworkFileKind(
+                extension
+            ),
+        previewable:
+            [
+                "jpg",
+                "jpeg",
+                "png",
+                "webp",
+                "pdf"
+            ].includes(
+                extension
+            ),
+        thumbnailable:
+            [
+                "jpg",
+                "jpeg",
+                "png",
+                "webp"
+            ].includes(
+                extension
+            )
+    };
+}
+
+async function listArtworkObjectsByUploadId(
+    bucket,
+    uploadId,
+    allowedKeys
+) {
+    const prefix =
+        `incoming/${uploadId}/`;
+
+    const listedObjects = [];
+    let cursor;
+
+    do {
+        const result =
+            await bucket.list({
+                prefix,
+                cursor,
+                limit: 1000,
+                include: [
+                    "httpMetadata",
+                    "customMetadata"
+                ]
+            });
+
+        listedObjects.push(
+            ...(result.objects || [])
+        );
+
+        cursor =
+            result.truncated
+                ? result.cursor
+                : undefined;
+    } while (cursor);
+
+    return listedObjects
+        .filter(object => (
+            !allowedKeys.size ||
+            allowedKeys.has(object.key)
+        ))
+        .map(serialiseArtworkObject)
+        .sort((left, right) => (
+            String(left.name)
+                .localeCompare(
+                    String(right.name)
+                )
+        ));
+}
+
+async function handleAdminStructureList(
+    request,
+    env,
+    reference
+) {
+    if (!env.ARTWORK_BUCKET) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Artwork storage is not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    const submission =
+        await getSubmissionWithPayload(
+            env.DB,
+            reference
+        );
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const structure =
+        getSubmissionStructureContext(
+            submission.payload
+        );
+
+    await ensureStructureReviewTable(
+        env.DB
+    );
+
+    const reviewRow =
+        await env.DB.prepare(`
+            SELECT
+                status,
+                notes,
+                reviewed_by,
+                reviewed_at,
+                updated_at
+            FROM project_structure_reviews
+            WHERE project_reference = ?
+            LIMIT 1
+        `).bind(reference).first();
+
+    if (!structure.uploadId) {
+        return jsonResponse(
+            {
+                success: true,
+                files: [],
+                structure: {
+                    boxStyle:
+                        structure.boxStyle,
+                    notes:
+                        structure.notes,
+                    hasCustomStructure:
+                        structure.hasCustomStructure
+                },
+                review:
+                    normaliseStructureReviewRow(
+                        reviewRow
+                    )
+            },
+            200,
+            request,
+            env
+        );
+    }
+
+    const files =
+        await listArtworkObjectsByUploadId(
+            env.ARTWORK_BUCKET,
+            structure.uploadId,
+            structure.objectKeys
+        );
+
+    return jsonResponse(
+        {
+            success: true,
+            files,
+            structure: {
+                boxStyle:
+                    structure.boxStyle,
+                notes:
+                    structure.notes,
+                hasCustomStructure:
+                    structure.hasCustomStructure
+            },
+            review:
+                normaliseStructureReviewRow(
+                    reviewRow
+                )
+        },
+        200,
+        request,
+        env
+    );
+}
+
+async function handleAdminStructureFile(
+    request,
+    env,
+    url,
+    reference
+) {
+    if (!env.ARTWORK_BUCKET) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Artwork storage is not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    const submission =
+        await getSubmissionWithPayload(
+            env.DB,
+            reference
+        );
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const structure =
+        getSubmissionStructureContext(
+            submission.payload
+        );
+
+    const key =
+        text(
+            url.searchParams.get(
+                "key"
+            )
+        );
+
+    if (
+        !structure.uploadId ||
+        !key ||
+        !key.startsWith(
+            `incoming/${structure.uploadId}/`
+        ) ||
+        key.includes("..") ||
+        key.includes("\\")
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "The requested structural file is invalid."
+            },
+            400,
+            request,
+            env
+        );
+    }
+
+    if (
+        structure.objectKeys.size &&
+        !structure.objectKeys.has(key)
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "This structural file does not belong to the project."
+            },
+            403,
+            request,
+            env
+        );
+    }
+
+    const object =
+        await env.ARTWORK_BUCKET.get(
+            key
+        );
+
+    if (!object) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Structural file not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const extension =
+        getArtworkExtension(key);
+
+    const originalName =
+        text(
+            object.customMetadata
+                ?.originalName
+        ) ||
+        key.split("/").pop() ||
+        "structural-file";
+
+    const requestedDisposition =
+        text(
+            url.searchParams.get(
+                "disposition"
+            )
+        ).toLowerCase();
+
+    const disposition =
+        requestedDisposition ===
+        "attachment"
+            ? "attachment"
+            : "inline";
+
+    const headers =
+        new Headers();
+
+    object.writeHttpMetadata(
+        headers
+    );
+
+    headers.set(
+        "Content-Type",
+        headers.get(
+            "Content-Type"
+        ) ||
+        artworkContentTypeFromExtension(
+            extension
+        )
+    );
+
+    headers.set(
+        "Content-Disposition",
+        `${disposition}; filename="${safeDownloadName(originalName)}"`
+    );
+
+    headers.set(
+        "Cache-Control",
+        "private, no-store"
+    );
+
+    const origin =
+        request.headers.get(
+            "Origin"
+        );
+
+    if (
+        isAllowedOrigin(
+            origin,
+            env
+        )
+    ) {
+        for (
+            const [
+                header,
+                value
+            ] of Object.entries(
+                corsHeaders(origin)
+            )
+        ) {
+            headers.set(
+                header,
+                value
+            );
+        }
+    }
+
+    return new Response(
+        object.body,
+        {
+            status: 200,
+            headers
+        }
+    );
+}
+
+
+async function ensureSampleReviewTable(db) {
+    await db.prepare(`
+        CREATE TABLE IF NOT EXISTS sample_request_reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            submission_reference TEXT NOT NULL UNIQUE,
+            decision TEXT NOT NULL DEFAULT 'pending_review',
+            internal_notes TEXT,
+            customer_message TEXT,
+            scope_reason TEXT,
+            reviewed_by TEXT,
+            reviewed_at TEXT,
+            email_status TEXT NOT NULL DEFAULT 'not_sent',
+            email_sent_at TEXT,
+            email_send_count INTEGER NOT NULL DEFAULT 0,
+            resend_email_id TEXT,
+            email_error TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (submission_reference)
+                REFERENCES submissions(reference)
+                ON DELETE CASCADE
+        )
+    `).run();
+
+    await db.prepare(`
+        CREATE INDEX IF NOT EXISTS idx_sample_request_reviews_reference
+        ON sample_request_reviews(submission_reference)
+    `).run();
+}
+
+function normaliseSampleReviewRow(row) {
+    return {
+        decision: text(row?.decision) || "pending_review",
+        internalNotes: text(row?.internal_notes),
+        customerMessage: text(row?.customer_message),
+        scopeReason: text(row?.scope_reason),
+        reviewedBy: text(row?.reviewed_by),
+        reviewedAt: row?.reviewed_at || null,
+        emailStatus: text(row?.email_status) || "not_sent",
+        emailSentAt: row?.email_sent_at || null,
+        emailSendCount: Number(row?.email_send_count || 0),
+        emailId: text(row?.resend_email_id),
+        emailError: text(row?.email_error),
+        updatedAt: row?.updated_at || null
+    };
+}
+
+async function getSampleSubmissionForReview(db, reference) {
+    const submission = await db.prepare(`
+        SELECT
+            reference,
+            submission_type,
+            status,
+            customer_name,
+            brand_name,
+            email,
+            phone,
+            payload_json
+        FROM submissions
+        WHERE reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!submission) return null;
+
+    const isSample =
+        submission.submission_type === "sample_request" ||
+        String(submission.status || "").startsWith("sample_");
+
+    if (!isSample) return { ...submission, isSample: false, payload: {} };
+
+    let payload = {};
+    try {
+        payload = JSON.parse(submission.payload_json || "{}");
+    } catch (_) {
+        payload = {};
+    }
+
+    return { ...submission, isSample: true, payload };
+}
+
+function validateSampleReviewDecision(body, { forEmail = false } = {}) {
+    const allowed = new Set([
+        "pending_review",
+        "ready_for_sample_quote",
+        "needs_clarification",
+        "cannot_proceed_production",
+        "cannot_proceed_scope"
+    ]);
+
+    const decision = text(body?.decision);
+    const internalNotes = text(body?.internalNotes).slice(0, 4000);
+    const customerMessage = text(body?.customerMessage).slice(0, 2000);
+    const scopeReason = text(body?.scopeReason).slice(0, 120);
+    const reviewedBy = text(body?.reviewedBy).slice(0, 120);
+
+    if (!allowed.has(decision)) {
+        return { error: "Please select a valid sample review decision." };
+    }
+
+    if (forEmail && decision === "pending_review") {
+        return { error: "A pending review cannot be emailed to the customer." };
+    }
+
+    if (
+        ["needs_clarification", "cannot_proceed_production"].includes(decision) &&
+        !customerMessage
+    ) {
+        return {
+            error:
+                "A customer-facing message is required for this review decision."
+        };
+    }
+
+    if (decision === "cannot_proceed_scope" && !scopeReason) {
+        return {
+            error:
+                "Select the private internal scope classification before continuing."
+        };
+    }
+
+    return {
+        data: {
+            decision,
+            internalNotes,
+            customerMessage:
+                decision === "cannot_proceed_scope"
+                    ? ""
+                    : customerMessage,
+            scopeReason:
+                decision === "cannot_proceed_scope"
+                    ? scopeReason
+                    : "",
+            reviewedBy
+        }
+    };
+}
+
+async function readSampleReview(db, reference) {
+    await ensureSampleReviewTable(db);
+
+    return await db.prepare(`
+        SELECT *
+        FROM sample_request_reviews
+        WHERE submission_reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+}
+
+async function saveSampleReviewRecord(db, reference, data, options = {}) {
+    await ensureSampleReviewTable(db);
+
+    const existing = await readSampleReview(db, reference);
+    const now = options.now || new Date().toISOString();
+    const reviewedAt =
+        data.decision === "pending_review"
+            ? null
+            : now;
+
+    const emailStatus =
+        options.emailStatus ??
+        text(existing?.email_status) ??
+        "not_sent";
+
+    const emailSentAt =
+        options.emailSentAt !== undefined
+            ? options.emailSentAt
+            : existing?.email_sent_at || null;
+
+    const emailSendCount =
+        options.emailSendCount !== undefined
+            ? options.emailSendCount
+            : Number(existing?.email_send_count || 0);
+
+    const emailId =
+        options.emailId !== undefined
+            ? options.emailId
+            : text(existing?.resend_email_id) || null;
+
+    const emailError =
+        options.emailError !== undefined
+            ? options.emailError
+            : text(existing?.email_error) || null;
+
+    await db.prepare(`
+        INSERT INTO sample_request_reviews (
+            submission_reference,
+            decision,
+            internal_notes,
+            customer_message,
+            scope_reason,
+            reviewed_by,
+            reviewed_at,
+            email_status,
+            email_sent_at,
+            email_send_count,
+            resend_email_id,
+            email_error,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(submission_reference) DO UPDATE SET
+            decision = excluded.decision,
+            internal_notes = excluded.internal_notes,
+            customer_message = excluded.customer_message,
+            scope_reason = excluded.scope_reason,
+            reviewed_by = excluded.reviewed_by,
+            reviewed_at = excluded.reviewed_at,
+            email_status = excluded.email_status,
+            email_sent_at = excluded.email_sent_at,
+            email_send_count = excluded.email_send_count,
+            resend_email_id = excluded.resend_email_id,
+            email_error = excluded.email_error,
+            updated_at = excluded.updated_at
+    `).bind(
+        reference,
+        data.decision,
+        data.internalNotes || null,
+        data.customerMessage || null,
+        data.scopeReason || null,
+        data.reviewedBy || null,
+        reviewedAt,
+        emailStatus || "not_sent",
+        emailSentAt,
+        emailSendCount,
+        emailId,
+        emailError,
+        now,
+        now
+    ).run();
+
+    return await readSampleReview(db, reference);
+}
+
+async function handleAdminSampleReviewGet(request, env, reference) {
+    const submission = await getSampleSubmissionForReview(env.DB, reference);
+
+    if (!submission) {
+        return jsonResponse(
+            { success: false, message: "Submission not found." },
+            404, request, env
+        );
+    }
+
+    if (!submission.isSample) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Sample review is only available for sample requests."
+            },
+            422, request, env
+        );
+    }
+
+    const row = await readSampleReview(env.DB, reference);
+
+    return jsonResponse(
+        {
+            success: true,
+            review: normaliseSampleReviewRow(row)
+        },
+        200, request, env
+    );
+}
+
+async function handleAdminSampleReviewUpdate(request, env, reference) {
+    const submission = await getSampleSubmissionForReview(env.DB, reference);
+
+    if (!submission) {
+        return jsonResponse(
+            { success: false, message: "Submission not found." },
+            404, request, env
+        );
+    }
+
+    if (!submission.isSample) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Sample review is only available for sample requests."
+            },
+            422, request, env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const validation = validateSampleReviewDecision(body);
+
+    if (validation.error) {
+        return jsonResponse(
+            { success: false, message: validation.error },
+            422, request, env
+        );
+    }
+
+    const row = await saveSampleReviewRecord(
+        env.DB,
+        reference,
+        validation.data
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Sample review decision saved.",
+            review: normaliseSampleReviewRow(row)
+        },
+        200, request, env
+    );
+}
+
+function buildSampleReviewEmail({
+    submission,
+    decision,
+    customerMessage
+}) {
+    const recipientName =
+        text(submission.customer_name) ||
+        text(submission.brand_name) ||
+        "there";
+
+    const reference = text(submission.reference);
+
+    const subjects = {
+        ready_for_sample_quote:
+            `Your Luxsome sample request can proceed — ${reference}`,
+        needs_clarification:
+            `We need a few details for your sample request — ${reference}`,
+        cannot_proceed_production:
+            `Update on your Luxsome sample request — ${reference}`,
+        cannot_proceed_scope:
+            `Update on your Luxsome Packaging request — ${reference}`
+    };
+
+    let mainCopy = "";
+    let messageBlock = "";
+
+    if (decision === "ready_for_sample_quote") {
+        mainCopy =
+            "We’ve completed our review of your sample request and are pleased to confirm that it can proceed to the sample-production quotation stage.";
+
+        if (customerMessage) {
+            messageBlock = `
+                <div style="margin:22px 0;padding:16px 18px;background:#f8f4ef;border-left:3px solid #2e1c15;">
+                    ${escapeHtml(customerMessage).replace(/\n/g, "<br>")}
+                </div>
+            `;
+        }
+
+        mainCopy +=
+            " Our team will now prepare the sample quotation. Once the quotation is approved and payment is confirmed, the sample can be scheduled for production.";
+    } else if (decision === "needs_clarification") {
+        mainCopy =
+            "We’ve reviewed your sample request and need a few additional details before we can confirm it for sample production.";
+
+        messageBlock = `
+            <div style="margin:22px 0;padding:16px 18px;background:#f8f4ef;border-left:3px solid #2e1c15;">
+                <strong style="display:block;margin-bottom:8px;color:#2e1c15;">What we need</strong>
+                ${escapeHtml(customerMessage).replace(/\n/g, "<br>")}
+            </div>
+        `;
+    } else if (decision === "cannot_proceed_production") {
+        mainCopy =
+            "After reviewing your sample request, we’re unable to proceed with the requested specification in its current form.";
+
+        messageBlock = `
+            <div style="margin:22px 0;padding:16px 18px;background:#f8f4ef;border-left:3px solid #2e1c15;">
+                ${escapeHtml(customerMessage).replace(/\n/g, "<br>")}
+            </div>
+        `;
+    } else {
+        /*
+         * IMPORTANT:
+         * Internal scope_reason is deliberately not accepted by this template.
+         * The customer must never receive the private classification.
+         */
+        mainCopy =
+            "Thank you for your interest in Luxsome Packaging and for submitting your packaging request. After reviewing your request, we’re unable to proceed with this project as it falls outside the scope of projects we currently undertake.";
+        messageBlock = `
+            <p style="margin:20px 0 0;color:#4d3a31;line-height:1.7;">
+                We appreciate your interest in working with Luxsome Packaging.
+            </p>
+        `;
+    }
+
+    const html = `
+        <div style="margin:0;padding:32px 16px;background:#f8f4ef;font-family:Arial,Helvetica,sans-serif;color:#2e1c15;">
+            <div style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #e4ddd7;">
+                <div style="padding:28px 30px;border-bottom:1px solid #e4ddd7;">
+                    <div style="font-size:22px;font-weight:700;letter-spacing:.04em;">LUXSOME</div>
+                    <div style="margin-top:4px;font-size:11px;letter-spacing:.18em;color:#8b7163;">PACKAGING</div>
+                </div>
+                <div style="padding:30px;">
+                    <p style="margin:0 0 18px;">Hi ${escapeHtml(recipientName)},</p>
+                    <p style="margin:0;color:#4d3a31;line-height:1.75;">${mainCopy}</p>
+                    ${messageBlock}
+                    <div style="margin-top:26px;padding-top:20px;border-top:1px solid #e4ddd7;">
+                        <div style="font-size:11px;letter-spacing:.08em;color:#8b7163;">PROJECT REFERENCE</div>
+                        <strong style="display:block;margin-top:5px;">${escapeHtml(reference)}</strong>
+                    </div>
+                    <p style="margin:28px 0 0;line-height:1.7;">
+                        Kind regards,<br>
+                        <strong>Luxsome Packaging</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    return {
+        subject: subjects[decision],
+        html
+    };
+}
+
+async function handleAdminSampleReviewEmail(request, env, reference) {
+    if (!env.RESEND_API_KEY || !env.FROM_EMAIL) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Sample review email delivery is not configured."
+            },
+            500, request, env
+        );
+    }
+
+    const submission = await getSampleSubmissionForReview(env.DB, reference);
+
+    if (!submission) {
+        return jsonResponse(
+            { success: false, message: "Submission not found." },
+            404, request, env
+        );
+    }
+
+    if (!submission.isSample) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Sample review email is only available for sample requests."
+            },
+            422, request, env
+        );
+    }
+
+    const customerEmail = text(submission.email).toLowerCase();
+
+    if (!isValidEmail(customerEmail)) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Please add a valid customer email before sending."
+            },
+            422, request, env
+        );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const validation = validateSampleReviewDecision(body, { forEmail: true });
+
+    if (validation.error) {
+        return jsonResponse(
+            { success: false, message: validation.error },
+            422, request, env
+        );
+    }
+
+    const data = validation.data;
+    const existing = await readSampleReview(env.DB, reference);
+    const now = new Date().toISOString();
+
+    // Save the review first, but mark the delivery as pending.
+    await saveSampleReviewRecord(env.DB, reference, data, {
+        now,
+        emailStatus: "sending",
+        emailError: null
+    });
+
+    const email = buildSampleReviewEmail({
+        submission,
+        decision: data.decision,
+        customerMessage: data.customerMessage
+    });
+
+    const emailPayload = {
+        from: env.FROM_EMAIL,
+        to: [customerEmail],
+        subject: email.subject,
+        html: email.html
+    };
+
+    if (env.REPLY_TO_EMAIL) {
+        emailPayload.reply_to = env.REPLY_TO_EMAIL;
+    }
+
+    const resendResponse = await fetch(RESEND_EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${env.RESEND_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(emailPayload)
+    });
+
+    const resendData = await safeJson(resendResponse);
+
+    if (!resendResponse.ok) {
+        const errorMessage =
+            text(resendData?.message) ||
+            "Resend rejected the email request.";
+
+        const failedRow = await saveSampleReviewRecord(
+            env.DB,
+            reference,
+            data,
+            {
+                now: new Date().toISOString(),
+                emailStatus: "failed",
+                emailError: errorMessage,
+                emailSendCount: Number(existing?.email_send_count || 0)
+            }
+        );
+
+        return jsonResponse(
+            {
+                success: false,
+                message: "The sample review email could not be sent.",
+                error: errorMessage,
+                review: normaliseSampleReviewRow(failedRow)
+            },
+            502, request, env
+        );
+    }
+
+    const sentAt = new Date().toISOString();
+    const sentRow = await saveSampleReviewRecord(
+        env.DB,
+        reference,
+        data,
+        {
+            now: sentAt,
+            emailStatus: "sent",
+            emailSentAt: sentAt,
+            emailSendCount: Number(existing?.email_send_count || 0) + 1,
+            emailId: text(resendData?.id) || null,
+            emailError: null
+        }
+    );
+
+    return jsonResponse(
+        {
+            success: true,
+            message: "Sample review email sent to the customer.",
+            review: normaliseSampleReviewRow(sentRow)
+        },
+        200, request, env
+    );
+}
+
+
+async function handleAdminStructureReviewUpdate(
+    request,
+    env,
+    reference
+) {
+    const submission =
+        await getSubmissionWithPayload(
+            env.DB,
+            reference
+        );
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const structure =
+        getSubmissionStructureContext(
+            submission.payload
+        );
+
+    if (
+        !structure.hasCustomStructure
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Structural feasibility review is only available for bespoke custom box structures."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const body =
+        await request
+            .json()
+            .catch(() => ({}));
+
+    const allowedStatuses =
+        new Set([
+            "pending_review",
+            "can_produce",
+            "needs_clarification",
+            "cannot_produce"
+        ]);
+
+    const status =
+        text(body.status);
+
+    if (
+        !allowedStatuses.has(
+            status
+        )
+    ) {
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "Please select a valid structural review status."
+            },
+            422,
+            request,
+            env
+        );
+    }
+
+    const notes =
+        text(body.notes)
+            .slice(0, 4000);
+
+    const reviewedBy =
+        text(body.reviewedBy)
+            .slice(0, 120);
+
+    const now =
+        new Date()
+            .toISOString();
+
+    const reviewedAt =
+        status ===
+        "pending_review"
+            ? null
+            : now;
+
+    await ensureStructureReviewTable(
+        env.DB
+    );
+
+    await env.DB.prepare(`
+        INSERT INTO project_structure_reviews (
+            project_reference,
+            status,
+            notes,
+            reviewed_by,
+            reviewed_at,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(project_reference) DO UPDATE SET
+            status = excluded.status,
+            notes = excluded.notes,
+            reviewed_by = excluded.reviewed_by,
+            reviewed_at = excluded.reviewed_at,
+            updated_at = excluded.updated_at
+    `).bind(
+        reference,
+        status,
+        notes || null,
+        reviewedBy || null,
+        reviewedAt,
+        now,
+        now
+    ).run();
+
+    return jsonResponse(
+        {
+            success: true,
+            message:
+                "Structural assessment saved.",
+            review: {
+                status,
+                notes,
+                reviewedBy,
+                reviewedAt,
+                updatedAt:
+                    now
+            }
+        },
+        200,
+        request,
+        env
+    );
+}
+
+
 async function ensureArtworkReviewTable(db) {
     await db.prepare(`
         CREATE TABLE IF NOT EXISTS project_artwork_reviews (
@@ -4511,7 +5811,14 @@ async function handleAdminSubmissionUpdate(request, env, reference) {
         "follow_up",
         "won",
         "lost",
-        "archived"
+        "archived",
+        "sample_requested",
+        "sample_quoted",
+        "sample_paid",
+        "sample_in_production",
+        "sample_ready",
+        "sample_approved",
+        "sample_revision"
     ]);
     const status = text(body.status);
 
@@ -9331,6 +10638,8 @@ async function handleAdminQuotationCreate(request, env) {
         submission = await env.DB.prepare(`
             SELECT
                 reference,
+                submission_type,
+                status,
                 customer_name,
                 brand_name,
                 email,
@@ -9350,6 +10659,32 @@ async function handleAdminQuotationCreate(request, env) {
                 request,
                 env
             );
+        }
+
+        const isSampleSubmission =
+            submission.submission_type === "sample_request" ||
+            String(submission.status || "").startsWith("sample_");
+
+        if (isSampleSubmission) {
+            const sampleReview = await readSampleReview(
+                env.DB,
+                submission.reference
+            );
+
+            if (
+                text(sampleReview?.decision) !== "ready_for_sample_quote"
+            ) {
+                return jsonResponse(
+                    {
+                        success: false,
+                        message:
+                            "This sample request must be marked Ready for sample quotation before a quotation can be created."
+                    },
+                    409,
+                    request,
+                    env
+                );
+            }
         }
     }
 
@@ -9444,11 +10779,24 @@ async function handleAdminQuotationCreate(request, env) {
     );
 
     if (data.submissionReference) {
+        const nextSubmissionStatus =
+            submission &&
+            (
+                submission.submission_type === "sample_request" ||
+                String(submission.status || "").startsWith("sample_")
+            )
+                ? "sample_quoted"
+                : "quoted";
+
         await env.DB.prepare(`
             UPDATE submissions
-            SET status = 'quoted', updated_at = ?
+            SET status = ?, updated_at = ?
             WHERE reference = ?
-        `).bind(now, data.submissionReference).run();
+        `).bind(
+            nextSubmissionStatus,
+            now,
+            data.submissionReference
+        ).run();
     }
 
     return jsonResponse(

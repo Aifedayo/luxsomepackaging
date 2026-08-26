@@ -1,0 +1,132 @@
+
+/* =========================================================
+   LUXSOME CRM — SHARED SIDEBAR
+   Used by /admin/ and /admin/orders/
+========================================================= */
+
+.crm-sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.crm-sidebar__inner {
+    min-height: 0;
+}
+
+.crm-nav {
+    display: grid;
+    gap: 22px;
+}
+
+.crm-nav__group {
+    display: grid;
+    gap: 5px;
+}
+
+.crm-nav__label {
+    margin: 0 0 5px;
+    padding: 0 14px;
+    color: rgba(255, 255, 255, 0.46);
+    font: 600 0.59rem/1.2 "Montserrat", Arial, sans-serif;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.crm-nav__item,
+.crm-nav__item:visited {
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.72);
+    font: 500 0.72rem/1.35 "Montserrat", Arial, sans-serif;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+        background 150ms ease,
+        color 150ms ease,
+        padding-left 150ms ease;
+}
+
+.crm-nav__item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    padding-left: 18px;
+}
+
+.crm-nav__item.is-active,
+.crm-nav__item[aria-current="page"] {
+    background: rgba(255, 255, 255, 0.10);
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.crm-nav__item small {
+    flex: 0 0 auto;
+    min-width: 18px;
+    color: rgba(255, 255, 255, 0.48);
+    font-size: 0.61rem;
+    text-align: right;
+}
+
+.crm-nav__item.is-active small,
+.crm-nav__item[aria-current="page"] small {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.crm-nav__divider {
+    height: 1px;
+    margin: 2px 14px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.crm-sidebar__footer {
+    padding-top: 18px;
+}
+
+.crm-sidebar__logout {
+    width: 100%;
+}
+
+/*
+ * Orders still uses its own page/content CSS. These rules only adapt its
+ * outer shell to the shared CRM sidebar without changing order forms,
+ * panels, tables or production behavior.
+ */
+body.crm-orders-page .app {
+    display: grid;
+    grid-template-columns: var(--crm-sidebar-width, 260px) minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+body.crm-orders-page .app > .crm-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+body.crm-orders-page .app > main {
+    min-width: 0;
+}
+
+@media (max-width: 900px) {
+    body.crm-orders-page .app {
+        display: block;
+    }
+
+    body.crm-orders-page .app > .crm-sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+}

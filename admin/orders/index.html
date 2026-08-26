@@ -28,6 +28,7 @@
     >
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
+    <link rel="stylesheet" href="/css/crm-sidebar.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
     <link
         rel="stylesheet"
@@ -39,28 +40,67 @@
     >
 </head>
 
-<body>
+<body class="crm-orders-page">
     <div class="app">
-        <aside>
-            <div data-luxsome-crm-logo></div>
+        <aside class="crm-sidebar" id="crmSidebar">
+            <div class="crm-sidebar__inner">
+                <div data-luxsome-crm-logo></div>
 
-            <nav>
-                <a href="/admin/">Enquiries</a>
-                <a href="/admin/">Quotations</a>
-                <a href="/admin/invoices/">Invoices</a>
-                <a
-                    class="active"
-                    href="/admin/orders/"
-                >
-                    Orders
-                </a>
+                <nav class="crm-nav" aria-label="CRM navigation">
+                    <section class="crm-nav__group" aria-labelledby="navOverviewLabel">
+                        <p id="navOverviewLabel" class="crm-nav__label">Overview</p>
 
-                <a href="/admin/production/">
-                    Production
-                </a>
-            </nav>
+                        <a class="crm-nav__item" href="/admin/">
+                            <span>Dashboard</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+                    </section>
 
-            <button id="logout">Lock dashboard</button>
+                    <section class="crm-nav__group" aria-labelledby="navSalesLabel">
+                        <p id="navSalesLabel" class="crm-nav__label">Sales</p>
+
+                        <a class="crm-nav__item" href="/admin/">
+                            <span>Enquiries</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a class="crm-nav__item" href="/admin/">
+                            <span>Quotations</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a class="crm-nav__item" href="/admin/invoices/">
+                            <span>Invoices</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+                    </section>
+
+                    <section class="crm-nav__group" aria-labelledby="navOperationsLabel">
+                        <p id="navOperationsLabel" class="crm-nav__label">Operations</p>
+
+                        <a class="crm-nav__item is-active" href="/admin/orders/" aria-current="page">
+                            <span>Orders</span>
+                            <small>Current</small>
+                        </a>
+
+                        <a class="crm-nav__item" href="/admin/production/">
+                            <span>Production</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a class="crm-nav__item" href="/admin/inventory/">
+                            <span>Inventory</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+                    </section>
+                </nav>
+            </div>
+
+            <div class="crm-sidebar__footer">
+                <button id="logout" class="crm-sidebar__logout" type="button">
+                    Lock dashboard
+                </button>
+            </div>
         </aside>
 
         <main>

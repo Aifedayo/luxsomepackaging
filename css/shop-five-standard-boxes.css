@@ -393,3 +393,22 @@
         flex-basis: 38px;
     }
 }
+
+
+.custom-structure-upload__verification {
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid rgba(103, 54, 41, 0.10);
+    background: #fffdf9;
+}
+
+.custom-structure-upload__verification::before {
+    content: "Secure upload verification";
+    display: block;
+    margin-bottom: 8px;
+    color: #806b60;
+    font-size: .56rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
