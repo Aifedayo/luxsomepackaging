@@ -4,6 +4,8 @@ const PAYSTACK_API_BASE = "https://api.paystack.co";
 const PAYSTACK_WEBHOOK_PATH = "/webhooks/paystack";
 const PROJECT_PATH = "/project";
 const CONTACT_PATH = "/contact";
+const QUOTATION_REQUEST_PATH = "/quotation-requests";
+const SAMPLE_REQUEST_PATH = "/sample-requests";
 const HEALTH_PATH = "/health";
 const ADMIN_PATH = "/admin";
 const ARTWORK_PATH = "/artwork";
@@ -140,9 +142,16 @@ export default {
                 return await handleAdminRequest(request, env, url);
             }
 
+            const publicFormPaths = [
+                PROJECT_PATH,
+                CONTACT_PATH,
+                QUOTATION_REQUEST_PATH,
+                SAMPLE_REQUEST_PATH
+            ];
+
             if (
                 request.method !== "POST" ||
-                ![PROJECT_PATH, CONTACT_PATH].includes(url.pathname)
+                !publicFormPaths.includes(url.pathname)
             ) {
                 return jsonResponse(
                     {
@@ -169,6 +178,22 @@ export default {
 
             if (url.pathname === CONTACT_PATH) {
                 return await handleContactSubmission(request, env);
+            }
+
+            if (url.pathname === QUOTATION_REQUEST_PATH) {
+                return await handleWebsiteSalesRequest(
+                    request,
+                    env,
+                    "quotation_request"
+                );
+            }
+
+            if (url.pathname === SAMPLE_REQUEST_PATH) {
+                return await handleWebsiteSalesRequest(
+                    request,
+                    env,
+                    "sample_request"
+                );
             }
 
             return await handleProjectSubmission(request, env);
@@ -324,6 +349,18 @@ async function handleAdminRequest(request, env, url) {
                 request,
                 env,
                 structureReviewMatch[1]
+            );
+        }
+
+        const sampleAttachmentMatch = url.pathname.match(
+            /^\/admin\/submissions\/([A-Z0-9-]+)\/sample-attachment$/
+        );
+
+        if (sampleAttachmentMatch && request.method === "GET") {
+            return await handleAdminSampleAttachment(
+                request,
+                env,
+                sampleAttachmentMatch[1]
             );
         }
 
@@ -3856,7 +3893,16 @@ async function handleAdminStats(request, env) {
     const totals = await env.DB.prepare(`
         SELECT
             COUNT(*) AS total,
-            SUM(CASE WHEN submission_type = 'project' THEN 1 ELSE 0 END) AS projects,
+            SUM(CASE
+                WHEN submission_type = 'project'
+                 AND COALESCE(json_extract(payload_json, '$.request_type'), '') != 'quotation_request'
+                THEN 1 ELSE 0 END
+            ) AS projects,
+            SUM(CASE
+                WHEN submission_type = 'project'
+                 AND json_extract(payload_json, '$.request_type') = 'quotation_request'
+                THEN 1 ELSE 0 END
+            ) AS quotation_requests,
             SUM(CASE WHEN submission_type = 'sample_request' THEN 1 ELSE 0 END) AS samples,
             SUM(CASE WHEN submission_type = 'contact' THEN 1 ELSE 0 END) AS contacts,
             SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) AS new_count,
@@ -3888,6 +3934,7 @@ async function handleAdminStats(request, env) {
             stats: {
                 total: Number(totals?.total || 0),
                 projects: Number(totals?.projects || 0),
+                quotationRequests: Number(totals?.quotation_requests || 0),
                 samples: Number(totals?.samples || 0),
                 contacts: Number(totals?.contacts || 0),
                 new: Number(totals?.new_count || 0),
@@ -3924,7 +3971,12 @@ async function handleAdminSubmissionList(request, env, url) {
         "sample_revision"
     ]);
 
-    const allowedTypes = new Set(["project", "sample_request", "contact"]);
+    const allowedTypes = new Set([
+        "project",
+        "quotation_request",
+        "sample_request",
+        "contact"
+    ]);
     const requestedStatus = text(url.searchParams.get("status"));
     const requestedType = text(url.searchParams.get("type"));
     const search = text(url.searchParams.get("search")).slice(0, 100);
@@ -3945,7 +3997,20 @@ async function handleAdminSubmissionList(request, env, url) {
         bindings.push(requestedStatus);
     }
 
-    if (allowedTypes.has(requestedType)) {
+    if (requestedType === "quotation_request") {
+        /*
+         * Keep the production submissions schema unchanged.
+         * Website quotation requests are stored as project submissions with a
+         * payload marker, then exposed to the CRM as their own virtual type.
+         */
+        where.push(
+            "submission_type = 'project' AND json_extract(payload_json, '$.request_type') = 'quotation_request'"
+        );
+    } else if (requestedType === "project") {
+        where.push(
+            "submission_type = 'project' AND COALESCE(json_extract(payload_json, '$.request_type'), '') != 'quotation_request'"
+        );
+    } else if (allowedTypes.has(requestedType)) {
         where.push("submission_type = ?");
         bindings.push(requestedType);
     }
@@ -3978,6 +4043,12 @@ async function handleAdminSubmissionList(request, env, url) {
             id,
             reference,
             submission_type,
+            CASE
+                WHEN submission_type = 'project'
+                 AND json_extract(payload_json, '$.request_type') = 'quotation_request'
+                THEN 'quotation_request'
+                ELSE submission_type
+            END AS display_type,
             status,
             customer_name,
             brand_name,
@@ -4007,6 +4078,99 @@ async function handleAdminSubmissionList(request, env, url) {
         request,
         env
     );
+}
+
+
+async function handleAdminSampleAttachment(request, env, reference) {
+    if (!env.ARTWORK_BUCKET) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Attachment storage is not configured."
+            },
+            500,
+            request,
+            env
+        );
+    }
+
+    const submission = await env.DB.prepare(`
+        SELECT payload_json
+        FROM submissions
+        WHERE reference = ?
+        LIMIT 1
+    `).bind(reference).first();
+
+    if (!submission) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "Submission not found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    let payload = {};
+
+    try {
+        payload = JSON.parse(submission.payload_json || "{}");
+    } catch (_) {
+        payload = {};
+    }
+
+    const attachment = payload?.attachment;
+
+    if (!attachment?.objectKey) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "No sample attachment was supplied."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const object = await env.ARTWORK_BUCKET.get(
+        attachment.objectKey
+    );
+
+    if (!object) {
+        return jsonResponse(
+            {
+                success: false,
+                message: "The sample attachment could not be found."
+            },
+            404,
+            request,
+            env
+        );
+    }
+
+    const headers = new Headers();
+    object.writeHttpMetadata(headers);
+    headers.set(
+        "Content-Type",
+        attachment.contentType ||
+            headers.get("Content-Type") ||
+            "application/octet-stream"
+    );
+    headers.set(
+        "Content-Disposition",
+        `inline; filename="${String(
+            attachment.originalName || "sample-reference"
+        ).replace(/["\r\n]/g, "_")}"`
+    );
+    headers.set("Cache-Control", "private, no-store");
+
+    return new Response(object.body, {
+        status: 200,
+        headers
+    });
 }
 
 async function handleAdminSubmissionDetail(request, env, reference) {
@@ -12632,6 +12796,602 @@ async function handleProjectSubmission(request, env) {
             env
         );
     }
+}
+
+
+async function handleWebsiteSalesRequest(request, env, requestType) {
+    try {
+        assertEnvironment(env);
+
+        const isSample = requestType === "sample_request";
+        const maxBytes = isSample ? 12_000_000 : 120_000;
+        const contentLength = Number(
+            request.headers.get("Content-Length") || 0
+        );
+
+        if (contentLength > maxBytes) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message: isSample
+                        ? "Your sample request is too large. Please use one JPG, PNG, WEBP or PDF file up to 10MB."
+                        : "Your quotation request is too large. Please shorten the notes and try again."
+                },
+                413,
+                request,
+                env
+            );
+        }
+
+        const formData = await request.formData();
+        const data = normaliseFormData(formData);
+
+        if (text(data._gotcha)) {
+            return jsonResponse(
+                {
+                    success: true,
+                    message: "Request received.",
+                    reference: generateWebsiteSalesReference(
+                        isSample ? "LSR" : "LQR"
+                    )
+                },
+                200,
+                request,
+                env
+            );
+        }
+
+        const brandName = text(data.brandName).slice(0, 100);
+        const customerName = text(
+            data.customerName || data.contactName || data.name
+        ).slice(0, 160);
+        const customerEmail = text(
+            data.emailAddress || data.email
+        ).toLowerCase().slice(0, 180);
+        const phoneNumber = text(data.phoneNumber || data.phone).slice(0, 60);
+        const customerNote = text(
+            data.customer_note || data.message
+        ).slice(0, 1500);
+        const selectedQuantity = text(
+            data.selected_quantity
+        ).slice(0, 80);
+        const sampleBasis = text(data.sample_basis).slice(0, 80);
+        const selectedProducts = parseWebsiteSelectedProducts(
+            data.selected_products_json || data.selected_products
+        );
+
+        const errors = validateWebsiteSalesRequest({
+            brandName,
+            customerEmail,
+            phoneNumber,
+            selectedProducts
+        });
+
+        if (errors.length) {
+            return jsonResponse(
+                {
+                    success: false,
+                    message: errors[0],
+                    errors: errors.map(message => ({ message }))
+                },
+                422,
+                request,
+                env
+            );
+        }
+
+        const reference = generateWebsiteSalesReference(
+            isSample ? "LSR" : "LQR"
+        );
+
+        let attachment = null;
+        const uploadedFile = formData.get("attachment");
+
+        if (
+            isSample &&
+            uploadedFile &&
+            typeof uploadedFile === "object" &&
+            typeof uploadedFile.arrayBuffer === "function" &&
+            Number(uploadedFile.size || 0) > 0
+        ) {
+            attachment = await storeWebsiteSampleAttachment(
+                env,
+                reference,
+                uploadedFile
+            );
+        }
+
+        /*
+         * `submissions.submission_type` currently has a CHECK constraint that
+         * accepts project/contact/sample_request. To avoid another risky table
+         * rebuild, quotation requests use submission_type=project plus a
+         * payload marker. The admin API exposes this as virtual type
+         * quotation_request.
+         */
+        const storedSubmissionType = isSample
+            ? "sample_request"
+            : "project";
+
+        const status = isSample
+            ? "sample_requested"
+            : "new";
+
+        const payload = {
+            request_type: requestType,
+            source: "contact_page",
+            selected_products_json: JSON.stringify(selectedProducts),
+            selected_products: selectedProducts,
+            quotation_items: selectedProducts,
+            selected_quantity: selectedQuantity,
+            sample_basis: isSample ? sampleBasis : "",
+            customer_note: customerNote,
+            message: customerNote,
+            attachment
+        };
+
+        const productSummary = selectedProducts
+            .map(item => item.product)
+            .filter(Boolean)
+            .join(", ");
+
+        const summary = [
+            isSample ? "Sample request" : "Quotation request",
+            productSummary,
+            selectedQuantity ? `Qty: ${selectedQuantity}` : ""
+        ].filter(Boolean).join(" · ").slice(0, 240);
+
+        await saveSubmission(env.DB, {
+            reference,
+            submissionType: storedSubmissionType,
+            status,
+            customerName,
+            brandName,
+            email: customerEmail,
+            phone: phoneNumber,
+            summary,
+            payload
+        });
+
+        let emailWarning = "";
+
+        try {
+            const resendResponse = await fetch(RESEND_BATCH_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${env.RESEND_API_KEY}`,
+                    "Content-Type": "application/json",
+                    "Idempotency-Key":
+                        `luxsome-${requestType}/${reference}`
+                },
+                body: JSON.stringify([
+                    {
+                        from: env.FROM_EMAIL,
+                        to: [env.INTERNAL_EMAIL],
+                        reply_to: customerEmail,
+                        subject:
+                            `${isSample ? "New Sample Request" : "New Quotation Request"} | ${reference} | ${brandName}`,
+                        html: buildWebsiteSalesInternalEmail({
+                            reference,
+                            requestType,
+                            brandName,
+                            customerName,
+                            customerEmail,
+                            phoneNumber,
+                            selectedProducts,
+                            selectedQuantity,
+                            sampleBasis,
+                            customerNote,
+                            attachment
+                        }),
+                        text: buildWebsiteSalesInternalText({
+                            reference,
+                            requestType,
+                            brandName,
+                            customerName,
+                            customerEmail,
+                            phoneNumber,
+                            selectedProducts,
+                            selectedQuantity,
+                            sampleBasis,
+                            customerNote,
+                            attachment
+                        }),
+                        tags: [
+                            {
+                                name: "email_type",
+                                value: isSample
+                                    ? "internal_sample_request"
+                                    : "internal_quotation_request"
+                            },
+                            {
+                                name: "enquiry_reference",
+                                value: tagValue(reference)
+                            }
+                        ]
+                    },
+                    {
+                        from: env.FROM_EMAIL,
+                        to: [customerEmail],
+                        reply_to: env.REPLY_TO_EMAIL,
+                        subject:
+                            `${isSample ? "We received your sample request" : "We received your quotation request"} — ${reference}`,
+                        html: buildWebsiteSalesCustomerEmail({
+                            reference,
+                            requestType,
+                            brandName,
+                            selectedProducts,
+                            selectedQuantity
+                        }),
+                        text: buildWebsiteSalesCustomerText({
+                            reference,
+                            requestType,
+                            brandName,
+                            selectedProducts,
+                            selectedQuantity
+                        }),
+                        tags: [
+                            {
+                                name: "email_type",
+                                value: isSample
+                                    ? "customer_sample_confirmation"
+                                    : "customer_quotation_confirmation"
+                            },
+                            {
+                                name: "enquiry_reference",
+                                value: tagValue(reference)
+                            }
+                        ]
+                    }
+                ])
+            });
+
+            const resendData = await safeJson(resendResponse);
+
+            if (!resendResponse.ok) {
+                emailWarning =
+                    "The request was saved, but the confirmation email could not be sent.";
+                await updateSubmissionEmailStatus(
+                    env.DB,
+                    reference,
+                    "failed",
+                    JSON.stringify(resendData || {})
+                );
+            } else {
+                await updateSubmissionEmailStatus(
+                    env.DB,
+                    reference,
+                    "sent",
+                    ""
+                );
+            }
+        } catch (emailError) {
+            console.error("Website sales request email failed", {
+                reference,
+                emailError
+            });
+            emailWarning =
+                "The request was saved, but the confirmation email could not be sent.";
+            await updateSubmissionEmailStatus(
+                env.DB,
+                reference,
+                "failed",
+                String(emailError?.message || emailError)
+            );
+        }
+
+        return jsonResponse(
+            {
+                success: true,
+                message: isSample
+                    ? "Your sample request has been received."
+                    : "Your quotation request has been received.",
+                reference,
+                requestType,
+                emailWarning
+            },
+            201,
+            request,
+            env
+        );
+    } catch (error) {
+        console.error("Website sales request failed", {
+            requestType,
+            error
+        });
+
+        return jsonResponse(
+            {
+                success: false,
+                message:
+                    "We could not submit your request. Please check your connection and try again."
+            },
+            500,
+            request,
+            env
+        );
+    }
+}
+
+function validateWebsiteSalesRequest({
+    brandName,
+    customerEmail,
+    phoneNumber,
+    selectedProducts
+}) {
+    const errors = [];
+    const phoneDigits = phoneNumber.replace(/\D/g, "");
+
+    if (brandName.length < 2 || brandName.length > 100) {
+        errors.push("Please enter a valid brand name.");
+    }
+
+    if (
+        !/^\+?[0-9\s()-]+$/.test(phoneNumber) ||
+        phoneDigits.length < 10 ||
+        phoneDigits.length > 15
+    ) {
+        errors.push(
+            "Please enter a valid phone number with 10 to 15 digits."
+        );
+    }
+
+    if (!isValidEmail(customerEmail)) {
+        errors.push("Please enter a valid email address.");
+    }
+
+    if (!selectedProducts.length) {
+        errors.push("Please choose at least one packaging item.");
+    }
+
+    return [...new Set(errors)];
+}
+
+function parseWebsiteSelectedProducts(value) {
+    if (Array.isArray(value)) {
+        return normaliseWebsiteProductArray(value);
+    }
+
+    const raw = text(value);
+    if (!raw) return [];
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            return normaliseWebsiteProductArray(parsed);
+        }
+    } catch (_) {
+        // Fall through to comma-separated compatibility.
+    }
+
+    return raw
+        .split(",")
+        .map(item => item.trim())
+        .filter(Boolean)
+        .slice(0, 30)
+        .map(product => ({
+            category: "",
+            product: product.slice(0, 160)
+        }));
+}
+
+function normaliseWebsiteProductArray(items) {
+    return items
+        .slice(0, 30)
+        .map(item => {
+            if (typeof item === "string") {
+                return {
+                    category: "",
+                    product: text(item).slice(0, 160)
+                };
+            }
+
+            return {
+                category: text(
+                    item?.category || item?.group || item?.type
+                ).slice(0, 120),
+                product: text(
+                    item?.product ||
+                    item?.name ||
+                    item?.label ||
+                    item?.description
+                ).slice(0, 160)
+            };
+        })
+        .filter(item => item.product);
+}
+
+function generateWebsiteSalesReference(prefix) {
+    const now = new Date();
+    const date = [
+        now.getUTCFullYear(),
+        String(now.getUTCMonth() + 1).padStart(2, "0"),
+        String(now.getUTCDate()).padStart(2, "0")
+    ].join("");
+
+    const random =
+        crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000;
+
+    return `${prefix}-${date}-${random}`;
+}
+
+async function storeWebsiteSampleAttachment(env, reference, file) {
+    if (!env.ARTWORK_BUCKET) {
+        throw new Error(
+            "Sample attachment storage is not configured."
+        );
+    }
+
+    const allowedTypes = new Set([
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "application/pdf"
+    ]);
+
+    const size = Number(file.size || 0);
+    const contentType = text(file.type).toLowerCase();
+
+    if (!allowedTypes.has(contentType)) {
+        throw new Error(
+            "Please upload a JPG, PNG, WEBP or PDF file."
+        );
+    }
+
+    if (size > 10 * 1024 * 1024) {
+        throw new Error(
+            "The uploaded reference must not exceed 10MB."
+        );
+    }
+
+    const originalName =
+        text(file.name).replace(/[^\w.\- ()]/g, "_").slice(0, 180) ||
+        "sample-reference";
+
+    const extension =
+        originalName.includes(".")
+            ? originalName.split(".").pop().toLowerCase()
+            : contentType === "application/pdf"
+                ? "pdf"
+                : contentType === "image/png"
+                    ? "png"
+                    : contentType === "image/webp"
+                        ? "webp"
+                        : "jpg";
+
+    const objectKey =
+        `sample-requests/${reference}/${crypto.randomUUID()}.${extension}`;
+
+    await env.ARTWORK_BUCKET.put(
+        objectKey,
+        await file.arrayBuffer(),
+        {
+            httpMetadata: {
+                contentType
+            },
+            customMetadata: {
+                reference,
+                originalName
+            }
+        }
+    );
+
+    return {
+        objectKey,
+        originalName,
+        contentType,
+        size
+    };
+}
+
+function websiteSalesReferenceBlock(reference, label) {
+    return `<div style="margin:30px 0;padding:21px 24px;background:#2e1c15;text-align:center;">
+        <p style="margin:0 0 7px;color:#d5c1b4;font:600 10px Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;">${escapeHtml(label)}</p>
+        <p style="margin:0;color:#fff;font:400 23px/1.2 Georgia,serif;letter-spacing:1.5px;">${escapeHtml(reference)}</p>
+    </div>`;
+}
+
+function buildWebsiteSalesInternalEmail(data) {
+    const isSample = data.requestType === "sample_request";
+    const items = data.selectedProducts
+        .map(item => `<li style="margin:0 0 7px;">${escapeHtml(
+            item.category
+                ? `${item.category} — ${item.product}`
+                : item.product
+        )}</li>`)
+        .join("");
+
+    return emailShell(`
+        <p style="margin:0 0 10px;font:600 11px/1.4 Arial,sans-serif;letter-spacing:2.3px;text-transform:uppercase;color:#8d654d;">${isSample ? "New sample request" : "New quotation request"}</p>
+        <h1 style="margin:0 0 14px;font:400 34px/1.15 Georgia,serif;color:#2e1c15;">${escapeHtml(data.brandName)} is ready for the next step.</h1>
+        ${websiteSalesReferenceBlock(
+            data.reference,
+            isSample ? "Sample request reference" : "Quotation request reference"
+        )}
+        ${section("Contact details", [
+            row("Brand name", data.brandName),
+            row("Customer", data.customerName || "Not supplied"),
+            row("Email", data.customerEmail),
+            row("Phone", data.phoneNumber),
+            row("Requested quantity", data.selectedQuantity || "Not supplied"),
+            ...(isSample ? [row("Sample basis", data.sampleBasis || "Not supplied")] : [])
+        ])}
+        <div style="margin:28px 0 0;padding:22px 24px;background:#fff;border:1px solid #eadfd7;">
+            <p style="margin:0 0 10px;font:600 11px Arial,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#8d654d;">Requested packaging</p>
+            <ul style="margin:0;padding-left:20px;color:#3f3029;font:400 14px/1.65 Arial,sans-serif;">${items}</ul>
+        </div>
+        ${data.customerNote ? `<div style="margin:18px 0 0;padding:22px 24px;background:#fff;border:1px solid #eadfd7;"><p style="margin:0;white-space:pre-wrap;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;">${escapeHtml(data.customerNote)}</p></div>` : ""}
+        ${data.attachment ? `<p style="margin:18px 0;color:#6d574b;font:400 13px Arial,sans-serif;">Attachment saved: <strong>${escapeHtml(data.attachment.originalName)}</strong>. Open the request in the CRM to view it securely.</p>` : ""}
+    `, `${isSample ? "Sample request" : "Quotation request"} · ${data.reference}`);
+}
+
+function buildWebsiteSalesCustomerEmail(data) {
+    const isSample = data.requestType === "sample_request";
+    const itemNames = data.selectedProducts
+        .map(item => item.product)
+        .join(", ");
+
+    return emailShell(`
+        <div style="text-align:center;padding:5px 0 2px;">
+            <div style="width:54px;height:54px;margin:0 auto 22px;border:1px solid #a77b5f;border-radius:50%;font:400 28px/54px Georgia,serif;color:#7b513b;">✓</div>
+            <p style="margin:0 0 10px;font:600 11px/1.4 Arial,sans-serif;letter-spacing:2.3px;text-transform:uppercase;color:#8d654d;">${isSample ? "Sample request received" : "Quotation request received"}</p>
+            <h1 style="margin:0 0 15px;font:400 36px/1.15 Georgia,serif;color:#2e1c15;">Thank you, ${escapeHtml(data.brandName)}.</h1>
+            <p style="max-width:520px;margin:0 auto;color:#6d574b;font:400 15px/1.8 Arial,sans-serif;">${isSample ? "We will review your requested sample and any reference you supplied, then confirm the sample cost and next step." : "We will review your selected packaging and prepare the quotation details for you."}</p>
+        </div>
+        ${websiteSalesReferenceBlock(
+            data.reference,
+            isSample ? "Sample request reference" : "Quotation request reference"
+        )}
+        <div style="margin:28px 0;padding:24px;background:#fff;border:1px solid #eadfd7;">
+            <p style="margin:0 0 8px;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;"><strong>Requested:</strong> ${escapeHtml(itemNames)}</p>
+            ${data.selectedQuantity ? `<p style="margin:0;color:#3f3029;font:400 14px/1.75 Arial,sans-serif;"><strong>Approximate quantity:</strong> ${escapeHtml(data.selectedQuantity)}</p>` : ""}
+        </div>
+        <p style="margin:30px 0 0;text-align:center;color:#806b60;font:italic 15px/1.7 Georgia,serif;">Packaging created to be remembered.</p>
+    `, `${isSample ? "Sample request" : "Quotation request"} received · ${data.reference}`);
+}
+
+function buildWebsiteSalesInternalText(data) {
+    return [
+        `LUXSOME PACKAGING — ${data.requestType === "sample_request" ? "SAMPLE REQUEST" : "QUOTATION REQUEST"}`,
+        `Reference: ${data.reference}`,
+        `Brand: ${data.brandName}`,
+        `Customer: ${data.customerName || "Not supplied"}`,
+        `Email: ${data.customerEmail}`,
+        `Phone: ${data.phoneNumber}`,
+        `Quantity: ${data.selectedQuantity || "Not supplied"}`,
+        "",
+        "Requested packaging:",
+        ...data.selectedProducts.map(item =>
+            `- ${item.category ? `${item.category} — ` : ""}${item.product}`
+        ),
+        "",
+        data.customerNote ? `Notes: ${data.customerNote}` : "",
+        data.attachment
+            ? `Attachment: ${data.attachment.originalName}`
+            : ""
+    ].filter(Boolean).join("\n");
+}
+
+function buildWebsiteSalesCustomerText(data) {
+    return [
+        `Thank you, ${data.brandName}.`,
+        "",
+        data.requestType === "sample_request"
+            ? "We received your sample request."
+            : "We received your quotation request.",
+        `Reference: ${data.reference}`,
+        "",
+        `Requested: ${data.selectedProducts.map(item => item.product).join(", ")}`,
+        data.selectedQuantity
+            ? `Approximate quantity: ${data.selectedQuantity}`
+            : "",
+        "",
+        data.requestType === "sample_request"
+            ? "We will review the sample request and confirm the cost and next step."
+            : "We will review the request and prepare the next quotation step.",
+        "",
+        "Luxsome Packaging",
+        "hello@luxsomepackaging.com"
+    ].filter(Boolean).join("\n");
 }
 
 async function handleContactSubmission(request, env) {

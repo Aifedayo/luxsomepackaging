@@ -155,7 +155,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             button.classList.add("is-active");
             state.view = button.dataset.view;
-            state.type = ["project", "sample_request", "contact"].includes(state.view)
+            state.type = [
+                "project",
+                "quotation_request",
+                "sample_request",
+                "contact"
+            ].includes(state.view)
                 ? state.view
                 : "";
             state.status = "";
@@ -432,6 +437,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document.getElementById("navAllCount").textContent = data.stats.total;
         document.getElementById("navProjectCount").textContent = data.stats.projects;
+        const quotationRequestCount =
+            document.getElementById("navQuotationRequestCount");
+        if (quotationRequestCount) {
+            quotationRequestCount.textContent =
+                data.stats.quotationRequests || 0;
+        }
         document.getElementById("navSampleCount").textContent = data.stats.samples || 0;
         document.getElementById("navContactCount").textContent = data.stats.contacts;
 
@@ -513,13 +524,15 @@ document.addEventListener("DOMContentLoaded", function () {
         elements.viewTitle.textContent =
             state.view === "project"
                 ? "Project briefs"
-                : state.view === "sample_request"
-                    ? "Sample requests"
-                    : state.view === "contact"
-                        ? "Contact messages"
-                        : isQuotationView
-                            ? "Quotations"
-                            : "All enquiries";
+                : state.view === "quotation_request"
+                    ? "Quotation requests"
+                    : state.view === "sample_request"
+                        ? "Sample requests"
+                        : state.view === "contact"
+                            ? "Contact messages"
+                            : isQuotationView
+                                ? "Quotations"
+                                : "All enquiries";
 
         elements.createQuotationButton.hidden = false;
 
@@ -592,11 +605,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 </td>
                 <td>
                     <span class="crm-type-badge">
-                        ${submission.submission_type === "project"
-                            ? "Project"
-                            : submission.submission_type === "sample_request"
-                                ? "Sample"
-                                : "Contact"}
+                        ${submission.display_type === "quotation_request"
+                            ? "Quote request"
+                            : submission.submission_type === "project"
+                                ? "Project"
+                                : submission.submission_type === "sample_request"
+                                    ? "Sample"
+                                    : "Contact"}
                     </span>
                 </td>
                 <td>
@@ -681,11 +696,13 @@ document.addEventListener("DOMContentLoaded", function () {
             state.selectedSubmission = submission;
 
             document.getElementById("detailType").textContent =
-                submission.submission_type === "sample_request"
-                    ? "SAMPLE REQUEST"
-                    : submission.submission_type === "project"
-                        ? "PROJECT BRIEF"
-                        : "CONTACT ENQUIRY";
+                isWebsiteQuotationSubmission(submission)
+                    ? "QUOTATION REQUEST"
+                    : submission.submission_type === "sample_request"
+                        ? "SAMPLE REQUEST"
+                        : submission.submission_type === "project"
+                            ? "PROJECT BRIEF"
+                            : "CONTACT ENQUIRY";
 
             document.getElementById("detailReference").textContent =
                 submission.reference;
@@ -721,6 +738,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             elements.detailStatus.value = submission.status;
             renderPayload(submission.payload || {});
+            renderWebsiteSampleAttachment(submission);
             await loadSampleReview(submission);
             await setupDispatchLabelForSubmission(submission);
             await loadSubmissionStructure(submission);
@@ -2276,8 +2294,208 @@ window.addEventListener("load", function () {
         updateQuotationTotals();
     }
 
+
+    function isWebsiteQuotationSubmission(submission) {
+        const payload = normaliseSubmissionPayload(
+            submission?.payload
+        );
+
+        return (
+            submission?.display_type === "quotation_request" ||
+            payload?.request_type === "quotation_request"
+        );
+    }
+
+    function extractWebsiteRequestItems(payload) {
+        const source = normaliseSubmissionPayload(payload);
+        let selected =
+            source.selected_products ||
+            source.quotation_items ||
+            source.selected_products_json ||
+            [];
+
+        if (typeof selected === "string") {
+            try {
+                selected = JSON.parse(selected);
+            } catch (_) {
+                selected = selected
+                    .split(",")
+                    .map(value => value.trim())
+                    .filter(Boolean);
+            }
+        }
+
+        if (!Array.isArray(selected)) {
+            return [];
+        }
+
+        const quantityRange =
+            String(
+                source.selected_quantity ||
+                source.quantity_range ||
+                ""
+            ).trim();
+
+        return selected
+            .map(function (item, index) {
+                const value =
+                    typeof item === "string"
+                        ? { product: item }
+                        : item || {};
+
+                const description =
+                    String(
+                        value.product ||
+                        value.name ||
+                        value.label ||
+                        value.description ||
+                        ""
+                    ).trim();
+
+                if (!description) return null;
+
+                const category =
+                    String(value.category || "").trim();
+
+                const details = [
+                    category ? `Category: ${category}` : "",
+                    quantityRange
+                        ? `Requested quantity: ${quantityRange}`
+                        : "",
+                    source.customer_note
+                        ? `Customer note: ${source.customer_note}`
+                        : ""
+                ].filter(Boolean).join(" • ");
+
+                return {
+                    description,
+                    details:
+                        details ||
+                        "Imported from website request",
+                    /*
+                     * Quantity ranges are not silently converted into an exact
+                     * order quantity. Start at 1 and let Luxsome confirm the
+                     * actual quantity before pricing.
+                     */
+                    quantity: 1,
+                    requestedQuantity: quantityRange || "",
+                    sourcePath:
+                        `website.selected_products.${index}`
+                };
+            })
+            .filter(Boolean);
+    }
+
+    function renderWebsiteSampleAttachment(submission) {
+        const attachment = submission?.payload?.attachment;
+        const list = elements.payloadList;
+
+        if (
+            !list ||
+            submission?.submission_type !== "sample_request" ||
+            !attachment?.objectKey
+        ) {
+            return;
+        }
+
+        const row = document.createElement("div");
+        row.className = "crm-payload-item";
+        row.innerHTML = `
+            <dt>Sample reference file</dt>
+            <dd>
+                <button
+                    type="button"
+                    class="crm-button crm-button--secondary"
+                    data-sample-attachment
+                >
+                    View ${escapeHtml(
+                        attachment.originalName ||
+                        "sample attachment"
+                    )}
+                </button>
+            </dd>
+        `;
+
+        list.appendChild(row);
+
+        row.querySelector("[data-sample-attachment]")
+            ?.addEventListener("click", async function () {
+                try {
+                    const response = await fetch(
+                        `${API_BASE}/admin/submissions/${encodeURIComponent(
+                            submission.reference
+                        )}/sample-attachment`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${state.token}`
+                            }
+                        }
+                    );
+
+                    if (!response.ok) {
+                        const data = await response.json()
+                            .catch(function () {
+                                return {};
+                            });
+
+                        throw new Error(
+                            data.message ||
+                            "The sample attachment could not be opened."
+                        );
+                    }
+
+                    const blob = await response.blob();
+                    const objectUrl = URL.createObjectURL(blob);
+                    window.open(
+                        objectUrl,
+                        "_blank",
+                        "noopener,noreferrer"
+                    );
+
+                    window.setTimeout(function () {
+                        URL.revokeObjectURL(objectUrl);
+                    }, 60000);
+                } catch (error) {
+                    window.alert(
+                        error.message ||
+                        "The sample attachment could not be opened."
+                    );
+                }
+            });
+    }
+
     function populateQuotationItemsFromSubmission(submission) {
         const payload = normaliseSubmissionPayload(submission?.payload);
+        const websiteItems = extractWebsiteRequestItems(payload);
+
+        if (
+            websiteItems.length &&
+            (
+                isWebsiteQuotationSubmission(submission) ||
+                submission?.submission_type === "sample_request"
+            )
+        ) {
+            elements.quotationItems.replaceChildren();
+
+            websiteItems.forEach(function (item) {
+                addQuotationItem({
+                    description: item.description,
+                    details: item.details,
+                    quantity: item.quantity,
+                    unitPrice: 0,
+                    requestedQuantity: item.requestedQuantity,
+                    inheritedFromProject: true,
+                    sourcePath: item.sourcePath
+                });
+            });
+
+            elements.quotationFormStatus.textContent =
+                `${websiteItems.length} item${websiteItems.length === 1 ? "" : "s"} imported from the website request. Confirm the final quantity and enter unit prices.`;
+
+            updateQuotationTotals();
+            return;
+        }
+
         const projectItems = extractProjectItems(payload);
 
         console.debug("[Luxsome CRM] quotation inheritance", {
