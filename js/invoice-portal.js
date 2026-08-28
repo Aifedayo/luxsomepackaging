@@ -50,9 +50,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
+            /*
+             * During development the Worker includes a more specific
+             * `error` field for Paystack failures. Prefer it so we can
+             * diagnose the real backend problem instead of only showing
+             * the generic public message.
+             */
             throw new Error(
-                data.message ||
                 data.error ||
+                data.message ||
                 `Request failed with status ${response.status}`
             );
         }
