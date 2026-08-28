@@ -9387,13 +9387,13 @@ async function finalizeSuccessfulPaystackPayment(
 ) {
     const attempt = await env.DB.prepare(`
         SELECT
-            transaction.*,
+            gateway_transaction.*,
             invoice.invoice_reference
-        FROM payment_gateway_transactions transaction
-        INNER JOIN invoices invoice
-            ON invoice.id = transaction.invoice_id
-        WHERE transaction.provider = 'paystack'
-          AND transaction.provider_reference = ?
+        FROM payment_gateway_transactions AS gateway_transaction
+        INNER JOIN invoices AS invoice
+            ON invoice.id = gateway_transaction.invoice_id
+        WHERE gateway_transaction.provider = 'paystack'
+          AND gateway_transaction.provider_reference = ?
         LIMIT 1
     `).bind(reference).first();
 
