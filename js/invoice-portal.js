@@ -86,6 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const card = $("paymentCard");
         const currency = current.currency || "NGN";
         const balanceDue = Number(current.balance_due || 0);
+        const grandTotal = Number(current.grand_total || 0);
+        const amountPaid = Number(current.amount_paid || 0);
 
         if (
             current.status === "paid" ||
@@ -103,15 +105,31 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const depositTarget =
+            Math.round(grandTotal * 0.70 * 100) / 100;
+
+        const depositRemaining = Math.max(
+            0,
+            Math.round((depositTarget - amountPaid) * 100) / 100
+        );
+
+        const canPayDeposit =
+            depositRemaining > 0 &&
+            depositRemaining < balanceDue;
+
         card.innerHTML = `
             <div class="paystack-card">
                 <div>
                     <p class="eyebrow">SECURE PAYMENT</p>
-                    <h2>Pay your invoice online</h2>
+                    <h2>
+                        ${amountPaid > 0
+                            ? "Pay your remaining balance"
+                            : "Choose how you would like to pay"}
+                    </h2>
                     <p>
-                        Complete your payment securely through Paystack.
-                        Your invoice will update automatically after
-                        payment is confirmed.
+                        ${amountPaid > 0
+                            ? `You have already paid ${money(amountPaid, currency)}. Complete the outstanding balance securely through Paystack.`
+                            : "You can pay the standard 70% project deposit now, or settle the invoice in full."}
                     </p>
                 </div>
 
@@ -124,13 +142,27 @@ document.addEventListener("DOMContentLoaded", () => {
                     </div>
                 </div>
 
-                <button
-                    id="paystackButton"
-                    class="paystack-button"
-                    type="button"
-                >
-                    Pay securely with Paystack
-                </button>
+                <div class="payment-options">
+                    ${canPayDeposit ? `
+                        <button
+                            class="paystack-button paystack-button--secondary"
+                            type="button"
+                            data-payment-option="deposit"
+                        >
+                            Pay 70% deposit · ${money(depositRemaining, currency)}
+                        </button>
+                    ` : ""}
+
+                    <button
+                        class="paystack-button"
+                        type="button"
+                        data-payment-option="full"
+                    >
+                        ${amountPaid > 0
+                            ? `Pay remaining balance · ${money(balanceDue, currency)}`
+                            : `Pay in full · ${money(balanceDue, currency)}`}
+                    </button>
+                </div>
 
                 <p
                     id="paymentStatus"
@@ -145,10 +177,16 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `;
 
-        $("paystackButton").addEventListener(
-            "click",
-            beginPaystackCheckout
-        );
+        card
+            .querySelectorAll("[data-payment-option]")
+            .forEach(button => {
+                button.addEventListener("click", () => {
+                    beginPaystackCheckout(
+                        button.dataset.paymentOption,
+                        button
+                    );
+                });
+            });
     }
 
     function render() {
@@ -242,23 +280,38 @@ document.addEventListener("DOMContentLoaded", () => {
         $("invoice").hidden = false;
     }
 
-    async function beginPaystackCheckout() {
-        if (paymentInProgress || !invoice) {
+    async function beginPaystackCheckout(
+        paymentOption = "full",
+        button
+    ) {
+        if (paymentInProgress || !invoice || !button) {
             return;
         }
 
-        const button = $("paystackButton");
+        const originalLabel = button.textContent;
 
         try {
             paymentInProgress = true;
-            button.disabled = true;
+
+            document
+                .querySelectorAll("[data-payment-option]")
+                .forEach(element => {
+                    element.disabled = true;
+                });
+
             button.textContent = "Preparing secure checkout…";
             setPaymentStatus("Preparing your secure Paystack checkout…");
 
             const data = await api(
                 `/public/invoices/${token}/paystack-initialize`,
                 {
-                    method: "POST"
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        paymentOption
+                    })
                 }
             );
 
@@ -272,15 +325,24 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             setPaymentStatus(
-                "Redirecting you to Paystack…",
+                `Redirecting you to Paystack for ${money(
+                    data?.payment?.amount,
+                    data?.payment?.currency || invoice.currency || "NGN"
+                )}…`,
                 "success"
             );
 
             window.location.assign(authorizationUrl);
         } catch (error) {
             paymentInProgress = false;
-            button.disabled = false;
-            button.textContent = "Pay securely with Paystack";
+
+            document
+                .querySelectorAll("[data-payment-option]")
+                .forEach(element => {
+                    element.disabled = false;
+                });
+
+            button.textContent = originalLabel;
             setPaymentStatus(error.message, "error");
         }
     }

@@ -45,6 +45,24 @@
             color: #2e1c15;
         }
 
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .paystack-button--secondary {
+            background: #fff;
+            color: #2e1c15;
+            border: 1px solid #2e1c15;
+        }
+
+        .paystack-button--secondary:hover {
+            background: #f8f4ef;
+            filter: none;
+        }
+
         .paystack-button {
             width: 100%;
             min-height: 52px;
@@ -119,6 +137,10 @@
             .paystack-summary {
                 align-items: flex-start;
                 flex-direction: column;
+            }
+
+            .payment-options {
+                grid-template-columns: 1fr;
             }
         }
     </style>

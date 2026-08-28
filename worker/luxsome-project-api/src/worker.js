@@ -9201,14 +9201,22 @@ async function paystackRequest(env, path, options = {}) {
 async function initializePaystackInvoicePayment(
     env,
     invoice,
-    publicToken
+    publicToken,
+    paymentOption = "full"
 ) {
     const balanceDue = Number(invoice.balance_due || 0);
+    const grandTotal = Number(invoice.grand_total || 0);
+    const amountPaid = Number(invoice.amount_paid || 0);
     const currency = text(invoice.currency || "NGN").toUpperCase();
     const customerEmail = text(invoice.customer_email).toLowerCase();
+    const option = text(paymentOption).toLowerCase();
 
     if (!(balanceDue > 0)) {
         throw new Error("This invoice does not have an outstanding balance.");
+    }
+
+    if (!["deposit", "full"].includes(option)) {
+        throw new Error("Invalid invoice payment option.");
     }
 
     if (["paid", "cancelled", "void"].includes(text(invoice.status))) {
@@ -9227,7 +9235,40 @@ async function initializePaystackInvoicePayment(
         );
     }
 
-    const amountSubunit = paystackAmountToSubunit(balanceDue);
+    /*
+     * Luxsome's standard staged payment is 70% upfront.
+     *
+     * The customer never supplies the monetary amount. They only choose
+     * "deposit" or "full", and the Worker calculates the trusted amount
+     * from the invoice stored in D1.
+     *
+     * If any earlier payment exists, the deposit option means "pay enough
+     * to reach 70% of the invoice total". Once 70% has already been reached,
+     * only the remaining balance is payable.
+     */
+    const depositTarget = Math.round(grandTotal * 0.70 * 100) / 100;
+    const depositRemaining = Math.max(
+        0,
+        Math.round((depositTarget - amountPaid) * 100) / 100
+    );
+
+    let checkoutAmount = balanceDue;
+
+    if (option === "deposit") {
+        if (!(depositRemaining > 0)) {
+            throw new Error(
+                "The 70% deposit requirement has already been met. Please pay the remaining balance instead."
+            );
+        }
+
+        checkoutAmount = Math.min(balanceDue, depositRemaining);
+    }
+
+    if (!(checkoutAmount > 0)) {
+        throw new Error("There is no amount available for this payment option.");
+    }
+
+    const amountSubunit = paystackAmountToSubunit(checkoutAmount);
 
     const reusable = await env.DB.prepare(`
         SELECT *
@@ -9253,6 +9294,8 @@ async function initializePaystackInvoicePayment(
             reference: reusable.provider_reference,
             authorizationUrl: reusable.authorization_url,
             accessCode: reusable.access_code,
+            amount: Number(reusable.amount || checkoutAmount),
+            paymentOption: option,
             reused: true
         };
     }
@@ -9274,7 +9317,10 @@ async function initializePaystackInvoicePayment(
         invoice_reference: invoice.invoice_reference,
         invoice_id: Number(invoice.id),
         environment: text(env.ENVIRONMENT) || "unknown",
-        source: "luxsome_invoice"
+        source: "luxsome_invoice",
+        payment_option: option,
+        deposit_percentage: 70,
+        checkout_amount: checkoutAmount
     };
 
     const initialized = await paystackRequest(
@@ -9332,7 +9378,7 @@ async function initializePaystackInvoicePayment(
         providerReference,
         accessCode || null,
         authorizationUrl,
-        balanceDue,
+        checkoutAmount,
         amountSubunit,
         currency,
         customerEmail,
@@ -9353,7 +9399,7 @@ async function initializePaystackInvoicePayment(
         title: "Online payment checkout created",
         details:
             `${providerReference} for ` +
-            `${formatInvoiceMoney(balanceDue, currency)}.`,
+            `${formatInvoiceMoney(checkoutAmount, currency)} (${option === "deposit" ? "70% deposit" : "full balance"}).`,
         actor: "system",
         createdAt: now
     });
@@ -9363,6 +9409,8 @@ async function initializePaystackInvoicePayment(
         reference: providerReference,
         authorizationUrl,
         accessCode,
+        amount: checkoutAmount,
+        paymentOption: option,
         reused: false
     };
 }
@@ -9723,10 +9771,15 @@ async function handlePublicInvoicePaystackInitialize(
     }
 
     try {
+        const payload = await safeJson(request);
+        const paymentOption =
+            text(payload?.paymentOption || "full").toLowerCase();
+
         const attempt = await initializePaystackInvoicePayment(
             env,
             invoice,
-            publicToken
+            publicToken,
+            paymentOption
         );
 
         return jsonResponse(
@@ -9737,7 +9790,8 @@ async function handlePublicInvoicePaystackInitialize(
                     provider: "paystack",
                     reference: attempt.reference,
                     authorizationUrl: attempt.authorizationUrl,
-                    amount: Number(invoice.balance_due || 0),
+                    amount: Number(attempt.amount || 0),
+                    paymentOption: attempt.paymentOption || paymentOption,
                     currency: invoice.currency || "NGN",
                     reused: Boolean(attempt.reused)
                 }
