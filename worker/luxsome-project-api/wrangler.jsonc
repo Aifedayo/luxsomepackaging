@@ -73,7 +73,9 @@
 				}
 			],
 			"triggers": {
-				"crons": []
+				"crons": [
+					
+				]
 			},
 			"vars": {
 				"ENVIRONMENT": "staging",

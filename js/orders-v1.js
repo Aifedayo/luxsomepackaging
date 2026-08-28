@@ -11,7 +11,8 @@
 
     const state = {
         orders: [],
-        selected: null
+        selected: null,
+        dispatchEligibility: null
     };
 
     const element = (id) => document.getElementById(id);
@@ -342,6 +343,24 @@
             );
 
             state.selected = data.order;
+            state.dispatchEligibility = null;
+
+            try {
+                const dispatchData = await api(
+                    `/admin/orders/${encodeURIComponent(
+                        reference
+                    )}/dispatch-eligibility`
+                );
+
+                state.dispatchEligibility =
+                    dispatchData.dispatch || null;
+            } catch (error) {
+                console.warn(
+                    "[Luxsome CRM] Dispatch eligibility unavailable",
+                    error
+                );
+            }
+
             fillOrderPanel();
             openPanel("orderPanel");
         } catch (error) {
@@ -438,6 +457,8 @@
         element("clientPortalLinkArea").hidden = !portalLink;
         element("formMessage").textContent = "";
 
+        setupOrderDispatchSection(order);
+
         element("orderItems").innerHTML =
             (order.items || []).map((item) => `
                 <article
@@ -478,6 +499,537 @@
                 </article>
             `).join("");
     }
+
+
+    function setupOrderDispatchSection(order) {
+        const section = element("orderDispatchSection");
+        const eligibility = state.dispatchEligibility;
+
+        if (!section) return;
+
+        section.hidden = !eligibility?.eligible;
+
+        if (!eligibility?.eligible) {
+            return;
+        }
+
+        element("orderDispatchReceiptBadge").textContent =
+            eligibility.receipt_reference
+                ? `Receipt ${eligibility.receipt_reference}`
+                : "Receipt verified";
+
+        element("orderDispatchRecipient").value =
+            order.customer_name || "";
+
+        element("orderDispatchBrand").value =
+            order.brand_name || "";
+
+        element("orderDispatchPhone").value =
+            order.customer_phone || "";
+
+        element("orderDispatchAddress").value =
+            order.delivery_address || "";
+
+        element("orderDispatchCity").value = "";
+        element("orderDispatchState").value = "";
+        element("orderDispatchWeight").value = "";
+        element("orderDispatchPackageCount").value = "1";
+        element("orderDispatchTrackingId").value =
+            order.order_reference || "";
+        element("orderDispatchDescription").value =
+            "Luxury packaging systems";
+        element("orderDispatchFragile").checked = true;
+
+        element("orderDispatchMessage").textContent =
+            "Receipt verified. Confirm the dispatch details before printing.";
+    }
+
+    function collectOrderDispatchData() {
+        const order = state.selected;
+        const eligibility = state.dispatchEligibility;
+
+        if (!order) {
+            throw new Error("Open an order first.");
+        }
+
+        if (!eligibility?.eligible) {
+            throw new Error(
+                "A verified payment receipt is required before printing a dispatch label."
+            );
+        }
+
+        const value = id =>
+            String(element(id)?.value || "").trim();
+
+        const packageCount = Number(
+            value("orderDispatchPackageCount")
+        );
+
+        if (!value("orderDispatchRecipient")) {
+            throw new Error("Enter the recipient name.");
+        }
+
+        if (!value("orderDispatchPhone")) {
+            throw new Error("Enter the phone number.");
+        }
+
+        if (!value("orderDispatchAddress")) {
+            throw new Error("Enter the delivery address.");
+        }
+
+        if (
+            !Number.isInteger(packageCount) ||
+            packageCount < 1 ||
+            packageCount > 50
+        ) {
+            throw new Error(
+                "Package count must be between 1 and 50."
+            );
+        }
+
+        return {
+            orderReference: order.order_reference,
+            invoiceReference: order.invoice_reference,
+            receiptReference:
+                eligibility.receipt_reference || "",
+            trackingId:
+                value("orderDispatchTrackingId") ||
+                order.order_reference,
+            recipientName:
+                value("orderDispatchRecipient"),
+            brandName:
+                value("orderDispatchBrand"),
+            phone:
+                value("orderDispatchPhone"),
+            address:
+                value("orderDispatchAddress"),
+            city:
+                value("orderDispatchCity"),
+            state:
+                value("orderDispatchState"),
+            weight:
+                value("orderDispatchWeight"),
+            description:
+                value("orderDispatchDescription") ||
+                "Luxury packaging systems",
+            packageCount,
+            fragile:
+                Boolean(
+                    element("orderDispatchFragile")
+                        ?.checked
+                ),
+            dispatchDate:
+                new Date().toLocaleDateString(
+                    "en-NG",
+                    {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit"
+                    }
+                )
+        };
+    }
+
+    function orderDispatchLocation(data) {
+        return [
+            data.address,
+            data.city,
+            data.state
+        ]
+            .filter(Boolean)
+            .join(", ");
+    }
+
+    function orderDispatchLabelMarkup(
+        data,
+        packageNumber
+    ) {
+        return `
+            <article class="dispatch-label-sheet">
+                <header class="dispatch-label-sheet__top">
+                    <div class="dispatch-label-sheet__brandmark">
+                        <img
+                            src="/assets/images/luxsome-logo.png"
+                            alt="Luxsome Packaging"
+                        >
+                    </div>
+
+                    <div class="dispatch-label-sheet__fragile-block">
+                        ${
+                            data.fragile
+                                ? `
+                                    <strong>FRAGILE</strong>
+                                    <span>PLEASE HANDLE WITH CARE</span>
+                                `
+                                : `
+                                    <strong>DISPATCH</strong>
+                                    <span>LUXSOME PACKAGING</span>
+                                `
+                        }
+                    </div>
+                </header>
+
+                <section class="dispatch-label-sheet__service">
+                    <strong>PRIORITY DISPATCH</strong>
+
+                    <div>
+                        <span>Date</span>
+                        <b>${escapeHtml(data.dispatchDate)}</b>
+                    </div>
+                </section>
+
+                <section class="dispatch-label-sheet__route">
+                    <div class="dispatch-label-sheet__from">
+                        <span class="dispatch-label-sheet__section-title">
+                            FROM
+                        </span>
+
+                        <strong>Luxsome Packaging</strong>
+                        <p>Lagos, Nigeria</p>
+                        <small>
+                            Order ${escapeHtml(data.orderReference)}
+                        </small>
+                    </div>
+
+                    <div class="dispatch-label-sheet__to">
+                        <span class="dispatch-label-sheet__section-title">
+                            TO
+                        </span>
+
+                        <h3>
+                            ${escapeHtml(data.recipientName)}
+                        </h3>
+
+                        ${
+                            data.brandName
+                                ? `
+                                    <strong class="dispatch-label-sheet__recipient-brand">
+                                        ${escapeHtml(data.brandName)}
+                                    </strong>
+                                `
+                                : ""
+                        }
+
+                        <address>
+                            ${escapeHtml(orderDispatchLocation(data))}
+                        </address>
+
+                        <p class="dispatch-label-sheet__phone">
+                            ${escapeHtml(data.phone)}
+                        </p>
+                    </div>
+                </section>
+
+                <section class="dispatch-label-sheet__information">
+                    <div>
+                        <span>Package</span>
+                        <strong>
+                            ${packageNumber} of ${data.packageCount}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Contents</span>
+                        <strong>
+                            ${escapeHtml(data.description)}
+                        </strong>
+                    </div>
+
+                    ${
+                        data.weight
+                            ? `
+                                <div>
+                                    <span>Weight</span>
+                                    <strong>
+                                        ${escapeHtml(data.weight)}
+                                    </strong>
+                                </div>
+                            `
+                            : ""
+                    }
+
+                    <div>
+                        <span>Receipt</span>
+                        <strong>
+                            ${escapeHtml(data.receiptReference)}
+                        </strong>
+                    </div>
+                </section>
+
+                <section class="dispatch-label-sheet__tracking">
+                    <div>
+                        <span>TRACKING ID</span>
+                        <strong>
+                            ${escapeHtml(data.trackingId)}
+                        </strong>
+                    </div>
+
+                    <div class="dispatch-label-sheet__tracking-meta">
+                        <span>INVOICE</span>
+                        <b>${escapeHtml(data.invoiceReference)}</b>
+                    </div>
+                </section>
+            </article>
+        `;
+    }
+
+    function buildOrderDispatchLabels(data) {
+        return Array.from(
+            { length: data.packageCount },
+            (_, index) =>
+                orderDispatchLabelMarkup(
+                    data,
+                    index + 1
+                )
+        ).join("");
+    }
+
+    function previewOrderDispatch() {
+        try {
+            const data = collectOrderDispatchData();
+
+            element("dispatchPreviewBody").innerHTML =
+                buildOrderDispatchLabels(data);
+
+            openPanel("dispatchPreviewPanel");
+
+            element("orderDispatchMessage").textContent =
+                `${data.packageCount} dispatch label${data.packageCount === 1 ? "" : "s"} ready.`;
+        } catch (error) {
+            element("orderDispatchMessage").textContent =
+                error.message;
+        }
+    }
+
+    function printOrderDispatch() {
+        try {
+            const data = collectOrderDispatchData();
+
+            const printWindow = window.open("", "_blank");
+
+            if (!printWindow) {
+                throw new Error(
+                    "Allow pop-ups for the CRM and try again."
+                );
+            }
+
+            printWindow.document.open();
+            printWindow.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dispatch Label · ${escapeHtml(data.orderReference)}</title>
+<style>
+@page { size: 4in 6in; margin: 0; }
+* { box-sizing: border-box; }
+html,body { margin:0;padding:0;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif; }
+
+.dispatch-label-sheet {
+    width:4in;
+    height:6in;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border:2px solid #111;
+    background:#fff;
+    page-break-after:always;
+    break-after:page;
+}
+.dispatch-label-sheet:last-child { page-break-after:auto; break-after:auto; }
+
+.dispatch-label-sheet__top {
+    display:grid;
+    grid-template-columns:1.05fr 1fr;
+    min-height:.78in;
+    border-bottom:2px solid #111;
+}
+.dispatch-label-sheet__brandmark {
+    display:flex;
+    align-items:center;
+    padding:.12in .16in;
+    border-right:2px solid #111;
+}
+.dispatch-label-sheet__brandmark img {
+    width:1.42in;
+    max-height:.42in;
+    object-fit:contain;
+    object-position:left center;
+}
+.dispatch-label-sheet__fragile-block {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.08in .13in;
+}
+.dispatch-label-sheet__fragile-block strong {
+    font-size:27pt;
+    font-weight:900;
+    line-height:.9;
+    letter-spacing:-.035em;
+}
+.dispatch-label-sheet__fragile-block span {
+    margin-top:4px;
+    font-size:7.5pt;
+    font-weight:700;
+    letter-spacing:.13em;
+}
+
+.dispatch-label-sheet__service {
+    display:grid;
+    grid-template-columns:1fr auto;
+    min-height:.48in;
+    border-bottom:2px solid #111;
+}
+.dispatch-label-sheet__service > strong {
+    display:flex;
+    align-items:center;
+    padding:.08in .13in;
+    font-size:18pt;
+    font-weight:900;
+}
+.dispatch-label-sheet__service > div {
+    min-width:1.15in;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.05in .11in;
+    border-left:2px solid #111;
+}
+.dispatch-label-sheet__service span,
+.dispatch-label-sheet__section-title,
+.dispatch-label-sheet__information span,
+.dispatch-label-sheet__tracking span {
+    display:block;
+    font-size:7pt;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+.dispatch-label-sheet__service b { margin-top:2px; font-size:8.5pt; }
+
+.dispatch-label-sheet__route {
+    display:grid;
+    grid-template-columns:.9fr 1.25fr;
+    min-height:2.35in;
+    border-bottom:2px solid #111;
+}
+.dispatch-label-sheet__from,
+.dispatch-label-sheet__to { padding:.14in .13in; }
+.dispatch-label-sheet__from { border-right:2px solid #111; }
+.dispatch-label-sheet__from > strong {
+    display:block;
+    margin-top:.08in;
+    font-size:11pt;
+}
+.dispatch-label-sheet__from p,
+.dispatch-label-sheet__from small {
+    display:block;
+    margin:.05in 0 0;
+    font-size:8.5pt;
+    line-height:1.35;
+}
+.dispatch-label-sheet__to h3 {
+    margin:.08in 0 0;
+    font-size:19pt;
+    line-height:1;
+    font-weight:900;
+    text-transform:uppercase;
+}
+.dispatch-label-sheet__recipient-brand {
+    display:block;
+    margin-top:.06in;
+    font-size:9.5pt;
+}
+.dispatch-label-sheet__to address {
+    margin-top:.1in;
+    font-size:11.5pt;
+    font-style:normal;
+    font-weight:700;
+    line-height:1.28;
+}
+.dispatch-label-sheet__phone {
+    margin:.1in 0 0;
+    font-size:13pt;
+    font-weight:900;
+}
+
+.dispatch-label-sheet__information {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    min-height:.84in;
+    border-bottom:2px solid #111;
+}
+.dispatch-label-sheet__information > div {
+    padding:.09in .11in;
+    border-right:1px solid #111;
+    border-bottom:1px solid #111;
+}
+.dispatch-label-sheet__information > div:nth-child(2n) { border-right:0; }
+.dispatch-label-sheet__information strong {
+    display:block;
+    margin-top:3px;
+    font-size:8.5pt;
+    line-height:1.2;
+}
+
+.dispatch-label-sheet__tracking {
+    margin-top:auto;
+    display:grid;
+    grid-template-columns:1fr 1.02in;
+    min-height:.76in;
+}
+.dispatch-label-sheet__tracking > div:first-child {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.1in .14in;
+}
+.dispatch-label-sheet__tracking strong {
+    display:block;
+    margin-top:4px;
+    font-size:16pt;
+    font-weight:900;
+    letter-spacing:.025em;
+    overflow-wrap:anywhere;
+}
+.dispatch-label-sheet__tracking-meta {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:.08in .1in;
+    border-left:2px solid #111;
+}
+.dispatch-label-sheet__tracking-meta b {
+    display:block;
+    margin-top:4px;
+    font-size:7.5pt;
+    overflow-wrap:anywhere;
+}
+</style>
+</head>
+<body>
+${buildOrderDispatchLabels(data)}
+<script>
+window.addEventListener("load", function () {
+    window.setTimeout(function () {
+        window.print();
+    }, 250);
+});
+<\/script>
+</body>
+</html>
+            `);
+            printWindow.document.close();
+
+            element("orderDispatchMessage").textContent =
+                "Print dialog opened.";
+        } catch (error) {
+            element("orderDispatchMessage").textContent =
+                error.message;
+        }
+    }
+
 
     async function saveOrder(event) {
         event.preventDefault();
@@ -630,6 +1182,21 @@
     element("activityButton").addEventListener(
         "click",
         showActivity
+    );
+
+    element("previewOrderDispatchLabel").addEventListener(
+        "click",
+        previewOrderDispatch
+    );
+
+    element("printOrderDispatchLabel").addEventListener(
+        "click",
+        printOrderDispatch
+    );
+
+    element("dispatchPreviewPrint").addEventListener(
+        "click",
+        printOrderDispatch
     );
 
     element("copyClientPortalLink").addEventListener(

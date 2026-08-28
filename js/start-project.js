@@ -25,6 +25,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const projectSummaryInput = document.getElementById("projectSummaryInput");
     const projectReferenceInput = document.getElementById("projectReferenceInput");
     const formSubject = document.getElementById("formSubject");
+    const projectIntentInput = document.getElementById("projectIntentInput");
+    const requestTypeInput = document.getElementById("requestTypeInput");
+    const projectIntentSummary = document.getElementById("projectIntentSummary");
+    const projectIntentEyebrow = document.getElementById("projectIntentEyebrow");
+    const projectIntentHeroText = document.getElementById("projectIntentHeroText");
+    const projectConsentText = document.getElementById("projectConsentText");
+    const projectSubmissionNote = document.getElementById("projectSubmissionNote");
     const shopConfigurationInput = document.getElementById("shopConfigurationInput");
     const submittedPackagingSystem = document.getElementById("submittedPackagingSystem");
     const submittedComponents = document.getElementById("submittedComponents");
@@ -38,9 +45,14 @@ document.addEventListener("DOMContentLoaded", () => {
         "luxsomeStartProjectDraft";
 
     let currentStep = 1;
-    const shopConfiguration = readShopConfiguration();
+
+    const shopConfiguration =
+        normaliseSampleRequestQuantities(
+            readShopConfiguration()
+        );
 
     addConfigurationFields(shopConfiguration);
+    configureProjectIntent(shopConfiguration);
     restoreStartProjectDraft();
     configureProductSelectionReturnLink(shopConfiguration);
     updateStepUI(false);
@@ -189,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             showStatus(
                 error.message ||
-                    "Unable to send your order request. Please check your connection and try again.",
+                    "Unable to send your project request. Please check your connection and try again.",
                 "error"
             );
 
@@ -491,6 +503,221 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function normaliseSampleRequestQuantities(configuration) {
+        const source =
+            configuration &&
+            typeof configuration === "object"
+                ? { ...configuration }
+                : {};
+
+        const intent = String(
+            source.project_intent || ""
+        )
+            .trim()
+            .toLowerCase();
+
+        if (intent !== "sample_first") {
+            return source;
+        }
+
+        /*
+         * Preserve the quantities originally selected in the Shop.
+         * These values remain available later when Luxsome prepares
+         * the customer's bulk-production quotation after sample approval.
+         */
+        const preserveBulkQuantity = (
+            target,
+            sourceKey,
+            bulkKey
+        ) => {
+            const currentValue =
+                String(target[sourceKey] || "")
+                    .trim();
+
+            if (
+                currentValue &&
+                !String(target[bulkKey] || "").trim()
+            ) {
+                target[bulkKey] = currentValue;
+            }
+
+            if (currentValue) {
+                target[sourceKey] = "1";
+            }
+        };
+
+        preserveBulkQuantity(
+            source,
+            "quantity",
+            "bulk_quantity"
+        );
+
+        preserveBulkQuantity(
+            source,
+            "box_quantity",
+            "bulk_box_quantity"
+        );
+
+        preserveBulkQuantity(
+            source,
+            "other_pieces_quantity",
+            "bulk_other_pieces_quantity"
+        );
+
+        /*
+         * Additional Bespoke brand projects follow the same rule:
+         * one physical sample of each selected packaging piece while
+         * retaining the planned bulk quantities for later quotation.
+         */
+        const additionalProjects =
+            parseAdditionalProjects(
+                source.additional_projects
+            );
+
+        if (additionalProjects.length) {
+            source.additional_projects =
+                JSON.stringify(
+                    additionalProjects.map(project => {
+                        const normalised = {
+                            ...project
+                        };
+
+                        preserveBulkQuantity(
+                            normalised,
+                            "box_quantity",
+                            "bulk_box_quantity"
+                        );
+
+                        preserveBulkQuantity(
+                            normalised,
+                            "other_pieces_quantity",
+                            "bulk_other_pieces_quantity"
+                        );
+
+                        preserveBulkQuantity(
+                            normalised,
+                            "quantity",
+                            "bulk_quantity"
+                        );
+
+                        return normalised;
+                    })
+                );
+        }
+
+        source.sample_quantity = "1";
+
+        return source;
+    }
+
+
+    function normaliseProjectIntent(value) {
+        const intent = String(value || "").trim().toLowerCase();
+
+        if (intent === "sample_first") return "sample_first";
+        if (intent === "bulk_quotation") return "bulk_quotation";
+
+        return "";
+    }
+
+    function projectIntentLabel(intent = normaliseProjectIntent(
+        shopConfiguration.project_intent
+    )) {
+        if (intent === "sample_first") {
+            return "Physical sample first";
+        }
+
+        if (intent === "bulk_quotation") {
+            return "Bulk production quotation";
+        }
+
+        return "Project request";
+    }
+
+    function configureProjectIntent(configuration) {
+        const intent = normaliseProjectIntent(
+            configuration.project_intent
+        );
+
+        if (projectIntentInput) {
+            projectIntentInput.value = intent;
+        }
+
+        if (requestTypeInput) {
+            requestTypeInput.value =
+                intent === "sample_first"
+                    ? "Sample Request"
+                    : intent === "bulk_quotation"
+                        ? "Bulk Quotation Request"
+                        : "Project Request";
+        }
+
+        if (intent === "sample_first") {
+            if (projectIntentEyebrow) {
+                projectIntentEyebrow.textContent =
+                    "COMPLETE YOUR SAMPLE REQUEST";
+            }
+
+            if (projectIntentHeroText) {
+                projectIntentHeroText.textContent =
+                    "Add your contact details, review the packaging system you selected and send your physical sample request to our team.";
+            }
+
+            if (submitButton) {
+                submitButton.innerHTML =
+                    'Submit Sample Request <span aria-hidden="true">→</span>';
+            }
+
+            if (projectConsentText) {
+                projectConsentText.textContent =
+                    "I agree that Luxsome Packaging may contact me about this sample request. *";
+            }
+
+            if (projectSubmissionNote) {
+                projectSubmissionNote.textContent =
+                    "After submission, our team will review your configuration and artwork for sample feasibility. If approved, we will send a separate quotation for producing the physical sample before bulk production.";
+            }
+        } else if (intent === "bulk_quotation") {
+            if (projectIntentEyebrow) {
+                projectIntentEyebrow.textContent =
+                    "COMPLETE YOUR BULK QUOTATION REQUEST";
+            }
+
+            if (projectIntentHeroText) {
+                projectIntentHeroText.textContent =
+                    "Add your contact details, review the packaging system you selected and send it to our team for a bulk production quotation.";
+            }
+
+            if (submitButton) {
+                submitButton.innerHTML =
+                    'Request Bulk Quotation <span aria-hidden="true">→</span>';
+            }
+
+            if (projectConsentText) {
+                projectConsentText.textContent =
+                    "I agree that Luxsome Packaging may contact me about this bulk quotation request. *";
+            }
+
+            if (projectSubmissionNote) {
+                projectSubmissionNote.textContent =
+                    "After submission, our team will review your configuration and prepare the next quotation step. You may still request a physical sample before bulk production is authorised.";
+            }
+        }
+
+        if (projectIntentSummary && intent) {
+            projectIntentSummary.classList.add("is-visible");
+            projectIntentSummary.innerHTML = `
+                <span class="project-intent-summary__label">Request type</span>
+                <strong>${escapeHTML(projectIntentLabel(intent))}</strong>
+                <p>${
+                    intent === "sample_first"
+                        ? "This project will enter Luxsome’s sample review workflow before bulk production."
+                        : "This project is being submitted for bulk quotation. A physical sample can still be requested before production."
+                }</p>
+            `;
+        }
+    }
+
     function configureProductSelectionReturnLink(configuration) {
         if (!changeProductSelections) return;
 
@@ -725,6 +952,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
         const packagingRows = [
+            ["Request type", projectIntentLabel()],
             ["Packaging system", labelValue("system")],
             ["Project type", labelValue("project_type")],
             ["Packaging pieces", labelValue("packaging_pieces")],
@@ -741,8 +969,32 @@ document.addEventListener("DOMContentLoaded", () => {
             ["Other custom items", customItems.join(", ")]
         ];
 
+        const isSampleRequest =
+            normaliseProjectIntent(
+                shopConfiguration.project_intent
+            ) === "sample_first";
+
         const specificationRows = [
-            ["Quantity", unitValue("quantity", "pieces")],
+            [
+                isSampleRequest
+                    ? "Sample quantity"
+                    : "Quantity",
+                unitValue(
+                    "quantity",
+                    isSampleRequest
+                        ? "sample"
+                        : "pieces"
+                )
+            ],
+            [
+                "Planned bulk quantity",
+                isSampleRequest
+                    ? unitValue(
+                        "bulk_quantity",
+                        "pieces"
+                    )
+                    : ""
+            ],
             ["Finished dimensions", dimensionsValue()],
             ["Measurement unit", dimensionUnitLabel()],
             ["Volumetric weight", unitValue("volumetric_weight_kg", "kg")],
@@ -1178,8 +1430,28 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (formSubject) {
+            const intent = normaliseProjectIntent(
+                shopConfiguration.project_intent
+            );
+            const subjectPrefix =
+                intent === "sample_first"
+                    ? "New Sample Request"
+                    : intent === "bulk_quotation"
+                        ? "New Bulk Quotation Request"
+                        : "New Shop Project";
+
             formSubject.value =
-                `New Shop Order | ${projectReference} | ${brandName}`;
+                `${subjectPrefix} | ${projectReference} | ${brandName}`;
+        }
+
+        if (projectIntentInput) {
+            projectIntentInput.value = normaliseProjectIntent(
+                shopConfiguration.project_intent
+            );
+        }
+
+        if (requestTypeInput) {
+            requestTypeInput.value = projectIntentLabel();
         }
 
         if (submittedPackagingSystem) {
@@ -1275,6 +1547,10 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             project: {
                 source: "Luxsome shop",
+                intent: normaliseProjectIntent(
+                    shopConfiguration.project_intent
+                ),
+                requestType: projectIntentLabel(),
                 packagingSystem: labelValue("system"),
                 additionalProjects:
                     parseAdditionalProjects(

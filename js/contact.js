@@ -1,312 +1,483 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("contactForm");
-
-    if (!form) {
-        console.error("Contact form was not found.");
-        return;
-    }
-
+document.addEventListener("DOMContentLoaded", () => {
     const API_BASE = window.LUXSOME?.apiBase;
+    const router = document.getElementById("routerPanel");
+    const views = [
+        "quotationView",
+        "sampleView",
+        "simpleContactView",
+        "existingView"
+    ].map(id => document.getElementById(id)).filter(Boolean);
 
-    if (!API_BASE) {
-        console.error(
-            "Luxsome environment configuration was not loaded."
-        );
-        return;
-    }
+    const show = view => {
+        router.hidden = true;
+        views.forEach(item => {
+            item.hidden = item !== view;
+        });
+        view.hidden = false;
+        view.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
 
-    const brandName = document.getElementById("brandName");
-    const phoneNumber = document.getElementById("phoneNumber");
-    const emailAddress = document.getElementById("emailAddress");
-    const message = document.getElementById("message");
-    const enquiryReference = document.getElementById("enquiryReference");
+    const home = () => {
+        views.forEach(view => {
+            view.hidden = true;
+        });
+        router.hidden = false;
+        router.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
 
-    const characterCount = document.getElementById("characterCount");
-    const formStatus = document.getElementById("formStatus");
-    const submitButton = document.getElementById("submitButton");
-    const buttonText = submitButton?.querySelector(".button-text");
-    const currentYear = document.getElementById("currentYear");
-
-    if (
-        !brandName ||
-        !phoneNumber ||
-        !emailAddress ||
-        !message ||
-        !characterCount ||
-        !formStatus ||
-        !submitButton ||
-        !buttonText
-    ) {
-        console.error("One or more contact form elements are missing.");
-        return;
-    }
-
-    if (currentYear) {
-        currentYear.textContent = new Date().getFullYear();
-    }
-
-    message.addEventListener("input", function () {
-        characterCount.textContent = `${message.value.length} / 1500`;
-
-        if (message.classList.contains("is-invalid")) {
-            clearFieldError(message, "messageError");
-        }
+    document.querySelectorAll('[data-back-to="home"]').forEach(button => {
+        button.addEventListener("click", home);
     });
 
-    brandName.addEventListener("input", function () {
-        if (brandName.classList.contains("is-invalid")) {
-            clearFieldError(brandName, "brandNameError");
-        }
+    document.querySelectorAll("[data-intent]").forEach(button => {
+        button.addEventListener("click", () => {
+            const target =
+                button.dataset.intent === "quotation"
+                    ? "quotationView"
+                    : button.dataset.intent === "sample"
+                        ? "sampleView"
+                        : button.dataset.intent === "existing"
+                            ? "existingView"
+                            : "simpleContactView";
+
+            show(document.getElementById(target));
+        });
     });
 
-    phoneNumber.addEventListener("input", function () {
-        let cleanedValue = phoneNumber.value.replace(/[^0-9+\s()-]/g, "");
-        cleanedValue = cleanedValue.replace(/(?!^)\+/g, "");
+    function setupAccordion(root) {
+        root?.querySelectorAll(".product-group__toggle").forEach(toggle => {
+            toggle.addEventListener("click", () => {
+                const group = toggle.closest(".product-group");
+                const panel = group.querySelector(".product-group__panel");
+                const opening = panel.hidden;
 
-        if (phoneNumber.value !== cleanedValue) {
-            phoneNumber.value = cleanedValue;
+                root.querySelectorAll(".product-group").forEach(item => {
+                    item.querySelector(".product-group__panel").hidden = true;
+                    item.querySelector(".product-group__toggle")
+                        .setAttribute("aria-expanded", "false");
+                    item.querySelector(
+                        ".product-group__toggle span:last-child"
+                    ).textContent = "+";
+                });
 
-            showError(
-                phoneNumber,
-                "phoneNumberError",
-                "Only numbers and valid phone symbols are allowed."
-            );
-
-            return;
-        }
-
-        clearFieldError(phoneNumber, "phoneNumberError");
-    });
-
-    emailAddress.addEventListener("input", function () {
-        if (emailAddress.classList.contains("is-invalid")) {
-            clearFieldError(emailAddress, "emailAddressError");
-        }
-    });
-
-    form.addEventListener("submit", async function (event) {
-        event.preventDefault();
-
-        clearErrors();
-        formStatus.textContent = "";
-        formStatus.classList.remove("is-success", "is-error");
-
-        const values = {
-            brandName: brandName.value.trim(),
-            phoneNumber: phoneNumber.value.trim(),
-            emailAddress: emailAddress.value.trim(),
-            message: message.value.trim()
-        };
-
-        if (!validateForm(values)) {
-            formStatus.textContent = "Please correct the highlighted fields.";
-            formStatus.classList.add("is-error");
-            focusFirstInvalidField();
-            return;
-        }
-
-        const reference = getOrCreateEnquiryReference();
-        setLoadingState(true);
-
-        try {
-            const response = await fetch(`${API_BASE}/contact`, {
-                method: "POST",
-                body: new FormData(form),
-                headers: {
-                    Accept: "application/json"
+                if (opening) {
+                    panel.hidden = false;
+                    toggle.setAttribute("aria-expanded", "true");
+                    toggle.querySelector("span:last-child").textContent = "−";
                 }
             });
+        });
+    }
 
-            const responseData = await response.json().catch(function () {
-                return {};
+    document.querySelectorAll("[data-product-accordion]")
+        .forEach(setupAccordion);
+
+    function productSelector(form, hiddenId, errorId, summaryId) {
+        const selected = new Map();
+        const hidden = document.getElementById(hiddenId);
+        const summary = summaryId
+            ? document.getElementById(summaryId)
+            : null;
+
+        function sync() {
+            hidden.value = JSON.stringify([...selected.values()]);
+
+            if (summary) {
+                summary.innerHTML = selected.size
+                    ? [...selected.values()]
+                        .map(item => (
+                            `<span class="selection-chip">${escapeHtml(
+                                item.product
+                            )}</span>`
+                        ))
+                        .join("")
+                    : '<span class="selection-empty">Nothing selected yet.</span>';
+            }
+        }
+
+        function clear() {
+            selected.clear();
+            form.querySelectorAll("[data-product], [data-tier-product]")
+                .forEach(button => {
+                    button.classList.remove("is-selected");
+                    button.setAttribute("aria-pressed", "false");
+                });
+            sync();
+        }
+
+        function selectOne(category, product, button) {
+            clear();
+            const key = `${category}::${product}`;
+
+            selected.set(key, {
+                category,
+                product
             });
+
+            if (button) {
+                button.classList.add("is-selected");
+                button.setAttribute("aria-pressed", "true");
+            }
+
+            sync();
+            document.getElementById(errorId).textContent = "";
+        }
+
+        form.querySelectorAll("[data-product]").forEach(button => {
+            button.addEventListener("click", () => {
+                // Selecting an individual product exits system mode.
+                const tierSelector = document.getElementById("tierSelector");
+                if (tierSelector && !tierSelector.hidden) {
+                    tierSelector.hidden = true;
+                }
+
+                form.querySelectorAll("[data-tier-product]")
+                    .forEach(tier => {
+                        tier.classList.remove("is-selected");
+                        tier.setAttribute("aria-pressed", "false");
+                    });
+
+                // If a complete system had been selected, clear it first.
+                [...selected.keys()]
+                    .filter(key => key.startsWith("Complete Packaging System::"))
+                    .forEach(key => selected.delete(key));
+
+                const key =
+                    `${button.dataset.category}::${button.dataset.product}`;
+                const active = selected.has(key);
+
+                if (active) {
+                    selected.delete(key);
+                } else {
+                    selected.set(key, {
+                        category: button.dataset.category,
+                        product: button.dataset.product
+                    });
+                }
+
+                button.classList.toggle("is-selected", !active);
+                button.setAttribute("aria-pressed", String(!active));
+
+                sync();
+                document.getElementById(errorId).textContent = "";
+            });
+        });
+
+        return {
+            selected,
+            clear,
+            selectOne,
+            sync
+        };
+    }
+
+    const qForm = document.getElementById("quotationForm");
+    const qSelector = productSelector(
+        qForm,
+        "quotationProductsJson",
+        "quotationProductError",
+        "quotationSelectionSummary"
+    );
+
+    const recommendButton = document.getElementById("recommendSystemButton");
+    const tierSelector = document.getElementById("tierSelector");
+    const backToIndividual = document.getElementById(
+        "backToIndividualSelection"
+    );
+
+    recommendButton?.addEventListener("click", () => {
+        // This is intentional: recommendation mode replaces all prior choices.
+        qSelector.clear();
+
+        tierSelector.hidden = false;
+        tierSelector.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest"
+        });
+    });
+
+    qForm.querySelectorAll("[data-tier-product]").forEach(button => {
+        button.addEventListener("click", () => {
+            qSelector.selectOne(
+                "Complete Packaging System",
+                button.dataset.tierProduct,
+                button
+            );
+        });
+    });
+
+    backToIndividual?.addEventListener("click", () => {
+        qSelector.clear();
+        tierSelector.hidden = true;
+
+        const completeGroup = recommendButton.closest(".product-group");
+        completeGroup?.querySelector(".product-group__toggle")
+            ?.setAttribute("aria-expanded", "false");
+
+        const panel = completeGroup?.querySelector(".product-group__panel");
+        if (panel) panel.hidden = true;
+
+        const symbol = completeGroup?.querySelector(
+            ".product-group__toggle span:last-child"
+        );
+        if (symbol) symbol.textContent = "+";
+    });
+
+    let qty = "";
+
+    qForm.querySelectorAll("[data-quantity]").forEach(button => {
+        button.addEventListener("click", () => {
+            qty = button.dataset.quantity;
+
+            qForm.querySelectorAll("[data-quantity]").forEach(item => {
+                item.classList.toggle("is-selected", item === button);
+            });
+
+            document.getElementById("selectedQuantity").value = qty;
+        });
+    });
+
+    qForm.addEventListener("submit", event => {
+        submit(
+            event,
+            qForm,
+            "/quotation-requests",
+            "quotation",
+            "quotationSubmitButton",
+            "quotationFormStatus",
+            qSelector.selected,
+            "quotationProductError"
+        );
+    });
+
+    const sForm = document.getElementById("sampleForm");
+    const sSelector = productSelector(
+        sForm,
+        "sampleProductsJson",
+        "sampleProductError",
+        "sampleSelectionSummary"
+    );
+
+    const basis = document.getElementById("sampleBasis");
+    const upload = document.getElementById("sampleUploadZone");
+    const file = document.getElementById("sampleAttachment");
+    const filePreview = document.getElementById("sampleFilePreview");
+    const fileName = document.getElementById("sampleFileName");
+    const fileMeta = document.getElementById("sampleFileMeta");
+    const removeFileButton = document.getElementById("removeSampleFile");
+
+    document.querySelectorAll("[data-sample-basis]").forEach(button => {
+        button.addEventListener("click", () => {
+            basis.value = button.dataset.sampleBasis;
+
+            document.querySelectorAll("[data-sample-basis]")
+                .forEach(item => {
+                    item.classList.toggle(
+                        "is-selected",
+                        item === button
+                    );
+                });
+
+            const shouldShowUpload = ["reference", "artwork"]
+                .includes(basis.value);
+
+            upload.hidden = !shouldShowUpload;
+
+            if (!shouldShowUpload) {
+                clearSampleFile();
+            }
+        });
+    });
+
+    file.addEventListener("change", () => {
+        const selectedFile = file.files[0];
+
+        if (!selectedFile) {
+            clearSampleFile();
+            return;
+        }
+
+        const maxBytes = 10 * 1024 * 1024;
+        const allowedTypes = new Set([
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "application/pdf"
+        ]);
+
+        const attachmentError =
+            document.getElementById("sampleAttachmentError");
+
+        attachmentError.textContent = "";
+
+        if (!allowedTypes.has(selectedFile.type)) {
+            attachmentError.textContent =
+                "Please choose a JPG, PNG, WEBP or PDF file.";
+            clearSampleFile(false);
+            return;
+        }
+
+        if (selectedFile.size > maxBytes) {
+            attachmentError.textContent =
+                "Please choose a file smaller than 10MB.";
+            clearSampleFile(false);
+            return;
+        }
+
+        fileName.textContent = selectedFile.name;
+        fileMeta.textContent =
+            `${formatFileSize(selectedFile.size)} · ${
+                selectedFile.type === "application/pdf"
+                    ? "PDF"
+                    : "Image"
+            }`;
+
+        filePreview.hidden = false;
+        upload.classList.add("has-file");
+    });
+
+    removeFileButton?.addEventListener("click", () => {
+        clearSampleFile();
+        file.focus();
+    });
+
+    function clearSampleFile(clearError = true) {
+        file.value = "";
+        fileName.textContent = "";
+        fileMeta.textContent = "";
+        filePreview.hidden = true;
+        upload.classList.remove("has-file");
+
+        if (clearError) {
+            document.getElementById(
+                "sampleAttachmentError"
+            ).textContent = "";
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (!Number.isFinite(bytes) || bytes <= 0) {
+            return "0 KB";
+        }
+
+        if (bytes < 1024 * 1024) {
+            return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+        }
+
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    sForm.addEventListener("submit", event => {
+        submit(
+            event,
+            sForm,
+            "/sample-requests",
+            "sample",
+            "sampleSubmitButton",
+            "sampleFormStatus",
+            sSelector.selected,
+            "sampleProductError"
+        );
+    });
+
+    async function submit(
+        event,
+        form,
+        path,
+        type,
+        buttonId,
+        statusId,
+        selected,
+        errorId
+    ) {
+        event.preventDefault();
+
+        const status = document.getElementById(statusId);
+        status.textContent = "";
+        status.className = "form-status";
+
+        if (!selected.size) {
+            document.getElementById(errorId).textContent =
+                "Please choose at least one item.";
+            return;
+        }
+
+        if (!form.reportValidity()) return;
+
+        if (!API_BASE) {
+            status.textContent =
+                "The request service is temporarily unavailable.";
+            status.classList.add("is-error");
+            return;
+        }
+
+        const button = document.getElementById(buttonId);
+        const text = button.querySelector(".button-text");
+        const original = text.textContent;
+
+        button.disabled = true;
+        button.classList.add("loading");
+        text.textContent = "Sending...";
+
+        try {
+            const response = await fetch(
+                `${API_BASE}${path}`,
+                {
+                    method: "POST",
+                    body: new FormData(form),
+                    headers: {
+                        Accept: "application/json"
+                    }
+                }
+            );
+
+            const data = await response.json()
+                .catch(() => ({}));
 
             if (!response.ok) {
                 throw new Error(
-                    responseData.message ||
-                    getApiError(responseData) ||
-                    "Your message could not be sent. Please try again."
+                    data.message ||
+                    "Your request could not be sent."
                 );
             }
 
-            const confirmedReference = responseData.reference || reference;
+            const formData = new FormData(form);
 
-            try {
-                sessionStorage.setItem(
-                    "luxsomeContactConfirmation",
-                    JSON.stringify({
-                        reference: confirmedReference,
-                        brandName: values.brandName,
-                        emailAddress: values.emailAddress,
-                        submittedAt: new Date().toISOString()
-                    })
-                );
-            } catch (storageError) {
-                console.warn(
-                    "The message was sent, but confirmation details could not be stored.",
-                    storageError
-                );
-            }
+            sessionStorage.setItem(
+                "luxsomeContactConfirmation",
+                JSON.stringify({
+                    reference: data.reference,
+                    type,
+                    brandName: formData.get("brandName"),
+                    submittedAt: new Date().toISOString()
+                })
+            );
 
-            form.reset();
-            characterCount.textContent = "0 / 1500";
-
-            window.location.assign(
-                `/contact/success/?reference=${encodeURIComponent(confirmedReference)}`
+            location.assign(
+                `/contact/success/?reference=${encodeURIComponent(
+                    data.reference
+                )}&type=${encodeURIComponent(type)}`
             );
         } catch (error) {
-            console.error("Contact form submission failed:", error);
+            status.textContent = error.message;
+            status.classList.add("is-error");
 
-            formStatus.textContent =
-                error.message ||
-                "Something went wrong. Please check your connection and try again.";
-
-            formStatus.classList.add("is-error");
-            setLoadingState(false);
-        }
-    });
-
-    function getOrCreateEnquiryReference() {
-        const existing = enquiryReference?.value.trim();
-
-        if (/^LC-\d{8}-\d{4}$/.test(existing || "")) {
-            return existing;
-        }
-
-        const now = new Date();
-        const date = [
-            now.getFullYear(),
-            String(now.getMonth() + 1).padStart(2, "0"),
-            String(now.getDate()).padStart(2, "0")
-        ].join("");
-
-        const random = Math.floor(1000 + Math.random() * 9000);
-        const reference = `LC-${date}-${random}`;
-
-        if (enquiryReference) {
-            enquiryReference.value = reference;
-        }
-
-        return reference;
-    }
-
-    function setLoadingState(isLoading) {
-        submitButton.disabled = isLoading;
-        submitButton.classList.toggle("loading", isLoading);
-        submitButton.setAttribute("aria-busy", String(isLoading));
-        buttonText.textContent = isLoading ? "Sending..." : "Send Message";
-    }
-
-    function validateForm(values) {
-        let isValid = true;
-
-        if (values.brandName.length < 2 || values.brandName.length > 100) {
-            showError(
-                brandName,
-                "brandNameError",
-                "Please enter a valid brand name."
-            );
-            isValid = false;
-        }
-
-        const phonePattern = /^\+?[0-9\s()-]+$/;
-        const phoneDigits = values.phoneNumber.replace(/\D/g, "");
-
-        if (!phonePattern.test(values.phoneNumber)) {
-            showError(
-                phoneNumber,
-                "phoneNumberError",
-                "Phone number must not contain letters."
-            );
-            isValid = false;
-        } else if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-            showError(
-                phoneNumber,
-                "phoneNumberError",
-                "Please enter a valid phone number with 10 to 15 digits."
-            );
-            isValid = false;
-        }
-
-        if (!isValidEmail(values.emailAddress)) {
-            showError(
-                emailAddress,
-                "emailAddressError",
-                "Please enter a valid email address."
-            );
-            isValid = false;
-        }
-
-        if (values.message.length < 10) {
-            showError(
-                message,
-                "messageError",
-                "Please provide a little more information about your enquiry."
-            );
-            isValid = false;
-        } else if (values.message.length > 1500) {
-            showError(
-                message,
-                "messageError",
-                "Your message must not exceed 1,500 characters."
-            );
-            isValid = false;
-        }
-
-        return isValid;
-    }
-
-    function isValidEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    function showError(field, errorElementId, errorMessage) {
-        field.classList.add("is-invalid");
-        field.setAttribute("aria-invalid", "true");
-
-        const errorElement = document.getElementById(errorElementId);
-
-        if (errorElement) {
-            errorElement.textContent = errorMessage;
+            button.disabled = false;
+            button.classList.remove("loading");
+            text.textContent = original;
         }
     }
 
-    function clearFieldError(field, errorElementId) {
-        field.classList.remove("is-invalid");
-        field.removeAttribute("aria-invalid");
-
-        const errorElement = document.getElementById(errorElementId);
-
-        if (errorElement) {
-            errorElement.textContent = "";
-        }
-    }
-
-    function clearErrors() {
-        clearFieldError(brandName, "brandNameError");
-        clearFieldError(phoneNumber, "phoneNumberError");
-        clearFieldError(emailAddress, "emailAddressError");
-        clearFieldError(message, "messageError");
-    }
-
-    function focusFirstInvalidField() {
-        form.querySelector(".is-invalid")?.focus();
-    }
-
-    function getApiError(responseData) {
-        if (
-            responseData &&
-            Array.isArray(responseData.errors) &&
-            responseData.errors.length
-        ) {
-            return responseData.errors
-                .map(function (error) {
-                    return error.message;
-                })
-                .filter(Boolean)
-                .join(" ");
-        }
-
-        return "";
+    function escapeHtml(value) {
+        return String(value).replace(
+            /[&<>'"]/g,
+            character => ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "'": "&#39;",
+                '"': "&quot;"
+            })[character]
+        );
     }
 });

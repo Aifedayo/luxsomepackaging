@@ -99,6 +99,8 @@
 
         <link rel="stylesheet" href="/css/base.css">
         <link rel="stylesheet" href="/css/shop.css">
+        <link rel="stylesheet" href="/css/shop-sample-request.css">
+        <link rel="stylesheet" href="/css/shop-five-standard-boxes.css">
         <link rel="stylesheet" href="/css/shop-artwork-support.css">
         <script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js"
@@ -772,6 +774,12 @@
             <p class="configuration-help">
                 Select every item you want included in the bespoke system.
             </p>
+            <div class="box-styles-guide-link">
+                <span>Not sure which structure is right for your product?</span>
+                <a href="/box-styles/" target="_blank" rel="noopener">
+                    Explore our box styles <span aria-hidden="true">↗</span>
+                </a>
+            </div>
 
             <div class="check-grid accessory-grid bespoke-piece-grid">
                 <label>
@@ -1161,65 +1169,66 @@
                 <legend>Box style</legend>
 
                 <p class="configuration-help">
-                    Choose a preferred structure, or leave us to recommend one
-                    after reviewing your product.
+                    Choose one of Luxsome’s five standard box structures, or select
+                    Custom box structure if you already have a different design
+                    you want us to assess.
                 </p>
 
-                <div class="option-grid option-grid--box-styles">
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Recommend a structure"
-                            checked
-                        >
-                        <span>Recommend for me</span>
+                <div class="option-grid option-grid--box-styles standard-box-style-grid">
+                    <label><input type="radio" name="boxStyle" value="Magnetic flap box" checked><span>Magnetic flap box</span></label>
+                    <label><input type="radio" name="boxStyle" value="Shoulder box"><span>Shoulder box</span></label>
+                    <label><input type="radio" name="boxStyle" value="Tray-in-bed box"><span>Tray-in-bed box</span></label>
+                    <label><input type="radio" name="boxStyle" value="Door-style box"><span>Door-style box</span></label>
+                    <label><input type="radio" name="boxStyle" value="Tray-in-tray box"><span>Tray-in-tray box</span></label>
+                    <label class="custom-box-structure-option">
+                        <input type="radio" name="boxStyle" value="Custom box structure">
+                        <span>Custom box structure<small>Upload your own box design or structural reference</small></span>
+                    </label>
+                </div>
+
+                <div class="custom-box-structure-panel" id="customBoxStructurePanel" hidden aria-hidden="true">
+                    <p class="configuration-section__eyebrow">BESPOKE STRUCTURE</p>
+                    <h3>Upload your custom box design</h3>
+                    <p>
+                        Upload the box design, dieline, technical drawing, sketch or reference image
+                        you want Luxsome to assess. This upload is separate from your normal branding artwork.
+                    </p>
+
+                    <div class="artwork-upload artwork-upload--structure" id="customBoxArtworkUpload" data-upload-endpoint="https://api.luxsomepackaging.com/artwork">
+                        <input type="file" id="customBoxArtworkFiles" class="artwork-upload__input custom-structure-upload__input" multiple
+                            accept=".pdf,.ai,.eps,.svg,.psd,.tif,.tiff,.png,.jpg,.jpeg,.webp,.zip">
+
+                        <label class="artwork-upload__dropzone" id="customBoxArtworkDropzone" for="customBoxArtworkFiles">
+                            <span class="artwork-upload__icon" aria-hidden="true"><i class="fa-solid fa-arrow-up-from-bracket"></i></span>
+                            <strong>Drop your box design files here</strong>
+                            <small>or click to browse</small>
+                            <em>PDF, AI, EPS, SVG, PSD, TIFF, PNG, JPG, WEBP or ZIP</em>
+                        </label>
+
+                        <div class="artwork-upload__files" id="customBoxArtworkFileList" aria-live="polite"></div>
+                        <p class="artwork-upload__status" id="customBoxArtworkStatus" role="status"></p>
+
+                        <div class="custom-structure-upload__verification">
+                            <div
+                                class="cf-turnstile"
+                                data-sitekey="0x4AAAAAAEHXVhHvzepUlY8B"
+                                data-theme="light"
+                                data-size="flexible"
+                                data-action="artwork-upload"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <label class="product-field">
+                        <span>Describe the custom box structure</span>
+                        <textarea name="customBoxStructureNotes" id="customBoxStructureNotes" rows="4" maxlength="800"
+                            placeholder="e.g. Hexagonal rigid box with hinged lid and internal platform..."></textarea>
                     </label>
 
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Magnetic flap"
-                        >
-                        <span>Collapsible box</span>
-                    </label>
-
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Shoulder box"
-                        >
-                        <span>Shoulder box</span>
-                    </label>
-
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Tray-in-bed"
-                        >
-                        <span>Tray-in-bed</span>
-                    </label>
-
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Door style"
-                        >
-                        <span>Door style</span>
-                    </label>
-
-                    <label>
-                        <input
-                            type="radio"
-                            name="boxStyle"
-                            value="Custom structure"
-                        >
-                        <span>Custom structure</span>
-                    </label>
+                    <p class="custom-box-structure-panel__upload-note">
+                        At least one structural design or reference file is required when Custom box structure
+                        is selected. Luxsome will review feasibility before a sample quotation is issued.
+                    </p>
                 </div>
             </fieldset>
 
@@ -1471,7 +1480,7 @@
                         </h2>
         
                         <p id="pricingModalDescription">
-                            Market-informed guide prices shown per complete packaging system. The minimum order quantity is 25 systems.
+                            Standard guide prices shown per complete packaging system. The minimum order quantity is 25 systems, with published box-size pricing from up to 1 kg through 7 kg volumetric weight.
                         </p>
         
                     </header>
@@ -1524,6 +1533,9 @@
                                     <strong>
                                         ₦8,000
                                     </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
         
                                     <p>
                                         Custom rigid box, one-piece brand tag and thank-you card.
@@ -1567,6 +1579,9 @@
                                     <strong>
                                         ₦10,000
                                     </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
         
                                     <p>
                                         Custom rigid box, two-piece tag, thank-you note and envelope,
@@ -1606,6 +1621,9 @@
                                     <strong>
                                         ₦15,000
                                     </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
         
                                     <p>
                                         A fuller system with a premium rigid box, expanded tags,
@@ -1658,6 +1676,63 @@
                         </section>
         
         
+                        <!-- Box size pricing -->
+                        <section
+                            class="pricing-modal__section pricing-modal__section--sizes"
+                            aria-labelledby="modalSizePricingHeading"
+                        >
+                            <div class="pricing-modal__section-heading">
+                                <h3 id="modalSizePricingHeading">Box size pricing</h3>
+                                <span>Per system</span>
+                            </div>
+
+                            <p class="pricing-modal__section-intro">
+                                Choose the packaging tier that suits your brand, then use the
+                                finished-box volumetric-weight band that matches your dimensions.
+                                Prices below are standard guide prices at the 25-system minimum.
+                            </p>
+
+                            <div class="pricing-size-table-wrap">
+                                <table class="pricing-size-table">
+                                    <caption class="sr-only">
+                                        Luxsome pricing by finished box volumetric-weight band
+                                    </caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Box band</th>
+                                            <th scope="col">Essential</th>
+                                            <th scope="col">Signature</th>
+                                            <th scope="col">Prestige</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><th scope="row">Up to 1 kg</th><td data-label="Essential"><strong>₦8,000</strong></td><td data-label="Signature"><strong>₦10,000</strong></td><td data-label="Prestige"><strong>₦15,000</strong></td></tr>
+                                        <tr><th scope="row">Over 1–2 kg</th><td data-label="Essential"><strong>₦11,500</strong></td><td data-label="Signature"><strong>₦13,500</strong></td><td data-label="Prestige"><strong>₦18,500</strong></td></tr>
+                                        <tr><th scope="row">Over 2–3 kg</th><td data-label="Essential"><strong>₦14,500</strong></td><td data-label="Signature"><strong>₦16,500</strong></td><td data-label="Prestige"><strong>₦21,500</strong></td></tr>
+                                        <tr><th scope="row">Over 3–4 kg</th><td data-label="Essential"><strong>₦17,000</strong></td><td data-label="Signature"><strong>₦19,000</strong></td><td data-label="Prestige"><strong>₦24,000</strong></td></tr>
+                                        <tr><th scope="row">Over 4–5 kg</th><td data-label="Essential"><strong>₦20,000</strong></td><td data-label="Signature"><strong>₦22,000</strong></td><td data-label="Prestige"><strong>₦27,000</strong></td></tr>
+                                        <tr><th scope="row">Over 5–6 kg</th><td data-label="Essential"><strong>₦23,000</strong></td><td data-label="Signature"><strong>₦25,000</strong></td><td data-label="Prestige"><strong>₦30,000</strong></td></tr>
+                                        <tr><th scope="row">Over 6–7 kg</th><td data-label="Essential"><strong>₦26,000</strong></td><td data-label="Signature"><strong>₦28,000</strong></td><td data-label="Prestige"><strong>₦33,000</strong></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="pricing-size-table__note">
+                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                <p>
+                                    Standard prices assume a suitable rigid-box structure and a
+                                    speciality paper selected from our standard Luxsome collection.
+                                    Boxes above 7 kg, unusual structures, internal inserts and
+                                    premium finishes are quoted separately.
+                                </p>
+                            </div>
+
+                            <a class="pricing-size-table__full-link" href="/pricing/#sizePricing">
+                                View full 1–7 kg pricing guide
+                                <span aria-hidden="true">→</span>
+                            </a>
+                        </section>
+
                         <!-- Optional upgrades -->
                         <section
                             class="pricing-modal__section"
@@ -1865,7 +1940,7 @@
                                 </strong>
         
                                 <p>
-                                    Standard print, matte vinyl and metallic vinyl do
+                                    Standard print, matte vinyl and Metallic finish do
                                     not attract an additional finishing fee where
                                     suitable for the selected material and design.
                                 </p>
@@ -1878,7 +1953,7 @@
                         <div class="pricing-modal__notes">
         
                             <p>
-                                Tier prices assume standard sizes, one-colour or standard logo treatment and the stated 25-system minimum. Larger dimensions, specialty papers, premium finishes and complex structures increase the final quotation.
+                                Published tier prices now cover standard finished-box size bands from up to 1 kg through 7 kg volumetric weight at the stated 25-system minimum. Speciality papers outside our standard collection, premium finishes and complex structures may change the final quotation.
                             </p>
         
                             <p>
@@ -1929,12 +2004,12 @@
                 <div class="option-grid option-grid--three">
                     <label>
                         <input type="radio" name="logoFinish" value="Matte vinyl">
-                        <span>Matte vinyl</span>
+                        <span>Matte finish</span>
                     </label>
 
                     <label>
                         <input type="radio" name="logoFinish" value="Metallic vinyl">
-                        <span>Metallic vinyl</span>
+                        <span>Metallic finish</span>
                     </label>
                 </div>
             </div>
@@ -2421,13 +2496,35 @@
         ></textarea>
     </label>
 
-    <div class="order-summary-note">
+    <fieldset class="configuration-group project-intent-group">
+    <legend>How would you like to proceed? <span class="option-status option-status--included">Next step</span></legend>
+    <p class="configuration-help">Choose whether you would like Luxsome to prepare a physical sample before your intended bulk order, or review the project for a bulk production quotation.</p>
+    <div class="project-intent-options">
+        <label class="project-intent-option">
+            <input type="radio" name="projectIntent" value="sample_first" required>
+            <span class="project-intent-option__content">
+                <strong>I’d like a physical sample first <em>Recommended</em></strong>
+                <small>We’ll review your configuration and artwork, confirm feasibility, and send a separate quotation for producing your physical sample before bulk production.</small>
+            </span>
+        </label>
+        <label class="project-intent-option">
+            <input type="radio" name="projectIntent" value="bulk_quotation" required>
+            <span class="project-intent-option__content">
+                <strong>I’d like a quotation for bulk production</strong>
+                <small>We’ll review your project and prepare a quotation based on your selected production quantity. You can still request a physical sample before production begins.</small>
+            </span>
+        </label>
+    </div>
+    <p class="project-intent-note">Selecting bulk quotation does not waive Luxsome’s recommended physical sample approval process.</p>
+</fieldset>
+
+<div class="order-summary-note">
         <strong>What happens next?</strong>
         <span>Your selections will be added to the project form, where you can provide your brand, artwork and delivery details.</span>
     </div>
 
     <button type="submit" class="buy-now-button">Order Bespoke</button>
-    <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
+    <p class="buy-note">No payment is collected on this page. Luxsome will review your request before any quotation is issued.</p>
 </section>
 </form>
             </div>
@@ -2685,472 +2782,551 @@
         </script>
 
 <div
-class="pricing-modal"
-id="pricingModal"
-hidden
->
-<div
-    class="pricing-modal__backdrop"
-    data-pricing-close
-></div>
-
-<section
-    class="pricing-modal__dialog"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="pricingModalTitle"
-    aria-describedby="pricingModalDescription"
-    tabindex="-1"
->
-    <button
-        type="button"
-        class="pricing-modal__close"
-        data-pricing-close
-        aria-label="Close pricing guide"
-    >
-        <span aria-hidden="true">×</span>
-    </button>
-
-    <!-- Header -->
-    <header class="pricing-modal__header">
-
-        <p class="pricing-modal__eyebrow">
-            Pricing guide
-        </p>
-
-        <h2 id="pricingModalTitle">
-            Packaging prices at a glance
-        </h2>
-
-        <p id="pricingModalDescription">
-            Prices shown are per complete packaging system.
-            The minimum order quantity is 25 systems.
-        </p>
-
-    </header>
-
-    <!-- Scrollable content -->
-    <div class="pricing-modal__body">
-
-        <!-- Pricing tiers -->
-        <section
-            class="pricing-modal__section"
-            aria-labelledby="modalTiersHeading"
+        class="pricing-modal"
+        id="pricingModal"
+        hidden
         >
-            <div class="pricing-modal__section-heading">
-
-                <h3 id="modalTiersHeading">
-                    Packaging tiers
-                </h3>
-
-                <span>
-                    Launch price per system
-                </span>
-
-            </div>
-
-            <div class="pricing-summary-grid">
-
-                <!-- Essential -->
-                <article class="pricing-summary-card">
-
-                    <div class="pricing-summary-card__top">
-
-                        <span class="pricing-summary-card__tier">
-                            Tier One
-                        </span>
-
-                        <span class="pricing-summary-card__badge">
-                            Launch price
-                        </span>
-
-                    </div>
-
-                    <h4>
-                        Essential
-                    </h4>
-
-                    <span class="pricing-summary-card__regular">
-                        ₦10,000
-                    </span>
-
-                    <strong>
-                        ₦8,000
-                    </strong>
-
-                    <p>
-                        Packaging box, brand tags and a thank-you card.
-                    </p>
-
-                    <a href="/pricing/#essential">
-                        View Essential
-                        <span aria-hidden="true">→</span>
-                    </a>
-
-                </article>
-
-                <!-- Signature -->
-                <article
-                    class="
-                        pricing-summary-card
-                        pricing-summary-card--featured
-                    "
-                >
-
-                    <div class="pricing-summary-card__top">
-
-                        <span class="pricing-summary-card__tier">
-                            Most popular
-                        </span>
-
-                        <span class="pricing-summary-card__badge">
-                            Launch price
-                        </span>
-
-                    </div>
-
-                    <h4>
-                        Signature
-                    </h4>
-
-                    <span class="pricing-summary-card__regular">
-                        ₦12,000
-                    </span>
-
-                    <strong>
-                        ₦10,000
-                    </strong>
-
-                    <p>
-                        Box, brand tags, thank-you note and envelope,
-                        ribbon and thank-you sticker.
-                    </p>
-
-                    <a href="/pricing/#signature">
-                        View Signature
-                        <span aria-hidden="true">→</span>
-                    </a>
-
-                </article>
-
-                <!-- Complete -->
-                <article class="pricing-summary-card">
-
-                    <div class="pricing-summary-card__top">
-
-                        <span class="pricing-summary-card__tier">
-                            Tier Three
-                        </span>
-
-                        <span class="pricing-summary-card__badge">
-                            Launch price
-                        </span>
-
-                    </div>
-
-                    <h4>
-                        Prestige
-                    </h4>
-
-                    <span class="pricing-summary-card__regular">
-                        ₦18,000
-                    </span>
-
-                    <strong>
-                        ₦15,000
-                    </strong>
-
-                    <p>
-                        A complete system with branded ribbon, tissue
-                        wrapping and sticker seal.
-                    </p>
-
-                    <a href="/pricing/#complete">
-                        View Complete
-                        <span aria-hidden="true">→</span>
-                    </a>
-
-                </article>
-
-                <!-- Bespoke -->
-                <article class="pricing-summary-card">
-
-                    <div class="pricing-summary-card__top">
-
-                        <span class="pricing-summary-card__tier">
-                            Custom system
-                        </span>
-
-                        <span class="pricing-summary-card__badge">
-                            Flexible
-                        </span>
-
-                    </div>
-
-                    <h4>
-                        Bespoke
-                    </h4>
-
-                    <strong class="pricing-summary-card__custom-price">
-                        Custom quote
-                    </strong>
-
-                    <p>
-                        Select the exact boxes, tags, cards, tissue,
-                        ribbons and finishing details your brand needs.
-                    </p>
-
-                    <a href="/shop/bespoke/">
-                        Create Bespoke
-                        <span aria-hidden="true">→</span>
-                    </a>
-
-                </article>
-
-            </div>
-        </section>
-
-
-        <!-- Optional upgrades -->
-        <section
-            class="pricing-modal__section"
-            aria-labelledby="modalUpgradesHeading"
-        >
-            <div class="pricing-modal__section-heading">
-
-                <h3 id="modalUpgradesHeading">
-                    Optional packaging upgrades
-                </h3>
-
-                <span>
-                    Quoted separately
-                </span>
-
-            </div>
-
-            <div class="pricing-addon-list">
-
-                <article class="pricing-addon">
-                    <div class="pricing-addon__icon">
-                        <i
-                            class="fa-solid fa-stamp"
-                            aria-hidden="true"
-                        ></i>
-                    </div>
-
-                    <div class="pricing-addon__content">
-                        <strong>
-                            Premium print finishes
-                        </strong>
-
-                        <span>
-                            Foil stamping, embossing, debossing,
-                            spot UV or raised print.
-                        </span>
-                    </div>
-
-                    <b>
-                        Quoted separately
-                    </b>
-                </article>
-
-
-                <article class="pricing-addon">
-                    <div class="pricing-addon__icon">
-                        <i
-                            class="fa-solid fa-ribbon"
-                            aria-hidden="true"
-                        ></i>
-                    </div>
-
-                    <div class="pricing-addon__content">
-                        <strong>
-                            Branded ribbon
-                        </strong>
-
-                        <span>
-                            Custom-printed satin or grosgrain ribbon
-                            in selected colours.
-                        </span>
-                    </div>
-
-                    <b>
-                        Quoted separately
-                    </b>
-                </article>
-
-
-                <article class="pricing-addon">
-                    <div class="pricing-addon__icon">
-                        <i
-                            class="fa-solid fa-layer-group"
-                            aria-hidden="true"
-                        ></i>
-                    </div>
-
-                    <div class="pricing-addon__content">
-                        <strong>
-                            Expanded tag system
-                        </strong>
-
-                        <span>
-                            Upgrade to a two-piece or three-piece
-                            branded tag system.
-                        </span>
-                    </div>
-
-                    <b>
-                        Quoted separately
-                    </b>
-                </article>
-
-
-                <article class="pricing-addon">
-                    <div class="pricing-addon__icon">
-                        <i
-                            class="fa-regular fa-envelope"
-                            aria-hidden="true"
-                        ></i>
-                    </div>
-
-                    <div class="pricing-addon__content">
-                        <strong>
-                            Envelope upgrade
-                        </strong>
-
-                        <span>
-                            Add a coordinated envelope for a
-                            thank-you note or brand message.
-                        </span>
-                    </div>
-
-                    <b>
-                        Quoted separately
-                    </b>
-                </article>
-
-
-                <article class="pricing-addon">
-                    <div class="pricing-addon__icon">
-                        <i
-                            class="fa-solid fa-scroll"
-                            aria-hidden="true"
-                        ></i>
-                    </div>
-
-                    <div class="pricing-addon__content">
-                        <strong>
-                            Branded tissue wrap
-                        </strong>
-
-                        <span>
-                            Printed tissue wrapping with an optional
-                            coordinated sticker seal.
-                        </span>
-                    </div>
-
-                    <b>
-                        Quoted separately
-                    </b>
-                </article>
-
-
-                <article class="pricing-addon">
-                    <div class="pricing-addon__icon">
-                        <i
-                            class="fa-solid fa-box-open"
-                            aria-hidden="true"
-                        ></i>
-                    </div>
-
-                    <div class="pricing-addon__content">
-                        <strong>
-                            Box structure or size upgrade
-                        </strong>
-
-                        <span>
-                            Larger dimensions, alternative rigid-box
-                            structures, inserts or special closures.
-                        </span>
-                    </div>
-
-                    <b>
-                        Custom quotation
-                    </b>
-                </article>
-
-            </div>
-        </section>
-
-
-        <!-- Included finishes -->
-        <aside class="pricing-modal__notice">
-
-            <div class="pricing-modal__notice-icon">
-                <i
-                    class="fa-solid fa-circle-check"
-                    aria-hidden="true"
-                ></i>
-            </div>
-
-            <div>
-                <strong>
-                    Standard logo finishes
-                </strong>
-
-                <p>
-                    Standard print, matte vinyl and metallic vinyl do
-                    not attract an additional finishing fee where
-                    suitable for the selected material and design.
-                </p>
-            </div>
-
-        </aside>
-
-
-        <!-- Pricing notes -->
-        <div class="pricing-modal__notes">
-
-            <p>
-                Tier prices cover a finished packaging system based
-                on the standard specification. Larger dimensions,
-                speciality materials and complex construction may
-                affect the final quotation.
-            </p>
-
-            <p>
-                All figures are introductory guide prices. Your final
-                quotation will be confirmed after the full
-                specification has been reviewed.
-            </p>
-
-        </div>
-
-    </div>
-
-    <!-- Footer -->
-    <footer class="pricing-modal__footer">
-
-        <button
-            type="button"
-            class="pricing-modal__dismiss"
+        <div
+            class="pricing-modal__backdrop"
             data-pricing-close
-        >
-            Continue customising
-        </button>
+        ></div>
+        
+                <section
+                    class="pricing-modal__dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="pricingModalTitle"
+                    aria-describedby="pricingModalDescription"
+                    tabindex="-1"
+                >
+                    <button
+                        type="button"
+                        class="pricing-modal__close"
+                        data-pricing-close
+                        aria-label="Close pricing guide"
+                    >
+                        <span aria-hidden="true">×</span>
+                    </button>
+        
+                    <!-- Header -->
+                    <header class="pricing-modal__header">
+        
+                        <p class="pricing-modal__eyebrow">
+                            Pricing guide
+                        </p>
+        
+                        <h2 id="pricingModalTitle">
+                            Packaging prices at a glance
+                        </h2>
+        
+                        <p id="pricingModalDescription">
+                            Standard guide prices shown per complete packaging system. The minimum order quantity is 25 systems, with published box-size pricing from up to 1 kg through 7 kg volumetric weight.
+                        </p>
+        
+                    </header>
+        
+                    <!-- Scrollable content -->
+                    <div class="pricing-modal__body">
+        
+                        <!-- Pricing tiers -->
+                        <section
+                            class="pricing-modal__section"
+                            aria-labelledby="modalTiersHeading"
+                        >
+                            <div class="pricing-modal__section-heading">
+        
+                                <h3 id="modalTiersHeading">
+                                    Packaging tiers
+                                </h3>
+        
+                                <span>
+                                    Guide price
+                                </span>
+        
+                            </div>
+        
+                            <div class="pricing-summary-grid">
+        
+                                <!-- Essential -->
+                                <article class="pricing-summary-card">
+        
+                                    <div class="pricing-summary-card__top">
+        
+                                        <span class="pricing-summary-card__tier">
+                                            Tier One
+                                        </span>
+        
+                                        <span class="pricing-summary-card__badge">
+                                            LAUNCH PRICE
+                                        </span>
+        
+                                    </div>
+        
+                                    <h4>
+                                        Essential
+                                    </h4>
+        
+                                    <span class="pricing-summary-card__regular">
+                                        ₦10,000
+                                    </span>
+        
+                                    <strong>
+                                        ₦8,000
+                                    </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
+        
+                                    <p>
+                                        Custom rigid box, one-piece brand tag and thank-you card.
+                                    </p>
+        
+                                    <a href="/pricing/#essential">
+                                        View Essential
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+        
+                                </article>
+        
+                                <!-- Signature -->
+                                <article
+                                    class="
+                                        pricing-summary-card
+                                        pricing-summary-card--featured
+                                    "
+                                >
+        
+                                    <div class="pricing-summary-card__top">
+        
+                                        <span class="pricing-summary-card__tier">
+                                            MOST POPULAR
+                                        </span>
+        
+                                        <span class="pricing-summary-card__badge">
+                                            LAUNCH PRICE
+                                        </span>
+        
+                                    </div>
+        
+                                    <h4>
+                                        Signature
+                                    </h4>
+        
+                                    <span class="pricing-summary-card__regular">
+                                        ₦12,000
+                                    </span>
+        
+                                    <strong>
+                                        ₦10,000
+                                    </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
+        
+                                    <p>
+                                        Custom rigid box, two-piece tag, thank-you note and envelope,
+                                        ribbon and sticker seal.
+                                    </p>
+        
+                                    <a href="/pricing/#signature">
+                                        View Signature
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+        
+                                </article>
+        
+                                <!-- Complete -->
+                                <article class="pricing-summary-card">
+        
+                                    <div class="pricing-summary-card__top">
+        
+                                        <span class="pricing-summary-card__tier">
+                                            Tier Three
+                                        </span>
+        
+                                        <span class="pricing-summary-card__badge">
+                                            LAUNCH PRICE
+                                        </span>
+        
+                                    </div>
+        
+                                    <h4>
+                                        Prestige
+                                    </h4>
+        
+                                    <span class="pricing-summary-card__regular">
+                                        ₦18,000
+                                    </span>
+        
+                                    <strong>
+                                        ₦15,000
+                                    </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
+        
+                                    <p>
+                                        A fuller system with a premium rigid box, expanded tags,
+                                        branded ribbon, tissue and sticker seal.
+                                    </p>
+        
+                                    <a href="/pricing/#complete">
+                                        View Prestige
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+        
+                                </article>
+        
+                                <!-- Bespoke -->
+                                <article class="pricing-summary-card">
+        
+                                    <div class="pricing-summary-card__top">
+        
+                                        <span class="pricing-summary-card__tier">
+                                            Custom system
+                                        </span>
+        
+                                        <span class="pricing-summary-card__badge">
+                                            Flexible
+                                        </span>
+        
+                                    </div>
+        
+                                    <h4>
+                                        Bespoke
+                                    </h4>
+        
+                                    <strong class="pricing-summary-card__custom-price">
+                                        Custom quote
+                                    </strong>
+        
+                                    <p>
+                                        Select the exact boxes, tags, cards, tissue,
+                                        ribbons and finishing details your brand needs.
+                                    </p>
+        
+                                    <a href="/shop/bespoke/">
+                                        Create Bespoke
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+        
+                                </article>
+        
+                            </div>
+                        </section>
+        
+        
+                        <!-- Box size pricing -->
+                        <section
+                            class="pricing-modal__section pricing-modal__section--sizes"
+                            aria-labelledby="modalSizePricingHeading"
+                        >
+                            <div class="pricing-modal__section-heading">
+                                <h3 id="modalSizePricingHeading">Box size pricing</h3>
+                                <span>Per system</span>
+                            </div>
 
-        <a
-            href="/pricing/"
-            class="pricing-modal__full-link"
-        >
-            Open full pricing page
-            <span aria-hidden="true">→</span>
-        </a>
+                            <p class="pricing-modal__section-intro">
+                                Choose the packaging tier that suits your brand, then use the
+                                finished-box volumetric-weight band that matches your dimensions.
+                                Prices below are standard guide prices at the 25-system minimum.
+                            </p>
 
-    </footer>
+                            <div class="pricing-size-table-wrap">
+                                <table class="pricing-size-table">
+                                    <caption class="sr-only">
+                                        Luxsome pricing by finished box volumetric-weight band
+                                    </caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Box band</th>
+                                            <th scope="col">Essential</th>
+                                            <th scope="col">Signature</th>
+                                            <th scope="col">Prestige</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><th scope="row">Up to 1 kg</th><td data-label="Essential"><strong>₦8,000</strong></td><td data-label="Signature"><strong>₦10,000</strong></td><td data-label="Prestige"><strong>₦15,000</strong></td></tr>
+                                        <tr><th scope="row">Over 1–2 kg</th><td data-label="Essential"><strong>₦11,500</strong></td><td data-label="Signature"><strong>₦13,500</strong></td><td data-label="Prestige"><strong>₦18,500</strong></td></tr>
+                                        <tr><th scope="row">Over 2–3 kg</th><td data-label="Essential"><strong>₦14,500</strong></td><td data-label="Signature"><strong>₦16,500</strong></td><td data-label="Prestige"><strong>₦21,500</strong></td></tr>
+                                        <tr><th scope="row">Over 3–4 kg</th><td data-label="Essential"><strong>₦17,000</strong></td><td data-label="Signature"><strong>₦19,000</strong></td><td data-label="Prestige"><strong>₦24,000</strong></td></tr>
+                                        <tr><th scope="row">Over 4–5 kg</th><td data-label="Essential"><strong>₦20,000</strong></td><td data-label="Signature"><strong>₦22,000</strong></td><td data-label="Prestige"><strong>₦27,000</strong></td></tr>
+                                        <tr><th scope="row">Over 5–6 kg</th><td data-label="Essential"><strong>₦23,000</strong></td><td data-label="Signature"><strong>₦25,000</strong></td><td data-label="Prestige"><strong>₦30,000</strong></td></tr>
+                                        <tr><th scope="row">Over 6–7 kg</th><td data-label="Essential"><strong>₦26,000</strong></td><td data-label="Signature"><strong>₦28,000</strong></td><td data-label="Prestige"><strong>₦33,000</strong></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
 
-</section>
-</div>
+                            <div class="pricing-size-table__note">
+                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                <p>
+                                    Standard prices assume a suitable rigid-box structure and a
+                                    speciality paper selected from our standard Luxsome collection.
+                                    Boxes above 7 kg, unusual structures, internal inserts and
+                                    premium finishes are quoted separately.
+                                </p>
+                            </div>
+
+                            <a class="pricing-size-table__full-link" href="/pricing/#sizePricing">
+                                View full 1–7 kg pricing guide
+                                <span aria-hidden="true">→</span>
+                            </a>
+                        </section>
+
+                        <!-- Optional upgrades -->
+                        <section
+                            class="pricing-modal__section"
+                            aria-labelledby="modalUpgradesHeading"
+                        >
+                            <div class="pricing-modal__section-heading">
+        
+                                <h3 id="modalUpgradesHeading">
+                                    Optional packaging and structural upgrades
+                                </h3>
+        
+                                <span>
+                                    Starting guide
+                                </span>
+        
+                            </div>
+        
+                            <div class="pricing-addon-list">
+        
+                                <article class="pricing-addon">
+                                    <div class="pricing-addon__icon">
+                                        <i
+                                            class="fa-solid fa-stamp"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
+        
+                                    <div class="pricing-addon__content">
+                                        <strong>
+                                            Premium print finishes
+                                        </strong>
+        
+                                        <span>
+                                            Foil stamping, embossing, debossing, spot UV or raised print. Price depends on artwork size, position and setup.
+                                        </span>
+                                    </div>
+        
+                                    <b>
+                                        From ₦25,000 per base MOQ
+                                    </b>
+                                </article>
+        
+        
+                                <article class="pricing-addon">
+                                    <div class="pricing-addon__icon">
+                                        <i
+                                            class="fa-solid fa-ribbon"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
+        
+                                    <div class="pricing-addon__content">
+                                        <strong>
+                                            Branded ribbon
+                                        </strong>
+        
+                                        <span>
+                                            Custom-printed satin or grosgrain ribbon. Final cost depends on width, print colour and required length.
+                                        </span>
+                                    </div>
+        
+                                    <b>
+                                        From ₦30,000 per base MOQ 
+                                    </b>
+                                </article>
+        
+        
+                                <article class="pricing-addon">
+                                    <div class="pricing-addon__icon">
+                                        <i
+                                            class="fa-solid fa-grip-lines"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
+        
+                                    <div class="pricing-addon__content">
+                                        <strong>
+                                            Ribbon handle with eyelets
+                                        </strong>
+        
+                                        <span>
+                                            Add a reinforced ribbon handle fitted through
+                                            metal eyelets for a polished carrier-style box.
+                                        </span>
+                                    </div>
+        
+                                    <b>
+                                        From ₦37,500 per base MOQ
+                                    </b>
+                                </article>
+        
+        
+                                <article class="pricing-addon">
+                                    <div class="pricing-addon__icon">
+                                        <i
+                                            class="fa-solid fa-hand-pointer"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
+        
+                                    <div class="pricing-addon__content">
+                                        <strong>
+                                            Pull tab
+                                        </strong>
+        
+                                        <span>
+                                            Add a ribbon, fabric or board pull tab to make
+                                            drawers and fitted components easier to open.
+                                        </span>
+                                    </div>
+        
+                                    <b>
+                                        From ₦15,000 per base MOQ
+                                    </b>
+                                </article>
+        
+        
+                                <article class="pricing-addon">
+                                    <div class="pricing-addon__icon">
+                                        <i
+                                            class="fa-regular fa-rectangle-list"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
+        
+                                    <div class="pricing-addon__content">
+                                        <strong>
+                                            Product description card
+                                        </strong>
+        
+                                        <span>
+                                            Add a coordinated printed card for product
+                                            details, care instructions, sizing or brand
+                                            information.
+                                        </span>
+                                    </div>
+        
+                                    <b>
+                                        From ₦16,250 per base MOQ
+                                    </b>
+                                </article>
+                                <article class="pricing-addon">
+                                    <div class="pricing-addon__icon">
+                                        <i
+                                            class="fa-solid fa-scroll"
+                                            aria-hidden="true"
+                                        ></i>
+                                    </div>
+        
+                                    <div class="pricing-addon__content">
+                                        <strong>
+                                            Branded tissue wrap
+                                        </strong>
+        
+                                        <span>
+                                            Custom-printed tissue wrapping with one coordinated sticker seal.
+                                        </span>
+                                    </div>
+        
+                                    <b>
+                                        From ₦11,250 base MOQ
+                                    </b>
+                                </article>        
+                            </div>
+                        </section>
+        
+        
+        
+                        <aside class="pricing-modal__notice pricing-modal__notice--market">
+                            <div class="pricing-modal__notice-icon">
+                                <i
+                                    class="fa-solid fa-chart-line"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+        
+                            <div>
+                                <strong>
+                                    Why these prices are structured this way
+                                </strong>
+        
+                                <p>
+                                    Public Lagos pricing commonly starts at higher
+                                    quantities such as 50 or 100 pieces. Luxsome's
+                                    25-system minimum carries a higher per-unit production
+                                    cost while keeping premium packaging accessible to
+                                    growing brands.
+                                </p>
+                            </div>
+                        </aside>
+        
+                        <!-- Included finishes -->
+                        <aside class="pricing-modal__notice">
+        
+                            <div class="pricing-modal__notice-icon">
+                                <i
+                                    class="fa-solid fa-circle-check"
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+        
+                            <div>
+                                <strong>
+                                    Standard logo finishes
+                                </strong>
+        
+                                <p>
+                                    Standard print, matte finish and Metallic finish do
+                                    not attract an additional finishing fee where
+                                    suitable for the selected material and design.
+                                </p>
+                            </div>
+        
+                        </aside>
+        
+        
+                        <!-- Pricing notes -->
+                        <div class="pricing-modal__notes">
+        
+                            <p>
+                                Published tier prices now cover standard finished-box size bands from up to 1 kg through 7 kg volumetric weight at the stated 25-system minimum. Speciality papers outside our standard collection, premium finishes and complex structures may change the final quotation.
+                            </p>
+        
+                            <p>
+                                These figures are market-informed guide prices for Lagos as of August 2026. Material availability and supplier costs can change, so every order is confirmed after dimensions, artwork and production details are reviewed.
+                            </p>
+        
+                        </div>
+        
+                    </div>
+        
+                    <!-- Footer -->
+                    <footer class="pricing-modal__footer">
+        
+                        <button
+                            type="button"
+                            class="pricing-modal__dismiss"
+                            data-pricing-close
+                        >
+                            Continue customising
+                        </button>
+        
+                        <a
+                            href="/pricing/"
+                            class="pricing-modal__full-link"
+                        >
+                            Open full pricing page
+                            <span aria-hidden="true">→</span>
+                        </a>
+        
+                    </footer>
+        
+                </section>
+        </div>
 
         <script src="/js/environment.js"></script>
         <script id="mobileGalleryReleaseScript">
@@ -3822,8 +3998,8 @@ hidden
                                         <label class="product-field">
                                             <span>Logo finish</span>
                                             <select data-additional-logo-finish>
-                                                <option value="Matte vinyl">Matte vinyl</option>
-                                                <option value="Metallic vinyl">Metallic vinyl</option>
+                                                <option value="Matte vinyl">Matte finish</option>
+                                                <option value="Metallic vinyl">Metallic finish</option>
                                                 <option value="Foiled">Foiled</option>
                                             </select>
                                         </label>

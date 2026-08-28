@@ -15,11 +15,15 @@
     <link rel="stylesheet" href="/css/base.css">
     <link rel="stylesheet" href="/css/crm-responsive.css">
     <link rel="stylesheet" href="/css/admin-v2.css">
+    <link rel="stylesheet" href="/css/crm-sidebar.css">
+    <link rel="stylesheet" href="/css/crm-dispatch-label.css">
+    <link rel="stylesheet" href="/css/crm-structure-review.css">
+    <link rel="stylesheet" href="/css/crm-sample-review.css">
 </head>
 <body class="crm-app-page">
     <div class="crm-app">
         <aside class="crm-sidebar" id="crmSidebar">
-            <div>
+            <div class="crm-sidebar__inner">
                 <div data-luxsome-crm-logo></div>
 
                 <nav class="crm-nav" aria-label="CRM navigation">
@@ -40,6 +44,16 @@
                             <small id="navProjectCount">0</small>
                         </button>
 
+                        <button class="crm-nav__item" type="button" data-view="quotation_request">
+                            <span>Quotation requests</span>
+                            <small id="navQuotationRequestCount">0</small>
+                        </button>
+
+                        <button class="crm-nav__item" type="button" data-view="sample_request">
+                            <span>Sample requests</span>
+                            <small id="navSampleCount">0</small>
+                        </button>
+
                         <button class="crm-nav__item" type="button" data-view="contact">
                             <span>Contact messages</span>
                             <small id="navContactCount">0</small>
@@ -50,11 +64,26 @@
                             <small id="navQuotationCount">0</small>
                         </button>
 
-                        <a class="crm-nav__item crm-nav__item--link" href="/admin/invoices/">
+                        <a class="crm-nav__item" href="/admin/invoices/">
                             <span>Invoices</span>
                             <small aria-hidden="true">→</small>
                         </a>
-                        <a class="crm-nav__item crm-nav__item--link" href="/admin/inventory/">
+                    </section>
+
+                    <section class="crm-nav__group" aria-labelledby="navOperationsLabel">
+                        <p id="navOperationsLabel" class="crm-nav__label">Operations</p>
+
+                        <a class="crm-nav__item" href="/admin/orders/">
+                            <span>Orders</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a class="crm-nav__item" href="/admin/production/">
+                            <span>Production</span>
+                            <small aria-hidden="true">→</small>
+                        </a>
+
+                        <a class="crm-nav__item" href="/admin/inventory/">
                             <span>Inventory</span>
                             <small aria-hidden="true">→</small>
                         </a>
@@ -251,13 +280,24 @@
                 </div>
 
                 <select id="detailStatus">
-                    <option value="new">New</option>
-                    <option value="reviewing">Reviewing</option>
-                    <option value="quoted">Quoted</option>
-                    <option value="follow_up">Follow up</option>
-                    <option value="won">Won</option>
-                    <option value="lost">Lost</option>
-                    <option value="archived">Archived</option>
+                    <optgroup label="Lead workflow">
+                        <option value="new">New</option>
+                        <option value="reviewing">Reviewing</option>
+                        <option value="quoted">Quoted</option>
+                        <option value="follow_up">Follow up</option>
+                        <option value="won">Won</option>
+                        <option value="lost">Lost</option>
+                        <option value="archived">Archived</option>
+                    </optgroup>
+                    <optgroup label="Sample workflow">
+                        <option value="sample_requested">Sample requested</option>
+                        <option value="sample_quoted">Sample quoted</option>
+                        <option value="sample_paid">Sample paid</option>
+                        <option value="sample_in_production">Sample in production</option>
+                        <option value="sample_ready">Sample ready</option>
+                        <option value="sample_approved">Sample approved</option>
+                        <option value="sample_revision">Sample revision</option>
+                    </optgroup>
                 </select>
             </section>
 
@@ -282,6 +322,337 @@
                 </div>
 
                 <dl id="payloadList" class="crm-payload-list"></dl>
+            </section>
+
+            <section
+                class="crm-sample-review-section"
+                id="sampleReviewSection"
+                hidden
+            >
+                <div class="crm-section-heading crm-section-heading--row">
+                    <div>
+                        <p class="crm-eyebrow">SAMPLE REQUEST DECISION</p>
+                        <h3>Review outcome & customer notification</h3>
+                    </div>
+                    <span
+                        class="crm-sample-review-badge"
+                        id="sampleReviewBadge"
+                        data-decision="pending_review"
+                    >
+                        Pending review
+                    </span>
+                </div>
+
+                <p class="crm-sample-review-intro">
+                    Record Luxsome's decision separately from artwork approval.
+                    Internal notes are never included in the customer email.
+                </p>
+
+                <form id="sampleReviewForm" class="crm-sample-review-form">
+                    <div class="crm-sample-review-grid">
+                        <label>
+                            Decision
+                            <select id="sampleReviewDecision">
+                                <option value="pending_review">Pending review</option>
+                                <option value="ready_for_sample_quote">Ready for sample quotation</option>
+                                <option value="needs_clarification">Needs clarification</option>
+                                <option value="cannot_proceed_production">Cannot proceed — production limitation</option>
+                                <option value="cannot_proceed_scope">Cannot proceed — outside Luxsome scope</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Reviewed by
+                            <input
+                                id="sampleReviewedBy"
+                                type="text"
+                                maxlength="120"
+                                placeholder="Team member name"
+                            >
+                        </label>
+                    </div>
+
+                    <label class="crm-sample-review-field">
+                        Internal review notes
+                        <textarea
+                            id="sampleInternalNotes"
+                            rows="4"
+                            maxlength="4000"
+                            placeholder="Internal production or review notes. These are never sent to the customer."
+                        ></textarea>
+                        <small>Luxsome team only — never included in customer communication.</small>
+                    </label>
+
+                    <div id="sampleScopeReasonWrap" class="crm-sample-scope-reason" hidden>
+                        <label>
+                            Internal scope classification
+                            <select id="sampleScopeReason">
+                                <option value="">Select internal reason</option>
+                                <option value="excluded_product">Haraam / excluded product</option>
+                                <option value="outside_service_scope">Outside current service scope</option>
+                                <option value="other_internal_scope">Other internal scope reason</option>
+                            </select>
+                        </label>
+                        <p>
+                            This classification is private. The customer email only says
+                            that the request falls outside the scope of projects Luxsome currently undertakes.
+                        </p>
+                    </div>
+
+                    <label
+                        id="sampleCustomerMessageWrap"
+                        class="crm-sample-review-field"
+                    >
+                        Customer message
+                        <textarea
+                            id="sampleCustomerMessage"
+                            rows="4"
+                            maxlength="2000"
+                            placeholder="Add the information the customer needs to see in the email."
+                        ></textarea>
+                        <small id="sampleCustomerMessageHelp">
+                            This message will be included in the customer email.
+                        </small>
+                    </label>
+
+                    <div class="crm-sample-email-preview">
+                        <div class="crm-section-heading">
+                            <p class="crm-eyebrow">CUSTOMER EMAIL</p>
+                            <h3 id="sampleEmailPreviewTitle">No email selected yet</h3>
+                        </div>
+                        <div id="sampleEmailPreviewBody" class="crm-sample-email-preview__body">
+                            Choose a decision to preview the customer-facing message.
+                        </div>
+                    </div>
+
+                    <div class="crm-sample-notification-status">
+                        <strong id="sampleEmailStatusLabel">Customer not notified</strong>
+                        <span id="sampleEmailStatusMeta"></span>
+                    </div>
+
+                    <p id="sampleReviewMessage" class="crm-form-status" role="status"></p>
+
+                    <div class="crm-sample-review-actions">
+                        <button
+                            id="saveSampleReviewButton"
+                            class="crm-button crm-button--secondary"
+                            type="submit"
+                        >
+                            Save decision
+                        </button>
+
+                        <button
+                            id="sendSampleReviewEmailButton"
+                            class="crm-button crm-button--primary"
+                            type="button"
+                        >
+                            Save & send customer email
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section
+                class="crm-dispatch-section"
+                id="dispatchSection"
+                hidden
+            >
+                <div class="crm-section-heading crm-section-heading--row">
+                    <div>
+                        <p class="crm-eyebrow">DISPATCH</p>
+                        <h3>Dispatch label</h3>
+                    </div>
+                    <span class="crm-dispatch-badge">4 × 6 in</span>
+                </div>
+
+                <p class="crm-dispatch-intro">
+                    Confirm delivery details, then preview or print a courier-ready label.
+                    Multiple packages generate one label per package.
+                </p>
+
+                <form class="crm-dispatch-form" id="dispatchLabelForm" novalidate>
+                    <div class="crm-dispatch-grid">
+                        <label>Recipient name
+                            <input id="dispatchRecipientName" type="text" maxlength="160" required>
+                        </label>
+                        <label>Brand / business
+                            <input id="dispatchBrandName" type="text" maxlength="160">
+                        </label>
+                        <label>Phone number
+                            <input id="dispatchPhone" type="tel" maxlength="60" required>
+                        </label>
+                        <label>Number of packages
+                            <input id="dispatchPackageCount" type="number" min="1" max="50" step="1" value="1" required>
+                        </label>
+                    </div>
+
+                    <label class="crm-dispatch-field--full">Delivery address
+                        <textarea id="dispatchAddress" rows="3" maxlength="600" required
+                            placeholder="Street address, area or landmark"></textarea>
+                    </label>
+
+                    <div class="crm-dispatch-grid crm-dispatch-grid--three">
+                        <label>City
+                            <input id="dispatchCity" type="text" maxlength="120">
+                        </label>
+                        <label>State
+                            <input id="dispatchState" type="text" maxlength="120">
+                        </label>
+                        <label>Package weight
+                            <input id="dispatchWeight" type="text" maxlength="80" placeholder="e.g. 4.5 kg">
+                        </label>
+                    </div>
+
+                    <label class="crm-dispatch-field--full">Package description
+                        <input id="dispatchDescription" type="text" maxlength="180"
+                            value="Luxury packaging systems">
+                    </label>
+
+                    <label class="crm-dispatch-check">
+                        <input id="dispatchFragile" type="checkbox" checked>
+                        <span>Mark package as <strong>FRAGILE — HANDLE WITH CARE</strong></span>
+                    </label>
+
+                    <p id="dispatchLabelStatus" class="crm-form-status" role="status"></p>
+
+                    <div class="crm-dispatch-actions">
+                        <button class="crm-button crm-button--secondary"
+                            id="previewDispatchLabelButton" type="button">
+                            Preview label
+                        </button>
+                        <button class="crm-button crm-button--primary"
+                            id="printDispatchLabelButton" type="submit">
+                            Print / Save PDF
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section
+                class="crm-structure-section"
+                id="structureSection"
+                hidden
+            >
+                <div class="crm-section-heading crm-section-heading--row">
+                    <div>
+                        <p class="crm-eyebrow">CUSTOM BOX STRUCTURE</p>
+                        <h3>Structural design & feasibility</h3>
+                    </div>
+
+                    <span
+                        class="crm-structure-badge"
+                        id="structureReviewBadge"
+                    >
+                        Pending review
+                    </span>
+                </div>
+
+                <div class="crm-structure-summary">
+                    <div>
+                        <span>Box style</span>
+                        <strong id="structureBoxStyle">Custom box structure</strong>
+                    </div>
+
+                    <div>
+                        <span>Customer notes</span>
+                        <p id="structureCustomerNotes">No structural notes supplied.</p>
+                    </div>
+                </div>
+
+                <div class="crm-section-heading crm-section-heading--row crm-structure-files-heading">
+                    <div>
+                        <p class="crm-eyebrow">STRUCTURAL FILES</p>
+                        <h3>Uploaded box design files</h3>
+                    </div>
+
+                    <span
+                        class="crm-artwork-count"
+                        id="structureFileCount"
+                    >
+                        0 files
+                    </span>
+                </div>
+
+                <p
+                    class="crm-artwork-status"
+                    id="structureFileStatus"
+                    role="status"
+                ></p>
+
+                <div
+                    class="crm-artwork-grid"
+                    id="structureFileGrid"
+                ></div>
+
+                <div
+                    class="crm-artwork-empty"
+                    id="structureFileEmpty"
+                    hidden
+                >
+                    <strong>No structural files found</strong>
+                    <p>
+                        The custom structure is recorded, but there are no files
+                        connected to its structural upload reference.
+                    </p>
+                </div>
+
+                <form
+                    class="crm-artwork-review crm-structure-review"
+                    id="structureReviewForm"
+                >
+                    <div class="crm-section-heading">
+                        <p class="crm-eyebrow">MANUFACTURING ASSESSMENT</p>
+                        <h3>Can Luxsome produce this structure?</h3>
+                    </div>
+
+                    <div class="crm-artwork-review__grid">
+                        <label>
+                            Assessment
+                            <select id="structureReviewStatus">
+                                <option value="pending_review">Pending review</option>
+                                <option value="can_produce">Can produce</option>
+                                <option value="needs_clarification">Needs clarification</option>
+                                <option value="cannot_produce">Cannot produce</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            Reviewed by
+                            <input
+                                id="structureReviewedBy"
+                                type="text"
+                                maxlength="120"
+                                placeholder="Team member name"
+                            >
+                        </label>
+                    </div>
+
+                    <label class="crm-artwork-review__notes">
+                        Internal structural notes
+                        <textarea
+                            id="structureReviewNotes"
+                            rows="4"
+                            maxlength="4000"
+                            placeholder="Add manufacturing notes, board thickness, clearance changes, insert requirements or reasons the structure cannot proceed."
+                        ></textarea>
+                    </label>
+
+                    <div class="crm-artwork-review__footer">
+                        <p
+                            id="structureReviewMessage"
+                            class="crm-form-status"
+                            role="status"
+                        ></p>
+
+                        <button
+                            class="crm-button crm-button--primary"
+                            id="saveStructureReviewButton"
+                            type="submit"
+                        >
+                            Save assessment
+                        </button>
+                    </div>
+                </form>
             </section>
 
             <section
@@ -389,6 +760,34 @@
         </div>
     </aside>
 
+
+    <div id="dispatchPreviewBackdrop" class="crm-detail-backdrop" hidden></div>
+
+    <section id="dispatchPreviewModal"
+        class="crm-dispatch-preview-modal"
+        aria-hidden="true"
+        aria-labelledby="dispatchPreviewTitle">
+        <header class="crm-dispatch-preview-modal__header">
+            <div>
+                <p class="crm-eyebrow">DISPATCH LABEL PREVIEW</p>
+                <h2 id="dispatchPreviewTitle">Ready to print</h2>
+            </div>
+            <button id="closeDispatchPreviewButton"
+                class="crm-detail-close"
+                type="button"
+                aria-label="Close dispatch label preview">×</button>
+        </header>
+
+        <div id="dispatchPreviewBody" class="crm-dispatch-preview-modal__body"></div>
+
+        <footer class="crm-dispatch-preview-modal__footer">
+            <button id="dispatchPreviewPrintButton"
+                class="crm-button crm-button--primary"
+                type="button">
+                Print / Save PDF
+            </button>
+        </footer>
+    </section>
 
     <div id="quotationBackdrop" class="crm-detail-backdrop" hidden></div>
 
@@ -941,7 +1340,7 @@
     </section>
 
     <script src="/js/environment.js"></script>
-    <script src="/js/admin-dashboard-v2.js?v=4"></script>
+    <script src="/js/admin-dashboard-v2.js?v=6"></script>
     <script src="/js/crm-brand.js"></script>
 </body>
 </html>

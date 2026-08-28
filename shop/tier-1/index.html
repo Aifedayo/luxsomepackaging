@@ -99,6 +99,8 @@
 
         <link rel="stylesheet" href="/css/base.css">
         <link rel="stylesheet" href="/css/shop.css">
+        <link rel="stylesheet" href="/css/shop-sample-request.css">
+        <link rel="stylesheet" href="/css/shop-five-standard-boxes.css">
         <link rel="stylesheet" href="/css/shop-artwork-support.css">
         <script
             src="https://challenges.cloudflare.com/turnstile/v0/api.js"
@@ -386,13 +388,19 @@
                 <span class="option-status option-status--included">Included</span>
             </legend>
             <p class="configuration-help">
-                Choose the box construction that suits your product.
+                Choose from Luxsome’s five standard rigid-box structures. The same box styles are available across all three packaging tiers.
             </p>
+            <div class="box-styles-guide-link">
+                <span>Not sure which structure is right for your product?</span>
+                <a href="/box-styles/" target="_blank" rel="noopener">
+                    Explore our box styles <span aria-hidden="true">↗</span>
+                </a>
+            </div>
 
-            <div class="option-grid option-grid--box-styles">
+                        <div class="option-grid option-grid--box-styles standard-box-style-grid">
                 <label>
-                    <input type="radio" name="boxStyle" value="Magnetic flap" checked>
-                    <span>Collapsible Box</span>
+                    <input type="radio" name="boxStyle" value="Magnetic flap box" checked>
+                    <span>Magnetic flap box</span>
                 </label>
 
                 <label>
@@ -401,14 +409,20 @@
                 </label>
 
                 <label>
-                    <input type="radio" name="boxStyle" value="Tray-in-bed">
-                    <span>Tray-in-bed</span>
+                    <input type="radio" name="boxStyle" value="Tray-in-bed box">
+                    <span>Tray-in-bed box</span>
                 </label>
 
                 <label>
-                    <input type="radio" name="boxStyle" value="Door style">
-                    <span>Door style</span>
+                    <input type="radio" name="boxStyle" value="Door-style box">
+                    <span>Door-style box</span>
                 </label>
+
+                <label>
+                    <input type="radio" name="boxStyle" value="Tray-in-tray box">
+                    <span>Tray-in-tray box</span>
+                </label>
+
             </div>
         </fieldset>
         <fieldset class="configuration-group colour-selection">
@@ -538,8 +552,8 @@
                     <small>No extra cost</small>
                 </div>
                 <div class="option-grid option-grid--three">
-                    <label><input type="radio" name="logoFinish" value="Matte vinyl" checked><span>Matte vinyl<small>Included</small></span></label>
-                    <label><input type="radio" name="logoFinish" value="Metallic vinyl"><span>Metallic vinyl<small>Included</small></span></label>
+                    <label><input type="radio" name="logoFinish" value="Matte vinyl" checked><span>Matte finish<small>Included</small></span></label>
+                    <label><input type="radio" name="logoFinish" value="Metallic vinyl"><span>Metallic finish<small>Included</small></span></label>
                 </div>
             </div>
 
@@ -1241,13 +1255,35 @@
         ></textarea>
     </label>
 
-    <div class="order-summary-note">
+    <fieldset class="configuration-group project-intent-group">
+    <legend>How would you like to proceed? <span class="option-status option-status--included">Next step</span></legend>
+    <p class="configuration-help">Choose whether you would like Luxsome to prepare a physical sample before your intended bulk order, or review the project for a bulk production quotation.</p>
+    <div class="project-intent-options">
+        <label class="project-intent-option">
+            <input type="radio" name="projectIntent" value="sample_first" required>
+            <span class="project-intent-option__content">
+                <strong>I’d like a physical sample first <em>Recommended</em></strong>
+                <small>We’ll review your configuration and artwork, confirm feasibility, and send a separate quotation for producing your physical sample before bulk production.</small>
+            </span>
+        </label>
+        <label class="project-intent-option">
+            <input type="radio" name="projectIntent" value="bulk_quotation" required>
+            <span class="project-intent-option__content">
+                <strong>I’d like a quotation for bulk production</strong>
+                <small>We’ll review your project and prepare a quotation based on your selected production quantity. You can still request a physical sample before production begins.</small>
+            </span>
+        </label>
+    </div>
+    <p class="project-intent-note">Selecting bulk quotation does not waive Luxsome’s recommended physical sample approval process.</p>
+</fieldset>
+
+<div class="order-summary-note">
         <strong>What happens next?</strong>
         <span>Your selections will be saved. Next, you will only provide your customer details and review the complete order request.</span>
     </div>
 
-    <button type="submit" class="buy-now-button">Order Now</button>
-    <p class="buy-note">This starts your order request. Payment is not collected on this page.</p>
+    <button type="submit" class="buy-now-button" id="projectIntentSubmitButton">Continue to Project Details</button>
+    <p class="buy-note">No payment is collected on this page. Luxsome will review your request before any quotation is issued.</p>
 </section>
 </form>
             </div>
@@ -1537,7 +1573,7 @@
                         </h2>
         
                         <p id="pricingModalDescription">
-                            Market-informed guide prices shown per complete packaging system. The minimum order quantity is 25 systems.
+                            Standard guide prices shown per complete packaging system. The minimum order quantity is 25 systems, with published box-size pricing from up to 1 kg through 7 kg volumetric weight.
                         </p>
         
                     </header>
@@ -1590,6 +1626,9 @@
                                     <strong>
                                         ₦8,000
                                     </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
         
                                     <p>
                                         Custom rigid box, one-piece brand tag and thank-you card.
@@ -1633,6 +1672,9 @@
                                     <strong>
                                         ₦10,000
                                     </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
         
                                     <p>
                                         Custom rigid box, two-piece tag, thank-you note and envelope,
@@ -1672,6 +1714,9 @@
                                     <strong>
                                         ₦15,000
                                     </strong>
+                                    <small class="pricing-summary-card__size-note">
+                                        Up to 1 kg
+                                    </small>
         
                                     <p>
                                         A fuller system with a premium rigid box, expanded tags,
@@ -1724,6 +1769,63 @@
                         </section>
         
         
+                        <!-- Box size pricing -->
+                        <section
+                            class="pricing-modal__section pricing-modal__section--sizes"
+                            aria-labelledby="modalSizePricingHeading"
+                        >
+                            <div class="pricing-modal__section-heading">
+                                <h3 id="modalSizePricingHeading">Box size pricing</h3>
+                                <span>Per system</span>
+                            </div>
+
+                            <p class="pricing-modal__section-intro">
+                                Choose the packaging tier that suits your brand, then use the
+                                finished-box volumetric-weight band that matches your dimensions.
+                                Prices below are standard guide prices at the 25-system minimum.
+                            </p>
+
+                            <div class="pricing-size-table-wrap">
+                                <table class="pricing-size-table">
+                                    <caption class="sr-only">
+                                        Luxsome pricing by finished box volumetric-weight band
+                                    </caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Box band</th>
+                                            <th scope="col">Essential</th>
+                                            <th scope="col">Signature</th>
+                                            <th scope="col">Prestige</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><th scope="row">Up to 1 kg</th><td data-label="Essential"><strong>₦8,000</strong></td><td data-label="Signature"><strong>₦10,000</strong></td><td data-label="Prestige"><strong>₦15,000</strong></td></tr>
+                                        <tr><th scope="row">Over 1–2 kg</th><td data-label="Essential"><strong>₦11,500</strong></td><td data-label="Signature"><strong>₦13,500</strong></td><td data-label="Prestige"><strong>₦18,500</strong></td></tr>
+                                        <tr><th scope="row">Over 2–3 kg</th><td data-label="Essential"><strong>₦14,500</strong></td><td data-label="Signature"><strong>₦16,500</strong></td><td data-label="Prestige"><strong>₦21,500</strong></td></tr>
+                                        <tr><th scope="row">Over 3–4 kg</th><td data-label="Essential"><strong>₦17,000</strong></td><td data-label="Signature"><strong>₦19,000</strong></td><td data-label="Prestige"><strong>₦24,000</strong></td></tr>
+                                        <tr><th scope="row">Over 4–5 kg</th><td data-label="Essential"><strong>₦20,000</strong></td><td data-label="Signature"><strong>₦22,000</strong></td><td data-label="Prestige"><strong>₦27,000</strong></td></tr>
+                                        <tr><th scope="row">Over 5–6 kg</th><td data-label="Essential"><strong>₦23,000</strong></td><td data-label="Signature"><strong>₦25,000</strong></td><td data-label="Prestige"><strong>₦30,000</strong></td></tr>
+                                        <tr><th scope="row">Over 6–7 kg</th><td data-label="Essential"><strong>₦26,000</strong></td><td data-label="Signature"><strong>₦28,000</strong></td><td data-label="Prestige"><strong>₦33,000</strong></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="pricing-size-table__note">
+                                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                <p>
+                                    Standard prices assume a suitable rigid-box structure and a
+                                    speciality paper selected from our standard Luxsome collection.
+                                    Boxes above 7 kg, unusual structures, internal inserts and
+                                    premium finishes are quoted separately.
+                                </p>
+                            </div>
+
+                            <a class="pricing-size-table__full-link" href="/pricing/#sizePricing">
+                                View full 1–7 kg pricing guide
+                                <span aria-hidden="true">→</span>
+                            </a>
+                        </section>
+
                         <!-- Optional upgrades -->
                         <section
                             class="pricing-modal__section"
@@ -1931,7 +2033,7 @@
                                 </strong>
         
                                 <p>
-                                    Standard print, matte vinyl and metallic vinyl do
+                                    Standard print, matte finish and Metallic finish do
                                     not attract an additional finishing fee where
                                     suitable for the selected material and design.
                                 </p>
@@ -1944,7 +2046,7 @@
                         <div class="pricing-modal__notes">
         
                             <p>
-                                Tier prices assume standard sizes, one-colour or standard logo treatment and the stated 25-system minimum. Larger dimensions, specialty papers, premium finishes and complex structures increase the final quotation.
+                                Published tier prices now cover standard finished-box size bands from up to 1 kg through 7 kg volumetric weight at the stated 25-system minimum. Speciality papers outside our standard collection, premium finishes and complex structures may change the final quotation.
                             </p>
         
                             <p>

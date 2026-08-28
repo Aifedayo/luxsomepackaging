@@ -7064,3 +7064,18 @@ button:focus-visible {
     }
 }
 
+.footer-preferred-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    margin-top: 0.25rem;
+}
+
+.footer-preferred-source i {
+    font-size: 0.9em;
+}
+
+.footer-preferred-source span {
+    border-bottom: 1px solid currentColor;
+}

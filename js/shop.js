@@ -65,7 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
             secondary_colour: 'secondaryColour',
             accent_colour: 'accentColour',
             pantone_reference: 'pantoneReference',
-            comments: 'comments'
+            comments: 'comments',
+            project_intent: 'projectIntent',
+            custom_box_structure_notes: 'customBoxStructureNotes'
         };
 
         const setFieldValue = (fieldName, value) => {
@@ -265,6 +267,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupThankYouEnvelopeSelection();
 
+    /*
+     * TISSUE / SPECIALITY PAPER WRAP
+     *
+     * Existing tissue options remain unchanged. The speciality-paper choice is
+     * an additional solid-colour wrap option. Its colour swatches are shown
+     * only while "Speciality paper" is selected.
+     */
+    const setupTissueSpecialityPaperSelection = () => {
+        const form = document.getElementById('productConfigForm');
+        const colourSection = document.getElementById('tissueColourSelection');
+
+        if (!form || !colourSection) {
+            return;
+        }
+
+        const styleInputs = Array.from(
+            form.querySelectorAll('input[name="tissueStyle"]')
+        );
+
+        const colourInputs = Array.from(
+            colourSection.querySelectorAll('input[name="tissueColour"]')
+        );
+
+        if (!styleInputs.length || !colourInputs.length) {
+            return;
+        }
+
+        const updateTissueColourVisibility = () => {
+            const selectedStyle = form.querySelector(
+                'input[name="tissueStyle"]:checked'
+            );
+
+            const showColours =
+                selectedStyle?.value === 'Speciality paper';
+
+            colourSection.hidden = !showColours;
+            colourSection.setAttribute(
+                'aria-hidden',
+                String(!showColours)
+            );
+
+            colourInputs.forEach(input => {
+                input.disabled = !showColours;
+                input.required = showColours;
+            });
+
+            if (showColours) {
+                /*
+                 * Keep a restored colour when returning to a saved project.
+                 * Otherwise select Black as the first standard default.
+                 */
+                if (!colourInputs.some(input => input.checked)) {
+                    colourInputs[0].checked = true;
+                }
+            } else {
+                /*
+                 * Do not allow a hidden speciality-paper colour to leak into
+                 * a tissue configuration.
+                 */
+                colourInputs.forEach(input => {
+                    input.checked = false;
+                });
+            }
+        };
+
+        styleInputs.forEach(input => {
+            input.addEventListener(
+                'change',
+                updateTissueColourVisibility
+            );
+        });
+
+        updateTissueColourVisibility();
+    };
+
+    setupTissueSpecialityPaperSelection();
+
     const sort = document.getElementById('shopSort');
     const grid = document.getElementById('productGrid');
 
@@ -408,6 +487,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const form = document.getElementById('productConfigForm');
     const product = document.querySelector('.product-detail');
+
+    const setupProjectIntentSelection = () => {
+        if (!form) return;
+
+        const intentInputs = Array.from(
+            form.querySelectorAll('input[name="projectIntent"]')
+        );
+        const submitButton = document.getElementById(
+            'projectIntentSubmitButton'
+        );
+
+        if (!intentInputs.length) return;
+
+        const updateIntentInterface = () => {
+            const selected = intentInputs.find(input => input.checked);
+
+            intentInputs.forEach(input => {
+                input.closest('.project-intent-option')
+                    ?.classList.toggle('is-selected', input.checked);
+            });
+
+            if (!submitButton) return;
+
+            submitButton.textContent =
+                selected?.value === 'sample_first'
+                    ? 'Continue with Sample Request'
+                    : selected?.value === 'bulk_quotation'
+                        ? 'Continue for Bulk Quotation'
+                        : 'Continue to Project Details';
+        };
+
+        intentInputs.forEach(input => {
+            input.addEventListener('change', updateIntentInterface);
+        });
+
+        updateIntentInterface();
+    };
+
+    setupProjectIntentSelection();
+
 
     /* ==========================================================
        BESPOKE PIECE DETAIL CONFIGURATION
@@ -1235,6 +1354,809 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupOptionalRibbonSelection();
 
+
+    /*
+     * BESPOKE CUSTOM BOX STRUCTURE
+     *
+     * Tier 1, Tier 2 and Tier 3 are restricted to the same five approved
+     * Luxsome structures. Bespoke alone can submit a different structure.
+     * When selected, the customer must describe it and upload a design or
+     * structural reference through the existing private R2 artwork uploader.
+     */
+    const customBoxStructure = (() => {
+        const panel = document.getElementById(
+            'customBoxStructurePanel'
+        );
+        const notes = document.getElementById(
+            'customBoxStructureNotes'
+        );
+        const inputs = Array.from(
+            form?.querySelectorAll(
+                'input[name="boxStyle"]'
+            ) || []
+        );
+
+        const CUSTOM_VALUE = 'Custom box structure';
+
+        const isSelected = () => (
+            inputs.some(
+                input =>
+                    input.checked &&
+                    input.value === CUSTOM_VALUE
+            )
+        );
+
+        const update = () => {
+            if (!panel) return;
+
+            const custom = isSelected();
+
+            panel.hidden = !custom;
+            panel.setAttribute(
+                'aria-hidden',
+                String(!custom)
+            );
+
+            if (notes) {
+                notes.disabled = !custom;
+                notes.required = custom;
+
+                if (!custom) {
+                    notes.setCustomValidity('');
+                }
+            }
+
+            /*
+             * Notify the artwork component because a custom structure turns
+             * its upload from optional into required.
+             */
+            document.dispatchEvent(
+                new CustomEvent(
+                    'luxsome:custom-box-structure-change',
+                    {
+                        detail: {
+                            selected: custom
+                        }
+                    }
+                )
+            );
+        };
+
+        inputs.forEach(input => {
+            input.addEventListener('change', update);
+        });
+
+        update();
+
+        return {
+            isSelected,
+            value: CUSTOM_VALUE
+        };
+    })();
+
+
+
+    const customStructureArtwork = (() => {
+        const root = document.getElementById(
+            'customBoxArtworkUpload'
+        );
+
+        if (!root) {
+            return {
+                hasFiles: () => false,
+                upload: async () => ({
+                    uploadId: '',
+                    keys: [],
+                    fileNames: []
+                })
+            };
+        }
+
+        const input = document.getElementById(
+            'customBoxArtworkFiles'
+        );
+        const dropzone = document.getElementById(
+            'customBoxArtworkDropzone'
+        );
+        const fileList = document.getElementById(
+            'customBoxArtworkFileList'
+        );
+        const status = document.getElementById(
+            'customBoxArtworkStatus'
+        );
+
+        const endpoint = root.dataset.uploadEndpoint
+            ?.replace(/\/+$/, '');
+
+        let files = [];
+        let uploadId = '';
+        let uploadedKeys = [];
+
+        const MAX_FILES = 10;
+        const MAX_FILE_BYTES = 95 * 1024 * 1024;
+        const MAX_TOTAL_BYTES = 250 * 1024 * 1024;
+
+        const ALLOWED_EXTENSIONS = new Set([
+            'pdf', 'ai', 'eps', 'svg', 'psd',
+            'tif', 'tiff', 'png', 'jpg',
+            'jpeg', 'webp', 'zip'
+        ]);
+
+        const getExtension = filename =>
+            String(filename || '')
+                .split('.')
+                .pop()
+                ?.toLowerCase() || '';
+
+        const formatBytes = value => {
+            if (value < 1024) return `${value} B`;
+
+            if (value < 1024 ** 2) {
+                return `${(value / 1024).toFixed(1)} KB`;
+            }
+
+            return `${(value / (1024 ** 2)).toFixed(1)} MB`;
+        };
+
+        const setStatus = (message, type = '') => {
+            if (!status) return;
+
+            status.textContent = message || '';
+            status.dataset.status = type;
+        };
+
+        const revokePreviews = () => {
+            fileList
+                ?.querySelectorAll(
+                    'img[data-preview-url]'
+                )
+                .forEach(image => {
+                    URL.revokeObjectURL(
+                        image.dataset.previewUrl
+                    );
+                });
+        };
+
+        const render = () => {
+            if (!fileList) return;
+
+            revokePreviews();
+            fileList.replaceChildren();
+
+            files.forEach((file, index) => {
+                const row =
+                    document.createElement('div');
+
+                row.className =
+                    'artwork-upload__file';
+
+                const details =
+                    document.createElement('div');
+
+                details.className =
+                    'artwork-upload__file-details';
+
+                const extension =
+                    getExtension(file.name);
+
+                const previewable =
+                    file.type?.startsWith('image/') ||
+                    [
+                        'png',
+                        'jpg',
+                        'jpeg',
+                        'webp'
+                    ].includes(extension);
+
+                if (previewable) {
+                    const previewUrl =
+                        URL.createObjectURL(file);
+
+                    const image =
+                        document.createElement('img');
+
+                    image.className =
+                        'artwork-upload__thumbnail';
+
+                    image.src = previewUrl;
+
+                    image.alt =
+                        `Preview of ${file.name}`;
+
+                    image.dataset.previewUrl =
+                        previewUrl;
+
+                    details.appendChild(image);
+                } else {
+                    const icon =
+                        document.createElement('span');
+
+                    icon.className =
+                        'artwork-upload__file-type';
+
+                    icon.innerHTML =
+                        '<i class="fa-regular fa-file" aria-hidden="true"></i>';
+
+                    details.appendChild(icon);
+                }
+
+                const textWrap =
+                    document.createElement('span');
+
+                textWrap.className =
+                    'artwork-upload__file-text';
+
+                const name =
+                    document.createElement('strong');
+
+                name.className =
+                    'artwork-upload__file-name';
+
+                name.textContent = file.name;
+
+                const meta =
+                    document.createElement('small');
+
+                meta.textContent =
+                    formatBytes(file.size);
+
+                textWrap.append(name, meta);
+                details.appendChild(textWrap);
+
+                const remove =
+                    document.createElement('button');
+
+                remove.type = 'button';
+
+                remove.className =
+                    'artwork-upload__remove';
+
+                remove.dataset.index =
+                    String(index);
+
+                remove.setAttribute(
+                    'aria-label',
+                    `Remove ${file.name}`
+                );
+
+                remove.innerHTML =
+                    '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+
+                row.append(
+                    details,
+                    remove
+                );
+
+                fileList.appendChild(row);
+            });
+        };
+
+        const validateIncoming = incoming => {
+            const next =
+                Array.from(incoming || []);
+
+            if (
+                files.length +
+                next.length >
+                MAX_FILES
+            ) {
+                throw new Error(
+                    `Choose no more than ${MAX_FILES} structural files.`
+                );
+            }
+
+            next.forEach(file => {
+                const extension =
+                    getExtension(file.name);
+
+                if (
+                    !ALLOWED_EXTENSIONS.has(
+                        extension
+                    )
+                ) {
+                    throw new Error(
+                        `${file.name} is not an accepted structural file format.`
+                    );
+                }
+
+                if (file.size <= 0) {
+                    throw new Error(
+                        `${file.name} is empty.`
+                    );
+                }
+
+                if (
+                    file.size >
+                    MAX_FILE_BYTES
+                ) {
+                    throw new Error(
+                        `${file.name} is larger than 95 MB.`
+                    );
+                }
+            });
+
+            const total = [
+                ...files,
+                ...next
+            ].reduce(
+                (sum, file) =>
+                    sum + file.size,
+                0
+            );
+
+            if (
+                total >
+                MAX_TOTAL_BYTES
+            ) {
+                throw new Error(
+                    'The combined structural files cannot exceed 250 MB.'
+                );
+            }
+
+            return next;
+        };
+
+        const addFiles = incoming => {
+            try {
+                const next =
+                    validateIncoming(incoming);
+
+                const existing =
+                    new Set(
+                        files.map(file =>
+                            `${file.name}-${file.size}-${file.lastModified}`
+                        )
+                    );
+
+                files = [
+                    ...files,
+                    ...next.filter(file => {
+                        const key =
+                            `${file.name}-${file.size}-${file.lastModified}`;
+
+                        return !existing.has(key);
+                    })
+                ];
+
+                uploadId = '';
+                uploadedKeys = [];
+
+                render();
+
+                setStatus(
+                    files.length
+                        ? `${files.length} structural file${files.length === 1 ? '' : 's'} selected.`
+                        : '',
+                    files.length
+                        ? 'ready'
+                        : ''
+                );
+            } catch (error) {
+                setStatus(
+                    error instanceof Error
+                        ? error.message
+                        : 'The structural files could not be added.',
+                    'error'
+                );
+            }
+        };
+
+        input?.addEventListener(
+            'change',
+            event => {
+                addFiles(
+                    event.target.files
+                );
+
+                event.target.value = '';
+            }
+        );
+
+        fileList?.addEventListener(
+            'click',
+            event => {
+                const button =
+                    event.target.closest(
+                        '.artwork-upload__remove'
+                    );
+
+                if (!button) return;
+
+                const index =
+                    Number(
+                        button.dataset.index
+                    );
+
+                if (
+                    !Number.isInteger(index) ||
+                    index < 0 ||
+                    index >= files.length
+                ) {
+                    return;
+                }
+
+                files.splice(index, 1);
+
+                uploadId = '';
+                uploadedKeys = [];
+
+                render();
+
+                setStatus(
+                    files.length
+                        ? `${files.length} structural file${files.length === 1 ? '' : 's'} selected.`
+                        : '',
+                    files.length
+                        ? 'ready'
+                        : ''
+                );
+            }
+        );
+
+        [
+            'dragenter',
+            'dragover'
+        ].forEach(type => {
+            dropzone?.addEventListener(
+                type,
+                event => {
+                    event.preventDefault();
+
+                    dropzone.classList.add(
+                        'is-dragging'
+                    );
+                }
+            );
+        });
+
+        [
+            'dragleave',
+            'drop'
+        ].forEach(type => {
+            dropzone?.addEventListener(
+                type,
+                event => {
+                    event.preventDefault();
+
+                    dropzone.classList.remove(
+                        'is-dragging'
+                    );
+                }
+            );
+        });
+
+        dropzone?.addEventListener(
+            'drop',
+            event => {
+                addFiles(
+                    event.dataTransfer?.files
+                );
+            }
+        );
+
+        const getTurnstileToken = () =>
+            root.querySelector(
+                'input[name="cf-turnstile-response"]'
+            )?.value?.trim() || '';
+
+        const resetTurnstile = () => {
+            if (
+                window.turnstile &&
+                typeof window.turnstile.reset ===
+                    'function'
+            ) {
+                const widget =
+                    root.querySelector(
+                        '.cf-turnstile'
+                    );
+
+                if (widget) {
+                    window.turnstile.reset(
+                        widget
+                    );
+                }
+            }
+        };
+
+        const createUploadId = () => {
+            const random =
+                crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : `${Date.now()}-${Math.random()
+                        .toString(16)
+                        .slice(2)}`;
+
+            return `structure-${random}`;
+        };
+
+        const createSession =
+            async currentUploadId => {
+                if (!endpoint) {
+                    throw new Error(
+                        'Structural upload storage is not connected.'
+                    );
+                }
+
+                const turnstileToken =
+                    getTurnstileToken();
+
+                if (!turnstileToken) {
+                    throw new Error(
+                        'Complete the security verification in the custom box design section.'
+                    );
+                }
+
+                const response =
+                    await fetch(
+                        `${endpoint}/session`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
+                            },
+                            body: JSON.stringify({
+                                turnstileToken,
+                                uploadId:
+                                    currentUploadId,
+                                product:
+                                    'bespoke-structure'
+                            })
+                        }
+                    );
+
+                const payload =
+                    await response
+                        .json()
+                        .catch(() => ({}));
+
+                if (
+                    !response.ok ||
+                    !payload.sessionToken
+                ) {
+                    throw new Error(
+                        payload.error ||
+                        payload.message ||
+                        'The secure structural upload session could not be created.'
+                    );
+                }
+
+                return payload.sessionToken;
+            };
+
+        const uploadFile = (
+            file,
+            index,
+            currentUploadId,
+            sessionToken
+        ) => new Promise(
+            (resolve, reject) => {
+                const request =
+                    new XMLHttpRequest();
+
+                const keyPath = [
+                    currentUploadId,
+                    `${String(index + 1)
+                        .padStart(2, '0')}-${encodeURIComponent(file.name)}`
+                ].join('/');
+
+                request.open(
+                    'PUT',
+                    `${endpoint}/upload/incoming/${keyPath}`
+                );
+
+                request.setRequestHeader(
+                    'Authorization',
+                    `Bearer ${sessionToken}`
+                );
+
+                request.setRequestHeader(
+                    'Content-Type',
+                    file.type ||
+                    'application/octet-stream'
+                );
+
+                request.setRequestHeader(
+                    'X-Luxsome-Original-Name',
+                    encodeURIComponent(
+                        file.name
+                    )
+                );
+
+                request.upload.addEventListener(
+                    'progress',
+                    event => {
+                        if (
+                            !event.lengthComputable
+                        ) {
+                            return;
+                        }
+
+                        const progress =
+                            (
+                                (
+                                    index +
+                                    (
+                                        event.loaded /
+                                        event.total
+                                    )
+                                ) /
+                                files.length
+                            ) *
+                            100;
+
+                        setStatus(
+                            `Uploading structural design files… ${Math.round(progress)}%`,
+                            'uploading'
+                        );
+                    }
+                );
+
+                request.addEventListener(
+                    'load',
+                    () => {
+                        let payload = {};
+
+                        try {
+                            payload =
+                                JSON.parse(
+                                    request.responseText ||
+                                    '{}'
+                                );
+                        } catch (_) {
+                            payload = {};
+                        }
+
+                        if (
+                            request.status >= 200 &&
+                            request.status < 300 &&
+                            payload.key
+                        ) {
+                            resolve(
+                                payload.key
+                            );
+
+                            return;
+                        }
+
+                        const error =
+                            new Error(
+                                payload.error ||
+                                payload.message ||
+                                `Upload failed for ${file.name}.`
+                            );
+
+                        error.httpStatus =
+                            request.status;
+
+                        reject(error);
+                    }
+                );
+
+                request.addEventListener(
+                    'error',
+                    () => {
+                        reject(
+                            new Error(
+                                `Network error while uploading ${file.name}.`
+                            )
+                        );
+                    }
+                );
+
+                request.send(file);
+            }
+        );
+
+        const upload = async () => {
+            if (
+                !customBoxStructure
+                    ?.isSelected?.()
+            ) {
+                return {
+                    uploadId: '',
+                    keys: [],
+                    fileNames: []
+                };
+            }
+
+            if (!files.length) {
+                throw new Error(
+                    'Upload at least one box design, dieline, sketch or structural reference.'
+                );
+            }
+
+            const complete =
+                Boolean(uploadId) &&
+                uploadedKeys.length ===
+                    files.length &&
+                uploadedKeys.every(Boolean);
+
+            if (complete) {
+                return {
+                    uploadId,
+                    keys: [
+                        ...uploadedKeys
+                    ],
+                    fileNames:
+                        files.map(
+                            file =>
+                                file.name
+                        )
+                };
+            }
+
+            uploadId =
+                createUploadId();
+
+            uploadedKeys = [];
+
+            setStatus(
+                'Creating secure structural upload session…',
+                'uploading'
+            );
+
+            try {
+                const sessionToken =
+                    await createSession(
+                        uploadId
+                    );
+
+                for (
+                    let index = 0;
+                    index < files.length;
+                    index += 1
+                ) {
+                    uploadedKeys[index] =
+                        await uploadFile(
+                            files[index],
+                            index,
+                            uploadId,
+                            sessionToken
+                        );
+                }
+
+                setStatus(
+                    `${files.length} structural file${files.length === 1 ? '' : 's'} uploaded securely.`,
+                    'success'
+                );
+
+                return {
+                    uploadId,
+                    keys: [
+                        ...uploadedKeys
+                    ],
+                    fileNames:
+                        files.map(
+                            file =>
+                                file.name
+                        )
+                };
+            } catch (error) {
+                resetTurnstile();
+
+                uploadId = '';
+                uploadedKeys = [];
+
+                setStatus(
+                    error instanceof Error
+                        ? error.message
+                        : 'The structural design upload failed.',
+                    'error'
+                );
+
+                throw error;
+            }
+        };
+
+        return {
+            hasFiles: () =>
+                files.length > 0,
+
+            upload
+        };
+    })();
+
     /*
      * Artwork upload
      *
@@ -1401,6 +2323,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isReadySelected = () => (
             getSelectedArtworkStatus() === READY_VALUE
+        );
+
+        const isCustomBoxStructureSelected = () => (
+            Boolean(
+                customBoxStructure?.isSelected?.()
+            )
+        );
+
+        const requiresFileUpload = () => (
+            isReadySelected()
         );
 
         const needsSupportChecklist = () => (
@@ -1723,7 +2655,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (confirmation) {
                 confirmation.disabled = !visible;
-                confirmation.required = ready;
+                confirmation.required = requiresFileUpload();
 
                 const confirmationText =
                     confirmation.closest('label')
@@ -1745,20 +2677,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 '.configuration-help'
             );
 
+            const customStructure =
+                isCustomBoxStructureSelected();
+
             if (heading) {
-                heading.textContent = ready
-                    ? 'Upload your final design files'
-                    : partial
-                        ? 'Upload the files you already have'
-                        : 'Upload optional references';
+                heading.textContent = customStructure
+                    ? 'Upload your custom box design or reference'
+                    : ready
+                        ? 'Upload your final design files'
+                        : partial
+                            ? 'Upload the files you already have'
+                            : 'Upload optional references';
             }
 
             if (helper) {
-                helper.textContent = ready
-                    ? 'Upload the final files Luxsome should review for production.'
-                    : partial
-                        ? 'Upload any completed or incomplete files currently available.'
-                        : 'You may upload an old logo, sketch, moodboard or visual references. This is optional.';
+                helper.textContent = customStructure
+                    ? 'Because you selected a custom box structure, upload at least one dieline, drawing, sketch, PDF or reference image for Luxsome to assess.'
+                    : ready
+                        ? 'Upload the final files Luxsome should review for production.'
+                        : partial
+                            ? 'Upload any completed or incomplete files currently available.'
+                            : 'You may upload an old logo, sketch, moodboard or visual references. This is optional.';
             }
 
             if (!visible) {
@@ -1982,9 +2921,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
-            if (isReadySelected() && !files.length) {
+            if (requiresFileUpload() && !files.length) {
                 throw new Error(
-                    'Upload at least one final artwork file.'
+                    isCustomBoxStructureSelected()
+                        ? 'Upload at least one box design, dieline, sketch or reference file for the custom structure.'
+                        : 'Upload at least one final artwork file.'
                 );
             }
 
@@ -2336,10 +3277,15 @@ document.addEventListener('DOMContentLoaded', () => {
             event.currentTarget.value = '';
         });
 
+        document.addEventListener(
+            'luxsome:custom-box-structure-change',
+            updateVisibility
+        );
+
         updateVisibility();
 
         return {
-            isRequired: isReadySelected,
+            isRequired: requiresFileUpload,
             validateSupportSelection,
             upload
         };
@@ -2348,6 +3294,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const submitConfiguration = async () => {
         if (!form || !product) return;
+
+        if (customBoxStructure?.isSelected?.() && !customStructureArtwork.hasFiles()) {
+            const structureStatus = document.getElementById('customBoxArtworkStatus');
+            if (structureStatus) {
+                structureStatus.textContent = 'Upload at least one custom box design or structural reference before continuing.';
+                structureStatus.dataset.status = 'error';
+            }
+            document.getElementById('customBoxArtworkUpload')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            return;
+        }
+
 
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -2373,6 +3333,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     block: 'center'
                 });
 
+            return;
+        }
+
+        let structuralUploadResult = { uploadId: '', keys: [], fileNames: [] };
+
+        try {
+            structuralUploadResult = await customStructureArtwork.upload();
+        } catch (error) {
+            document.getElementById('customBoxArtworkUpload')?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
             return;
         }
 
@@ -2426,9 +3398,19 @@ document.addEventListener('DOMContentLoaded', () => {
         params.set('source', 'shop');
         params.set('product', product.dataset.product || '');
         params.set('system', product.dataset.productName || '');
+        params.set('project_intent', data.get('projectIntent') || '');
         params.set('project_type', data.get('projectType') || '');
         params.set('packaging_pieces', data.getAll('packagingPieces').join(', '));
         params.set('box_style', data.get('boxStyle') || '');
+        params.set(
+            'custom_box_structure_notes',
+            data.get('boxStyle') === 'Custom box structure'
+                ? data.get('customBoxStructureNotes') || ''
+                : ''
+        );
+        params.set('custom_box_upload_id', structuralUploadResult.uploadId || '');
+        params.set('custom_box_object_keys', structuralUploadResult.keys.join(', '));
+        params.set('custom_box_file_names', structuralUploadResult.fileNames.join(', '));
         params.set('tag_style', data.get('tagStyle') || '');
         params.set('sticker_style', data.get('stickerStyle') || '');
         params.set('tissue_style', data.get('tissueStyle') || '');
@@ -2474,7 +3456,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     'tissueColour',
                     'tissueCustomColour'
                 )
-                : ''
+                : (
+                    data.get('tissueStyle') === 'Speciality paper'
+                        ? data.get('tissueColour') || ''
+                        : ''
+                )
         );
 
         params.set('logo_finish', data.get('logoFinish') || '');

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Start a Packaging Project | Luxsome Packaging</title>
-    <meta name="description" content="Complete your customer details, review the packaging selections made in the Luxsome shop and submit your order request.">
+    <meta name="description" content="Complete your customer details, review your Luxsome packaging selections and submit your sample request or bulk quotation request.">
     <meta name="author" content="Luxsome Packaging">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://www.luxsomepackaging.com/packaging-builder/">
@@ -107,6 +107,44 @@
             border: 1px solid rgba(46, 28, 21, 0.12);
             background: #fffdf9;
         }
+    
+        .project-intent-summary {
+            display: none;
+            margin: 0 0 22px;
+            padding: 18px 20px;
+            border: 1px solid rgba(46, 28, 21, 0.14);
+            background: #f8f4ef;
+        }
+
+        .project-intent-summary.is-visible {
+            display: block;
+        }
+
+        .project-intent-summary__label {
+            display: block;
+            margin-bottom: 5px;
+            color: #8d654d;
+            font-size: 0.58rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .project-intent-summary strong {
+            display: block;
+            color: #2e1c15;
+            font-family: "DM Serif Display", Georgia, serif;
+            font-size: 1.25rem;
+            font-weight: 400;
+        }
+
+        .project-intent-summary p {
+            margin: 7px 0 0;
+            color: #756159;
+            font-size: 0.68rem;
+            line-height: 1.6;
+        }
+
     </style>
 
 </head>
@@ -143,7 +181,7 @@
     <main class="project-page">
         <section class="project-hero" aria-labelledby="projectPageTitle">
             <div class="container project-hero__inner">
-                <p class="project-eyebrow">COMPLETE YOUR ORDER REQUEST</p>
+                <p class="project-eyebrow" id="projectIntentEyebrow">COMPLETE YOUR PROJECT REQUEST</p>
                 <h1 id="projectPageTitle">You have made your selections. Let’s complete your request.</h1>
                 <p class="project-hero__text">
                     Add your contact details, review the packaging system you selected in the shop and send the request to our team.
@@ -214,13 +252,15 @@
                         <input type="hidden" name="builder_source" id="builderSource" value="Luxsome shop">
                         <input type="hidden" name="builder_recommendation" id="builderRecommendationInput" value="">
                         <input type="hidden" name="project_summary" id="projectSummaryInput" value="">
+                         <input type="hidden" name="project_intent" id="projectIntentInput" value="">
+                         <input type="hidden" name="request_type" id="requestTypeInput" value="">
                         <input type="text" name="_gotcha" class="form-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
 
                         
                         <section class="project-step is-active" data-step="1" aria-labelledby="stepOneHeading">
                             <header class="project-step__header">
                                 <p class="project-step__number">STEP 01 · CUSTOMER DETAILS</p>
-                                <h2 id="stepOneHeading">Who should we contact about this order?</h2>
+                                <h2 id="stepOneHeading">Who should we contact about this project?</h2>
                                 <p>Only the information needed to identify your brand and continue the conversation.</p>
                             </header>
 
@@ -323,7 +363,9 @@
                                 </div>
                             </div>
 
-                            <div class="review-card" id="reviewCard" aria-live="polite"></div>
+                            <div class="project-intent-summary" id="projectIntentSummary" aria-live="polite"></div>
+
+                             <div class="review-card" id="reviewCard" aria-live="polite"></div>
 
                             <div class="review-shop-actions">
                                 <a
@@ -351,7 +393,7 @@
                                 >
 
                                 <span>
-                                    I agree that Luxsome Packaging may contact me about this order request. *
+                                    <span id="projectConsentText">I agree that Luxsome Packaging may contact me about this project request. *</span>
                                 </span>
                             </label>
 
@@ -366,7 +408,7 @@
 <div class="project-actions">
                             <button type="button" class="project-button project-button--back" id="backButton" hidden><span aria-hidden="true">←</span> Back</button>
                             <button type="button" class="project-button project-button--next" id="nextButton">Continue <span aria-hidden="true">→</span></button>
-                            <button type="submit" class="project-button project-button--submit" id="submitButton" hidden>Submit Order Request <span aria-hidden="true">→</span></button>
+                            <button type="submit" class="project-button project-button--submit" id="submitButton" hidden>Submit Project Request <span aria-hidden="true">→</span></button>
                         </div>
 
                         <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
