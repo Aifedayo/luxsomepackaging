@@ -8427,6 +8427,165 @@ async function handleAdminInvoicePaymentDelete(
     );
 }
 
+async function sendAutomaticPaymentReceipt(
+    env,
+    paymentId
+) {
+    const payment = await env.DB.prepare(`
+        SELECT
+            p.*,
+            i.invoice_reference,
+            i.customer_name,
+            i.brand_name,
+            i.customer_email,
+            i.customer_phone,
+            i.currency,
+            i.grand_total,
+            i.amount_paid,
+            i.balance_due
+        FROM invoice_payments p
+        INNER JOIN invoices i ON i.id = p.invoice_id
+        WHERE p.id = ?
+        LIMIT 1
+    `).bind(paymentId).first();
+
+    if (!payment) {
+        return {
+            sent: false,
+            reason: "payment_not_found"
+        };
+    }
+
+    /*
+     * Idempotency guard:
+     * Paystack's webhook and browser callback may both reach payment
+     * finalization. If a receipt has already been emailed, do nothing.
+     */
+    if (text(payment.receipt_sent_at)) {
+        return {
+            sent: false,
+            alreadySent: true,
+            reason: "already_sent"
+        };
+    }
+
+    const customerEmail = text(payment.customer_email).toLowerCase();
+
+    if (!isValidEmail(customerEmail)) {
+        return {
+            sent: false,
+            reason: "invalid_customer_email"
+        };
+    }
+
+    if (!env.RESEND_API_KEY || !env.FROM_EMAIL) {
+        return {
+            sent: false,
+            reason: "email_not_configured"
+        };
+    }
+
+    const publicSiteUrl =
+        text(env.PUBLIC_SITE_URL) ||
+        "https://www.luxsomepackaging.com";
+
+    const receiptUrl =
+        `${publicSiteUrl.replace(/\/$/, "")}/receipt/` +
+        `?token=${encodeURIComponent(payment.receipt_token)}`;
+
+    const remainingBalance = Number(payment.balance_due || 0);
+    const message = remainingBalance <= 0
+        ? "Your invoice is now paid in full. Thank you for completing your payment."
+        : `Your payment has been received. Your remaining invoice balance is ${formatInvoiceMoney(remainingBalance, payment.currency)}.`;
+
+    const payload = {
+        from: env.FROM_EMAIL,
+        to: [customerEmail],
+        subject:
+            remainingBalance <= 0
+                ? `Payment complete — ${payment.invoice_reference}`
+                : `Payment receipt ${payment.receipt_reference} from Luxsome Packaging`,
+        html: buildReceiptEmailHtml({
+            payment,
+            receiptUrl,
+            message
+        })
+    };
+
+    if (env.REPLY_TO_EMAIL) {
+        payload.reply_to = env.REPLY_TO_EMAIL;
+    }
+
+    const resendResponse = await fetch(RESEND_EMAIL_ENDPOINT, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${env.RESEND_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const resendData = await safeJson(resendResponse);
+
+    if (!resendResponse.ok) {
+        console.error("Automatic receipt email failed", {
+            paymentId,
+            status: resendResponse.status,
+            response: resendData
+        });
+
+        return {
+            sent: false,
+            reason: "resend_rejected",
+            error:
+                text(resendData?.message) ||
+                "Resend rejected the receipt email."
+        };
+    }
+
+    const now = new Date().toISOString();
+
+    /*
+     * Only one caller gets to mark/send the receipt. If another concurrent
+     * request already marked it sent, this update will affect zero rows.
+     */
+    const updateResult = await env.DB.prepare(`
+        UPDATE invoice_payments
+        SET
+            receipt_sent_at = ?,
+            receipt_send_count = COALESCE(receipt_send_count, 0) + 1,
+            resend_email_id = ?,
+            updated_at = ?
+        WHERE id = ?
+          AND (receipt_sent_at IS NULL OR trim(receipt_sent_at) = '')
+    `).bind(
+        now,
+        text(resendData?.id),
+        now,
+        payment.id
+    ).run();
+
+    await recordInvoiceActivity(env.DB, {
+        invoiceId: payment.invoice_id,
+        activityType: "receipt_sent",
+        title:
+            remainingBalance <= 0
+                ? "Final payment receipt emailed"
+                : "Payment receipt emailed automatically",
+        details:
+            `${payment.receipt_reference} sent automatically to ${customerEmail}.`,
+        actor: "system",
+        createdAt: now
+    });
+
+    return {
+        sent: true,
+        receiptReference: payment.receipt_reference,
+        sentAt: now,
+        portalUrl: receiptUrl
+    };
+}
+
 async function handleAdminReceiptSend(
     request,
     env,
@@ -9558,6 +9717,18 @@ async function finalizeSuccessfulPaystackPayment(
             attempt.id
         ).run();
 
+        try {
+            await sendAutomaticPaymentReceipt(
+                env,
+                Number(existingPayment.id)
+            );
+        } catch (receiptError) {
+            console.error(
+                "Automatic Paystack receipt retry failed",
+                receiptError
+            );
+        }
+
         return {
             alreadyProcessed: true,
             success: true,
@@ -9719,6 +9890,25 @@ async function finalizeSuccessfulPaystackPayment(
         attempt.id
     ).run();
 
+    let receiptEmail = null;
+
+    try {
+        receiptEmail = await sendAutomaticPaymentReceipt(
+            env,
+            paymentId
+        );
+    } catch (receiptError) {
+        /*
+         * A receipt delivery problem must never turn a verified payment
+         * into a failed payment. The CRM can still resend the receipt
+         * manually using the existing receipt action.
+         */
+        console.error(
+            "Automatic Paystack receipt delivery failed",
+            receiptError
+        );
+    }
+
     return {
         alreadyProcessed: false,
         success: true,
@@ -9726,6 +9916,7 @@ async function finalizeSuccessfulPaystackPayment(
         paymentId,
         receiptReference,
         receiptToken,
+        receiptEmail,
         amount,
         channel: text(data.channel)
     };
