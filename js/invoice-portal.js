@@ -341,6 +341,37 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             cleanPaymentReturnUrl();
 
+            /*
+             * The Paystack webhook can finish a successful payment before
+             * the browser callback verification completes. If verification
+             * encountered that race, fetch the invoice once more before
+             * showing an error. A paid/zero-balance invoice is authoritative.
+             */
+            try {
+                const latest = await api(
+                    `/public/invoices/${token}`
+                );
+
+                const latestInvoice = latest?.invoice;
+                const latestBalance = Number(
+                    latestInvoice?.balance_due || 0
+                );
+
+                if (
+                    latestInvoice &&
+                    (
+                        latestInvoice.status === "paid" ||
+                        latestBalance <= 0
+                    )
+                ) {
+                    invoice = latestInvoice;
+                    render();
+                    return true;
+                }
+            } catch {
+                // Preserve the original verification error below.
+            }
+
             $("loading").hidden = true;
             $("error").hidden = false;
             $("error").textContent =
