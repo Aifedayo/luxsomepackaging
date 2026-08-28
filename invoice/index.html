@@ -5,32 +5,149 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="robots" content="noindex,nofollow">
     <title>Invoice | Luxsome Packaging</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
     <link rel="stylesheet" href="/css/invoice-portal.css">
+
     <style>
-        .payment-slip-field{display:grid;gap:10px}
-        .payment-slip-field input[type=file]{padding:12px;border:1px dashed #bda89a;background:#fff}
-        .payment-slip-help{margin:0;font-size:12px;line-height:1.5;color:#806b60}
-        .payment-slip-preview{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #eadfd7;background:#f8f4ef}
-        .payment-slip-preview img{width:72px;height:72px;object-fit:cover;border:1px solid #e4d8d0;background:#fff}
-        .payment-slip-preview__details{min-width:0;flex:1}
-        .payment-slip-preview__details strong,.payment-slip-preview__details span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .payment-slip-preview__details span{margin-top:4px;font-size:12px;color:#806b60}
-        .payment-slip-preview button{width:auto}
+        .paystack-card {
+            display: grid;
+            gap: 22px;
+        }
+
+        .paystack-summary {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 18px 0;
+            border-top: 1px solid #eadfd7;
+            border-bottom: 1px solid #eadfd7;
+        }
+
+        .paystack-summary span {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #806b60;
+        }
+
+        .paystack-summary strong {
+            font-family: "DM Serif Display", serif;
+            font-size: clamp(28px, 5vw, 40px);
+            font-weight: 400;
+            color: #2e1c15;
+        }
+
+        .paystack-button {
+            width: 100%;
+            min-height: 52px;
+            padding: 14px 20px;
+            border: 0;
+            border-radius: 8px;
+            background: #881010;
+            color: #fff;
+            font: 600 13px/1.2 "Montserrat", sans-serif;
+            letter-spacing: .6px;
+            cursor: pointer;
+        }
+
+        .paystack-button:hover {
+            filter: brightness(.95);
+        }
+
+        .paystack-button:disabled {
+            cursor: not-allowed;
+            opacity: .65;
+        }
+
+        .payment-security-note {
+            margin: 0;
+            font-size: 12px;
+            line-height: 1.65;
+            color: #806b60;
+            text-align: center;
+        }
+
+        .payment-status {
+            min-height: 20px;
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #5f4d44;
+        }
+
+        .payment-status.error {
+            color: #9b1c1c;
+        }
+
+        .payment-status.success {
+            color: #2f6a43;
+        }
+
+        .payment-return-note,
+        .paid-note {
+            padding: 18px;
+            border: 1px solid #dfd2c9;
+            background: #f8f4ef;
+        }
+
+        .payment-return-note strong,
+        .paid-note strong {
+            display: block;
+            margin-bottom: 6px;
+            font-family: "DM Serif Display", serif;
+            font-size: 22px;
+            font-weight: 400;
+            color: #2e1c15;
+        }
+
+        .payment-return-note p,
+        .paid-note p {
+            margin: 0;
+            line-height: 1.6;
+            color: #806b60;
+        }
+
+        @media (max-width: 640px) {
+            .paystack-summary {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
+
 <body>
     <main class="portal-shell">
         <header class="portal-header">
-            <a href="/" class="invoice-brand" aria-label="Luxsome Packaging homepage">
-                <img src="/assets/images/luxsome-logo.png" alt="Luxsome Packaging" class="invoice-brand__logo">
+            <a
+                href="/"
+                class="invoice-brand"
+                aria-label="Luxsome Packaging homepage"
+            >
+                <img
+                    src="/assets/images/luxsome-logo.png"
+                    alt="Luxsome Packaging"
+                    class="invoice-brand__logo"
+                >
             </a>
-            <button id="printInvoice" type="button">Print / Save PDF</button>
+
+            <button id="printInvoice" type="button">
+                Print / Save PDF
+            </button>
         </header>
 
-        <section id="loading" class="state-card">Loading your invoice…</section>
+        <section id="loading" class="state-card">
+            Loading your invoice…
+        </section>
+
         <section id="error" class="state-card error" hidden></section>
 
         <article id="invoice" class="invoice-paper" hidden>
@@ -40,6 +157,7 @@
                     <h1 id="invoiceReference">—</h1>
                     <p id="customerName">—</p>
                 </div>
+
                 <div class="status-box">
                     <span>Status</span>
                     <strong id="invoiceStatus">—</strong>
@@ -47,15 +165,38 @@
             </div>
 
             <section class="summary-grid">
-                <article><span>Amount due</span><strong id="balanceDue">₦0</strong></article>
-                <article><span>Invoice total</span><strong id="grandTotal">₦0</strong></article>
-                <article><span>Issue date</span><strong id="issueDate">—</strong></article>
-                <article><span>Due date</span><strong id="dueDate">—</strong></article>
+                <article>
+                    <span>Amount due</span>
+                    <strong id="balanceDue">₦0</strong>
+                </article>
+
+                <article>
+                    <span>Invoice total</span>
+                    <strong id="grandTotal">₦0</strong>
+                </article>
+
+                <article>
+                    <span>Issue date</span>
+                    <strong id="issueDate">—</strong>
+                </article>
+
+                <article>
+                    <span>Due date</span>
+                    <strong id="dueDate">—</strong>
+                </article>
             </section>
 
             <div class="items-wrap">
                 <table>
-                    <thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Total</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Unit price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+
                     <tbody id="invoiceItems"></tbody>
                 </table>
             </div>
@@ -63,58 +204,55 @@
             <section class="totals" id="invoiceTotals"></section>
 
             <section class="notes-grid">
-                <article><h2>Payment instructions</h2><p id="paymentInstructions">—</p></article>
-                <article><h2>Payment terms</h2><p id="paymentTerms">—</p></article>
+                <article>
+                    <h2>Payment instructions</h2>
+                    <p id="paymentInstructions">—</p>
+                </article>
+
+                <article>
+                    <h2>Payment terms</h2>
+                    <p id="paymentTerms">—</p>
+                </article>
             </section>
 
             <section class="payment-card" id="paymentCard">
-                <div>
-                    <p class="eyebrow">PAYMENT CONFIRMATION</p>
-                    <h2>I have made payment</h2>
-                    <p>Send your payment amount, transfer reference and payment slip to Luxsome for verification.</p>
-                </div>
-                <form id="paymentForm" enctype="multipart/form-data">
-                    <label>
-                        Amount paid
-                        <input id="paymentAmount" name="amount" type="number" min="1" step="any" required>
-                    </label>
-                    <label>
-                        Transfer reference
-                        <input id="paymentReference" name="reference" maxlength="200" placeholder="Optional">
-                    </label>
-                    <label class="payment-slip-field">
-                        Payment slip
-                        <input id="paymentSlip" name="paymentSlip" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" required>
-                        <span class="payment-slip-help">Upload a JPG, PNG, WEBP or PDF file. Maximum size: 5 MB.</span>
-                    </label>
-                    <div id="paymentSlipPreview" class="payment-slip-preview" hidden>
-                        <img id="paymentSlipImage" alt="Payment slip preview" hidden>
-                        <div class="payment-slip-preview__details">
-                            <strong id="paymentSlipName"></strong>
-                            <span id="paymentSlipSize"></span>
-                        </div>
-                        <div class="payment-slip-preview">
-                            <img id="paymentSlipPreview">
-                        
-                            <button
-                                type="button"
-                                id="removePaymentSlip"
-                                class="remove-slip"
-                            >
-                                Remove
-                            </button>
+                <div class="paystack-card">
+                    <div>
+                        <p class="eyebrow">SECURE PAYMENT</p>
+                        <h2>Pay your invoice online</h2>
+                        <p>
+                            Complete your payment securely through Paystack.
+                            Your invoice will update automatically after
+                            payment is confirmed.
+                        </p>
+                    </div>
+
+                    <div class="paystack-summary">
+                        <div>
+                            <span>Balance due</span>
+                            <strong id="paystackBalance">₦0</strong>
                         </div>
                     </div>
-                    <label>
-                        Note
-                        <textarea id="paymentNote" name="note" maxlength="2000" placeholder="Optional"></textarea>
-                    </label>
-                    <button id="paymentButton" type="submit">Submit payment information</button>
-                    <p id="paymentStatus" role="status"></p>
-                </form>
+
+                    <button
+                        id="paystackButton"
+                        class="paystack-button"
+                        type="button"
+                    >
+                        Pay securely with Paystack
+                    </button>
+
+                    <p id="paymentStatus" class="payment-status" role="status"></p>
+
+                    <p class="payment-security-note">
+                        You will be redirected to Paystack's secure checkout
+                        to complete payment.
+                    </p>
+                </div>
             </section>
         </article>
     </main>
+
     <script src="/js/environment.js"></script>
     <script src="/js/invoice-portal.js"></script>
 </body>

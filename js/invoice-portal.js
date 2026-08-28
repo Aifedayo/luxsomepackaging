@@ -6,17 +6,13 @@ document.addEventListener("DOMContentLoaded", () => {
             "Luxsome environment configuration was not loaded."
         );
     }
-    const MAX_SLIP_SIZE = 5 * 1024 * 1024;
-    const ALLOWED_SLIP_TYPES = new Set([
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "application/pdf"
-    ]);
+
     const $ = id => document.getElementById(id);
-    const token = new URLSearchParams(location.search).get("token") || "";
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token") || "";
+
     let invoice = null;
-    let previewUrl = "";
+    let paymentInProgress = false;
 
     const esc = value => String(value ?? "").replace(
         /[&<>"']/g,
@@ -49,95 +45,318 @@ document.addEventListener("DOMContentLoaded", () => {
         }).format(new Date(`${value}T00:00:00`))
         : "—";
 
-        async function api(path, options = {}) {
-            const response = await fetch(`${API_BASE}${path}`, options);
-            const data = await response.json().catch(() => ({}));
-        
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                    data.error ||
-                    `Request failed with status ${response.status}`
-                );
-            }
-        
-            return data;
+    async function api(path, options = {}) {
+        const response = await fetch(`${API_BASE}${path}`, options);
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                data.error ||
+                `Request failed with status ${response.status}`
+            );
         }
+
+        return data;
+    }
+
+    function setPaymentStatus(message, type = "") {
+        const status = $("paymentStatus");
+
+        if (!status) {
+            return;
+        }
+
+        status.textContent = message || "";
+        status.classList.remove("error", "success");
+
+        if (type) {
+            status.classList.add(type);
+        }
+    }
+
+    function renderPaymentCard() {
+        const current = invoice;
+        const card = $("paymentCard");
+        const currency = current.currency || "NGN";
+        const balanceDue = Number(current.balance_due || 0);
+
+        if (
+            current.status === "paid" ||
+            balanceDue <= 0
+        ) {
+            card.innerHTML = `
+                <div class="paid-note">
+                    <strong>Payment complete</strong>
+                    <p>
+                        This invoice has been paid successfully.
+                        Thank you for your payment.
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
+        card.innerHTML = `
+            <div class="paystack-card">
+                <div>
+                    <p class="eyebrow">SECURE PAYMENT</p>
+                    <h2>Pay your invoice online</h2>
+                    <p>
+                        Complete your payment securely through Paystack.
+                        Your invoice will update automatically after
+                        payment is confirmed.
+                    </p>
+                </div>
+
+                <div class="paystack-summary">
+                    <div>
+                        <span>Balance due</span>
+                        <strong id="paystackBalance">
+                            ${money(balanceDue, currency)}
+                        </strong>
+                    </div>
+                </div>
+
+                <button
+                    id="paystackButton"
+                    class="paystack-button"
+                    type="button"
+                >
+                    Pay securely with Paystack
+                </button>
+
+                <p
+                    id="paymentStatus"
+                    class="payment-status"
+                    role="status"
+                ></p>
+
+                <p class="payment-security-note">
+                    You will be redirected to Paystack's secure checkout
+                    to complete payment.
+                </p>
+            </div>
+        `;
+
+        $("paystackButton").addEventListener(
+            "click",
+            beginPaystackCheckout
+        );
+    }
 
     function render() {
         const current = invoice;
         const currency = current.currency || "NGN";
 
-        $("invoiceReference").textContent = current.invoice_reference;
-        $("customerName").textContent =
-            current.brand_name || current.customer_name || "Valued customer";
-        $("invoiceStatus").textContent =
-            String(current.status || "").replaceAll("_", " ");
-        $("balanceDue").textContent = money(current.balance_due, currency);
-        $("grandTotal").textContent = money(current.grand_total, currency);
-        $("issueDate").textContent = date(current.issue_date);
-        $("dueDate").textContent = date(current.due_date);
+        $("invoiceReference").textContent =
+            current.invoice_reference;
 
-        $("invoiceItems").innerHTML = current.items.map(item => `
-            <tr>
-                <td>
-                    <strong>${esc(item.description)}</strong>
-                    ${item.details
-                        ? `<span class="item-detail">${esc(item.details)}</span>`
-                        : ""}
-                </td>
-                <td>${esc(item.quantity)}</td>
-                <td>${money(item.unit_price, currency)}</td>
-                <td>${money(item.line_total, currency)}</td>
-            </tr>
-        `).join("");
+        $("customerName").textContent =
+            current.brand_name ||
+            current.customer_name ||
+            "Valued customer";
+
+        $("invoiceStatus").textContent =
+            String(current.status || "")
+                .replaceAll("_", " ");
+
+        $("balanceDue").textContent =
+            money(current.balance_due, currency);
+
+        $("grandTotal").textContent =
+            money(current.grand_total, currency);
+
+        $("issueDate").textContent =
+            date(current.issue_date);
+
+        $("dueDate").textContent =
+            date(current.due_date);
+
+        $("invoiceItems").innerHTML =
+            (current.items || []).map(item => `
+                <tr>
+                    <td>
+                        <strong>${esc(item.description)}</strong>
+                        ${
+                            item.details
+                                ? `<span class="item-detail">${esc(item.details)}</span>`
+                                : ""
+                        }
+                    </td>
+                    <td>${esc(item.quantity)}</td>
+                    <td>${money(item.unit_price, currency)}</td>
+                    <td>${money(item.line_total, currency)}</td>
+                </tr>
+            `).join("");
 
         $("invoiceTotals").innerHTML = `
-            <div><span>Subtotal</span><strong>${money(current.subtotal, currency)}</strong></div>
-            <div><span>Discount</span><strong>− ${money(current.discount, currency)}</strong></div>
-            <div><span>Delivery</span><strong>${money(current.delivery_fee, currency)}</strong></div>
-            <div><span>Tax</span><strong>${money(current.tax, currency)}</strong></div>
-            <div><span>Amount paid</span><strong>${money(current.amount_paid, currency)}</strong></div>
-            <div class="grand"><span>Balance due</span><strong>${money(current.balance_due, currency)}</strong></div>
+            <div>
+                <span>Subtotal</span>
+                <strong>${money(current.subtotal, currency)}</strong>
+            </div>
+
+            <div>
+                <span>Discount</span>
+                <strong>− ${money(current.discount, currency)}</strong>
+            </div>
+
+            <div>
+                <span>Delivery</span>
+                <strong>${money(current.delivery_fee, currency)}</strong>
+            </div>
+
+            <div>
+                <span>Tax</span>
+                <strong>${money(current.tax, currency)}</strong>
+            </div>
+
+            <div>
+                <span>Amount paid</span>
+                <strong>${money(current.amount_paid, currency)}</strong>
+            </div>
+
+            <div class="grand">
+                <span>Balance due</span>
+                <strong>${money(current.balance_due, currency)}</strong>
+            </div>
         `;
 
         $("paymentInstructions").textContent =
             current.payment_instructions ||
-            "Please contact Luxsome Packaging for payment details.";
+            "Pay securely online using the Paystack payment option below.";
+
         $("paymentTerms").textContent =
             current.payment_terms ||
             "Payment is due according to the agreed project terms.";
-        $("paymentAmount").value = Math.max(
-            0,
-            Number(current.balance_due) || 0
-        );
 
-        if (current.status === "paid" || Number(current.balance_due) <= 0) {
-            $("paymentCard").innerHTML = `
-                <div class="paid-note">
-                    <strong>Payment complete</strong>
-                    <p>This invoice has been marked as paid.</p>
-                </div>
-            `;
-        } else if (current.payment_confirmation_status === "submitted") {
-            $("paymentCard").innerHTML = `
-                <div class="payment-submitted">
-                    <strong>Payment information submitted</strong>
-                    <p>Luxsome Packaging is verifying the payment of ${money(
-                        current.payment_confirmation_amount,
-                        currency
-                    )}.</p>
-                    ${current.payment_confirmation_file_name
-                        ? `<p>Attached slip: ${esc(
-                            current.payment_confirmation_file_name
-                        )}</p>`
-                        : ""}
-                </div>
-            `;
-        }
+        renderPaymentCard();
 
         $("loading").hidden = true;
         $("invoice").hidden = false;
+    }
+
+    async function beginPaystackCheckout() {
+        if (paymentInProgress || !invoice) {
+            return;
+        }
+
+        const button = $("paystackButton");
+
+        try {
+            paymentInProgress = true;
+            button.disabled = true;
+            button.textContent = "Preparing secure checkout…";
+            setPaymentStatus("Preparing your secure Paystack checkout…");
+
+            const data = await api(
+                `/public/invoices/${token}/paystack-initialize`,
+                {
+                    method: "POST"
+                }
+            );
+
+            const authorizationUrl =
+                data?.payment?.authorizationUrl;
+
+            if (!authorizationUrl) {
+                throw new Error(
+                    "Paystack did not return a secure checkout link."
+                );
+            }
+
+            setPaymentStatus(
+                "Redirecting you to Paystack…",
+                "success"
+            );
+
+            window.location.assign(authorizationUrl);
+        } catch (error) {
+            paymentInProgress = false;
+            button.disabled = false;
+            button.textContent = "Pay securely with Paystack";
+            setPaymentStatus(error.message, "error");
+        }
+    }
+
+    function getReturnedPaymentReference() {
+        return (
+            params.get("reference") ||
+            params.get("trxref") ||
+            ""
+        ).trim();
+    }
+
+    function isPaymentReturn() {
+        return params.get("payment") === "return";
+    }
+
+    function cleanPaymentReturnUrl() {
+        const clean = new URL(window.location.href);
+
+        clean.searchParams.delete("payment");
+        clean.searchParams.delete("reference");
+        clean.searchParams.delete("trxref");
+
+        window.history.replaceState(
+            {},
+            document.title,
+            `${clean.pathname}${clean.search}${clean.hash}`
+        );
+    }
+
+    async function verifyReturnedPayment() {
+        if (!isPaymentReturn()) {
+            return false;
+        }
+
+        const reference = getReturnedPaymentReference();
+
+        if (!reference) {
+            cleanPaymentReturnUrl();
+            return false;
+        }
+
+        $("loading").textContent =
+            "Confirming your Paystack payment…";
+
+        try {
+            const data = await api(
+                `/public/invoices/${token}/paystack-verify` +
+                `?reference=${encodeURIComponent(reference)}`
+            );
+
+            const status =
+                data?.payment?.status || "";
+
+            cleanPaymentReturnUrl();
+
+            if (status !== "success") {
+                throw new Error(
+                    "Your payment has not been confirmed yet."
+                );
+            }
+
+            return true;
+        } catch (error) {
+            cleanPaymentReturnUrl();
+
+            $("loading").hidden = true;
+            $("error").hidden = false;
+            $("error").textContent =
+                `${error.message} You can refresh this invoice or try again.`;
+
+            return false;
+        }
+    }
+
+    async function loadInvoice() {
+        const data = await api(
+            `/public/invoices/${token}`
+        );
+
+        invoice = data.invoice;
+        render();
     }
 
     async function load() {
@@ -147,9 +366,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            const data = await api(`/public/invoices/${token}`);
-            invoice = data.invoice;
-            render();
+            const returnedFromPayment =
+                await verifyReturnedPayment();
+
+            if (
+                isPaymentReturn() &&
+                !returnedFromPayment &&
+                !$("error").hidden
+            ) {
+                return;
+            }
+
+            await loadInvoice();
         } catch (error) {
             showError(error.message);
         }
@@ -161,116 +389,8 @@ document.addEventListener("DOMContentLoaded", () => {
         $("error").textContent = message;
     }
 
-    function clearSlipPreview() {
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-            previewUrl = "";
-        }
-
-        $("paymentSlip").value = "";
-        $("paymentSlipPreview").hidden = true;
-        $("paymentSlipImage").hidden = true;
-        $("paymentSlipImage").removeAttribute("src");
-        $("paymentSlipName").textContent = "";
-        $("paymentSlipSize").textContent = "";
-    }
-
-    $("paymentSlip").addEventListener("change", event => {
-        const file = event.target.files?.[0];
-
-        if (!file) {
-            clearSlipPreview();
-            return;
-        }
-
-        if (!ALLOWED_SLIP_TYPES.has(file.type)) {
-            clearSlipPreview();
-            $("paymentStatus").textContent =
-                "Upload a JPG, PNG, WEBP or PDF payment slip.";
-            return;
-        }
-
-        if (file.size > MAX_SLIP_SIZE) {
-            clearSlipPreview();
-            $("paymentStatus").textContent =
-                "The payment slip must not exceed 5 MB.";
-            return;
-        }
-
-        $("paymentStatus").textContent = "";
-        $("paymentSlipName").textContent = file.name;
-        $("paymentSlipSize").textContent =
-            `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-        $("paymentSlipPreview").hidden = false;
-
-        if (file.type.startsWith("image/")) {
-            if (previewUrl) {
-                URL.revokeObjectURL(previewUrl);
-            }
-
-            previewUrl = URL.createObjectURL(file);
-            $("paymentSlipImage").src = previewUrl;
-            $("paymentSlipImage").hidden = false;
-        } else {
-            $("paymentSlipImage").hidden = true;
-        }
-    });
-
-    $("removePaymentSlip").addEventListener("click", clearSlipPreview);
-
-    $("paymentForm").addEventListener("submit", async event => {
-        event.preventDefault();
-
-        const button = $("paymentButton");
-        const slip = $("paymentSlip").files?.[0];
-
-        if (!slip) {
-            $("paymentStatus").textContent = "Attach your payment slip.";
-            return;
-        }
-
-        button.disabled = true;
-        $("paymentStatus").textContent = "Uploading payment information…";
-
-        const formData = new FormData();
-        formData.append(
-            "amount",
-            String(Number($("paymentAmount").value) || 0)
-        );
-        formData.append(
-            "reference",
-            $("paymentReference").value.trim()
-        );
-        formData.append("note", $("paymentNote").value.trim());
-        formData.append("paymentSlip", slip, slip.name);
-
-        try {
-            const data = await api(
-                `/public/invoices/${token}/confirm-payment`,
-                {
-                    method: "POST",
-                    body: formData
-                }
-            );
-
-            $("paymentStatus").textContent = data.message;
-            $("paymentForm")
-                .querySelectorAll("input,textarea,button")
-                .forEach(element => {
-                    element.disabled = true;
-                });
-        } catch (error) {
-            $("paymentStatus").textContent = error.message;
-            button.disabled = false;
-        }
-    });
-
-    $("printInvoice").onclick = () => window.print();
-    window.addEventListener("beforeunload", () => {
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl);
-        }
-    });
+    $("printInvoice").onclick = () =>
+        window.print();
 
     load();
 });

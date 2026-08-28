@@ -42,7 +42,7 @@
 				"CLIENT_PORTAL_URL": "https://develop.luxsomepackaging.com/track-order/",
 				"FROM_EMAIL": "Luxsome Packaging Develop <projects@updates.luxsomepackaging.com>",
 				"INTERNAL_EMAIL": "hello@luxsomepackaging.com",
-				"INVOICE_PAYMENT_INSTRUCTIONS": "TEST ENVIRONMENT — DO NOT MAKE PAYMENT",
+				"INVOICE_PAYMENT_INSTRUCTIONS": "TEST ENVIRONMENT — Pay securely using the Paystack payment option on this invoice.",
 				"LUXSOME_WHATSAPP": "2349068804133",
 				"LUXSOME_WHATSAPP_NUMBER": "2349068804133",
 				"PUBLIC_SITE_URL": "https://develop.luxsomepackaging.com",
@@ -73,9 +73,7 @@
 				}
 			],
 			"triggers": {
-				"crons": [
-					"0 2 * * *"
-				]
+				"crons": []
 			},
 			"vars": {
 				"ENVIRONMENT": "staging",
@@ -83,7 +81,7 @@
 				"CLIENT_PORTAL_URL": "https://staging.luxsomepackaging.com/track-order/",
 				"FROM_EMAIL": "Luxsome Packaging Staging <projects@updates.luxsomepackaging.com>",
 				"INTERNAL_EMAIL": "hello@luxsomepackaging.com",
-				"INVOICE_PAYMENT_INSTRUCTIONS": "TEST ENVIRONMENT — DO NOT MAKE PAYMENT",
+				"INVOICE_PAYMENT_INSTRUCTIONS": "TEST ENVIRONMENT — Pay securely using the Paystack payment option on this invoice.",
 				"LUXSOME_WHATSAPP": "2349068804133",
 				"LUXSOME_WHATSAPP_NUMBER": "2349068804133",
 				"PUBLIC_SITE_URL": "https://staging.luxsomepackaging.com",
@@ -124,7 +122,7 @@
 				"CLIENT_PORTAL_URL": "https://www.luxsomepackaging.com/track-order/",
 				"FROM_EMAIL": "Luxsome Packaging <projects@updates.luxsomepackaging.com>",
 				"INTERNAL_EMAIL": "hello@luxsomepackaging.com",
-				"INVOICE_PAYMENT_INSTRUCTIONS": "Bank name: Moniepoint\nAccount name: Lagundoye Akeem ifedayo\nAccount no: 6557362942",
+				"INVOICE_PAYMENT_INSTRUCTIONS": "Pay securely online using the Paystack payment option on this invoice.",
 				"LUXSOME_WHATSAPP": "2349068804133",
 				"LUXSOME_WHATSAPP_NUMBER": "2349068804133",
 				"PUBLIC_SITE_URL": "https://www.luxsomepackaging.com",
@@ -148,5 +146,5 @@
 				}
 			]
 		}
-	},
+	}
 }
