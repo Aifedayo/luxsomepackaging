@@ -2,92 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
-    <meta
-        name="robots"
-        content="noindex, nofollow"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
     <title>Payment Receipt | Luxsome Packaging</title>
 
-    <link
-        rel="preconnect"
-        href="https://fonts.googleapis.com"
-    >
-    <link
-        rel="preconnect"
-        href="https://fonts.gstatic.com"
-        crossorigin
-    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap"
         rel="stylesheet"
     >
-    <link
-        rel="stylesheet"
-        href="/css/receipt-portal.css"
-    >
+    <link rel="stylesheet" href="/css/receipt-portal.css">
 </head>
 
 <body>
     <main class="receipt-shell">
         <header class="receipt-header">
-            <a href="/" class="invoice-brand" aria-label="Luxsome Packaging homepage">
+            <a href="/" class="receipt-brand" aria-label="Luxsome Packaging homepage">
                 <img
                     src="/assets/images/luxsome-logo.png"
                     alt="Luxsome Packaging"
-                    class="invoice-brand__logo"
+                    class="receipt-brand__logo"
                 >
             </a>
 
-            <button
-                id="printReceipt"
-                type="button"
-            >
+            <button id="printReceipt" type="button">
                 Print / Save PDF
             </button>
         </header>
 
-        <section
-            id="loading"
-            class="state-card"
-        >
+        <section id="loading" class="state-card">
             Loading your receipt…
         </section>
 
-        <section
-            id="error"
-            class="state-card error"
-            hidden
-        ></section>
+        <section id="error" class="state-card error" hidden></section>
 
-        <article
-            id="receipt"
-            class="receipt-paper"
-            hidden
-        >
+        <article id="receipt" class="receipt-paper" hidden>
             <div class="receipt-heading">
                 <div>
-                    <p class="eyebrow">
-                        PAYMENT RECEIPT
-                    </p>
-
+                    <p class="eyebrow">PAYMENT RECEIPT</p>
                     <h1 id="receiptReference">—</h1>
-
                     <p id="customerName">—</p>
                 </div>
 
-                <div class="paid-stamp">
+                <div id="paymentStamp" class="paid-stamp">
                     PAYMENT RECEIVED
                 </div>
             </div>
 
             <section class="amount-card">
-                <span>Amount received</span>
+                <span id="paymentTypeLabel">Amount received</span>
                 <strong id="amountReceived">₦0</strong>
+                <small id="paymentTypeNote"></small>
             </section>
 
             <section class="receipt-details">
@@ -107,6 +73,11 @@
                 </div>
 
                 <div>
+                    <span>Payment channel</span>
+                    <strong id="paymentChannel">—</strong>
+                </div>
+
+                <div class="receipt-details__wide">
                     <span>Payment reference</span>
                     <strong id="paymentReference">—</strong>
                 </div>
@@ -117,42 +88,38 @@
                 </div>
 
                 <div>
-                    <span>Total paid</span>
+                    <span>Total paid at this receipt</span>
                     <strong id="totalPaid">₦0</strong>
                 </div>
 
                 <div>
-                    <span>Remaining balance</span>
+                    <span>Balance after this payment</span>
                     <strong id="balanceDue">₦0</strong>
                 </div>
 
                 <div>
-                    <span>Invoice status</span>
+                    <span>Payment status</span>
                     <strong id="invoiceStatus">—</strong>
                 </div>
             </section>
 
-            <section
-                id="notesSection"
-                class="receipt-note"
-                hidden
-            >
+            <section id="notesSection" class="receipt-note" hidden>
                 <h2>Payment note</h2>
                 <p id="paymentNotes"></p>
             </section>
 
-            <footer>
-                <p>
-                    Thank you for choosing Luxsome Packaging.
-                </p>
+            <section id="balanceMessage" class="balance-message"></section>
 
+            <footer>
+                <p>Thank you for choosing Luxsome Packaging.</p>
                 <small>
-                    This receipt confirms that the payment shown
-                    above was recorded against the stated invoice.
+                    This receipt confirms the payment recorded against the
+                    stated invoice. Keep it for your records.
                 </small>
             </footer>
         </article>
     </main>
+
     <script src="/js/environment.js"></script>
     <script src="/js/receipt-portal.js"></script>
 </body>

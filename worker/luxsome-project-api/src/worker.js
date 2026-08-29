@@ -8061,6 +8061,11 @@ async function handleAdminInvoiceDetail(request, env, reference) {
             recorded_by,
             receipt_sent_at,
             receipt_send_count,
+            provider,
+            provider_reference,
+            provider_transaction_id,
+            channel,
+            fees_subunit,
             created_at
         FROM invoice_payments
         WHERE invoice_id = ?
@@ -8150,6 +8155,11 @@ async function handleAdminInvoicePaymentList(
             recorded_by,
             receipt_sent_at,
             receipt_send_count,
+            provider,
+            provider_reference,
+            provider_transaction_id,
+            channel,
+            fees_subunit,
             created_at
         FROM invoice_payments
         WHERE invoice_id = ?
@@ -8767,21 +8777,54 @@ async function handlePublicReceiptRequest(request, env, url) {
 
     const receipt = await env.DB.prepare(`
         SELECT
+            p.id,
             p.receipt_reference,
             p.amount,
             p.payment_date,
             p.payment_method,
             p.payment_reference,
             p.notes,
+            p.provider,
+            p.provider_reference,
+            p.provider_transaction_id,
+            p.channel,
+            p.fees_subunit,
             p.created_at,
             i.invoice_reference,
             i.customer_name,
             i.brand_name,
             i.currency,
             i.grand_total,
-            i.amount_paid,
-            i.balance_due,
-            i.status
+            (
+                SELECT COALESCE(SUM(p2.amount), 0)
+                FROM invoice_payments p2
+                WHERE p2.invoice_id = p.invoice_id
+                  AND (
+                      p2.payment_date < p.payment_date
+                      OR (
+                          p2.payment_date = p.payment_date
+                          AND p2.id <= p.id
+                      )
+                  )
+            ) AS amount_paid_at_receipt,
+            MAX(
+                0,
+                i.grand_total - (
+                    SELECT COALESCE(SUM(p3.amount), 0)
+                    FROM invoice_payments p3
+                    WHERE p3.invoice_id = p.invoice_id
+                      AND (
+                          p3.payment_date < p.payment_date
+                          OR (
+                              p3.payment_date = p.payment_date
+                              AND p3.id <= p.id
+                          )
+                      )
+                )
+            ) AS balance_due_at_receipt,
+            i.amount_paid AS current_amount_paid,
+            i.balance_due AS current_balance_due,
+            i.status AS current_invoice_status
         FROM invoice_payments p
         INNER JOIN invoices i ON i.id = p.invoice_id
         WHERE p.receipt_token = ?

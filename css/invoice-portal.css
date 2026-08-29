@@ -1,320 +1,298 @@
-:root{--brown:#2e1c15;--cream:#f8f4ef;--line:#e1d5cc;--muted:#755f53;--white:#fff}*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--brown);font-family:Montserrat,Arial,sans-serif}.portal-shell{max-width:1120px;margin:auto;padding:28px 20px 70px}.portal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}.brand{color:var(--brown);font-weight:700;letter-spacing:2px;text-decoration:none}.brand span{display:block;font-size:9px;letter-spacing:4px;margin-top:4px}.portal-header button,.payment-card button{border:0;background:var(--brown);color:#fff;padding:13px 18px;font-weight:600;cursor:pointer}.state-card,.invoice-paper{background:#fff;border:1px solid var(--line);padding:32px}.error{color:#9b1c1c}.invoice-heading{display:flex;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);padding-bottom:26px}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:700;color:#8d654d}.invoice-heading h1{font:400 42px/1.1 "DM Serif Display",Georgia,serif;margin:6px 0 10px}.status-box{min-width:160px;background:var(--brown);color:#fff;padding:18px}.status-box span,.summary-grid span{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}.status-box strong{text-transform:capitalize}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}.summary-grid article{border:1px solid var(--line);padding:18px}.summary-grid strong{font-size:18px}.items-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{padding:14px 10px;border-bottom:1px solid var(--line);text-align:left}th{background:#f3ece7;font-size:11px;text-transform:uppercase;letter-spacing:.8px}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.item-detail{display:block;color:var(--muted);font-size:12px;margin-top:5px}.totals{margin:22px 0 30px auto;max-width:390px}.totals div{display:flex;justify-content:space-between;padding:7px 0}.totals .grand{font-size:18px;border-top:1px solid var(--line);margin-top:6px;padding-top:13px}.notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.notes-grid article{background:var(--cream);padding:20px;white-space:pre-wrap}.notes-grid h2,.payment-card h2{font:400 25px "DM Serif Display",Georgia,serif;margin:0 0 10px}.notes-grid p{color:var(--muted);line-height:1.7}.payment-card{display:grid;grid-template-columns:.9fr 1.1fr;gap:34px;margin-top:30px;padding:28px;background:var(--brown);color:#fff}.payment-card form{display:grid;gap:13px}.payment-card label{font-size:12px;font-weight:600}.payment-card input,.payment-card textarea{width:100%;margin-top:7px;padding:12px;border:1px solid #b9a79b;background:#fff;font:inherit}.payment-card textarea{min-height:90px;resize:vertical}.payment-card button{background:#fff;color:var(--brown)}#paymentStatus{min-height:20px;margin:0}.paid-note{padding:20px;background:#edf8ef;color:#205c2c}.payment-submitted{padding:20px;background:#fff7de;color:#69510a}@media(max-width:760px){.invoice-paper,.state-card{padding:22px 16px}.invoice-heading{display:block}.status-box{margin-top:18px}.summary-grid{grid-template-columns:1fr 1fr}.notes-grid,.payment-card{grid-template-columns:1fr}.portal-header{align-items:flex-start}.portal-header button{font-size:11px;padding:10px}}@media print{body{background:#fff}.portal-shell{max-width:none;padding:0}.portal-header,.payment-card{display:none}.invoice-paper{border:0;padding:0}.items-wrap{overflow:visible}}
+:root {
+    --brown: #2e1c15;
+    --cream: #f8f4ef;
+    --line: #e1d5cc;
+    --muted: #755f53;
+    --white: #ffffff;
+    --soft: #f3ece7;
+    --success: #205c2c;
+    --success-bg: #edf8ef;
+}
 
-.invoice-brand {
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--brown);
+    font-family: "Montserrat", Arial, sans-serif;
+}
+
+.receipt-shell {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 20px 70px;
+}
+
+.receipt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 28px;
+}
+
+.receipt-brand {
     display: inline-flex;
     align-items: center;
     text-decoration: none;
 }
 
-.invoice-brand__logo {
+.receipt-brand__logo {
     display: block;
     width: 180px;
     max-width: 100%;
     height: auto;
 }
 
-/* ===========================
-   MOBILE & TABLET OPTIMIZATION
-   =========================== */
-
-   @media (max-width: 768px) {
-
-    .portal-shell {
-        padding: 14px;
-    }
-
-    .portal-header {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
-        margin-bottom: 18px;
-    }
-
-    .invoice-brand {
-        justify-content: center;
-    }
-
-    .invoice-brand__logo {
-        width: 150px;
-    }
-
-    .portal-header button {
-        width: 100%;
-        padding: 14px;
-        font-size: 14px;
-    }
-
-    .invoice-paper,
-    .state-card {
-        padding: 18px;
-    }
-
-    /* Invoice Header */
-
-    .invoice-heading {
-        flex-direction: column;
-        gap: 18px;
-        padding-bottom: 18px;
-    }
-
-    .invoice-heading h1 {
-        font-size: 32px;
-        line-height: 1.1;
-    }
-
-    .status-box {
-        width: 100%;
-        min-width: auto;
-        padding: 16px;
-    }
-
-    /* Summary Cards */
-
-    .summary-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-        margin: 18px 0;
-    }
-
-    .summary-grid article {
-        padding: 14px;
-    }
-
-    .summary-grid strong {
-        font-size: 16px;
-    }
-
-    /* Table */
-
-    th,
-    td {
-        padding: 10px 8px;
-        font-size: 13px;
-    }
-
-    th {
-        font-size: 10px;
-    }
-
-    .item-detail {
-        font-size: 11px;
-    }
-
-    /* Totals */
-
-    .totals {
-        max-width: 100%;
-        margin-top: 22px;
-    }
-
-    .totals div {
-        font-size: 14px;
-    }
-
-    .totals .grand {
-        font-size: 18px;
-    }
-
-    /* Notes */
-
-    .notes-grid {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-
-    .notes-grid article {
-        padding: 16px;
-    }
-
-    .notes-grid h2 {
-        font-size: 24px;
-    }
-
-    /* Payment */
-
-    .payment-card {
-        grid-template-columns: 1fr;
-        gap: 22px;
-        padding: 20px;
-    }
-
-    .payment-card h2 {
-        font-size: 28px;
-    }
-
-    .payment-card p {
-        line-height: 1.6;
-    }
-
-    .payment-card label {
-        font-size: 13px;
-    }
-
-    .payment-card input,
-    .payment-card textarea {
-        padding: 14px;
-        font-size: 16px;
-        border-radius: 6px;
-    }
-
-    .payment-card textarea {
-        min-height: 120px;
-    }
-
-    .payment-card button {
-        width: 100%;
-        padding: 16px;
-        font-size: 15px;
-    }
-
-    .paid-note,
-    .payment-submitted {
-        padding: 18px;
-        border-radius: 8px;
-    }
-
-}
-
-/* ===========================
-   SMALL PHONES
-   =========================== */
-
-@media (max-width: 480px) {
-
-    .portal-shell {
-        padding: 10px;
-    }
-
-    .invoice-paper,
-    .state-card {
-        padding: 14px;
-    }
-
-    .invoice-heading h1 {
-        font-size: 28px;
-    }
-
-    .summary-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .summary-grid article {
-        text-align: center;
-    }
-
-    .summary-grid span {
-        margin-bottom: 6px;
-    }
-
-    table {
-        min-width: 600px;
-    }
-
-    .items-wrap {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .notes-grid h2,
-    .payment-card h2 {
-        font-size: 24px;
-    }
-
-    .portal-header button {
-        position: sticky;
-        bottom: 10px;
-        z-index: 10;
-    }
-
-}
-
-/* Prevent payment form fields from overflowing */
-.payment-card,
-.payment-card > *,
-.payment-card form,
-.payment-card label {
-    min-width: 0;
-}
-
-.payment-card input,
-.payment-card textarea,
-.payment-card button {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-}
-
-/* File inputs can overflow because of long filenames */
-.payment-card input[type="file"] {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    overflow: hidden;
-    padding: 10px;
-    font-size: 12px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-/* Style the file-selection button */
-.payment-card input[type="file"]::file-selector-button {
-    max-width: 140px;
-    margin-right: 10px;
-    padding: 10px 12px;
+.receipt-header button {
     border: 0;
     background: var(--brown);
     color: var(--white);
-    font: inherit;
+    padding: 13px 18px;
+    font: 600 12px/1.2 "Montserrat", sans-serif;
+    cursor: pointer;
+}
+
+.state-card,
+.receipt-paper {
+    background: var(--white);
+    border: 1px solid var(--line);
+}
+
+.state-card {
+    padding: 30px;
+}
+
+.error {
+    color: #9b1c1c;
+}
+
+.receipt-paper {
+    padding: 38px;
+}
+
+.receipt-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 28px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+    margin: 0;
+    color: #8d654d;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.receipt-heading h1 {
+    margin: 7px 0 9px;
+    font: 400 38px/1.1 "DM Serif Display", Georgia, serif;
+}
+
+.receipt-heading p:last-child {
+    margin: 0;
+    color: var(--muted);
+}
+
+.paid-stamp {
+    min-width: 180px;
+    padding: 16px 18px;
+    border: 1px solid #b6927c;
+    color: #79503b;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.paid-stamp--complete {
+    border-color: #7eb18a;
+    color: var(--success);
+    background: var(--success-bg);
+}
+
+.amount-card {
+    margin: 26px 0;
+    padding: 26px;
+    background: var(--brown);
+    color: var(--white);
+}
+
+.amount-card span,
+.amount-card small {
+    display: block;
+}
+
+.amount-card span {
     font-size: 11px;
     font-weight: 600;
-    cursor: pointer;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
 }
 
-/* Keep previews inside the payment card */
-.payment-slip-preview,
-.payment-slip-preview img,
-#paymentSlipPreview {
-    max-width: 100%;
-}
-
-.payment-slip-preview img,
-#paymentSlipPreview img {
+.amount-card strong {
     display: block;
-    width: 100%;
-    height: auto;
-    max-height: 320px;
-    object-fit: contain;
+    margin: 7px 0 4px;
+    font: 400 clamp(34px, 7vw, 50px)/1 "DM Serif Display", Georgia, serif;
 }
 
-.payment-slip-preview {
-    display: flex;
-    flex-direction: column;
+.amount-card small {
+    opacity: .8;
+    line-height: 1.5;
+}
+
+.receipt-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
-    width: 100%;
+}
+
+.receipt-details > div {
     min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--line);
 }
 
-.remove-slip {
-    align-self: flex-start;
-    max-width: 100%;
-    padding: 10px 16px;
-    border: 1px solid #fff;
-    background: transparent;
-    color: #fff;
-    cursor: pointer;
+.receipt-details__wide {
+    grid-column: 1 / -1;
+}
 
-    white-space: normal;
-    word-break: break-word;
+.receipt-details span {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.receipt-details strong {
+    display: block;
     overflow-wrap: anywhere;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
-@media (max-width:760px){
+.receipt-note,
+.balance-message {
+    margin-top: 22px;
+    padding: 20px;
+    background: var(--cream);
+}
 
-    .remove-slip{
-        width:100%;
-        align-self:stretch;
-        text-align:center;
+.receipt-note h2 {
+    margin: 0 0 8px;
+    font: 400 23px "DM Serif Display", Georgia, serif;
+}
+
+.receipt-note p,
+.balance-message p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+}
+
+.balance-message {
+    border-left: 3px solid #b6927c;
+}
+
+.balance-message--complete {
+    border-left-color: #7eb18a;
+    background: var(--success-bg);
+}
+
+.balance-message strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.receipt-paper footer {
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    line-height: 1.65;
+}
+
+.receipt-paper footer p {
+    margin: 0 0 4px;
+    color: var(--brown);
+    font-weight: 600;
+}
+
+@media (max-width: 680px) {
+    .receipt-shell {
+        padding: 14px;
     }
 
+    .receipt-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .receipt-brand {
+        justify-content: center;
+    }
+
+    .receipt-brand__logo {
+        width: 150px;
+    }
+
+    .receipt-header button {
+        width: 100%;
+        padding: 14px;
+    }
+
+    .receipt-paper,
+    .state-card {
+        padding: 20px 16px;
+    }
+
+    .receipt-heading {
+        flex-direction: column;
+    }
+
+    .receipt-heading h1 {
+        font-size: 30px;
+    }
+
+    .paid-stamp {
+        width: 100%;
+    }
+
+    .receipt-details {
+        grid-template-columns: 1fr;
+    }
+
+    .receipt-details__wide {
+        grid-column: auto;
+    }
+}
+
+@media print {
+    body {
+        background: #fff;
+    }
+
+    .receipt-shell {
+        max-width: none;
+        padding: 0;
+    }
+
+    .receipt-header {
+        display: none;
+    }
+
+    .receipt-paper {
+        border: 0;
+        padding: 0;
+    }
 }
