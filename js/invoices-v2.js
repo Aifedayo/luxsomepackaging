@@ -78,6 +78,7 @@
 
         if (!response.ok) {
             throw new Error(
+                data.error ||
                 data.message ||
                 "The request could not be completed."
             );
@@ -374,58 +375,122 @@
     }
 
     function renderPaymentRow(payment) {
+        const isPaystack =
+            String(payment.provider || "").toLowerCase() === "paystack";
+
+        const providerLabel = isPaystack
+            ? "Paystack"
+            : payment.payment_method || "Manual payment";
+
+        const channelLabel = payment.channel
+            ? String(payment.channel)
+                .replaceAll("_", " ")
+                .replace(/\b\w/g, (character) =>
+                    character.toUpperCase()
+                )
+            : "";
+
+        const gatewayReference =
+            payment.provider_reference ||
+            payment.payment_reference ||
+            "";
+
+        const receiptStatus = payment.receipt_sent_at
+            ? `Receipt emailed${Number(payment.receipt_send_count || 0) > 1
+                ? ` · ${Number(payment.receipt_send_count)} sends`
+                : ""}`
+            : payment.receipt_reference
+                ? "Receipt created"
+                : "Receipt pending";
+
         return `
-            <article class="payment-row">
-                <div>
+            <article class="payment-row${isPaystack ? " payment-row--paystack" : ""}">
+                <div class="payment-row__main">
                     <strong>
                         ${formatMoney(payment.amount)}
                     </strong>
+
                     <span>
-                        ${escapeHtml(payment.receipt_reference)}
+                        ${escapeHtml(payment.receipt_reference || "Receipt pending")}
                         ·
                         ${formatDate(payment.payment_date)}
                     </span>
+
                     <small>
-                        ${escapeHtml(payment.payment_method)}
-                        ${
-                            payment.payment_reference
-                                ? ` · ${escapeHtml(
-                                    payment.payment_reference
-                                )}`
-                                : ""
-                        }
+                        <strong class="payment-provider">
+                            ${escapeHtml(providerLabel)}
+                        </strong>
+                        ${channelLabel
+                            ? ` · ${escapeHtml(channelLabel)}`
+                            : ""}
+                    </small>
+
+                    ${gatewayReference
+                        ? `
+                            <small class="payment-reference">
+                                Ref: ${escapeHtml(gatewayReference)}
+                            </small>
+                        `
+                        : ""
+                    }
+
+                    <small class="payment-receipt-status">
+                        ${escapeHtml(receiptStatus)}
                     </small>
                 </div>
 
                 <div class="payment-actions">
-                    <button
-                        type="button"
-                        data-receipt="${payment.id}"
-                    >
-                        ${
-                            payment.receipt_sent_at
-                                ? "Resend receipt"
-                                : "Send receipt"
-                        }
-                    </button>
+                    ${payment.receipt_reference
+                        ? `
+                            <button
+                                type="button"
+                                data-receipt="${payment.id}"
+                            >
+                                ${
+                                    payment.receipt_sent_at
+                                        ? "Resend receipt"
+                                        : "Send receipt"
+                                }
+                            </button>
+                        `
+                        : ""
+                    }
 
-                    <a
-                        href="/receipt/?token=${encodeURIComponent(
-                            payment.receipt_token
-                        )}"
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        View
-                    </a>
+                    ${payment.receipt_token
+                        ? `
+                            <a
+                                href="/receipt/?token=${encodeURIComponent(
+                                    payment.receipt_token
+                                )}"
+                                target="_blank"
+                                rel="noopener"
+                            >
+                                View receipt
+                            </a>
+                        `
+                        : ""
+                    }
 
-                    <button
-                        type="button"
-                        class="danger-link"
-                        data-delete-payment="${payment.id}"
-                    >
-                        Remove
-                    </button>
+                    ${
+                        isPaystack
+                            ? `
+                                <span
+                                    class="payment-verified-badge"
+                                    title="Verified online payments cannot be removed manually."
+                                >
+                                    VERIFIED
+                                </span>
+                            `
+                            : `
+                                <button
+                                    type="button"
+                                    class="danger-link"
+                                    data-delete-payment="${payment.id}"
+                                >
+                                    Remove
+                                </button>
+                            `
+                    }
                 </div>
             </article>
         `;
@@ -757,8 +822,22 @@
             return;
         }
 
+        const payment = (invoice.payments || []).find(
+            (item) => Number(item.id) === Number(paymentId)
+        );
+
+        if (
+            payment &&
+            String(payment.provider || "").toLowerCase() === "paystack"
+        ) {
+            window.alert(
+                "Verified Paystack payments cannot be removed manually. Use a proper refund/reversal workflow instead."
+            );
+            return;
+        }
+
         const confirmed = window.confirm(
-            "Remove this payment? The invoice balance will be recalculated."
+            "Remove this manually recorded payment? The invoice balance will be recalculated."
         );
 
         if (!confirmed) {
