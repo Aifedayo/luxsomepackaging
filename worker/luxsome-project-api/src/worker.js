@@ -9482,6 +9482,7 @@ async function initializePaystackInvoicePayment(
           AND status IN ('initialized', 'pending')
           AND invoice_payment_id IS NULL
           AND authorization_url IS NOT NULL
+          AND datetime(created_at) >= datetime('now', '-30 minutes')
         ORDER BY id DESC
         LIMIT 1
     `).bind(
@@ -9552,7 +9553,25 @@ async function initializePaystackInvoicePayment(
         throw new Error("Paystack did not return a checkout URL.");
     }
 
+    /*
+     * Only after Paystack has successfully created the replacement checkout
+     * do we supersede older unpaid attempts. If Paystack initialization
+     * itself fails, an existing checkout remains usable.
+     */
     const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+        UPDATE payment_gateway_transactions
+        SET status = 'superseded',
+            updated_at = ?
+        WHERE invoice_id = ?
+          AND provider = 'paystack'
+          AND status IN ('initialized', 'pending')
+          AND invoice_payment_id IS NULL
+    `).bind(
+        now,
+        invoice.id
+    ).run();
 
     const result = await env.DB.prepare(`
         INSERT INTO payment_gateway_transactions (
@@ -9628,6 +9647,59 @@ async function verifyPaystackTransaction(env, reference) {
         env,
         `/transaction/verify/${encodeURIComponent(safeReference)}`
     );
+}
+
+async function flagPaystackTransactionForManualReview(
+    env,
+    attempt,
+    verifiedPayload,
+    reason
+) {
+    const data = verifiedPayload?.data || {};
+    const now = new Date().toISOString();
+
+    await env.DB.prepare(`
+        UPDATE payment_gateway_transactions
+        SET status = 'manual_review',
+            provider_transaction_id = ?,
+            channel = ?,
+            fees_subunit = ?,
+            gateway_response = ?,
+            paid_at = ?,
+            verified_at = ?,
+            provider_payload_json = ?,
+            updated_at = ?
+        WHERE id = ?
+    `).bind(
+        data.id ? String(data.id) : null,
+        text(data.channel) || null,
+        Number(data.fees || 0),
+        reason,
+        text(data.paid_at || data.paidAt) || null,
+        now,
+        JSON.stringify(verifiedPayload || {}),
+        now,
+        attempt.id
+    ).run();
+
+    await recordInvoiceActivity(env.DB, {
+        invoiceId: attempt.invoice_id,
+        activityType: "payment_manual_review",
+        title: "Paystack payment needs review",
+        details:
+            `${attempt.provider_reference}: ${reason}`,
+        actor: "system",
+        createdAt: now
+    });
+
+    return {
+        alreadyProcessed: false,
+        success: false,
+        status: "manual_review",
+        requiresReview: true,
+        invoiceReference: attempt.invoice_reference,
+        reason
+    };
 }
 
 async function finalizeSuccessfulPaystackPayment(
@@ -9792,9 +9864,30 @@ async function finalizeSuccessfulPaystackPayment(
     const amount = paystackAmountFromSubunit(providerAmountSubunit);
     const currentBalance = Number(invoice.balance_due || 0);
 
-    if (currentBalance <= 0 || amount > currentBalance) {
-        throw new Error(
-            "This successful Paystack transaction no longer matches the current invoice balance. Manual review is required."
+    if (text(attempt.status) === "superseded") {
+        return await flagPaystackTransactionForManualReview(
+            env,
+            attempt,
+            verifiedPayload,
+            "A superseded Paystack checkout was paid after a newer checkout had been created. The payment was not applied to the invoice automatically."
+        );
+    }
+
+    if (currentBalance <= 0) {
+        return await flagPaystackTransactionForManualReview(
+            env,
+            attempt,
+            verifiedPayload,
+            "The invoice no longer has an outstanding balance. This payment was not applied automatically to prevent an overpayment."
+        );
+    }
+
+    if (amount > currentBalance) {
+        return await flagPaystackTransactionForManualReview(
+            env,
+            attempt,
+            verifiedPayload,
+            `The verified Paystack amount (${formatInvoiceMoney(amount, invoice.currency)}) exceeds the current invoice balance (${formatInvoiceMoney(currentBalance, invoice.currency)}). The payment was not applied automatically.`
         );
     }
 
@@ -10121,16 +10214,23 @@ async function handlePublicInvoicePaystackVerify(
             verified
         );
 
+        const paymentSucceeded = result.success !== false;
+
         return jsonResponse(
             {
-                success: true,
+                success: paymentSucceeded,
+                message: paymentSucceeded
+                    ? "Payment verified successfully."
+                    : result.status === "manual_review"
+                        ? "Your payment was received by Paystack but needs manual review before it can be applied to this invoice."
+                        : "This Paystack transaction was not successful.",
                 payment: {
-                    status:
-                        result.success === false
-                            ? result.status
-                            : "success",
+                    status: paymentSucceeded
+                        ? "success"
+                        : result.status,
                     invoiceReference: result.invoiceReference,
-                    alreadyProcessed: Boolean(result.alreadyProcessed)
+                    alreadyProcessed: Boolean(result.alreadyProcessed),
+                    requiresReview: Boolean(result.requiresReview)
                 }
             },
             200,
