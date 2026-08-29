@@ -8064,8 +8064,8 @@ async function handleAdminInvoiceDetail(request, env, reference) {
             provider,
             provider_reference,
             provider_transaction_id,
-            channel,
-            fees_subunit,
+            provider_channel AS channel,
+            provider_fees_subunit AS fees_subunit,
             created_at
         FROM invoice_payments
         WHERE invoice_id = ?
@@ -8158,8 +8158,8 @@ async function handleAdminInvoicePaymentList(
             provider,
             provider_reference,
             provider_transaction_id,
-            channel,
-            fees_subunit,
+            provider_channel AS channel,
+            provider_fees_subunit AS fees_subunit,
             created_at
         FROM invoice_payments
         WHERE invoice_id = ?
@@ -8787,8 +8787,8 @@ async function handlePublicReceiptRequest(request, env, url) {
             p.provider,
             p.provider_reference,
             p.provider_transaction_id,
-            p.channel,
-            p.fees_subunit,
+            p.provider_channel AS channel,
+            p.provider_fees_subunit AS fees_subunit,
             p.created_at,
             i.invoice_reference,
             i.customer_name,
