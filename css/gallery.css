@@ -674,3 +674,26 @@ body {
     outline: 2px solid currentColor;
     outline-offset: 4px;
 }
+
+/* =========================================================
+   FASHION BRAND POSITIONING
+========================================================= */
+
+.collection-fashion-note {
+    width: min(calc(100% - 48px), 1420px);
+    margin: 20px auto 0;
+    color: var(--gallery-muted);
+    font-size: .78rem;
+    line-height: 1.75;
+}
+
+.collection-slide figcaption span {
+    max-width: 100%;
+}
+
+@media (max-width: 620px) {
+    .collection-fashion-note {
+        width: calc(100% - 32px);
+        margin-top: 16px;
+    }
+}
