@@ -1598,7 +1598,20 @@ header {
         font-size: clamp(2.1rem, 11vw, 3rem);
     }
 
-    .size-pricing__dimensions {
+    .size-pricing__dimensions {/* Luxsome Pricing — Fashion Brand Focus
+   Add this after /css/pricing.css */
+
+.tier-positioning {
+    margin: -10px 0 22px;
+    color: #67574d;
+    font-size: 0.86rem;
+    line-height: 1.7;
+}
+
+.pricing-card.featured .tier-positioning {
+    color: rgba(255, 250, 243, 0.72);
+}
+
         grid-template-columns: 1fr;
     }
 
@@ -1615,4 +1628,6 @@ header {
         grid-template-columns: 1fr;
     }
 }
+
+
 
