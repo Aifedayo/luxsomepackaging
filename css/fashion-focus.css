@@ -1,0 +1,82 @@
+/* Luxsome homepage — fashion-specialist positioning */
+.fashion-scope-bar {
+    background: #0b1730;
+    color: #fff;
+    border-top: 1px solid rgba(255,255,255,.08);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.fashion-scope-bar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 9px 20px;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.5;
+}
+.fashion-scope-bar__inner strong {
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+.fashion-focus {
+    padding: clamp(64px, 8vw, 110px) 0;
+    background: #f8f4ef;
+    color: #2e1c15;
+}
+.fashion-focus__grid {
+    display: grid;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    gap: clamp(38px, 7vw, 90px);
+    align-items: start;
+}
+.fashion-focus__intro h2 {
+    max-width: 620px;
+    margin: 12px 0 18px;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(36px, 5vw, 62px);
+    font-weight: 400;
+    line-height: 1.03;
+}
+.fashion-focus__intro > p:last-child {
+    max-width: 590px;
+    color: #755f53;
+    line-height: 1.8;
+}
+.fashion-focus__cards {
+    display: grid;
+    gap: 12px;
+}
+.fashion-focus__cards article {
+    padding: clamp(22px, 3vw, 34px);
+    border: 1px solid #dfd1c7;
+    background: #fff;
+}
+.fashion-focus__cards article > span {
+    display: block;
+    margin-bottom: 9px;
+    color: #8d654d;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+.fashion-focus__cards article > strong {
+    display: block;
+    margin-bottom: 8px;
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: 27px;
+    font-weight: 400;
+}
+.fashion-focus__cards article p {
+    margin: 0;
+    color: #755f53;
+    line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+    .fashion-scope-bar__inner { flex-direction: column; gap: 2px; }
+    .fashion-focus__grid { grid-template-columns: 1fr; }
+    .fashion-focus { padding: 58px 0; }
+}

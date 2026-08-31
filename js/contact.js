@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
     const API_BASE = window.LUXSOME?.apiBase;
     const router = document.getElementById("routerPanel");
+    const qualificationPanel = document.getElementById("qualificationPanel");
+    const nonFashionView = document.getElementById("nonFashionView");
+
     const views = [
         "quotationView",
         "sampleView",
@@ -9,10 +12,14 @@ document.addEventListener("DOMContentLoaded", () => {
     ].map(id => document.getElementById(id)).filter(Boolean);
 
     const show = view => {
+        qualificationPanel.hidden = true;
+        nonFashionView.hidden = true;
         router.hidden = true;
+
         views.forEach(item => {
             item.hidden = item !== view;
         });
+
         view.hidden = false;
         view.scrollIntoView({ behavior: "smooth", block: "start" });
     };
@@ -21,9 +28,51 @@ document.addEventListener("DOMContentLoaded", () => {
         views.forEach(view => {
             view.hidden = true;
         });
+
+        qualificationPanel.hidden = true;
+        nonFashionView.hidden = true;
         router.hidden = false;
         router.scrollIntoView({ behavior: "smooth", block: "start" });
     };
+
+    const showQualification = () => {
+        views.forEach(view => {
+            view.hidden = true;
+        });
+
+        router.hidden = true;
+        nonFashionView.hidden = true;
+        qualificationPanel.hidden = false;
+        qualificationPanel.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    };
+
+    document.getElementById("confirmFashionBrand")
+        ?.addEventListener("click", () => {
+            qualificationPanel.hidden = true;
+            nonFashionView.hidden = true;
+            router.hidden = false;
+            router.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        });
+
+    document.getElementById("notFashionBrand")
+        ?.addEventListener("click", () => {
+            qualificationPanel.hidden = true;
+            router.hidden = true;
+            nonFashionView.hidden = false;
+            nonFashionView.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+        });
+
+    document.getElementById("backToQualification")
+        ?.addEventListener("click", showQualification);
 
     document.querySelectorAll('[data-back-to="home"]').forEach(button => {
         button.addEventListener("click", home);

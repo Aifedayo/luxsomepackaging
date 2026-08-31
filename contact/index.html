@@ -8,11 +8,11 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Request a Packaging Quotation | Luxsome Packaging</title>
+    <title>Fashion Brand Packaging Quotation | Luxsome Packaging</title>
 
     <meta
         name="description"
-        content="Request a custom packaging quotation from Luxsome Packaging or get quick help with samples, pricing and existing projects."
+        content="Request a fashion brand packaging quotation from Luxsome Packaging or get quick help with samples, pricing and existing fashion packaging projects."
     >
 
     <link
@@ -26,7 +26,7 @@
     <meta property="og:title" content="Request a Packaging Quotation | Luxsome Packaging">
     <meta
         property="og:description"
-        content="Request a packaging quotation in a few clicks, ask about samples or get help choosing the right packaging."
+        content="Request fashion brand packaging pricing in a few clicks, ask about samples or get help choosing the right packaging system for your label."
     >
     <meta
         property="og:url"
@@ -54,6 +54,7 @@
     >
     <link rel="stylesheet" href="../css/base.css">
     <link rel="stylesheet" href="../css/contact.css">
+    <link rel="stylesheet" href="../css/contact-fashion-focus.css?v=1">
     
     <link
         rel="stylesheet"
@@ -66,8 +67,8 @@
         "@type": "ContactPage",
         "@id": "https://www.luxsomepackaging.com/contact/#webpage",
         "url": "https://www.luxsomepackaging.com/contact/",
-        "name": "Request a Packaging Quotation | Luxsome Packaging",
-        "description": "Contact Luxsome Packaging to ask about custom boxes, tags, tissue paper, thank you cards, ribbons and complete luxury packaging systems.",
+        "name": "Fashion Brand Packaging Quotation | Luxsome Packaging",
+        "description": "Contact Luxsome Packaging for fashion brand packaging systems including rigid boxes, hang tags, tissue paper, thank-you cards, ribbons and coordinated branded packaging.",
         "isPartOf": {
             "@id": "https://www.luxsomepackaging.com/#website"
         },
@@ -157,25 +158,85 @@
 
     <main class="contact-page">
 <section class="contact-hero" aria-labelledby="contactTitle">
-<p class="eyebrow">START HERE</p><h1 id="contactTitle">What can we help you with?</h1>
-<p class="intro-text">Choose the quickest route. If you are ready for pricing or a sample, you can submit everything we need in a few clicks.</p>
+<p class="eyebrow">FASHION BRAND PACKAGING</p><h1 id="contactTitle">Let’s package your fashion brand.</h1>
+<p class="intro-text">Luxsome creates coordinated packaging systems for fashion labels. Start by confirming that your enquiry is for a fashion brand, then choose the quickest route.</p>
 </section>
 <section class="contact-router" aria-label="Contact options">
-<div class="router-panel" id="routerPanel"><div class="router-heading"><span class="step-label">1</span><div><p class="router-kicker">CHOOSE ONE</p><h2>How can we help?</h2></div></div>
+
+<div class="qualification-panel" id="qualificationPanel">
+    <div class="router-heading">
+        <span class="step-label">1</span>
+        <div>
+            <p class="router-kicker">BEFORE WE BEGIN</p>
+            <h2>Is this for a fashion brand?</h2>
+        </div>
+    </div>
+
+    <p class="qualification-copy">
+        Luxsome specialises in packaging systems for fashion labels — including
+        womenswear, menswear, modest fashion, footwear, bags and accessories.
+    </p>
+
+    <div class="qualification-actions">
+        <button
+            class="qualification-button qualification-button--primary"
+            type="button"
+            id="confirmFashionBrand"
+        >
+            <span>
+                <strong>Yes, this is for a fashion brand</strong>
+                <small>Continue to quotation, samples or packaging guidance.</small>
+            </span>
+            <span aria-hidden="true">→</span>
+        </button>
+
+        <button
+            class="qualification-button"
+            type="button"
+            id="notFashionBrand"
+        >
+            <span>
+                <strong>No, it is for something else</strong>
+                <small>See whether Luxsome is the right fit.</small>
+            </span>
+            <span aria-hidden="true">→</span>
+        </button>
+    </div>
+</div>
+
+<div class="non-fashion-view" id="nonFashionView" hidden>
+    <button class="back-button" type="button" id="backToQualification">← Back</button>
+
+    <div class="route-view__header">
+        <p class="route-view__eyebrow">OUR SPECIALISM</p>
+        <h2>Luxsome is built around fashion brands.</h2>
+        <p>
+            Our current packaging systems, materials and production workflow are
+            designed around fashion labels and their customer unboxing experience.
+        </p>
+    </div>
+
+    <a class="fashion-focus-link" href="/">
+        Explore Luxsome fashion packaging
+        <span aria-hidden="true">→</span>
+    </a>
+</div>
+
+<div class="router-panel" id="routerPanel" hidden><div class="router-heading"><span class="step-label">2</span><div><p class="router-kicker">YOUR FASHION PACKAGING</p><h2>What would you like to do?</h2></div></div>
 <div class="intent-grid">
-<button class="intent-card intent-card--primary" type="button" data-intent="quotation"><span class="intent-card__eyebrow">FASTEST ROUTE</span><strong>I want a quotation</strong><span>Choose the exact packaging you need and request pricing.</span><span class="intent-card__arrow">→</span></button>
-<button class="intent-card" type="button" data-intent="sample"><strong>I want a sample</strong><span>Choose a sample and upload a reference or artwork if you have one.</span><span class="intent-card__arrow">→</span></button>
+<button class="intent-card intent-card--primary" type="button" data-intent="quotation"><span class="intent-card__eyebrow">FASTEST ROUTE</span><strong>I want a quotation</strong><span>Choose the packaging pieces or complete system for your fashion brand.</span><span class="intent-card__arrow">→</span></button>
+<button class="intent-card" type="button" data-intent="sample"><strong>I want a sample</strong><span>Request a sample for your fashion brand and upload a reference or artwork if you have one.</span><span class="intent-card__arrow">→</span></button>
 <a class="intent-card" href="/pricing/"><strong>I have a pricing question</strong><span>See quantities, pricing guidance and what affects cost.</span><span class="intent-card__arrow">→</span></a>
-<a class="intent-card" href="/packaging-builder/"><strong>I need help choosing packaging</strong><span>Use our guide if you are not sure what you need yet.</span><span class="intent-card__arrow">→</span></a>
+<a class="intent-card" href="/packaging-builder/"><strong>I need help choosing packaging</strong><span>Use our guide to build a packaging direction around your fashion brand.</span><span class="intent-card__arrow">→</span></a>
 <button class="intent-card" type="button" data-intent="existing"><strong>I am already working with Luxsome</strong><span>Get help with an existing quotation, sample or project.</span><span class="intent-card__arrow">→</span></button>
 <button class="intent-card" type="button" data-intent="other"><strong>I have another question</strong><span>Send us a short message.</span><span class="intent-card__arrow">→</span></button>
 </div></div>
 
 <div class="route-view" id="quotationView" hidden><button class="back-button" type="button" data-back-to="home">← Back</button>
-<div class="route-view__header"><p class="route-view__eyebrow">REQUEST A QUOTATION</p><h2>What should we quote for?</h2><p>Open a category and select the exact items you need. Only one category stays open at a time.</p></div>
+<div class="route-view__header"><p class="route-view__eyebrow">FASHION PACKAGING QUOTATION</p><h2>What should we quote for your brand?</h2><p>Choose individual fashion packaging pieces or select a complete packaging system.</p></div>
 <form id="quotationForm" class="quick-form" novalidate><input type="text" name="_gotcha" class="form-honeypot" tabindex="-1" autocomplete="off"><input type="hidden" name="selected_products_json" id="quotationProductsJson"><input type="hidden" name="selected_quantity" id="selectedQuantity">
 <div class="product-accordion" data-product-accordion="quotation">
-<section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Rigid Boxes</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Magnetic Flap Box">Magnetic Flap Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Shoulder Box">Shoulder Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Tray-in-Bed Box">Tray-in-Bed Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Gate Box">Gate Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Door Style Box">Door Style Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Collapsible Magnetic Flap Box">Collapsible Magnetic Flap Box</button></div></div></section><section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Hang Tags</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Hang Tags" data-product="1-Piece Hang Tag">1-Piece Hang Tag</button><button type="button" class="choice-button" data-category="Hang Tags" data-product="2-Piece Hang Tag">2-Piece Hang Tag</button><button type="button" class="choice-button" data-category="Hang Tags" data-product="3-Piece Hang Tag">3-Piece Hang Tag</button></div></div></section><section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Tissue Paper</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Tissue Paper" data-product="Branded Tissue Paper">Branded Tissue Paper</button><button type="button" class="choice-button" data-category="Tissue Paper" data-product="Repeat Logo Tissue">Repeat Logo Tissue</button><button type="button" class="choice-button" data-category="Tissue Paper" data-product="Custom Pattern Tissue">Custom Pattern Tissue</button></div></div></section><section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Cards & Inserts</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Cards & Inserts" data-product="Thank-You Card">Thank-You Card</button><button type="button" class="choice-button" data-category="Cards & Inserts" data-product="Thank-You Card + Envelope">Thank-You Card + Envelope</button><button type="button" class="choice-button" data-category="Cards & Inserts" data-product="Product Care Card">Product Care Card</button><button type="button" class="choice-button" data-category="Cards & Inserts" data-product="Product Description Card">Product Description Card</button></div></div></section><section class="product-group product-group--system">
+<section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Rigid Boxes</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Magnetic Flap Box">Magnetic Flap Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Shoulder Box">Shoulder Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Tray-in-Bed Box">Tray-in-Bed Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Gate Box">Gate Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Door Style Box">Door Style Box</button><button type="button" class="choice-button" data-category="Rigid Boxes" data-product="Collapsible Magnetic Flap Box">Collapsible Magnetic Flap Box</button></div></div></section><section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Hang Tags</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Hang Tags" data-product="1-Piece Hang Tag">1-Piece Hang Tag</button><button type="button" class="choice-button" data-category="Hang Tags" data-product="2-Piece Hang Tag">2-Piece Hang Tag</button><button type="button" class="choice-button" data-category="Hang Tags" data-product="3-Piece Hang Tag">3-Piece Hang Tag</button></div></div></section><section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Tissue Paper</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Tissue Paper" data-product="Branded Tissue Paper">Branded Tissue Paper</button><button type="button" class="choice-button" data-category="Tissue Paper" data-product="Repeat Logo Tissue">Repeat Logo Tissue</button><button type="button" class="choice-button" data-category="Tissue Paper" data-product="Custom Pattern Tissue">Custom Pattern Tissue</button></div></div></section><section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Brand Cards</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Brand Cards" data-product="Thank-You Card">Thank-You Card</button><button type="button" class="choice-button" data-category="Brand Cards" data-product="Thank-You Card + Envelope">Thank-You Card + Envelope</button><button type="button" class="choice-button" data-category="Brand Cards" data-product="Product Care Card">Product Care Card</button><button type="button" class="choice-button" data-category="Brand Cards" data-product="Product Description Card">Product Description Card</button></div></div></section><section class="product-group product-group--system">
 <button class="product-group__toggle" type="button" aria-expanded="false"><span>Complete Packaging System</span><span>+</span></button>
 <div class="product-group__panel" hidden>
     <div class="system-intro">
@@ -253,14 +314,14 @@
 </section>
 </div><span class="field-error" id="quotationProductError"></span><div class="selection-summary"><strong>Your selection</strong><div id="quotationSelectionSummary" class="selection-summary__items"><span class="selection-empty">Nothing selected yet.</span></div></div>
 <fieldset class="choice-fieldset"><legend>Approximate quantity <span class="optional">(optional)</span></legend><div class="choice-grid quantity-choices"><button type="button" class="choice-button" data-quantity="25–50">25–50</button><button type="button" class="choice-button" data-quantity="51–100">51–100</button><button type="button" class="choice-button" data-quantity="101–250">101–250</button><button type="button" class="choice-button" data-quantity="250+">250+</button><button type="button" class="choice-button" data-quantity="Not sure yet">Not sure yet</button></div></fieldset>
-<div class="form-grid"><div class="form-group"><label for="quotationBrandName">Brand name</label><input id="quotationBrandName" name="brandName" required maxlength="100"><span class="field-error" data-error-for="quotationBrandName"></span></div><div class="form-group"><label for="quotationPhone">WhatsApp / phone</label><input id="quotationPhone" name="phoneNumber" type="tel" required><span class="field-error" data-error-for="quotationPhone"></span></div><div class="form-group form-group--full"><label for="quotationEmail">Email address</label><input id="quotationEmail" name="emailAddress" type="email" required><span class="field-error" data-error-for="quotationEmail"></span></div><div class="form-group form-group--full"><label for="quotationMessage">Anything we should know? <span class="optional">(optional)</span></label><textarea id="quotationMessage" name="customer_note" maxlength="1500" placeholder="Sizes, finishing, colours, delivery location or anything else that helps us quote accurately."></textarea></div></div>
+<div class="form-grid"><div class="form-group"><label for="quotationBrandName">Fashion brand name</label><input id="quotationBrandName" name="brandName" required maxlength="100"><span class="field-error" data-error-for="quotationBrandName"></span></div><div class="form-group"><label for="quotationPhone">WhatsApp / phone</label><input id="quotationPhone" name="phoneNumber" type="tel" required><span class="field-error" data-error-for="quotationPhone"></span></div><div class="form-group form-group--full"><label for="quotationEmail">Email address</label><input id="quotationEmail" name="emailAddress" type="email" required><span class="field-error" data-error-for="quotationEmail"></span></div><div class="form-group form-group--full"><label for="quotationMessage">Anything we should know? <span class="optional">(optional)</span></label><textarea id="quotationMessage" name="customer_note" maxlength="1500" placeholder="Sizes, finishing, colours, delivery location or anything else that helps us quote accurately."></textarea></div></div>
 <button type="submit" class="submit-button" id="quotationSubmitButton"><span class="button-text">Request My Quotation</span><span class="button-spinner"></span></button><p class="form-note">No payment is required. We will review your request and prepare your quotation.</p><p id="quotationFormStatus" class="form-status"></p></form></div>
 
-<div class="route-view" id="sampleView" hidden><button class="back-button" type="button" data-back-to="home">← Back</button><div class="route-view__header"><p class="route-view__eyebrow">REQUEST A SAMPLE</p><h2>What would you like us to sample?</h2><p>Choose the item, add a reference if you have one, and send your details.</p></div>
+<div class="route-view" id="sampleView" hidden><button class="back-button" type="button" data-back-to="home">← Back</button><div class="route-view__header"><p class="route-view__eyebrow">FASHION PACKAGING SAMPLE</p><h2>What would you like us to sample for your brand?</h2><p>Choose the packaging piece, add a reference if you have one, and send your brand details.</p></div>
 <form id="sampleForm" class="quick-form" enctype="multipart/form-data" novalidate><input type="text" name="_gotcha" class="form-honeypot" tabindex="-1"><input type="hidden" name="selected_products_json" id="sampleProductsJson"><div class="product-accordion" data-product-accordion="sample">
 <section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Boxes</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Boxes" data-product="Magnetic Flap Box">Magnetic Flap Box</button><button type="button" class="choice-button" data-category="Boxes" data-product="Shoulder Box">Shoulder Box</button><button type="button" class="choice-button" data-category="Boxes" data-product="Tray-in-Bed Box">Tray-in-Bed Box</button><button type="button" class="choice-button" data-category="Boxes" data-product="Collapsible Magnetic Flap Box">Collapsible Magnetic Flap Box</button></div></div></section>
 <section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Tags & Paper</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Tags & Paper" data-product="1-Piece Hang Tag">1-Piece Hang Tag</button><button type="button" class="choice-button" data-category="Tags & Paper" data-product="2-Piece Hang Tag">2-Piece Hang Tag</button><button type="button" class="choice-button" data-category="Tags & Paper" data-product="3-Piece Hang Tag">3-Piece Hang Tag</button><button type="button" class="choice-button" data-category="Tags & Paper" data-product="Branded Tissue Paper">Branded Tissue Paper</button></div></div></section>
-<section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Cards & Inserts</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Cards & Inserts" data-product="Thank-You Card">Thank-You Card</button><button type="button" class="choice-button" data-category="Cards & Inserts" data-product="Thank-You Card + Envelope">Thank-You Card + Envelope</button><button type="button" class="choice-button" data-category="Cards & Inserts" data-product="Product Care Card">Product Care Card</button></div></div></section></div><span class="field-error" id="sampleProductError"></span>
+<section class="product-group"><button class="product-group__toggle" type="button" aria-expanded="false"><span>Brand Cards</span><span>+</span></button><div class="product-group__panel" hidden><div class="choice-grid"><button type="button" class="choice-button" data-category="Brand Cards" data-product="Thank-You Card">Thank-You Card</button><button type="button" class="choice-button" data-category="Brand Cards" data-product="Thank-You Card + Envelope">Thank-You Card + Envelope</button><button type="button" class="choice-button" data-category="Brand Cards" data-product="Product Care Card">Product Care Card</button></div></div></section></div><span class="field-error" id="sampleProductError"></span>
 <div class="selection-summary selection-summary--sample">
     <strong>Your selection</strong>
     <div id="sampleSelectionSummary" class="selection-summary__items">
@@ -308,7 +369,7 @@
 
     <span class="field-error" id="sampleAttachmentError"></span>
 </div>
-<div class="form-grid"><div class="form-group"><label for="sampleBrandName">Brand name</label><input id="sampleBrandName" name="brandName" required maxlength="100"><span class="field-error" data-error-for="sampleBrandName"></span></div><div class="form-group"><label for="samplePhone">WhatsApp / phone</label><input id="samplePhone" name="phoneNumber" type="tel" required><span class="field-error" data-error-for="samplePhone"></span></div><div class="form-group form-group--full"><label for="sampleEmail">Email address</label><input id="sampleEmail" name="emailAddress" type="email" required><span class="field-error" data-error-for="sampleEmail"></span></div><div class="form-group form-group--full"><label for="sampleMessage">Anything we should know? <span class="optional">(optional)</span></label><textarea id="sampleMessage" name="customer_note" maxlength="1500"></textarea></div></div><button type="submit" class="submit-button" id="sampleSubmitButton"><span class="button-text">Request My Sample</span><span class="button-spinner"></span></button><p id="sampleFormStatus" class="form-status"></p></form></div>
+<div class="form-grid"><div class="form-group"><label for="sampleBrandName">Fashion brand name</label><input id="sampleBrandName" name="brandName" required maxlength="100"><span class="field-error" data-error-for="sampleBrandName"></span></div><div class="form-group"><label for="samplePhone">WhatsApp / phone</label><input id="samplePhone" name="phoneNumber" type="tel" required><span class="field-error" data-error-for="samplePhone"></span></div><div class="form-group form-group--full"><label for="sampleEmail">Email address</label><input id="sampleEmail" name="emailAddress" type="email" required><span class="field-error" data-error-for="sampleEmail"></span></div><div class="form-group form-group--full"><label for="sampleMessage">Anything we should know? <span class="optional">(optional)</span></label><textarea id="sampleMessage" name="customer_note" maxlength="1500"></textarea></div></div><button type="submit" class="submit-button" id="sampleSubmitButton"><span class="button-text">Request My Sample</span><span class="button-spinner"></span></button><p id="sampleFormStatus" class="form-status"></p></form></div>
 
 <div class="route-view" id="simpleContactView" hidden><button class="back-button" type="button" data-back-to="home">← Back</button><div class="route-view__header"><p class="route-view__eyebrow">GENERAL QUESTION</p><h2>Tell us how we can help.</h2></div><p>For general questions, email <a href="mailto:hello@luxsomepackaging.com">hello@luxsomepackaging.com</a> or chat with us on WhatsApp.</p></div>
 <div class="route-view contact-direct" id="existingView" hidden><button class="back-button" type="button" data-back-to="home">← Back</button><div class="route-view__header"><p class="route-view__eyebrow">EXISTING PROJECT</p><h2>Already working with us?</h2><p>Include your quotation, sample or project reference if you have one.</p></div><div class="direct-actions"><a class="direct-action direct-action--primary" href="https://wa.me/2349068804133" target="_blank"><strong>Continue on WhatsApp</strong><span>+234 906 880 4133</span></a><a class="direct-action" href="mailto:hello@luxsomepackaging.com"><strong>Send an email</strong><span>hello@luxsomepackaging.com</span></a></div></div>
