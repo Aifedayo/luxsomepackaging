@@ -266,12 +266,414 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    $("printInvoice").addEventListener("click", () => {
+    $("printInvoice").addEventListener("click", async () => {
         if (!invoice || $("invoice").hidden) {
             return;
         }
     
-        window.print();
+        const invoiceElement = $("invoice");
+    
+        /*
+         * Clone the invoice so we can remove interactive sections
+         * without affecting the page the customer is viewing.
+         */
+        const printableInvoice = invoiceElement.cloneNode(true);
+    
+        printableInvoice.removeAttribute("hidden");
+        printableInvoice.removeAttribute("id");
+    
+        /*
+         * Payment confirmation belongs to the web portal,
+         * not the PDF invoice.
+         */
+        printableInvoice
+            .querySelector("#paymentCard")
+            ?.remove();
+    
+        const printWindow = window.open(
+            "",
+            "_blank",
+            "width=900,height=1100"
+        );
+    
+        if (!printWindow) {
+            alert(
+                "Your browser blocked the print window. Please allow pop-ups for Luxsome Packaging and try again."
+            );
+            return;
+        }
+    
+        printWindow.document.open();
+    
+        printWindow.document.write(`
+            <!doctype html>
+            <html lang="en">
+            <head>
+                <meta charset="utf-8">
+    
+                <title>
+                    ${esc(invoice.invoice_reference || "Luxsome Invoice")}
+                </title>
+    
+                <meta
+                    name="viewport"
+                    content="width=device-width,initial-scale=1"
+                >
+    
+                <link
+                    rel="preconnect"
+                    href="https://fonts.googleapis.com"
+                >
+    
+                <link
+                    rel="preconnect"
+                    href="https://fonts.gstatic.com"
+                    crossorigin
+                >
+    
+                <link
+                    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap"
+                    rel="stylesheet"
+                >
+    
+                <style>
+                    @page {
+                        size: A4;
+                        margin: 14mm;
+                    }
+    
+                    * {
+                        box-sizing: border-box;
+                    }
+    
+                    html,
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background: #ffffff;
+                        color: #2e1c15;
+                    }
+    
+                    body {
+                        font-family:
+                            "Montserrat",
+                            Arial,
+                            sans-serif;
+    
+                        font-size: 12px;
+                        line-height: 1.6;
+    
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+    
+                    .invoice-paper {
+                        display: block;
+                        width: 100%;
+                        max-width: 100%;
+                        margin: 0;
+                        padding: 0;
+                        background: #ffffff;
+                        color: #2e1c15;
+                    }
+    
+                    .invoice-heading {
+                        display: grid;
+                        grid-template-columns:
+                            minmax(0, 1fr)
+                            auto;
+    
+                        gap: 30px;
+                        align-items: start;
+    
+                        padding-bottom: 24px;
+                        margin-bottom: 24px;
+    
+                        border-bottom:
+                            1px solid #dfd3ca;
+                    }
+    
+                    .eyebrow {
+                        margin:
+                            0
+                            0
+                            8px;
+    
+                        color: #8b604d;
+    
+                        font-size: 10px;
+                        font-weight: 700;
+    
+                        letter-spacing: .15em;
+                        text-transform: uppercase;
+                    }
+    
+                    h1,
+                    h2,
+                    p {
+                        margin-top: 0;
+                    }
+    
+                    h1 {
+                        margin-bottom: 6px;
+    
+                        font-family:
+                            "DM Serif Display",
+                            Georgia,
+                            serif;
+    
+                        font-size: 30px;
+                        font-weight: 400;
+                        line-height: 1.1;
+                    }
+    
+                    h2 {
+                        margin-bottom: 8px;
+    
+                        font-size: 12px;
+                        font-weight: 700;
+                    }
+    
+                    .status-box {
+                        min-width: 130px;
+                        padding: 14px 16px;
+    
+                        border:
+                            1px solid #dfd3ca;
+    
+                        text-align: right;
+                    }
+    
+                    .status-box span {
+                        display: block;
+    
+                        margin-bottom: 3px;
+    
+                        color: #806b60;
+    
+                        font-size: 9px;
+                        font-weight: 600;
+    
+                        text-transform: uppercase;
+                        letter-spacing: .1em;
+                    }
+    
+                    .status-box strong {
+                        text-transform: capitalize;
+                    }
+    
+                    .summary-grid {
+                        display: grid;
+                        grid-template-columns:
+                            repeat(4, 1fr);
+    
+                        margin-bottom: 28px;
+    
+                        border:
+                            1px solid #dfd3ca;
+                    }
+    
+                    .summary-grid article {
+                        padding: 14px;
+                    }
+    
+                    .summary-grid article + article {
+                        border-left:
+                            1px solid #dfd3ca;
+                    }
+    
+                    .summary-grid span {
+                        display: block;
+    
+                        margin-bottom: 5px;
+    
+                        color: #806b60;
+    
+                        font-size: 9px;
+                        font-weight: 600;
+    
+                        text-transform: uppercase;
+                        letter-spacing: .08em;
+                    }
+    
+                    .summary-grid strong {
+                        font-size: 12px;
+                    }
+    
+                    .items-wrap {
+                        margin-bottom: 24px;
+                    }
+    
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+    
+                    thead {
+                        background: #2e1c15;
+                        color: #ffffff;
+                    }
+    
+                    th {
+                        padding: 10px 12px;
+    
+                        font-size: 9px;
+                        font-weight: 700;
+    
+                        letter-spacing: .06em;
+                        text-align: left;
+                        text-transform: uppercase;
+                    }
+    
+                    th:nth-child(n + 2),
+                    td:nth-child(n + 2) {
+                        text-align: right;
+                    }
+    
+                    td {
+                        padding: 12px;
+    
+                        border-bottom:
+                            1px solid #e8ded7;
+    
+                        vertical-align: top;
+                    }
+    
+                    td strong {
+                        display: block;
+                    }
+    
+                    .item-detail {
+                        display: block;
+    
+                        margin-top: 4px;
+    
+                        color: #806b60;
+                        font-size: 10px;
+                    }
+    
+                    .totals {
+                        width: 310px;
+                        margin:
+                            0
+                            0
+                            30px
+                            auto;
+                    }
+    
+                    .totals > div {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 30px;
+    
+                        padding: 6px 0;
+                    }
+    
+                    .totals .grand {
+                        margin-top: 5px;
+                        padding-top: 10px;
+    
+                        border-top:
+                            1px solid #2e1c15;
+    
+                        font-size: 14px;
+                    }
+    
+                    .notes-grid {
+                        display: grid;
+                        grid-template-columns:
+                            repeat(2, 1fr);
+    
+                        gap: 18px;
+                    }
+    
+                    .notes-grid article {
+                        padding: 16px;
+    
+                        border:
+                            1px solid #dfd3ca;
+    
+                        break-inside: avoid;
+                        page-break-inside: avoid;
+                    }
+    
+                    .notes-grid p {
+                        margin-bottom: 0;
+                        white-space: pre-line;
+                    }
+    
+                    tr,
+                    .invoice-heading,
+                    .summary-grid,
+                    .totals,
+                    .notes-grid {
+                        break-inside: avoid;
+                        page-break-inside: avoid;
+                    }
+    
+                    @media print {
+                        html,
+                        body {
+                            width: auto;
+                            height: auto;
+                            overflow: visible;
+                        }
+                    }
+                </style>
+            </head>
+    
+            <body>
+                ${printableInvoice.outerHTML}
+            </body>
+            </html>
+        `);
+    
+        printWindow.document.close();
+    
+        /*
+         * Wait for fonts/images/layout before opening the
+         * browser's PDF/print dialog.
+         */
+        const waitForPrintAssets = async () => {
+            try {
+                await printWindow.document.fonts?.ready;
+            } catch (_) {
+                // Browser without FontFaceSet support.
+            }
+    
+            const images = Array.from(
+                printWindow.document.images
+            );
+    
+            await Promise.all(
+                images.map(image => {
+                    if (image.complete) {
+                        return Promise.resolve();
+                    }
+    
+                    return new Promise(resolve => {
+                        image.addEventListener(
+                            "load",
+                            resolve,
+                            { once: true }
+                        );
+    
+                        image.addEventListener(
+                            "error",
+                            resolve,
+                            { once: true }
+                        );
+                    });
+                })
+            );
+        };
+    
+        await waitForPrintAssets();
+    
+        setTimeout(() => {
+            printWindow.focus();
+            printWindow.print();
+        }, 250);
     });
     window.addEventListener("beforeunload", () => {
         if (previewUrl) {
