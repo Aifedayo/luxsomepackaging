@@ -27,7 +27,13 @@
             <a href="/" class="invoice-brand" aria-label="Luxsome Packaging homepage">
                 <img src="/assets/images/luxsome-logo.png" alt="Luxsome Packaging" class="invoice-brand__logo">
             </a>
-            <button id="printInvoice" type="button">Print / Save PDF</button>
+            <button
+                id="printInvoice"
+                type="button"
+                disabled
+            >
+                Print / Save PDF
+            </button>
         </header>
 
         <section id="loading" class="state-card">Loading your invoice…</section>
@@ -87,23 +93,29 @@
                         <input id="paymentSlip" name="paymentSlip" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf" required>
                         <span class="payment-slip-help">Upload a JPG, PNG, WEBP or PDF file. Maximum size: 5 MB.</span>
                     </label>
-                    <div id="paymentSlipPreview" class="payment-slip-preview" hidden>
-                        <img id="paymentSlipImage" alt="Payment slip preview" hidden>
+                    <div
+                        id="paymentSlipPreview"
+                        class="payment-slip-preview"
+                        hidden
+                    >
+                        <img
+                            id="paymentSlipImage"
+                            alt="Payment slip preview"
+                            hidden
+                        >
+
                         <div class="payment-slip-preview__details">
                             <strong id="paymentSlipName"></strong>
                             <span id="paymentSlipSize"></span>
                         </div>
-                        <div class="payment-slip-preview">
-                            <img id="paymentSlipPreview">
-                        
-                            <button
-                                type="button"
-                                id="removePaymentSlip"
-                                class="remove-slip"
-                            >
-                                Remove
-                            </button>
-                        </div>
+
+                        <button
+                            type="button"
+                            id="removePaymentSlip"
+                            class="remove-slip"
+                        >
+                            Remove
+                        </button>
                     </div>
                     <label>
                         Note

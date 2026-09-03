@@ -318,3 +318,122 @@
     }
 
 }
+
+/* =========================================================
+   INVOICE PRINT / SAVE PDF
+========================================================= */
+
+@page {
+    size: A4;
+    margin: 12mm;
+}
+
+@media print {
+
+    html,
+    body {
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        overflow: visible !important;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /*
+     * Important:
+     * Override any older print rule that hides page content.
+     */
+    body *,
+    .portal-shell,
+    .portal-shell * {
+        visibility: visible !important;
+    }
+
+    .portal-shell {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    /*
+     * Do not print the website header/actions.
+     */
+    .portal-header {
+        display: none !important;
+    }
+
+    /*
+     * The actual invoice must always be printable.
+     */
+    #invoice,
+    .invoice-paper {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        overflow: visible !important;
+        transform: none !important;
+    }
+
+    #invoice *,
+    .invoice-paper * {
+        visibility: visible !important;
+    }
+
+    /*
+     * Payment submission is an interactive web feature,
+     * not part of the printable invoice.
+     */
+    #paymentCard,
+    .payment-card {
+        display: none !important;
+    }
+
+    #loading,
+    #error {
+        display: none !important;
+    }
+
+    /*
+     * Prevent important sections splitting unnecessarily.
+     */
+    .invoice-heading,
+    .summary-grid,
+    .totals,
+    .notes-grid {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    table {
+        width: 100% !important;
+        break-inside: auto;
+    }
+
+    tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    a {
+        color: inherit !important;
+        text-decoration: none !important;
+    }
+}

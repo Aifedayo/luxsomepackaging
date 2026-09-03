@@ -138,6 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         $("loading").hidden = true;
         $("invoice").hidden = false;
+        $("printInvoice").disabled = false;
     }
 
     async function load() {
@@ -265,7 +266,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    $("printInvoice").onclick = () => window.print();
+    $("printInvoice").addEventListener("click", () => {
+        if (!invoice || $("invoice").hidden) {
+            return;
+        }
+    
+        window.print();
+    });
     window.addEventListener("beforeunload", () => {
         if (previewUrl) {
             URL.revokeObjectURL(previewUrl);
