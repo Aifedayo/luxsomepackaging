@@ -927,6 +927,395 @@
         }
     }
 
+    function printInvoice() {
+        const invoice = state.selected;
+
+        if (!invoice) {
+            window.alert("Open an invoice before printing.");
+            return;
+        }
+
+        const printWindow = window.open(
+            "",
+            "_blank",
+            "width=900,height=1100"
+        );
+
+        if (!printWindow) {
+            window.alert(
+                "The print window was blocked. Please allow pop-ups for the Luxsome CRM and try again."
+            );
+            return;
+        }
+
+        const currency = invoice.currency || "NGN";
+        const customer =
+            invoice.brand_name ||
+            invoice.customer_name ||
+            "Valued customer";
+        const status = escapeHtml(
+            String(invoice.status || "")
+                .replaceAll("_", " ")
+        );
+
+        const items = (invoice.items || [])
+            .map((item) => `
+                <tr>
+                    <td>
+                        <strong>${escapeHtml(item.description)}</strong>
+                        ${
+                            item.details
+                                ? `<span class="item-detail">${escapeHtml(item.details)}</span>`
+                                : ""
+                        }
+                    </td>
+                    <td>${escapeHtml(item.quantity)}</td>
+                    <td>${formatMoney(item.unit_price, currency)}</td>
+                    <td>${formatMoney(item.line_total, currency)}</td>
+                </tr>
+            `)
+            .join("");
+
+        printWindow.document.open();
+        printWindow.document.write(`
+            <!doctype html>
+            <html lang="en">
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width,initial-scale=1">
+                <title>${escapeHtml(invoice.invoice_reference)} | Luxsome Packaging</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+                <style>
+                    @page {
+                        size: A4;
+                        margin: 14mm;
+                    }
+
+                    * {
+                        box-sizing: border-box;
+                    }
+
+                    html,
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background: #ffffff;
+                    }
+
+                    body {
+                        color: #2e1c15;
+                        font-family: "Montserrat", Arial, sans-serif;
+                        font-size: 12px;
+                        line-height: 1.6;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+
+                    .invoice {
+                        width: 100%;
+                        max-width: 100%;
+                    }
+
+                    .invoice-header {
+                        display: flex;
+                        align-items: flex-start;
+                        justify-content: space-between;
+                        gap: 32px;
+                        padding-bottom: 24px;
+                        margin-bottom: 24px;
+                        border-bottom: 1px solid #dfd3ca;
+                    }
+
+                    .invoice-brand {
+                        margin: 0 0 7px;
+                        color: #673629;
+                        font-size: 10px;
+                        font-weight: 700;
+                        letter-spacing: .16em;
+                        text-transform: uppercase;
+                    }
+
+                    h1 {
+                        margin: 0;
+                        font-family: "DM Serif Display", Georgia, serif;
+                        font-size: 34px;
+                        font-weight: 400;
+                        line-height: 1;
+                    }
+
+                    .invoice-meta {
+                        min-width: 180px;
+                        text-align: right;
+                    }
+
+                    .invoice-meta strong {
+                        display: block;
+                        margin-bottom: 6px;
+                        font-size: 14px;
+                    }
+
+                    .invoice-meta p {
+                        margin: 0;
+                        color: #806b60;
+                        font-size: 10px;
+                    }
+
+                    .customer-grid {
+                        display: grid;
+                        grid-template-columns: minmax(0, 1fr) 180px 120px;
+                        gap: 18px;
+                        margin-bottom: 30px;
+                    }
+
+                    .customer-grid > div {
+                        padding: 15px;
+                        border: 1px solid #e3d8d0;
+                    }
+
+                    .customer-grid small {
+                        display: block;
+                        margin-bottom: 6px;
+                        color: #806b60;
+                        font-size: 8px;
+                        font-weight: 700;
+                        letter-spacing: .12em;
+                    }
+
+                    .customer-grid h2,
+                    .customer-grid h3 {
+                        margin: 0;
+                    }
+
+                    .customer-grid p {
+                        margin: 7px 0 0;
+                        color: #806b60;
+                        font-size: 10px;
+                    }
+
+                    .amount-due h2 {
+                        color: #673629;
+                        font-size: 20px;
+                    }
+
+                    .status {
+                        text-transform: capitalize;
+                    }
+
+                    table {
+                        width: 100%;
+                        margin-bottom: 24px;
+                        border-collapse: collapse;
+                    }
+
+                    thead {
+                        background: #2e1c15;
+                        color: #ffffff;
+                    }
+
+                    th {
+                        padding: 10px 12px;
+                        font-size: 8px;
+                        font-weight: 700;
+                        letter-spacing: .08em;
+                        text-align: left;
+                        text-transform: uppercase;
+                    }
+
+                    th:not(:first-child),
+                    td:not(:first-child) {
+                        text-align: right;
+                    }
+
+                    td {
+                        padding: 12px;
+                        vertical-align: top;
+                        border-bottom: 1px solid #eadfd7;
+                    }
+
+                    td strong {
+                        display: block;
+                    }
+
+                    .item-detail {
+                        display: block;
+                        margin-top: 4px;
+                        color: #806b60;
+                        font-size: 9px;
+                    }
+
+                    .totals {
+                        width: 330px;
+                        margin-left: auto;
+                        margin-bottom: 30px;
+                    }
+
+                    .totals > div {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 25px;
+                        padding: 5px 0;
+                    }
+
+                    .totals .total {
+                        margin-top: 5px;
+                        padding-top: 10px;
+                        border-top: 1px solid #cbbcb2;
+                        font-weight: 700;
+                    }
+
+                    .totals .balance {
+                        margin-top: 7px;
+                        padding-top: 11px;
+                        border-top: 2px solid #2e1c15;
+                        color: #673629;
+                        font-size: 15px;
+                        font-weight: 700;
+                    }
+
+                    .notes {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 16px;
+                        margin-top: 28px;
+                    }
+
+                    .note {
+                        padding: 16px;
+                        border: 1px solid #e3d8d0;
+                    }
+
+                    .note strong {
+                        display: block;
+                        margin-bottom: 7px;
+                        font-size: 9px;
+                        text-transform: uppercase;
+                        letter-spacing: .08em;
+                    }
+
+                    .note p {
+                        margin: 0;
+                        white-space: pre-line;
+                    }
+
+                    .footer {
+                        margin-top: 34px;
+                        padding-top: 15px;
+                        border-top: 1px solid #eadfd7;
+                        color: #806b60;
+                        font-size: 9px;
+                        text-align: center;
+                    }
+
+                    tr,
+                    .invoice-header,
+                    .customer-grid,
+                    .totals,
+                    .notes,
+                    .note {
+                        break-inside: avoid;
+                        page-break-inside: avoid;
+                    }
+                </style>
+            </head>
+            <body>
+                <main class="invoice">
+                    <header class="invoice-header">
+                        <div>
+                            <p class="invoice-brand">LUXSOME PACKAGING</p>
+                            <h1>INVOICE</h1>
+                        </div>
+                        <div class="invoice-meta">
+                            <strong>${escapeHtml(invoice.invoice_reference)}</strong>
+                            <p>
+                                Issue: ${formatDate(invoice.issue_date)}<br>
+                                Due: ${formatDate(invoice.due_date)}
+                            </p>
+                        </div>
+                    </header>
+
+                    <section class="customer-grid">
+                        <div>
+                            <small>BILL TO</small>
+                            <h3>${escapeHtml(customer)}</h3>
+                            <p>
+                                ${invoice.customer_name ? `${escapeHtml(invoice.customer_name)}<br>` : ""}
+                                ${invoice.customer_email ? `${escapeHtml(invoice.customer_email)}<br>` : ""}
+                                ${escapeHtml(invoice.customer_phone || "")}
+                            </p>
+                        </div>
+                        <div class="amount-due">
+                            <small>AMOUNT DUE</small>
+                            <h2>${formatMoney(invoice.balance_due, currency)}</h2>
+                        </div>
+                        <div>
+                            <small>STATUS</small>
+                            <h3 class="status">${status}</h3>
+                        </div>
+                    </section>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Qty</th>
+                                <th>Unit price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>${items}</tbody>
+                    </table>
+
+                    <section class="totals">
+                        <div><span>Subtotal</span><strong>${formatMoney(invoice.subtotal, currency)}</strong></div>
+                        <div><span>Discount</span><strong>− ${formatMoney(invoice.discount, currency)}</strong></div>
+                        <div><span>Delivery</span><strong>${formatMoney(invoice.delivery_fee, currency)}</strong></div>
+                        <div><span>Tax</span><strong>${formatMoney(invoice.tax, currency)}</strong></div>
+                        <div class="total"><span>Invoice total</span><strong>${formatMoney(invoice.grand_total, currency)}</strong></div>
+                        <div><span>Amount paid</span><strong>${formatMoney(invoice.amount_paid, currency)}</strong></div>
+                        <div class="balance"><span>Balance due</span><strong>${formatMoney(invoice.balance_due, currency)}</strong></div>
+                    </section>
+
+                    <section class="notes">
+                        <article class="note">
+                            <strong>Payment instructions</strong>
+                            <p>${escapeHtml(invoice.payment_instructions || "Please contact Luxsome Packaging for payment details.")}</p>
+                        </article>
+                        <article class="note">
+                            <strong>Payment terms</strong>
+                            <p>${escapeHtml(invoice.payment_terms || "Payment is due according to the agreed project terms.")}</p>
+                        </article>
+                    </section>
+
+                    <footer class="footer">
+                        Luxsome Packaging · Lagos, Nigeria · hello@luxsomepackaging.com
+                    </footer>
+                </main>
+            </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+
+        const printWhenReady = async () => {
+            try {
+                if (printWindow.document.fonts?.ready) {
+                    await printWindow.document.fonts.ready;
+                }
+            } catch (_) {
+                // Printing can continue if custom fonts fail.
+            }
+
+            window.setTimeout(() => {
+                printWindow.focus();
+                printWindow.print();
+            }, 250);
+        };
+
+        printWhenReady();
+    }
+
     function showPreview() {
         const invoice = state.selected;
 
@@ -1202,7 +1591,7 @@
 
     element("print").addEventListener(
         "click",
-        () => window.print()
+        printInvoice
     );
 
     let searchTimer;
